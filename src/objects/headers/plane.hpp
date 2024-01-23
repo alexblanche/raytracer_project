@@ -3,9 +3,9 @@
 #ifndef PLANE_H
 #define PLANE_H
 
-#include "../../screen/headers/color.hpp"
-#include "../../screen/headers/vector.hpp"
-//#include "hit.hpp"
+#include "../../light/headers/color.hpp"
+#include "../../light/headers/vector.hpp"
+#include "../../light/headers/hit.hpp"
 
 
 class plane
@@ -28,7 +28,7 @@ class plane
         rt::color get_color();
 
         double send(ray r);
-        //hit intersect(ray r, double t);
+        hit intersect(ray r, double t);
 };
 
 #endif // PLANE_H

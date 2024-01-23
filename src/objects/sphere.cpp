@@ -1,6 +1,6 @@
 #include "sphere.hpp"
-#include "screen/Screen/color.hpp"
-#include "screen/Screen/vector.hpp"
+#include "../../light/headers/color.hpp"
+#include "../../light/headers/vector.hpp"
 #include <math.h>
 
 #include<limits>

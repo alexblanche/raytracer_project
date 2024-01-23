@@ -3,8 +3,8 @@
 #ifndef RT_SPHERE_H
 #define RT_SPHERE_H
 
-#include "../../screen/headers/color.hpp"
-#include "../../screen/headers/vector.hpp"
+#include "../../light/headers/color.hpp"
+#include "../../light/headers/vector.hpp"
 #include "../../light/headers/hit.hpp"
 
 class sphere

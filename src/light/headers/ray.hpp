@@ -3,8 +3,8 @@
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
-#include "screen/headers/vector.hpp"
-#include "screen/headers/color.hpp"
+#include "vector.hpp"
+#include "color.hpp"
 
 using namespace std;
 

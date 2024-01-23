@@ -1,8 +1,8 @@
 #include "headers/plane.hpp"
 
-#include "screen/headers/color.hpp"
-#include "screen/headers/vector.hpp"
-#include "headers/hit.hpp"
+#include "../../light/headers/color.hpp"
+#include "../../light/headers/vector.hpp"
+#include "../../light/headers/hit.hpp"
 
 #include<limits>
 

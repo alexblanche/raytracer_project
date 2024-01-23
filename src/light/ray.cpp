@@ -1,4 +1,4 @@
-#include "ray.hpp"
+#include "headers/ray.hpp"
 
 using namespace std;
 

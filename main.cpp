@@ -6,16 +6,16 @@
 #include "src/light/headers/light.hpp"
 #include "src/objects/headers/sphere.hpp"
 #include "src/objects/headers/plane.hpp"
-#include<limits>
+#include <limits>
 numeric_limits<double> real;
 const double infinity = real.infinity();
 
 
-#include "screen/headers/color.hpp"
-#include "screen/headers/image.hpp"
-#include "screen/headers/rect.hpp"
-#include "screen/headers/screen.hpp"
-#include "screen/headers/vector.hpp"
+#include "src/screen/headers/color.hpp"
+#include "src/screen/headers/image.hpp"
+#include "src/screen/headers/rect.hpp"
+#include "src/screen/headers/screen.hpp"
+#include "src/screen/headers/vector.hpp"
 
 
 using namespace std;

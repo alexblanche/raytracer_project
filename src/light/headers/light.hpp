@@ -5,9 +5,8 @@
 #include <stdlib.h>
 #include <vector>
 
-/*
 #include "hit.hpp"
-#include "light.hpp"
+/*
 #include "sphere.hpp"
 #include "plane.hpp"
 */
@@ -25,6 +24,6 @@ class light {
     rt::color get_color() const;
     rt::color apply(hit h);
 
-    rt::color apply2(hit h, vector<sphere>);//, vector<plane>);
+    //rt::color apply2(hit h, vector<sphere>);//, vector<plane>);
 }
 ;

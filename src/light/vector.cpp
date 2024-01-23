@@ -18,53 +18,46 @@
 
 namespace rt {
 
-	bool vector::operator==(const vector& other) const
-	{
+	bool vector::operator==(const vector& other) const {
 		return (other.x == x && other.y == y && other.z == z);
 	}
 	
-	vector vector::operator+(const vector& other) const
-	{
+	vector vector::operator+(const vector& other) const {
 		return vector(x+other.x,y+other.y,z+other.z);
 	}
 
-	vector vector::operator-(const vector& other) const
-	{
+	vector vector::operator-(const vector& other) const {
 		return vector(x-other.x,y-other.y,z-other.z);
 	}
 
-	vector vector::operator^(const vector& other) const
-	{
-		return vector(y*other.z - z*other.y,
-			      z*other.x - x*other.z,
-			      x*other.y - y*other.x);
+	vector vector::operator^(const vector& other) const {
+		return
+			vector(y*other.z - z*other.y,
+				z*other.x - x*other.z,
+				x*other.y - y*other.x
+			);
 	}
 
-	double vector::operator|(const vector& other) const
-	{
+	double vector::operator|(const vector& other) const {
 		return (x*other.x + y*other.y + z*other.z);
 	}
 
-	double vector::norm() const
-	{
+	double vector::norm() const {
 		double n = std::sqrt(x*x+y*y+z*z);
 		return n;
 	}
 
-	vector vector::unit() const
-	{
+	vector vector::unit() const {
 		double n = norm();
 		vector v(x/n,y/n,z/n);
 		return v;
 	}
 
-	vector operator*(const double& a, const vector& v)
-	{
+	vector operator*(const double& a, const vector& v) {
 		return vector(a*v.x,a*v.y,a*v.z);
 	}
 
-	vector operator*(const vector& v, const double& a)
-	{
+	vector operator*(const vector& v, const double& a) {
 		return vector(a*v.x,a*v.y,a*v.z);
 	}
 }
