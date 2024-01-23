@@ -87,3 +87,4 @@ sdl/lib/libSDL2main.la
 sdl/lib/cmake/SDL2/sdl2-config-version.cmake
 sdl/lib/cmake/SDL2/sdl2-config.cmake
 sdl/lib/pkgconfig/sdl2.pc
+.vscode/c_cpp_properties.json
