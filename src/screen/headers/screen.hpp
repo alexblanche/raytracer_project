@@ -29,8 +29,8 @@ namespace rt {
 	 * If a second screen instance is created, it gets attached
 	 * to the first one and the width and height are ignored.
 	 */
-	class screen : public image
-	{
+	class screen : public image	{
+		
 		private:
 			static int initialized; /*!< Indicates how many instances of screen exist. */
 			// Deprecated. -> window, renderer...

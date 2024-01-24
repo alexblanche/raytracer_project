@@ -7,17 +7,18 @@
 std::numeric_limits<double> real;
 const double infinity = real.infinity();
 
-#include "src/screen/headers/image.hpp"
+#include "src/screen/headers/color.hpp"
 #include "src/screen/headers/rect.hpp"
+#include "src/screen/headers/image.hpp"
 #include "src/screen/headers/screen.hpp"
+
+#include "src/light/headers/vector.hpp"
+#include "src/light/headers/hit.hpp"
 
 #include "src/objects/headers/sphere.hpp"
 #include "src/objects/headers/plane.hpp"
 
-#include "src/light/headers/hit.hpp"
 #include "src/light/headers/light.hpp"
-#include "src/screen/headers/color.hpp"
-#include "src/light/headers/vector.hpp"
 
 using namespace std;
 
