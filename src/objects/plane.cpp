@@ -1,6 +1,6 @@
 #include "headers/plane.hpp"
 
-#include "../../light/headers/color.hpp"
+#include "../../screen/headers/color.hpp"
 #include "../../light/headers/vector.hpp"
 #include "../../light/headers/hit.hpp"
 

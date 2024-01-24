@@ -23,6 +23,9 @@ namespace rt {
 				exit(-1);
 			}
 			signal(SIGINT,sigint_handler);
+
+			// Deprecated, needs to be converted to SDL2 (surface -> renderer)
+			
 			data = SDL_SetVideoMode(width, height, 32,
 					(SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_ANYFORMAT));
 			buffer = data;

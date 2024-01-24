@@ -1,5 +1,5 @@
-#include "sphere.hpp"
-#include "../../light/headers/color.hpp"
+#include "headers/sphere.hpp"
+#include "../../screen/headers/color.hpp"
 #include "../../light/headers/vector.hpp"
 #include <math.h>
 

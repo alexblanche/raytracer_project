@@ -6,10 +6,9 @@
 #include <vector>
 
 #include "hit.hpp"
-/*
-#include "sphere.hpp"
-#include "plane.hpp"
-*/
+#include "../../objects/headers/sphere.hpp"
+#include "../../objects/headers/plane.hpp"
+
 
 using namespace std;
 
@@ -24,6 +23,6 @@ class light {
     rt::color get_color() const;
     rt::color apply(hit h);
 
-    //rt::color apply2(hit h, vector<sphere>);//, vector<plane>);
+    rt::color apply2(hit h, vector<sphere>);//, vector<plane>);
 }
 ;

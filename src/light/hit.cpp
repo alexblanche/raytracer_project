@@ -1,5 +1,5 @@
 #include "headers/hit.hpp"
-#include "headers/color.hpp"
+#include "../../screen/headers/color.hpp"
 #include "headers/vector.hpp"
 
 

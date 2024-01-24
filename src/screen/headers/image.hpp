@@ -29,6 +29,7 @@ namespace rt {
 	class image	{
 		
 		protected:
+			// Deprecated. -> renderer
 			SDL_Surface* data; /*!< Wrapped SDL surface */
 
 			/**

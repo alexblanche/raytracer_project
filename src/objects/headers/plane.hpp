@@ -3,7 +3,7 @@
 #ifndef PLANE_H
 #define PLANE_H
 
-#include "../../light/headers/color.hpp"
+#include "../../screen/headers/color.hpp"
 #include "../../light/headers/vector.hpp"
 #include "../../light/headers/hit.hpp"
 

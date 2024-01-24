@@ -2,10 +2,10 @@
 #include <fstream>
 #include <stdlib.h>
 #include <vector>
-#include "hit.hpp"
-#include "light.hpp"
-#include "sphere.hpp"
-#include "plane.hpp"
+#include "headers/hit.hpp"
+#include "headers/light.hpp"
+#include "../../objects/headers/sphere.hpp"
+#include "../../objects/headers/plane.hpp"
 
 
 using namespace std;

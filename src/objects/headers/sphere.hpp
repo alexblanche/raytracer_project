@@ -3,7 +3,7 @@
 #ifndef RT_SPHERE_H
 #define RT_SPHERE_H
 
-#include "../../light/headers/color.hpp"
+#include "../../screen/headers/color.hpp"
 #include "../../light/headers/vector.hpp"
 #include "../../light/headers/hit.hpp"
 

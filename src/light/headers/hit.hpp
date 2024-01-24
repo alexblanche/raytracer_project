@@ -4,7 +4,7 @@
 #define RT_HIT_H
 #endif // RT_HIT_H
 
-#include "color.hpp"
+#include "../../screen/headers/color.hpp"
 #include "vector.hpp"
 #include "ray.hpp"
 

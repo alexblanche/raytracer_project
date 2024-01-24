@@ -4,7 +4,7 @@
 #include <fstream>
 #include <stdlib.h>
 #include "vector.hpp"
-#include "color.hpp"
+#include "../../screen/headers/color.hpp"
 
 using namespace std;
 
