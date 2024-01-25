@@ -4,8 +4,8 @@
 #include <vector>
 #include "headers/hit.hpp"
 #include "headers/light.hpp"
-#include "../../objects/headers/sphere.hpp"
-#include "../../objects/headers/plane.hpp"
+#include "../objects/headers/sphere.hpp"
+#include "../objects/headers/plane.hpp"
 
 
 using namespace std;

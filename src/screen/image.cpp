@@ -37,10 +37,10 @@ namespace rt {
 	image::~image() {
 		if (renderer != NULL){
 			SDL_DestroyRenderer(renderer);
-		}
+		};
 		if(window != NULL){
 			SDL_DestroyWindow(window);
-		}
+		};
 		SDL_Quit();
 	}
 
@@ -76,7 +76,7 @@ namespace rt {
 	 * Sets a pixel to a given color.
 	 */
 	void image::set_pixel(int x, int y, const color& c)	{
-		if(x < 0 || y < 0 || x >= width() || y >= height()){
+		if(x < 0 || y < 0 || x >= width() || y >= height()) {
 			return;
 		}
 		Uint8 r = c.get_red();

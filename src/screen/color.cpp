@@ -8,9 +8,7 @@ namespace rt {
 	color color::GREEN = color(0,255,0);
 	color color::RED   = color(255,0,0);
 
-	color::color() {
-		red = green = blue = alpha = 0;
-	}
+	color::color() : red(255), green(0), blue(0), alpha(255) {};
 
 	color::color(const color& c) {
 		red   = c.get_red();
@@ -34,7 +32,7 @@ namespace rt {
 	}
 
 	bool color::operator==(const color& c) const {
-		return     (c.get_red()   == get_red())
+		return (c.get_red()   == get_red())
 			&& (c.get_green() == get_green())
 			&& (c.get_blue()  == get_blue())
 			&& (c.get_alpha() == get_alpha());

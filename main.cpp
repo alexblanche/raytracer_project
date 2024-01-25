@@ -67,20 +67,15 @@ rt::color add_col_vect(vector<rt::color> t)
     int r = 0;
     int g = 0;
     int b = 0;
-    rt::color c;
+    rt::color *c;
 
-    for (unsigned int i = 0; i<n; i++)
-    {
-        c = (t.at(i));
+    for (unsigned int i = 0; i<n; i++) {
+        c = &(t.at(i));
 
-        r += c.get_red();
-        g += c.get_green();
-        b += c.get_blue();
+        r += c->get_red();
+        g += c->get_green();
+        b += c->get_blue();
     };
-
-    //r = r/n;
-    //g = g/n;
-    //b = b/n;
 
     if (r>255) {r = 255;};
     if (g>255) {g = 255;};
@@ -91,13 +86,12 @@ rt::color add_col_vect(vector<rt::color> t)
 }
 // Returns the addition of all the colors of the given vector
 
-vector<rt::color> apply_lights(hit h, vector<light> t1)
-{
+vector<rt::color> apply_lights(hit h, vector<light> t1) {
+
     unsigned int n = t1.size();
     vector<rt::color> t2(n);
 
-    for (unsigned int i = 0 ; i<n ; i++)
-    {
+    for (unsigned int i = 0 ; i<n ; i++) {
         t2.at(i) = (t1.at(i)).apply(h);
     };
 
@@ -189,13 +183,12 @@ void test_color(rt::color c1, rt::color c2)
 }
 * ********************************** */
 
-vector<rt::color> apply_lights2(hit h, vector<sphere> s, vector<light> l) //, vector<plane> p,
-{
+vector<rt::color> apply_lights2(hit h, vector<sphere> s, vector<light> l) { //, vector<plane> p,
+
     unsigned int n = l.size();
     vector<rt::color> t(n);
 
-    for (unsigned int i = 0 ; i<n ; i++)
-    {
+    for (unsigned int i = 0 ; i<n ; i++) {
         t.at(i) = (l.at(i)).apply2(h,s);//,p);
     };
 
@@ -203,32 +196,27 @@ vector<rt::color> apply_lights2(hit h, vector<sphere> s, vector<light> l) //, ve
 }
 
 
-rt::color launch_ray3(ray r, vector<sphere> s, vector<plane> p, vector<light> l)
-{
+rt::color launch_ray3(ray r, vector<sphere> s, vector<plane> p, vector<light> l) {
+
     hit h;
     double d;
     double closest = infinity;
     int closest_index = 0;
     bool is_sphere = true;
-    rt::color sphere_color;
 
     // Seeking for the closest sphere
-    for (unsigned int i=0; i<s.size(); i++)
-      {
+    for (unsigned int i=0; i<s.size(); i++) {
         d = (s.at(i)).send(r);
-        if (d < closest)
-		 {
+        if (d < closest) {
             closest = d;
             closest_index = i;
         };
     };
 
     // Seeking for the closest plane
-    for (unsigned int i=0; i<p.size(); i++)
-      {
+    for (unsigned int i=0; i<p.size(); i++) {
         d = (p.at(i)).send(r);
-        if (d < closest)
-		 {
+        if (d < closest) {
             closest = d;
             closest_index = i;
             is_sphere = false;
@@ -237,23 +225,19 @@ rt::color launch_ray3(ray r, vector<sphere> s, vector<plane> p, vector<light> l)
 
 
 
-    if (closest == infinity)
-    {
+    if (closest == infinity) {
         return (rt::color::BLACK); // No sphere hit, Black is returned as the color of the 'vacuum'
     }
-    else
-    {
-        if (is_sphere == true)
-        {
-            h = (s.at(closest_index).intersect2(r,closest));
+    else {
+        if (is_sphere == true) {
+            h = (s.at(closest_index).intersect2(r, closest));
         }
-        else
-        {
-            h = (p.at(closest_index).intersect(r,closest));
+        else {
+            h = (p.at(closest_index).intersect(r, closest));
         };
+
         //return (add_col_vect (apply_lights(h,l)));
         return (add_col_vect (apply_lights2(h,s/*,p*/,l)));
-
     };
 
 }
@@ -269,14 +253,13 @@ rt::color launch_ray3(ray r, vector<sphere> s, vector<plane> p, vector<light> l)
 /* ********* MAIN FUNCTION ********* */
 
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 
-    rt::color my_red(230,15,15);
-    rt::color my_green(15,230,15);
-    rt::color my_blue(15,15,230);
-    rt::color my_white(230,230,230);
-    rt::color my_black(15,15,15);
+    rt::color my_red(230, 15, 15);
+    rt::color my_green(15, 230, 15);
+    rt::color my_blue(15, 15, 230);
+    rt::color my_white(230, 230, 230);
+    rt::color my_black(15, 15, 15);
     // Not-pure colors, in order to have a "black hole" effect when
     // a red surface is under a blue spot
 
@@ -298,9 +281,9 @@ int main(int argc, char *argv[])
     // Spheres
 
     // Sphere 0
-    sphere sph0(rt::vector(-400,0,1000),240,my_red);
+    sphere sph0(rt::vector(-400,0,1000), 240, my_red);
     // Sphere 1
-    sphere sph1(rt::vector( 400,0,1000),240,my_red);
+    sphere sph1(rt::vector( 400,0,1000), 240, my_red);
 
     // Array of the spheres on the scene
     vector<sphere> sphere_set(2);
@@ -312,9 +295,9 @@ int main(int argc, char *argv[])
     // Planes
 
     // Plane 0
-    plane pln0(0,1,0,rt::vector(0,240,0),my_white);
+    plane pln0(0,1,0,rt::vector(0,240,0), my_white);
     // Plane 1
-    plane pln1(0,0,1,rt::vector(0,0,2000),my_blue);
+    plane pln1(0,0,1,rt::vector(0,0,2000), my_blue);
 
     // Array of the planes on the scene
     vector<plane> plane_set(1);
@@ -364,27 +347,24 @@ int main(int argc, char *argv[])
 
     rt::color pixel_col;
     rt::vector direct(0,0,0);
-    ray r;
+    ray *r;
 
-    for (int i=0; i<width; i++) // i is the abscissa
-    {
-        for (int j=0; j<height; j++) //j is the ordinate
-        {
+    for (int i=0; i<width; i++) { // i is the abscissa
+        for (int j=0; j<height; j++) { //j is the ordinate
             direct = (rt::vector(i,j,dist)) - screen_center;
-            r = ray(rt::vector(0,0,0), direct , rt::color::WHITE);
+            r = new ray(rt::vector(0,0,0), direct , rt::color::WHITE);
             // pixel_col = launch_ray1(r, spheres_set);
             // pixel_col = launch_ray2(r, sphere_set, light_set);
-            pixel_col = launch_ray3(r, sphere_set, plane_set, light_set);
+            pixel_col = launch_ray3(*r, sphere_set, plane_set, light_set);
             scr.set_pixel(i,j,pixel_col);
         };
     };
-    /* */
+    /*
     scr.set_pixel(1,1,rt::color::WHITE);
-    /* */
-    scr.update(); // Finally we display the content of the buffer on the screen
+     */
+    scr.update(); // Finally we display the content of the buffer on screen
 
     while(not scr.wait_quit_event()) {};
-
 
     return 0;
 }

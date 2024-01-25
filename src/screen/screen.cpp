@@ -15,19 +15,17 @@ namespace rt {
 
 	screen::screen(int width, int height) : image(width, height) {
 		if(initialized == 0) {
-			if(SDL_Init( SDL_INIT_VIDEO ) == -1)
-			{
+			if(SDL_Init( SDL_INIT_VIDEO ) == -1) {
 				std::cerr << "Cannot initialize SDL : "
 					<< SDL_GetError() << std::endl;
 				exit(-1);
 			}
 			signal(SIGINT, sigint_handler);
-		}
+		};
 		initialized += 1;
 	}
 
-	screen::~screen() {
-	}
+	screen::~screen() {};
 
 	void screen::update() {
 		SDL_RenderPresent(renderer);

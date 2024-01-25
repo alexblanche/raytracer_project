@@ -22,9 +22,7 @@ class sphere
         rt::color get_color();
         double send(ray r);
         hit intersect(ray r);
-
         hit intersect2(ray r,double t);
-
 }
 ;
 #endif // RT_SPHERE_H

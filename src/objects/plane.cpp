@@ -1,15 +1,14 @@
 #include "headers/plane.hpp"
 
-#include "../../screen/headers/color.hpp"
-#include "../../light/headers/vector.hpp"
-#include "../../light/headers/hit.hpp"
+#include "../screen/headers/color.hpp"
+#include "../light/headers/vector.hpp"
+#include "../light/headers/hit.hpp"
 
 #include<limits>
 
 
 
-plane::plane()
-{
+plane::plane() {
     a = 0;
     b = 0;
     c = 0;
@@ -17,42 +16,38 @@ plane::plane()
     col = rt::color::WHITE;
 }
 
-plane::plane(double ca, double cb, double cc, double cd, rt::color ccol)
-{
+plane::plane(double ca, double cb, double cc, double cd, rt::color ccol) {
     a = ca;
     b = cb;
     c = cc;
     d = cd;
     col = ccol;
 }
-plane::plane(double ca, double cb, double cc, rt::vector v, rt::color ccol)
-{
+
+plane::plane(double ca, double cb, double cc, rt::vector v, rt::color ccol) {
     a = ca;
     b = cb;
     c = cc;
     col = ccol;
 
     d = -((rt::vector(ca,cb,cc))|v); // = -aX-bY-cZ if v = (X,Y,Z)
-
 }
 
-rt::vector plane::get_normal()
-{
+rt::vector plane::get_normal() {
     return (rt::vector(a,b,c));
 }
-double plane::get_d()
-{
+
+double plane::get_d() {
     return d;
 }
-rt::color plane::get_color()
-{
+
+rt::color plane::get_color() {
     return col;
 }
 
 
+double plane::send(ray r) {
 
-double plane::send(ray r)
-{
     rt::vector A = r.get_origin(); //A = (xA,yA,zA)
     rt::vector v = (r.get_direction()).unit(); // v = (x,y,z)
     // We search t so that
@@ -65,33 +60,27 @@ double plane::send(ray r)
     n = n.unit();
     double pdt = (n|v);
 
-    if (pdt == 0) // v is parallel to the plane, so there is no intersection
-    {
+    if (pdt == 0) { // v is parallel to the plane, so there is no intersection
         return infinity;
     }
-    else
-    {
+    else {
         t = -((n|A)+d)/pdt;
         // t = -(axA+byA+czA+d)/(ax+by+cz)
 
-        if (t <= 0) // the plane is "behind" the ray, so there is no intersection with the plane
-        {
+        if (t <= 0) { // the plane is "behind" the ray, so there is no intersection with the plane
             return infinity;
         }
-        else
-        {
+        else {
             return t;
             // the intersection is:
             // (xA,yA,zA) + t(x,y,z)
         };
-
     };
 
 }
 
 
-hit plane::intersect(ray r, double t)
-{
+hit plane::intersect(ray r, double t) {
     rt::vector p = r.get_origin() + t * (r.get_direction()).unit();
     rt::vector n(a,b,c);
     return (hit(r,p,n.unit(),col));

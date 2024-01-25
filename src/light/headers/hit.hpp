@@ -2,7 +2,6 @@
 
 #ifndef RT_HIT_H
 #define RT_HIT_H
-#endif // RT_HIT_H
 
 #include "../../screen/headers/color.hpp"
 #include "vector.hpp"
@@ -22,5 +21,6 @@ class hit {
     rt::vector get_point();
     rt::vector get_normal();
     rt::color get_color();
-}
-;
+};
+
+#endif // RT_HIT_H

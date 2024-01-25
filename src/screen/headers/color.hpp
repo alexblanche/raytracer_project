@@ -20,8 +20,7 @@ namespace rt {
 	 * The color class represents a color through its
 	 * four components: red, green, blue and alpha (RGBA).
 	 */
-	class color
-	{
+	class color {
 		private:
 			unsigned char red, green, blue, alpha; /*!< Red, green blue and alpha components */
 
