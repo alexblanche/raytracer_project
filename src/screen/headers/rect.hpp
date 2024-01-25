@@ -24,7 +24,7 @@ namespace rt {
 	 * It provides signed short x and y for the upper-left corner's coordinates,
 	 * and unsigned short w and h for width and height.
 	 */
-	class rect : public SDL_Rect{
+	class rect : public SDL_Rect {
 
 		public :
 

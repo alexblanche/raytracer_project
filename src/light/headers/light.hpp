@@ -8,7 +8,7 @@
 #include "hit.hpp"
 #include "../../objects/headers/sphere.hpp"
 #include "../../objects/headers/plane.hpp"
-
+#include "../../screen/headers/color.hpp"
 
 using namespace std;
 

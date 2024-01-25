@@ -14,15 +14,13 @@ const double infinity = real.infinity();
 
 #include "src/light/headers/vector.hpp"
 #include "src/light/headers/hit.hpp"
+#include "src/light/headers/light.hpp"
+#include "src/light/headers/ray.hpp"
 
 #include "src/objects/headers/sphere.hpp"
 #include "src/objects/headers/plane.hpp"
 
-#include "src/light/headers/light.hpp"
-
 using namespace std;
-
-
 
 // First function with the only unmodified color returned
 
@@ -75,7 +73,7 @@ rt::color add_col_vect(vector<rt::color> t)
         r += c->get_red();
         g += c->get_green();
         b += c->get_blue();
-    };
+    }
 
     if (r>255) {r = 255;};
     if (g>255) {g = 255;};
@@ -93,11 +91,11 @@ vector<rt::color> apply_lights(hit h, vector<light> t1) {
 
     for (unsigned int i = 0 ; i<n ; i++) {
         t2.at(i) = (t1.at(i)).apply(h);
-    };
+    }
 
     return t2;
-
 }
+
 /*
 The formula for the addition of lights is:
 (r1,g1,b1) + (r2,g2,b2) = (min(r1+r2,255),min(g1+g2,255),min(b1+b2,255))
@@ -135,11 +133,6 @@ The formula for the addition of lights is:
     };
 
 } */
-
-
-
-
-
 
 
 /* ********************************** *
@@ -189,8 +182,8 @@ vector<rt::color> apply_lights2(hit h, vector<sphere> s, vector<light> l) { //, 
     vector<rt::color> t(n);
 
     for (unsigned int i = 0 ; i<n ; i++) {
-        t.at(i) = (l.at(i)).apply2(h,s);//,p);
-    };
+        t.at(i) = (l.at(i)).apply2(h,s); //,p);
+    }
 
     return t;
 }
@@ -206,12 +199,13 @@ rt::color launch_ray3(ray r, vector<sphere> s, vector<plane> p, vector<light> l)
 
     // Seeking for the closest sphere
     for (unsigned int i=0; i<s.size(); i++) {
+
         d = (s.at(i)).send(r);
         if (d < closest) {
             closest = d;
             closest_index = i;
-        };
-    };
+        }
+    }
 
     // Seeking for the closest plane
     for (unsigned int i=0; i<p.size(); i++) {
@@ -220,10 +214,8 @@ rt::color launch_ray3(ray r, vector<sphere> s, vector<plane> p, vector<light> l)
             closest = d;
             closest_index = i;
             is_sphere = false;
-        };
-    };
-
-
+        }
+    }
 
     if (closest == infinity) {
         return (rt::color::BLACK); // No sphere hit, Black is returned as the color of the 'vacuum'
@@ -234,12 +226,11 @@ rt::color launch_ray3(ray r, vector<sphere> s, vector<plane> p, vector<light> l)
         }
         else {
             h = (p.at(closest_index).intersect(r, closest));
-        };
+        }
 
         //return (add_col_vect (apply_lights(h,l)));
         return (add_col_vect (apply_lights2(h,s/*,p*/,l)));
-    };
-
+    }
 }
 
 
@@ -352,19 +343,21 @@ int main(int argc, char *argv[]) {
     for (int i=0; i<width; i++) { // i is the abscissa
         for (int j=0; j<height; j++) { //j is the ordinate
             direct = (rt::vector(i,j,dist)) - screen_center;
-            r = new ray(rt::vector(0,0,0), direct , rt::color::WHITE);
+            r = new ray(rt::vector(0,0,0), direct, rt::color::WHITE);
             // pixel_col = launch_ray1(r, spheres_set);
             // pixel_col = launch_ray2(r, sphere_set, light_set);
             pixel_col = launch_ray3(*r, sphere_set, plane_set, light_set);
-            scr.set_pixel(i,j,pixel_col);
-        };
-    };
+            scr.set_pixel(i, j, pixel_col);
+        }
+
+        printf("%d / %d \n", i+1, width);
+    }
     /*
     scr.set_pixel(1,1,rt::color::WHITE);
      */
     scr.update(); // Finally we display the content of the buffer on screen
 
-    while(not scr.wait_quit_event()) {};
+    while(not scr.wait_quit_event()) {}
 
-    return 0;
+    return EXIT_SUCCESS;
 }

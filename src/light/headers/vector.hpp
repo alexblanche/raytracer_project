@@ -27,11 +27,9 @@ namespace rt {
 		double y;
 		double z;
 	
-		vector()
-		: x(0.0), y(0.0), z(0.0) {}
+		vector() : x(0.0), y(0.0), z(0.0) {}
 
-		vector(double a, double b, double c)
-		: x(a), y(b), z(c) {}
+		vector(double a, double b, double c) : x(a), y(b), z(c) {}
 
 		/**
 		 * Comparison

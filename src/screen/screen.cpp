@@ -25,7 +25,8 @@ namespace rt {
 		initialized += 1;
 	}
 
-	screen::~screen() {};
+	screen::~screen() {
+	}
 
 	void screen::update() {
 		SDL_RenderPresent(renderer);

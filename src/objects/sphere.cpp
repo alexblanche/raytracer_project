@@ -74,43 +74,42 @@ double sphere::send(ray r) {
   };
 }
 
-hit sphere::intersect(ray r)
-{
-  rt::vector C = center;
-  rt::vector O = r.get_origin();
-  rt::vector v = C-O;
-  rt::vector u = (r.get_direction()).unit();
+hit sphere::intersect(ray r) {
+    rt::vector C = center;
+    rt::vector O = r.get_origin();
+    rt::vector v = C-O;
+    rt::vector u = (r.get_direction()).unit();
 
-  double nv = v.norm();
-  double uv = (u|v);
-  double R = radius;
+    double nv = v.norm();
+    double uv = (u|v);
+    double R = radius;
 
-  double A = (uv*uv +R*R - nv*nv);
-  // Delta = 4A
+    double A = (uv*uv +R*R - nv*nv);
+    // Delta = 4A
 
-  if (A > 0) {
-    double t1 = uv - sqrt(A);
-    //double t2 = uv + sqrt(A);
+    if (A > 0) {
+        double t1 = uv - sqrt(A);
+        //double t2 = uv + sqrt(A);
 
-    if (t1>0) { // t2>0 because t2>t1
-	    double tf=t1; // = min(t1,t2)
-	    rt::vector p_inter = r.get_origin()+tf*r.get_direction();
-	    return hit(r,p_inter,(center-p_inter).unit(),col);
+        if (t1>0) { // t2>0 because t2>t1
+            double tf=t1; // = min(t1,t2)
+            rt::vector p_inter = r.get_origin()+tf*r.get_direction();
+            return hit(r,p_inter,(center-p_inter).unit(),col);
+        }
+        /*
+        else if (t2>0) {
+            double tf=t2;
+            rt::vector p_inter=r.get_origin()+tf*r.get_direction();
+            return hit(r,p_inter,(center-p_inter).unit(),col);
+        }
+        */
+        else {
+            return hit();
+        }
     }
-    /*
-    else if (t2>0) {
-	    double tf=t2;
-	    rt::vector p_inter=r.get_origin()+tf*r.get_direction();
-	    return hit(r,p_inter,(center-p_inter).unit(),col);
-    }
-    */
     else {
-      return hit();
+        return hit();
     }
-  }
-  else {
-    return hit();
-  }
 }
 
 
