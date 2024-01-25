@@ -57,64 +57,56 @@ namespace rt {
 			/**
 			 * Sets the red component.
 			 */
-			virtual inline void set_red(unsigned char r)
-			{
+			virtual inline void set_red(unsigned char r) {
 				red = r;
 			}
 
 			/**
 			 * Returns the red component.
 			 */
-			virtual inline unsigned char get_red() const
-			{
+			virtual inline unsigned char get_red() const {
 				return red;
 			}
 
 			/**
 			 * Sets the green component.
 			 */
-			virtual inline void set_green(unsigned char g)
-			{
+			virtual inline void set_green(unsigned char g) {
 				green = g;
 			}
 
 			/**
 			 * Returns the green component.
 			 */
-			virtual inline unsigned char get_green() const
-			{
+			virtual inline unsigned char get_green() const {
 				return green;
 			}
 
 			/**
 			 * Sets the blue component.
 			 */
-			virtual inline void set_blue(unsigned char b)
-			{
+			virtual inline void set_blue(unsigned char b) {
 				blue = b;
 			}
 
 			/**
 			 * Returns the blue component.
 			 */
-			virtual inline unsigned char get_blue() const
-			{
+			virtual inline unsigned char get_blue() const {
 				return blue;
 			}
 
 			/**
 			 * Sets the alpha component.
 			 */
-			virtual inline void set_alpha(unsigned char a)
-			{
+			virtual inline void set_alpha(unsigned char a) {
 				alpha = a;
 			}
 
 			/**
 			 * Returns the alpha component.
 			 */
-			virtual inline unsigned char get_alpha() const
-			{
+			virtual inline unsigned char get_alpha() const {
 				return alpha;
 			}
 

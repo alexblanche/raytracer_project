@@ -33,8 +33,10 @@ namespace rt {
 		
 		private:
 			static int initialized; /*!< Indicates how many instances of screen exist. */
-			// Deprecated. -> window, renderer...
-			static SDL_Surface* buffer; /*!< Pointer to the screen's buffer. */
+
+			// Deprecated
+			//static SDL_Surface* buffer; /*!< Pointer to the screen's buffer. */
+			// Handled by the base class image
 
 		public:
 			/**

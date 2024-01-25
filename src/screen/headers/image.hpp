@@ -29,8 +29,9 @@ namespace rt {
 	class image	{
 		
 		protected:
-			// Deprecated. -> renderer
-			SDL_Surface* data; /*!< Wrapped SDL surface */
+			
+			SDL_Window* window;
+			SDL_Renderer* renderer;
 
 			/**
 			 * Default constructor is protected and can be used
@@ -51,8 +52,9 @@ namespace rt {
 			 * Warning: this does not copy the actual data, so
 			 * any modification to the copy will impact the original.
 			 * To build a hard copy, use the copy member function.
-			 */
+			 
 			image(const image& img);
+			*/
 
 			/**
 			 * Destructor. Will decrease the reference counter
@@ -65,7 +67,9 @@ namespace rt {
 			 */
 			virtual inline int width() const
 			{
-				return data->w;
+				int w, h;
+				SDL_RenderGetLogicalSize(renderer, &w, &h);
+				return w;
 			}
 
 			/**
@@ -73,18 +77,22 @@ namespace rt {
 			 */
 			virtual inline int height() const
 			{
-				return data->h;
+				int w, h;
+				SDL_RenderGetLogicalSize(renderer, &w, &h);
+				return h;
 			}
 
 			/**
 			 * Returns a hard copy of the image.
-			 */
+			
 			virtual image copy() const;
+			 */
 
 			/**
 			 * Returns the color of a pixel.
-			 */
+			
 			virtual color get_pixel(int x, int y) const;
+			 */
 
 			/**
 			 * Sets a pixel to a given color.
@@ -92,16 +100,18 @@ namespace rt {
 			virtual void set_pixel(int x, int y, const color& c);
 
 			/**
-			 * Copy/Past the image's source rectangle to a given destiation
+			 * Copy/Paste the image's source rectangle to a given destination
 			 * at given coordinates.
-			 */
+			
 			virtual void blit(image& dst, const rect& srcrect, int dstx, int dsty) const;
+			 */
 
 			/**
-			 * Copy/Past time entire image to a given destiation
+			 * Copy/Paste time entire image to a given destination
 			 * at given coordinates.
-			 */
+			
 			virtual void blit(image& dst, int dstx, int dsty) const;
+			 */
 
 			/**
 			 * Draws a line from (x1,y1) to (x2,y2) of a given color.
