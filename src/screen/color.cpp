@@ -8,7 +8,7 @@ namespace rt {
 	color color::GREEN = color(0,255,0);
 	color color::RED   = color(255,0,0);
 
-	color::color() : red(255), green(0), blue(0), alpha(255) {};
+	color::color() : red(255), green(255), blue(255), alpha(255) {};
 
 	color::color(const color& c) {
 		red   = c.get_red();
@@ -41,5 +41,4 @@ namespace rt {
 	color::operator int() const {
 		return 256*(256*(256*get_red() + get_green()) + get_blue()) + get_alpha();
 	}
-
 }

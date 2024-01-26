@@ -65,8 +65,7 @@ namespace rt {
 			/**
 			 * Returns the width of the image.
 			 */
-			virtual inline int width() const
-			{
+			virtual int width() const {
 				int w, h;
 				SDL_RenderGetLogicalSize(renderer, &w, &h);
 				return w;
@@ -75,8 +74,7 @@ namespace rt {
 			/**
 			 * Returns the height of the image.
 			 */
-			virtual inline int height() const
-			{
+			virtual int height() const {
 				int w, h;
 				SDL_RenderGetLogicalSize(renderer, &w, &h);
 				return h;

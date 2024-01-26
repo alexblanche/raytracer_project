@@ -118,7 +118,7 @@ namespace rt {
 			 * Cast operator to int.
 			 * Represents the color as a int, with
 			 * red being the most significant byte.
-			 */
+			*/
 			virtual operator int() const;
 	};
 

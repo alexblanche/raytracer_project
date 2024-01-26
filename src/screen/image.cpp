@@ -17,6 +17,7 @@ namespace rt {
 	 */
 	image::image(int width, int height)	{
 		SDL_CreateWindowAndRenderer(width, height, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE, &window, &renderer);
+		SDL_RenderSetLogicalSize(renderer, width, height);
 	}
 
 	/**
