@@ -310,7 +310,7 @@ int main(int argc, char *argv[]) {
     light light1(pos, col_light);
 
     // Light 2
-    pos = rt::vector(700,0,900);
+    pos = rt::vector(750,0,900);
     col_light = my_blue;
     light light2(pos, col_light);
 
@@ -340,6 +340,7 @@ int main(int argc, char *argv[]) {
     ray *r;
     // Progress bar
     printf("[..................................................]\r");
+    printf("[");
     int pct = 0;
     int newpct = 0;
 
@@ -357,11 +358,7 @@ int main(int argc, char *argv[]) {
         newpct = 50*(i+1)/width;
         if (newpct > pct) {
             pct = newpct;
-            printf("[");
-            for(int j=0; j<pct; j++){
-                printf("I");
-            }
-            printf("\r");
+            printf("I");
         }
     }
     

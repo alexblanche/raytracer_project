@@ -2,10 +2,15 @@
 
 ## Goal
 
-The primary goal is to revamp an old school project from 2014, and then to improve it.
+The primary goal is to revamp an old school project from 2014, and then to improve it.  
 The project was a rudimentary raytracer, which only handled spheres and planes, and notably did not handle multiple reflections.
 
-### Original pictures
+### State of the project
+
+The original raytracer was successfully restored and converted to SDL2.  
+Next steps: scene description parsing, finite planes (triangles), then reflections, refraction, light halo, texturing...
+
+Current state:
 
 ![Screen](https://github.com/alexblanche/raytracer_project/blob/main/pictures/rt1.png)
 
