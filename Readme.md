@@ -12,7 +12,7 @@ Next steps: scene description parsing, finite planes (triangles), then reflectio
 
 Current state:
 
-![Screen](https://github.com/alexblanche/raytracer_project/blob/main/pictures/rt1.png)
+![Screen](https://github.com/alexblanche/raytracer_project/blob/main/pictures/rt3.jpg)
 
 ![Screen](https://github.com/alexblanche/raytracer_project/blob/main/pictures/rt2.png)
 
