@@ -26,6 +26,9 @@ namespace rt {
 
 		public:
 
+			/**
+			 * Preset colors
+			*/
 			static color WHITE;
 			static color BLACK;
 			static color BLUE;
