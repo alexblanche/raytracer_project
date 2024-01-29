@@ -98,7 +98,7 @@ vector<rt::color> apply_lights(hit h, vector<light> t1) {
 
 /*
 The formula for the addition of lights is:
-(r1,g1,b1) + (r2,g2,b2) = (min(r1+r2,255),min(g1+g2,255),min(b1+b2,255))
+(r1,g1,b1) + (r2,g2,b2) = (min(r1+r2, 255), min(g1+g2, 255), min(b1+b2, 255))
 */
 
 
@@ -134,47 +134,6 @@ The formula for the addition of lights is:
 
 } */
 
-
-/* ********************************** *
-int mini(int i, int j) { if (i<j) {return i;} else {return j;}}
-void test_color(rt::color c1, rt::color c2)
-{
-    int width = 640;
-    int height = 480;
-    rt::color col;
-    rt::screen scr(width, height);
-
-    col = rt::color(mini((c1.get_red()+c2.get_red())/2,255),
-                    mini((c1.get_green()+c2.get_green())/2,255),
-                    mini((c1.get_blue()+c2.get_blue())/2,255));
-
-
-    for (int i = 0 ; i < width/3 ; i++)
-    {
-        for (int j = 0 ; j < height ; j++)
-        {
-            scr.set_pixel(i,j,c1);
-        };
-    };
-    for (int i = 2*width/3 ; i < width ; i++)
-    {
-        for (int j = 0 ; j < height ; j++)
-        {
-            scr.set_pixel(i,j,c2);
-        };
-    };
-    for (int i = width/3 ; i < 2*width/3 ; i++)
-    {
-        for (int j = 0 ; j < height ; j++)
-        {
-            scr.set_pixel(i,j,col);
-        };
-    };
-    scr.update();
-    while(not scr.wait_quit_event()) {};
-
-}
-* ********************************** */
 
 vector<rt::color> apply_lights2(hit h, vector<sphere> s, vector<light> l) { //, vector<plane> p,
 
@@ -250,15 +209,8 @@ int main(int argc, char *argv[]) {
     rt::color my_blue(15, 15, 230);
     rt::color my_white(230, 230, 230);
     rt::color my_black(15, 15, 15);
-    // Not-pure colors, in order to have a "black hole" effect when
-    // a red surface is under a blue spot
-
-
-    /* *** *
-    test_color(rt::color::BLACK, rt::color::BLUE);
-    return 0;
-    * *** */
-
+    /* Non-pure colors, to prevent the "black hole" effect when
+     a red surface is under a blue spot */
 
     /* Orientation of the space:
     negative x on the left, positive on the right
@@ -275,51 +227,32 @@ int main(int argc, char *argv[]) {
     // Sphere 1
     sphere sph1(rt::vector( 400,0,1000), 240, rt::color::WHITE);
 
-    // Array of the spheres on the scene
-    vector<sphere> sphere_set(2);
-    sphere_set.at(0) = sph0;
-    sphere_set.at(1) = sph1;
+    // Array of the spheres in the scene
+    vector<sphere> sphere_set {sph0, sph1};
 
     /* *************************** */
 
     // Planes
 
     // Plane 0
-    plane pln0(0,1,0,rt::vector(0,240,0), rt::color::WHITE);
+    plane pln0(0, 1, 0, rt::vector(0,240,0), rt::color::WHITE);
     // Plane 1
-    plane pln1(0,0,1,rt::vector(0,0,2000), rt::color::WHITE);
+    plane pln1(0, 0, 1, rt::vector(0,0,2000), rt::color::WHITE);
 
-    // Array of the planes on the scene
-    vector<plane> plane_set(2);
-    plane_set.at(0) = pln0;
-    plane_set.at(1) = pln1;
+    // Array of the planes in the scene
+    vector<plane> plane_set {pln0, pln1};
 
 
     /* *************************** */
 
     // Lights
 
-    // Light 0
-    rt::vector pos = rt::vector(-500,0,600);
-    rt::color col_light = rt::color::WHITE;
-    light light0(pos, col_light);
+    light light0(rt::vector(-500,0,600), rt::color::WHITE);
+    light light1(rt::vector(0,0,1000),   my_red);
+    light light2(rt::vector(750,0,900),  my_blue);
 
-    // Light 1
-    pos = rt::vector(0,0,1000);
-    col_light = my_red;
-    light light1(pos, col_light);
-
-    // Light 2
-    pos = rt::vector(750,0,900);
-    col_light = my_blue;
-    light light2(pos, col_light);
-
-
-     // Array of the lights on the scene
-    vector<light> light_set(3);
-    light_set.at(0) = light0;
-    light_set.at(1) = light1;
-    light_set.at(2) = light2;
+    // Array of the lights in the scene
+    vector<light> light_set {light0, light1, light2};
 
     /* *************************** */
 
@@ -327,42 +260,38 @@ int main(int argc, char *argv[]) {
     int width = 960;
     int height = 680;
     double dist = 400; // Distance between the camera and the image
+
     // The camera is supposed to be on the origin of the space: (0,0,0)
     rt::vector screen_center(width/2, height/2, 0);
     // vector that will center the 'screen' in the scene
 
-    //rt::image img(int width, int height);
-    // (useless)
     rt::screen scr(width,height);
 
     rt::color pixel_col;
-    rt::vector direct(0,0,0);
+    rt::vector direct(0, 0, 0);
     ray *r;
     // Progress bar
-    printf("[..................................................]\r");
-    printf("[");
+    printf("[..................................................]\r[");
     int pct = 0;
     int newpct = 0;
 
-    for (int i=0; i<width; i++) { // i is the abscissa
-        for (int j=0; j<height; j++) { //j is the ordinate
-            direct = (rt::vector(i,j,dist)) - screen_center;
-            r = new ray(rt::vector(0,0,0), direct, rt::color::WHITE);
+    for (int i = 0; i < width; i++) { // i is the abscissa
+        for (int j = 0; j < height; j++) { //j is the ordinate
+            direct = (rt::vector(i, j, dist)) - screen_center;
+            r = new ray(rt::vector(0, 0, 0), direct, rt::color::WHITE);
             // pixel_col = launch_ray1(*r, spheres_set);
             // pixel_col = launch_ray2(*r, sphere_set, light_set);
             pixel_col = launch_ray3(*r, sphere_set, plane_set, light_set);
             scr.set_pixel(i, j, pixel_col);
         }
-        //printf("%d / %d \r", i+1, width);
         // Progress bar
-        newpct = 50*(i+1)/width;
+        newpct = 50*(i+1) / width;
         if (newpct > pct) {
             pct = newpct;
             printf("I");
         }
     }
     
-    //scr.set_pixel(1,1,rt::color::WHITE);
     printf("\n");
     scr.update();
 

@@ -26,17 +26,11 @@ namespace rt {
 	 * The screen class inherites from the image class in order
 	 * to draw something on the screen. It also wraps the SDL
 	 * initialization calls. Only one screen should be created.
-	 * If a second screen instance is created, it gets attached
-	 * to the first one and the width and height are ignored.
 	 */
 	class screen : public image	{
 		
 		private:
 			static int initialized; /*!< Indicates how many instances of screen exist. */
-
-			// Deprecated
-			//static SDL_Surface* buffer; /*!< Pointer to the screen's buffer. */
-			// Handled by the base class image
 
 		public:
 			/**

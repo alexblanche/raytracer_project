@@ -20,13 +20,14 @@ namespace rt {
 	 * This structure describes a 3D vector, providing
 	 * basic operations (addition, scalar product, etc.)
 	 * by overloading common operators.
-	 */	
+	 */
 	struct vector {
 		
 		double x;
 		double y;
 		double z;
 	
+		// Constructors
 		vector() : x(0.0), y(0.0), z(0.0) {}
 
 		vector(double a, double b, double c) : x(a), y(b), z(c) {}

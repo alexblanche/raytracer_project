@@ -18,18 +18,37 @@
 
 namespace rt {
 
+	/**
+	 * This structure describes a 3D vector, providing
+	 * basic operations (addition, scalar product, etc.)
+	 * by overloading common operators.
+	 */
+
+	/**
+	 * Comparison
+	 */
 	bool vector::operator==(const vector& other) const {
 		return (other.x == x && other.y == y && other.z == z);
 	}
 	
+	/**
+	 * Addition: (a,b,c) + (d,e,f) = (a+d,b+e,c+f)
+	 */
 	vector vector::operator+(const vector& other) const {
 		return vector(x+other.x,y+other.y,z+other.z);
 	}
 
+	/**
+	 * Substraction (a,b,c) - (d,e,f) = (a-d,b-e,c-f)
+	 */
 	vector vector::operator-(const vector& other) const {
 		return vector(x-other.x,y-other.y,z-other.z);
 	}
 
+	/**
+	 * Vectorial product 
+	 * (a,b,c) ^ (d,e,f) = (bf-ce,cd-af,ae-bd)
+	 */
 	vector vector::operator^(const vector& other) const {
 		return
 			vector(y*other.z - z*other.y,
@@ -38,25 +57,43 @@ namespace rt {
 			);
 	}
 
+	/**
+	 * Scalar product
+	 * ((a,b,c) | (d,e,f)) = ad + be + cf
+	 */
 	double vector::operator|(const vector& other) const {
 		return (x*other.x + y*other.y + z*other.z);
 	}
 
+	/**
+	 * Returns the norm of the vector
+	 */
 	double vector::norm() const {
 		double n = std::sqrt(x*x+y*y+z*z);
 		return n;
 	}
 
+	/**
+	 * return a vector of the same direction but of norm 1
+	 */
 	vector vector::unit() const {
 		double n = norm();
 		vector v(x/n,y/n,z/n);
 		return v;
 	}
 
+	/**
+	 * Left multiplication with a scalar
+	 * x * (a,b,c) = (xa,xb,xc)
+	 */
 	vector operator*(const double& a, const vector& v) {
 		return vector(a*v.x,a*v.y,a*v.z);
 	}
 
+	/**
+	 * Right multiplication with a scalar
+	 * (a,b,c) * x = (ax,bx,cx)
+	 */
 	vector operator*(const vector& v, const double& a) {
 		return vector(a*v.x,a*v.y,a*v.z);
 	}

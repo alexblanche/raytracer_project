@@ -22,7 +22,7 @@
 namespace rt {
 
 	/**
-	 * The image class wraps a SDL_Surface structure
+	 * The image class wraps a window and a SDL renderer
 	 * to offer object-oriented access to its data.
 	 * It represents an in-memory image.
 	 */

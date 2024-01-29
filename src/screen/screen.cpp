@@ -7,12 +7,22 @@
 
 namespace rt {
 
+	/**
+	 * The screen class inherites from the image class in order
+	 * to draw something on the screen. It also wraps the SDL
+	 * initialization calls. Only one screen should be created.
+	 */
+
+	// Indicates how many instances of screen exist.
 	int screen::initialized = 0;
 
 	static void sigint_handler(int) {
 		exit(0);
 	}
 
+	/**
+	 * Main constructor, uses width and height.
+	 */
 	screen::screen(int width, int height) : image(width, height) {
 		if(initialized == 0) {
 			if(SDL_Init( SDL_INIT_VIDEO ) == -1) {
@@ -25,13 +35,24 @@ namespace rt {
 		initialized += 1;
 	}
 
+	/**
+	 * Destructor. Decrements the initialized counter.
+	 */
 	screen::~screen() {
+		initialized--;
 	}
 
+	/**
+	 * Flushes the buffer to the screen
+	 */
 	void screen::update() {
 		SDL_RenderPresent(renderer);
 	}
 
+	/**
+	 * @brief wait indefinitely for the next quit event
+	 * @return true if we get a quit event, or false if there was an error while waiting for the quit event
+	 */
 	bool screen::wait_quit_event() {
 		SDL_Event event;
 		while(SDL_WaitEvent(&event)) {
