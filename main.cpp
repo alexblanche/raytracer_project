@@ -181,7 +181,7 @@ rt::color launch_ray3(ray r, vector<sphere> s, vector<plane> p, vector<light> l)
     }
     else {
         if (is_sphere == true) {
-            h = (s.at(closest_index).intersect2(r, closest));
+            h = (s.at(closest_index).intersect(r, closest));
         }
         else {
             h = (p.at(closest_index).intersect(r, closest));

@@ -6,7 +6,7 @@
 #include<limits>
 
 
-// constructors
+/* Constructors */
 sphere::sphere(const rt::vector& c, double r, const rt::color& co)
     : center(c), radius(r), col(co) {}
 
@@ -16,7 +16,7 @@ sphere::sphere() {
     col = rt::color::WHITE;
 }
 
-// accessors
+/* Accessors */
 rt::vector sphere::get_center() const {
     return center;
 }
@@ -29,6 +29,9 @@ rt::color sphere::get_color() const {
     return col;
 }
 
+/* Intersection determination */
+
+/* Calculates and returns the intersection value t */
 double sphere::send(const ray& r) const {
     /*
 
@@ -75,6 +78,8 @@ double sphere::send(const ray& r) const {
     }
 }
 
+/* Calculates the intersection value t and returns the corresponding hit */
+/*
 hit sphere::intersect(const ray& r) const {
     rt::vector C = center;
     rt::vector O = r.get_origin();
@@ -97,13 +102,13 @@ hit sphere::intersect(const ray& r) const {
             rt::vector p_inter = r.get_origin()+tf*r.get_direction();
             return hit(r,p_inter,(center-p_inter).unit(),col);
         }
-        /*
-        else if (t2>0) {
-            double tf=t2;
-            rt::vector p_inter=r.get_origin()+tf*r.get_direction();
-            return hit(r,p_inter,(center-p_inter).unit(),col);
-        }
-        */
+        
+        // else if (t2>0) {
+        //    double tf=t2;
+        //    rt::vector p_inter=r.get_origin()+tf*r.get_direction();
+        //    return hit(r,p_inter,(center-p_inter).unit(),col);
+        //}
+        
         else {
             return hit();
         }
@@ -112,33 +117,17 @@ hit sphere::intersect(const ray& r) const {
         return hit();
     }
 }
+*/
 
+/* Returns the hit corresponding with the given intersection value t */
+hit sphere::intersect(const ray& r, double t) const {
 
-hit sphere::intersect2(const ray& r, double t) const {
-  
-    // r is the generator ray
-    rt::vector p; // intersection point
-    rt::vector n; // normal vector
-    rt::color c; // color of the sphere after application of the color of the ray
+    // Intersection point
+    rt::vector p = r.get_origin() + t * (r.get_direction()).unit();
+    
+    // Normal vector
+    rt::vector n = (center-p).unit();
 
-    rt::color r_col;
-
-    p = r.get_origin() + t * (r.get_direction()).unit();
-    n = (center-p).unit();
-
-    //r_col = r.get_color(); // color of the ray
-
-    /*c = rt::color((r_col.get_red() + col.get_red())/2 ,
-                  (r_col.get_green() + col.get_green())/2 ,
-                  (r_col.get_blue() + col.get_blue())/2);
-    // Mean between the color of the ray and the sphere */
-
-    //c = r_col;
-    c = col;
-
-    // WE DON'T CARE ABOUT THE COLOR OF THE RAY
-
-    return (hit(r,p,n,c));
+    return (hit(r, p, n, col));
 }
-// Function that returns the hit of intersect without re-calculating the solutions of the equation
 
