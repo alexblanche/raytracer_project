@@ -22,45 +22,37 @@ const double infinity = real.infinity();
 
 using namespace std;
 
-// First function with the only unmodified color returned
+// -> To be KEPT and adapted to vector<object>
 
-/*rt::color launch_ray1(ray r, vector<sphere> t)
-{   // We launch a ray with origin orig (the camera) and direction dir
+/*  Launches a ray and returns only the color of the surface hit */
+rt::color launch_ray1(ray r, vector<sphere> t) {
+    // We launch a ray with origin orig (the camera) and direction dir
     // The vector t is the array containing the spheres
     double d;
     double closest = infinity;
     int closest_index = 0;
     rt::color sphere_color;
 
-    for (unsigned int i=0; i<t.size(); i++)
-      {
+    for (unsigned int i = 0; i < t.size(); i++) {
         d = (t.at(i)).send(r);
-        * d is the distance between the origin of the ray and the
-         intersection point with the sphere *
-        if (d < closest)
-		 {
+        // d is the distance between the origin of the ray and the
+        // intersection point with the sphere
+        if (d < closest) {
             closest = d;
             closest_index = i;
-        };
-    };
+        }
+    }
 
-    if (closest != infinity)
-    {
+    if (closest != infinity) {
         return ((t.at(closest_index)).get_color());
     }
-    else
-    {
+    else {
         return (rt::color::BLACK);
-    };
+    }
+}
 
 
-}*/
-/*  launch_ray is an auxiliary function which launches a ray and returns the color
-    of the surface hit (and not only black or white like in the subject) */
-
-
-rt::color add_col_vect(vector<rt::color> t)
-{
+rt::color add_col_vect(vector<rt::color> t) {
     unsigned int n = t.size();
     int r = 0;
     int g = 0;
@@ -75,12 +67,11 @@ rt::color add_col_vect(vector<rt::color> t)
         b += c->get_blue();
     }
 
-    if (r>255) {r = 255;};
-    if (g>255) {g = 255;};
-    if (b>255) {b = 255;};
+    if (r>255) {r = 255;}
+    if (g>255) {g = 255;}
+    if (b>255) {b = 255;}
 
     return (rt::color(r,g,b));
-
 }
 // Returns the addition of all the colors of the given vector
 
@@ -89,7 +80,7 @@ vector<rt::color> apply_lights(hit h, vector<light> t1) {
     unsigned int n = t1.size();
     vector<rt::color> t2(n);
 
-    for (unsigned int i = 0 ; i<n ; i++) {
+    for (unsigned int i = 0 ; i < n ; i++) {
         t2.at(i) = (t1.at(i)).apply(h);
     }
 
@@ -100,39 +91,6 @@ vector<rt::color> apply_lights(hit h, vector<light> t1) {
 The formula for the addition of lights is:
 (r1,g1,b1) + (r2,g2,b2) = (min(r1+r2, 255), min(g1+g2, 255), min(b1+b2, 255))
 */
-
-
-// Second function with a hit and the modification of the color
-
-/* rt::color launch_ray2(ray r, vector<sphere> t, vector<light> l)
-{
-    hit h;
-    double d; // same as launch_ray1
-    double closest = infinity;
-    int closest_index = 0;
-    rt::color sphere_color;
-
-    for (unsigned int i=0; i<t.size(); i++)
-      {
-        d = (t.at(i)).send(r);
-        if (d < closest)
-		 {
-            closest = d;
-            closest_index = i;
-        };
-    };
-
-    if (closest == infinity)
-    {
-        return (rt::color::BLACK); // No sphere hit, Black is returned as the color of the 'vacuum'
-    }
-    else
-    {
-        h = (t.at(closest_index).intersect2(r,closest));
-        return (add_col_vect (apply_lights(h,l)));
-    };
-
-} */
 
 
 vector<rt::color> apply_lights2(hit h, vector<sphere> s, vector<light> l) { //, vector<plane> p,
@@ -191,8 +149,6 @@ rt::color launch_ray3(ray r, vector<sphere> s, vector<plane> p, vector<light> l)
         return (add_col_vect (apply_lights2(h,s/*,p*/,l)));
     }
 }
-
-
 
 
 
@@ -262,8 +218,10 @@ int main(int argc, char *argv[]) {
     double dist = 400; // Distance between the camera and the image
 
     // The camera is supposed to be on the origin of the space: (0,0,0)
+    
+    // Vector that will center the 'screen' in the scene
     rt::vector screen_center(width/2, height/2, 0);
-    // vector that will center the 'screen' in the scene
+    
 
     rt::screen scr(width,height);
 
@@ -279,11 +237,12 @@ int main(int argc, char *argv[]) {
         for (int j = 0; j < height; j++) { //j is the ordinate
             direct = (rt::vector(i, j, dist)) - screen_center;
             r = new ray(rt::vector(0, 0, 0), direct, rt::color::WHITE);
-            // pixel_col = launch_ray1(*r, spheres_set);
+            // pixel_col = launch_ray1(*r, sphere_set);
             // pixel_col = launch_ray2(*r, sphere_set, light_set);
             pixel_col = launch_ray3(*r, sphere_set, plane_set, light_set);
             scr.set_pixel(i, j, pixel_col);
         }
+
         // Progress bar
         newpct = 50*(i+1) / width;
         if (newpct > pct) {

@@ -1,14 +1,11 @@
 #pragma once
 
-#ifndef RT_SPHERE_H
-#define RT_SPHERE_H
-
 #include "../../screen/headers/color.hpp"
 #include "../../light/headers/vector.hpp"
 #include "../../light/headers/hit.hpp"
 
-class sphere
-{
+class sphere {
+    
     private:
         rt::vector center;
         double radius;
@@ -36,5 +33,3 @@ class sphere
 
         hit intersect(const ray& r, double t) const;
 };
-
-#endif // RT_SPHERE_H

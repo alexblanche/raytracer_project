@@ -6,7 +6,9 @@
 
 #include<limits>
 
+/* Constructors */
 
+/* Default constructor */
 plane::plane() {
     a = 0;
     b = 0;
@@ -15,14 +17,13 @@ plane::plane() {
     col = rt::color::WHITE;
 }
 
-plane::plane(double ca, double cb, double cc, double cd, const rt::color& ccol) {
-    a = ca;
-    b = cb;
-    c = cc;
-    d = cd;
-    col = ccol;
-}
+/* Main constructor */
+/* A plane (P) of equation (P): ax + by + cz + d = 0
+ defined by 4 doubles a,b,c,d */
+plane::plane(double ca, double cb, double cc, double cd, const rt::color& ccol)
+    : a(ca), b(cb), c(cc), d(cd), col(ccol) {}
 
+/* Constructor of a plane of normal vector (a,b,c) and touching the point v */
 plane::plane(double ca, double cb, double cc, const rt::vector& v, const rt::color& ccol) {
     a = ca;
     b = cb;
@@ -31,6 +32,8 @@ plane::plane(double ca, double cb, double cc, const rt::vector& v, const rt::col
 
     d = -((rt::vector(ca,cb,cc))|v); // = -aX-bY-cZ if v = (X,Y,Z)
 }
+
+/* Accessors */
 
 rt::vector plane::get_normal() const {
     return (rt::vector(a,b,c));
@@ -44,6 +47,8 @@ rt::color plane::get_color() const {
     return col;
 }
 
+
+/* Intersection determination */
 
 double plane::send(const ray& r) const {
 
@@ -63,7 +68,7 @@ double plane::send(const ray& r) const {
         return infinity;
     }
     else {
-        t = -((n|A)+d)/pdt;
+        t = -((n|A)+d) / pdt;
         // t = -(axA+byA+czA+d)/(ax+by+cz)
 
         if (t <= 0) { // the plane is "behind" the ray, so there is no intersection with the plane
