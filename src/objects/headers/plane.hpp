@@ -20,15 +20,15 @@ class plane
         // (P): ax + by + cz + d = 0
     public:
         plane();
-        plane(double ca, double cb, double cc, double cd, rt::color ccol);
-        plane(double ca, double cb, double cc, rt::vector v, rt::color ccol);
+        plane(double ca, double cb, double cc, double cd, const rt::color& ccol);
+        plane(double ca, double cb, double cc, const rt::vector& v, const rt::color& ccol);
 
-        rt::vector get_normal();
-        double get_d();
-        rt::color get_color();
+        rt::vector get_normal() const;
+        double get_d() const;
+        rt::color get_color() const;
 
-        double send(ray r);
-        hit intersect(ray r, double t);
+        double send(const ray& r) const;
+        hit intersect(const ray& r, double t) const;
 };
 
 #endif // PLANE_H

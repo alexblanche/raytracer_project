@@ -7,74 +7,75 @@
 
 
 // constructors
-sphere::sphere(rt::vector c, double r, rt::color co) : center(c), radius(r), col(co) {};
+sphere::sphere(const rt::vector& c, double r, const rt::color& co)
+    : center(c), radius(r), col(co) {}
 
 sphere::sphere() {
-  center = rt::vector();
-  radius = 0;
-  col = rt::color::WHITE;
+    center = rt::vector();
+    radius = 0;
+    col = rt::color::WHITE;
 }
 
 // accessors
-rt::vector sphere::get_center() {
-  return center;
+rt::vector sphere::get_center() const {
+    return center;
 }
 
-double sphere::get_radius() {
-  return radius;
+double sphere::get_radius() const {
+    return radius;
 }
 
-rt::color sphere::get_color() {
-  return col;
+rt::color sphere::get_color() const {
+    return col;
 }
 
-double sphere::send(ray r) {
-  /*
-
-    We have to solve the equation ||/AC - t/u||^2 = R^2
-    The system is equivalent to:
-    t^2*||u||^2-2(u|v)t+||v||^2-R^2 = 0
-    Delta = 4((u|v)^2-||u||^2*(||v||^2-R^2))
-
-    where ||u|| = 1
-    and v = AC = (Cx-Ax, Cy-Ay, Cz-Az)
-
-  */
-  rt::vector C = center;
-  rt::vector O = r.get_origin();
-  rt::vector v = C-O;
-  rt::vector u = (r.get_direction()).unit();
-
-  double nv = v.norm();
-  double uv = (u|v);
-  double R = radius;
-
-  double A = uv*uv + R*R - nv*nv;
-  // Delta = 4A
-  numeric_limits<double> real;
-  const double infinity = real.infinity();
-  if (A > 0) {
-    double t1 = uv - sqrt(A);
-    //double t2 = uv + sqrt(A);
-
-    if (t1>0) { // t2>0 because t2>t1
-	    return t1; // = min(t1,t2)
-    }
+double sphere::send(const ray& r) const {
     /*
-    else if (t2>0) {
-	    return t2;
-    }
+
+      We have to solve the equation ||/AC - t/u||^2 = R^2
+      The system is equivalent to:
+      t^2*||u||^2-2(u|v)t+||v||^2-R^2 = 0
+      Delta = 4((u|v)^2-||u||^2*(||v||^2-R^2))
+
+      where ||u|| = 1
+      and v = AC = (Cx-Ax, Cy-Ay, Cz-Az)
+
     */
-    else {
-	    return infinity;
+    rt::vector C = center;
+    rt::vector O = r.get_origin();
+    rt::vector v = C-O;
+    rt::vector u = (r.get_direction()).unit();
+
+    double nv = v.norm();
+    double uv = (u|v);
+    double R = radius;
+
+    double A = uv*uv + R*R - nv*nv;
+    // Delta = 4A
+    numeric_limits<double> real;
+    const double infinity = real.infinity();
+    if (A > 0) {
+      double t1 = uv - sqrt(A);
+      //double t2 = uv + sqrt(A);
+
+      if (t1>0) { // t2>0 because t2>t1
+        return t1; // = min(t1,t2)
+      }
+      /*
+      else if (t2>0) {
+        return t2;
+      }
+      */
+      else {
+        return infinity;
+      }
     }
-  }
-  else {
-    return infinity;
-  };
+    else {
+      return infinity;
+    }
 }
 
-hit sphere::intersect(ray r) {
+hit sphere::intersect(const ray& r) const {
     rt::vector C = center;
     rt::vector O = r.get_origin();
     rt::vector v = C-O;
@@ -113,7 +114,7 @@ hit sphere::intersect(ray r) {
 }
 
 
-hit sphere::intersect2(ray r, double t) {
+hit sphere::intersect2(const ray& r, double t) const {
   
     // r is the generator ray
     rt::vector p; // intersection point

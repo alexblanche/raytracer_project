@@ -15,14 +15,14 @@ class sphere
         rt::color col;
 
     public:
-        sphere(rt::vector c, double r, rt::color co);
+        sphere(const rt::vector& c, double r, const rt::color& co);
         sphere();
-        rt::vector get_center();
-        double get_radius();
-        rt::color get_color();
-        double send(ray r);
-        hit intersect(ray r);
-        hit intersect2(ray r,double t);
+        rt::vector get_center() const;
+        double get_radius() const;
+        rt::color get_color() const;
+        double send(const ray& r) const;
+        hit intersect(const ray& r) const;
+        hit intersect2(const ray& r, double t) const;
 }
 ;
 #endif // RT_SPHERE_H

@@ -2,15 +2,20 @@
 #include "../screen/headers/color.hpp"
 #include "headers/vector.hpp"
 
+/** The hit class contains the information
+ * of a ray hitting a surface: the ray in question,
+ * the point of contact, the normal of the surface at
+ * this point and the color of the surface.
+*/
 
-// constructors
-hit::hit(ray g, rt::vector p, rt::vector n, rt::color c) {
-    gen = g;
-    point = p;
-    normal = n;
-    col = c;
-}
+/* Constructors */
 
+/* Main constructor */
+hit::hit(const ray& g, const rt::vector& p, const rt::vector& n, const rt::color& c)
+    : gen(g), point(p), normal(n), col(c) {}
+
+
+/* Default constructor */
 hit::hit() {
     gen = ray();
     point = rt::vector();
@@ -18,20 +23,20 @@ hit::hit() {
     col = rt::color::BLACK;
 }
 
-// accessors
-ray hit::get_ray() {
+/* Accessors */
+ray hit::get_ray() const {
     return gen;
 }
 
-rt::vector hit::get_point() {
+rt::vector hit::get_point() const {
     return point;
 }
 
-rt::vector hit::get_normal() {
+rt::vector hit::get_normal() const {
     return normal;
 }
 
-rt::color hit::get_color() {
+rt::color hit::get_color() const {
     return col;
 }
 

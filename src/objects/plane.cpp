@@ -7,7 +7,6 @@
 #include<limits>
 
 
-
 plane::plane() {
     a = 0;
     b = 0;
@@ -16,7 +15,7 @@ plane::plane() {
     col = rt::color::WHITE;
 }
 
-plane::plane(double ca, double cb, double cc, double cd, rt::color ccol) {
+plane::plane(double ca, double cb, double cc, double cd, const rt::color& ccol) {
     a = ca;
     b = cb;
     c = cc;
@@ -24,7 +23,7 @@ plane::plane(double ca, double cb, double cc, double cd, rt::color ccol) {
     col = ccol;
 }
 
-plane::plane(double ca, double cb, double cc, rt::vector v, rt::color ccol) {
+plane::plane(double ca, double cb, double cc, const rt::vector& v, const rt::color& ccol) {
     a = ca;
     b = cb;
     c = cc;
@@ -33,20 +32,20 @@ plane::plane(double ca, double cb, double cc, rt::vector v, rt::color ccol) {
     d = -((rt::vector(ca,cb,cc))|v); // = -aX-bY-cZ if v = (X,Y,Z)
 }
 
-rt::vector plane::get_normal() {
+rt::vector plane::get_normal() const {
     return (rt::vector(a,b,c));
 }
 
-double plane::get_d() {
+double plane::get_d() const {
     return d;
 }
 
-rt::color plane::get_color() {
+rt::color plane::get_color() const {
     return col;
 }
 
 
-double plane::send(ray r) {
+double plane::send(const ray& r) const {
 
     rt::vector A = r.get_origin(); //A = (xA,yA,zA)
     rt::vector v = (r.get_direction()).unit(); // v = (x,y,z)
@@ -74,13 +73,11 @@ double plane::send(ray r) {
             return t;
             // the intersection is:
             // (xA,yA,zA) + t(x,y,z)
-        };
-    };
-
+        }
+    }
 }
 
-
-hit plane::intersect(ray r, double t) {
+hit plane::intersect(const ray& r, double t) const {
     rt::vector p = r.get_origin() + t * (r.get_direction()).unit();
     rt::vector n(a,b,c);
     return (hit(r,p,n.unit(),col));

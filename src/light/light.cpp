@@ -81,7 +81,7 @@ rt::color light::apply2(hit h, vector<sphere> s) { //, vector<plane> p)
     double cos_hit = ((h.get_normal()).unit()|(h.get_point()-pos).unit());
     if (cos_hit < 0) {
         // The point is on the far side of the sphere
-        rt::color::BLACK;
+        return rt::color::BLACK;
     }
     else {
         unsigned char r = (col.get_red() * hit_color.get_red()) * cos_hit / 255 ;
