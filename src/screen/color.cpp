@@ -7,7 +7,6 @@ namespace rt {
 	 * four components: red, green, blue and alpha (RGBA).
 	 */
 
-
 	color color::WHITE = color(255,255,255);
 	color color::BLACK = color(0,0,0);
 	color color::BLUE  = color(0,0,255);
@@ -17,7 +16,7 @@ namespace rt {
 	/**
 	 * Default constructor. Builds a white color.
 	 */
-	color::color() : red(255), green(255), blue(255), alpha(255) {};
+	color::color() : red(255), green(255), blue(255), alpha(255) {}
 
 	/**
 	 * Copy constructor.
@@ -33,22 +32,15 @@ namespace rt {
 	 * Builds a color from its red, green and blue components.
 	 * Alpha is set to 255.
 	 */
-	color::color(unsigned char r, unsigned char g, unsigned char b) {
-		red   = r;
-		green = g;
-		blue  = b;
-		alpha = 255;
-	}
+	color::color(unsigned char r, unsigned char g, unsigned char b)
+		: red(r), green(g), blue(b), alpha(255) {}
+
 
 	/**
 	 * Builds a color from its red, green, blue and alpha components.
 	 */
-	color::color(unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
-		red   = r;
-		green = g;
-		blue  = b;
-		alpha = a;
-	}
+	color::color(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+		: red(r), green(g), blue(b), alpha(a) {}
 
 	/**
 	 * Comparison operator.

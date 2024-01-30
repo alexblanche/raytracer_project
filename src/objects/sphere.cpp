@@ -7,18 +7,18 @@
 
 
 /* Constructors */
-sphere::sphere(const rt::vector& c, double r, const rt::color& co)
-    : center(c), radius(r), col(co) {}
+
+sphere::sphere(const rt::vector& center, double radius, const rt::color& color)
+    : object(center, color), radius(radius) {}
 
 sphere::sphere() {
-    center = rt::vector();
     radius = 0;
-    col = rt::color::WHITE;
 }
 
 /* Accessors */
+
 rt::vector sphere::get_center() const {
-    return center;
+    return position;
 }
 
 double sphere::get_radius() const {
@@ -26,7 +26,7 @@ double sphere::get_radius() const {
 }
 
 rt::color sphere::get_color() const {
-    return col;
+    return color;
 }
 
 /* Intersection determination */
@@ -44,90 +44,46 @@ double sphere::send(const ray& r) const {
       and v = AC = (Cx-Ax, Cy-Ay, Cz-Az)
 
     */
-    rt::vector C = center;
-    rt::vector O = r.get_origin();
-    rt::vector v = C-O;
-    rt::vector u = (r.get_direction()).unit();
+    rt::vector v = get_center() - r.get_origin();
+    rt::vector u = r.get_direction().unit();
 
     double nv = v.norm();
     double uv = (u|v);
-    double R = radius;
 
-    double A = uv*uv + R*R - nv*nv;
+    double A = uv * uv + radius * radius - nv * nv;
     // Delta = 4A
     numeric_limits<double> real;
     const double infinity = real.infinity();
-    if (A > 0) {
-      double t1 = uv - sqrt(A);
-      //double t2 = uv + sqrt(A);
-
-      if (t1>0) { // t2>0 because t2>t1
-        return t1; // = min(t1,t2)
-      }
-      /*
-      else if (t2>0) {
-        return t2;
-      }
-      */
-      else {
-        return infinity;
-      }
-    }
-    else {
-      return infinity;
-    }
-}
-
-/* Calculates the intersection value t and returns the corresponding hit */
-/*
-hit sphere::intersect(const ray& r) const {
-    rt::vector C = center;
-    rt::vector O = r.get_origin();
-    rt::vector v = C-O;
-    rt::vector u = (r.get_direction()).unit();
-
-    double nv = v.norm();
-    double uv = (u|v);
-    double R = radius;
-
-    double A = (uv*uv +R*R - nv*nv);
-    // Delta = 4A
-
     if (A > 0) {
         double t1 = uv - sqrt(A);
         //double t2 = uv + sqrt(A);
 
         if (t1>0) { // t2>0 because t2>t1
-            double tf=t1; // = min(t1,t2)
-            rt::vector p_inter = r.get_origin()+tf*r.get_direction();
-            return hit(r,p_inter,(center-p_inter).unit(),col);
+            return t1; // = min(t1,t2)
         }
-        
-        // else if (t2>0) {
-        //    double tf=t2;
-        //    rt::vector p_inter=r.get_origin()+tf*r.get_direction();
-        //    return hit(r,p_inter,(center-p_inter).unit(),col);
-        //}
-        
+        /*
+        else if (t2>0) {
+            return t2;
+        }
+        */
         else {
-            return hit();
+            return infinity;
         }
     }
     else {
-        return hit();
+        return infinity;
     }
 }
-*/
 
 /* Returns the hit corresponding with the given intersection value t */
 hit sphere::intersect(const ray& r, double t) const {
 
     // Intersection point
-    rt::vector p = r.get_origin() + t * (r.get_direction()).unit();
+    rt::vector p = r.get_origin() + t * (r.get_direction().unit());
     
     // Normal vector
-    rt::vector n = (center-p).unit();
+    rt::vector n = (get_center() - p).unit();
 
-    return (hit(r, p, n, col));
+    return (hit(r, p, n, color));
 }
 

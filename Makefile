@@ -7,6 +7,7 @@ all:
 		src/light/ray.cpp \
 		src/light/vector.cpp \
 		src/light/light.cpp \
+		src/objects/object.cpp \
 		src/objects/plane.cpp \
 		src/objects/sphere.cpp \
 		main.cpp -lmingw32 -lSDL2main -lSDL2

@@ -17,6 +17,7 @@ const double infinity = real.infinity();
 #include "src/light/headers/light.hpp"
 #include "src/light/headers/ray.hpp"
 
+#include "src/objects/headers/object.hpp"
 #include "src/objects/headers/sphere.hpp"
 #include "src/objects/headers/plane.hpp"
 
@@ -44,10 +45,10 @@ rt::color launch_ray1(ray r, vector<sphere> t) {
     }
 
     if (closest != infinity) {
-        return ((t.at(closest_index)).get_color());
+        return (t.at(closest_index)).get_color();
     }
     else {
-        return (rt::color::BLACK);
+        return rt::color::BLACK;
     }
 }
 
@@ -117,7 +118,7 @@ rt::color launch_ray3(ray r, vector<sphere> s, vector<plane> p, vector<light> l)
     // Seeking for the closest sphere
     for (unsigned int i=0; i<s.size(); i++) {
 
-        d = (s.at(i)).send(r);
+        d = s.at(i).send(r);
         if (d < closest) {
             closest = d;
             closest_index = i;
@@ -126,7 +127,7 @@ rt::color launch_ray3(ray r, vector<sphere> s, vector<plane> p, vector<light> l)
 
     // Seeking for the closest plane
     for (unsigned int i=0; i<p.size(); i++) {
-        d = (p.at(i)).send(r);
+        d = p.at(i).send(r);
         if (d < closest) {
             closest = d;
             closest_index = i;
@@ -139,10 +140,10 @@ rt::color launch_ray3(ray r, vector<sphere> s, vector<plane> p, vector<light> l)
     }
     else {
         if (is_sphere == true) {
-            h = (s.at(closest_index).intersect(r, closest));
+            h = s.at(closest_index).intersect(r, closest);
         }
         else {
-            h = (p.at(closest_index).intersect(r, closest));
+            h = p.at(closest_index).intersect(r, closest);
         }
 
         //return (add_col_vect (apply_lights(h,l)));
@@ -191,9 +192,9 @@ int main(int argc, char *argv[]) {
     // Planes
 
     // Plane 0
-    plane pln0(0, 1, 0, rt::vector(0,240,0), rt::color::WHITE);
+    plane pln0(0, 1, 0, rt::vector(0, 240, 0), rt::color::WHITE);
     // Plane 1
-    plane pln1(0, 0, 1, rt::vector(0,0,2000), rt::color::WHITE);
+    plane pln1(0, 0, 1, rt::vector(0, 0, 2000), rt::color::WHITE);
 
     // Array of the planes in the scene
     vector<plane> plane_set {pln0, pln1};
@@ -203,9 +204,9 @@ int main(int argc, char *argv[]) {
 
     // Lights
 
-    light light0(rt::vector(-500,0,600), rt::color::WHITE);
-    light light1(rt::vector(0,0,1000),   my_red);
-    light light2(rt::vector(750,0,900),  my_blue);
+    light light0(rt::vector(-500, 0, 600), rt::color::WHITE);
+    light light1(rt::vector(0, 0, 1000),   my_red);
+    light light2(rt::vector(750, 0, 900),  my_blue);
 
     // Array of the lights in the scene
     vector<light> light_set {light0, light1, light2};
@@ -235,11 +236,14 @@ int main(int argc, char *argv[]) {
 
     for (int i = 0; i < width; i++) { // i is the abscissa
         for (int j = 0; j < height; j++) { //j is the ordinate
+
             direct = (rt::vector(i, j, dist)) - screen_center;
             r = new ray(rt::vector(0, 0, 0), direct, rt::color::WHITE);
+
             // pixel_col = launch_ray1(*r, sphere_set);
             // pixel_col = launch_ray2(*r, sphere_set, light_set);
             pixel_col = launch_ray3(*r, sphere_set, plane_set, light_set);
+            
             scr.set_pixel(i, j, pixel_col);
         }
 

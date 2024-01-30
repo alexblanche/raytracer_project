@@ -5,7 +5,7 @@
 #include "../../light/headers/hit.hpp"
 
 class object {
-    private:
+    protected:
         rt::vector position;
         rt::color color;
         // + material
@@ -15,7 +15,7 @@ class object {
 
         object();
 
-        object(rt::vector pos, rt::color col) : position(pos), color(col) {}
+        object(const rt::vector& pos, const rt::color& col);
 
         /* Accessors */
 
