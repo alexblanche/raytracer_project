@@ -24,6 +24,7 @@ hit::hit() {
 }
 
 /* Accessors */
+
 ray hit::get_ray() const {
     return gen;
 }
@@ -39,7 +40,5 @@ rt::vector hit::get_normal() const {
 rt::color hit::get_color() const {
     return col;
 }
-
-
 
 

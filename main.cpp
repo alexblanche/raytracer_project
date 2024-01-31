@@ -24,6 +24,8 @@
 #include "parallel/parallel.h"
 #include "mingw.mutex.h"
 
+#include "src/auxiliary/headers/tracing.hpp"
+
 using namespace std;
 
 // Parallel for-loop macros
@@ -31,44 +33,6 @@ using namespace std;
 #define PARALLEL_FOR_END()})
 
 
-
-/* ************************************************************************ */
-
-/* Light application */
-
-/* Returns a vector of colors resulting from the application of each light source on the given hit,
-    while NOT taking other objects into account. */
-/* The formula for the addition of lights is:
-    (r1,g1,b1) + (r2,g2,b2) = (min(r1+r2, 255), min(g1+g2, 255), min(b1+b2, 255)) */
-vector<rt::color> apply_lights(const hit& h, const vector<source>& light_set) {
-
-    const unsigned int n = light_set.size();
-    vector<rt::color> color_set(n);
-
-    for (unsigned int i = 0 ; i < n ; i++) {
-        color_set.at(i) = light_set.at(i).apply(h);
-    }
-
-    return color_set;
-}
-
-/* Returns a vector of colors resulting from the application of each light source on the given hit,
-    while taking other objects into account. */
-vector<rt::color> apply_lights_obj(const hit& h, const vector<object>& obj_set, const vector<source>& light_set) {
-
-    const unsigned int n = light_set.size();
-    vector<rt::color> color_set(n);
-
-    for (unsigned int i = 0 ; i < n ; i++) {
-        color_set.at(i) = light_set.at(i).apply_obj(h, obj_set);
-    }
-
-    return color_set;
-}
-
-
-
-/* ********************************* */
 /* ********** Render loop ********** */
 
 /* Sequential version */
@@ -88,10 +52,10 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
     for (int i = 0; i < width; i++) { // i is the abscissa
         for (int j = 0; j < height; j++) { //j is the ordinate
 
-            direct = (rt::vector(i, j, dist)) - screen_center;
+            direct = rt::vector(i, j, dist) - screen_center;
             r = new ray(rt::vector(0, 0, 0), direct, rt::color::WHITE);
 
-            pixel_col = r->cast_ray(obj_set);
+            pixel_col = cast_ray(*r, obj_set);
             // pixel_col = launch_ray(*r, obj_set, light_set);
 
             scr.set_pixel(i, j, pixel_col);
@@ -107,6 +71,7 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
     
     printf("\n");
 }
+
 
 /* Parallel version */
 
@@ -130,7 +95,7 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
 
         for (int j = 0; j < height; j++) {
 
-            direct = (rt::vector(i, j, dist)) - screen_center;
+            direct = rt::vector(i, j, dist) - screen_center;
             r = new ray(rt::vector(0, 0, 0), direct, rt::color::WHITE);
 
             // pixel_col = cast_ray(*r, obj_set);

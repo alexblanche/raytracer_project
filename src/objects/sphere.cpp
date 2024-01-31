@@ -8,7 +8,7 @@
 
 /* Constructors */
 
-sphere::sphere(const rt::vector& center, double radius, const rt::color& color)
+sphere::sphere(const rt::vector& center, const double radius, const rt::color& color)
     : object(center, color), radius(radius) {}
 
 sphere::sphere() {
@@ -25,9 +25,6 @@ double sphere::get_radius() const {
     return radius;
 }
 
-rt::color sphere::get_color() const {
-    return color;
-}
 
 /* Intersection determination */
 

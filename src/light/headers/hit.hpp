@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef RT_HIT_H
-#define RT_HIT_H
-
 #include "../../screen/headers/color.hpp"
 #include "vector.hpp"
 #include "ray.hpp"
@@ -35,5 +32,3 @@ class hit {
         
         rt::color get_color() const;
 };
-
-#endif // RT_HIT_H

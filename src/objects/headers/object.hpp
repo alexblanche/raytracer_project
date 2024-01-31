@@ -3,6 +3,7 @@
 #include "../../screen/headers/color.hpp"
 #include "../../light/headers/vector.hpp"
 #include "../../light/headers/hit.hpp"
+#include "../../light/headers/ray.hpp"
 
 class object {
     protected:

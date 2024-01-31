@@ -10,4 +10,6 @@ all:
 		src/objects/object.cpp \
 		src/objects/plane.cpp \
 		src/objects/sphere.cpp \
+		src/auxiliary/application.cpp \
+		src/auxiliary/tracing.cpp \
 		main.cpp -lmingw32 -lSDL2main -lSDL2

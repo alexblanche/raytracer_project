@@ -16,7 +16,7 @@ class sphere : public object {
 
         /* Constructors */
 
-        sphere(const rt::vector& center, double radius, const rt::color& color);
+        sphere(const rt::vector& center, const double radius, const rt::color& color);
 
         sphere();
 
@@ -25,8 +25,6 @@ class sphere : public object {
         rt::vector get_center() const;
 
         double get_radius() const;
-
-        rt::color get_color() const;
 
         
         /* Intersection determination */
