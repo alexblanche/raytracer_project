@@ -6,7 +6,7 @@ all:
 		src/light/hit.cpp \
 		src/light/ray.cpp \
 		src/light/vector.cpp \
-		src/light/light.cpp \
+		src/light/source.cpp \
 		src/objects/object.cpp \
 		src/objects/plane.cpp \
 		src/objects/sphere.cpp \

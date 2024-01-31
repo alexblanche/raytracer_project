@@ -10,10 +10,7 @@ class plane : public object {
     
     private:
 
-        double a;
-        double b;
-        double c;
-        double d;
+        double a, b, c, d;
 
         /* A plane (P) of equation (P): ax + by + cz + d = 0
          defined by 4 doubles a,b,c,d */

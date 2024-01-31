@@ -95,7 +95,7 @@ namespace rt {
 			/**
 			 * Sets a pixel to a given color.
 			 */
-			virtual void set_pixel(int x, int y, const color& c);
+			virtual void set_pixel(int x, int y, const color& c) const;
 
 			/**
 			 * Copy/Paste the image's source rectangle to a given destination

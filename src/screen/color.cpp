@@ -1,4 +1,6 @@
 #include "headers/color.hpp"
+#include <vector>
+
 
 namespace rt {
 
@@ -59,5 +61,28 @@ namespace rt {
 	*/
 	color::operator int() const {
 		return 256*(256*(256*get_red() + get_green()) + get_blue()) + get_alpha();
+	}
+
+	/* Adds all the colors of the given color vector */
+	color add_col_vect(const std::vector<color>& color_set) {
+		unsigned int n = color_set.size();
+		int r = 0;
+		int g = 0;
+		int b = 0;
+		const rt::color *c;
+
+		for (unsigned int i = 0; i < n; i++) {
+			c = &(color_set.at(i));
+
+			r += c->get_red();
+			g += c->get_green();
+			b += c->get_blue();
+		}
+
+		if (r>255) {r = 255;}
+		if (g>255) {g = 255;}
+		if (b>255) {b = 255;}
+
+		return rt::color(r,g,b);
 	}
 }

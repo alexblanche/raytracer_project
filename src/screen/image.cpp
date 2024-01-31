@@ -76,7 +76,7 @@ namespace rt {
 	/**
 	 * Sets a pixel to a given color.
 	 */
-	void image::set_pixel(int x, int y, const color& c)	{
+	void image::set_pixel(int x, int y, const color& c) const {
 		if(x < 0 || y < 0 || x >= width() || y >= height()) {
 			return;
 		}

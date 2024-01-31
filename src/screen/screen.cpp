@@ -45,7 +45,7 @@ namespace rt {
 	/**
 	 * Flushes the buffer to the screen
 	 */
-	void screen::update() {
+	void screen::update() const {
 		SDL_RenderPresent(renderer);
 	}
 
@@ -53,7 +53,7 @@ namespace rt {
 	 * @brief wait indefinitely for the next quit event
 	 * @return true if we get a quit event, or false if there was an error while waiting for the quit event
 	 */
-	bool screen::wait_quit_event() {
+	bool screen::wait_quit_event() const {
 		SDL_Event event;
 		while(SDL_WaitEvent(&event)) {
 			switch(event.type) {

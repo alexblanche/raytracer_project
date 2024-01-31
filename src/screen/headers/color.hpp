@@ -14,6 +14,8 @@
  */
 #pragma once
 
+#include <vector>
+
 namespace rt {
 
 	/**
@@ -125,5 +127,7 @@ namespace rt {
 			virtual operator int() const;
 	};
 
+	/* Adds all the colors of the given color vector */
+	color add_col_vect(const std::vector<color>& color_set);
 }
 
