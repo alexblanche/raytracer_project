@@ -28,5 +28,5 @@ class object {
 
         double send(const ray& r) const;
 
-        hit intersect(const ray& r, double t) const;
+        hit intersect(const ray& r, const double t) const;
 };

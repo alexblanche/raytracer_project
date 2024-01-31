@@ -78,7 +78,7 @@ double sphere::send(const ray& r) const {
 }
 
 /* Returns the hit corresponding with the given intersection value t */
-hit sphere::intersect(const ray& r, double t) const {
+hit sphere::intersect(const ray& r, const double t) const {
 
     // Intersection point
     rt::vector p = r.get_origin() + t * (r.get_direction().unit());

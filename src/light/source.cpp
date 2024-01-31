@@ -40,20 +40,20 @@ rt::color source::get_color() const {
    while not taking into account the objects of the scene */
 rt::color source::apply(const hit& h) const {
 
-    rt::color hit_color = h.get_color();
-    double cos_hit = ((h.get_normal()).unit() | (h.get_point() - position).unit());
+    const rt::color hit_color = h.get_color();
+    const double cos_hit = ((h.get_normal()).unit() | (h.get_point() - position).unit());
     if (cos_hit < 0) {
         // The point is on the far side of the sphere
         return rt::color::BLACK;
     } 
     else {
-        unsigned char r = (color.get_red() * hit_color.get_red()) * cos_hit / 255 ;
-        unsigned char g = (color.get_green() * hit_color.get_green()) * cos_hit / 255 ;
-        unsigned char b = (color.get_blue() * hit_color.get_blue()) * cos_hit / 255 ;
+        const unsigned char r = (color.get_red() * hit_color.get_red()) * cos_hit / 255 ;
+        const unsigned char g = (color.get_green() * hit_color.get_green()) * cos_hit / 255 ;
+        const unsigned char b = (color.get_blue() * hit_color.get_blue()) * cos_hit / 255 ;
         /* Application of a light on a surface
         The formula is:
         (r1,g1,b1) -> (r2,g2,b2) = (r1*r2/255, g1*g2/255, b1*b2/255) */
-        return rt::color(r,g,b);
+        return rt::color(r, g, b);
     }
 }
 
@@ -61,10 +61,10 @@ rt::color source::apply(const hit& h) const {
    or black if it is blocked by some object of the scene */
 rt::color source::apply_obj(const hit& h, const vector<object>& obj_set) const {
 
-    rt::vector to_the_light = (position - h.get_point());
-    double dist = to_the_light.norm();
+    const rt::vector to_the_light = position - h.get_point();
+    const double dist = to_the_light.norm();
 
-    ray reflected_ray(h.get_point(), to_the_light.unit(), rt::color::WHITE);
+    const ray reflected_ray(h.get_point(), to_the_light.unit(), rt::color::WHITE);
 
     // Seeking for an intersection with a sphere or a plane
     double d;
@@ -72,20 +72,21 @@ rt::color source::apply_obj(const hit& h, const vector<object>& obj_set) const {
     for (unsigned int i = 0; i < obj_set.size(); i++) {
         d = obj_set.at(i).send(reflected_ray);
         if (d <= dist) {
+            // The light is blocked by some object
             return rt::color::BLACK;
         }
     }
 
-    rt::color hit_color = h.get_color();
+    const rt::color hit_color = h.get_color();
     double cos_hit = (h.get_normal().unit() | (h.get_point() - position).unit());
     if (cos_hit < 0) {
-        // The point is on the far side of the sphere
+        // The point is on the far side of the object
         return rt::color::BLACK;
     }
     else {
-        unsigned char r = (color.get_red() * hit_color.get_red()) * cos_hit / 255 ;
-        unsigned char g = (color.get_green() * hit_color.get_green()) * cos_hit / 255 ;
-        unsigned char b = (color.get_blue() * hit_color.get_blue()) * cos_hit / 255 ;
-        return rt::color(r,g,b);
+        const unsigned char r = (color.get_red() * hit_color.get_red()) * cos_hit / 255 ;
+        const unsigned char g = (color.get_green() * hit_color.get_green()) * cos_hit / 255 ;
+        const unsigned char b = (color.get_blue() * hit_color.get_blue()) * cos_hit / 255 ;
+        return rt::color(r, g, b);
     }    
 }

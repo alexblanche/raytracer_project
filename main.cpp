@@ -3,10 +3,6 @@
 #include <stdlib.h>
 #include <vector>
 
-#include <limits>
-std::numeric_limits<double> real;
-const double infinity = real.infinity();
-
 #include "src/screen/headers/color.hpp"
 #include "src/screen/headers/screen.hpp"
 
@@ -36,42 +32,14 @@ using namespace std;
 
 
 
-
-/* Test raycasting function:
-  Casts a ray and returns only the color of the surface hit */
-rt::color cast_ray(const ray& r, const vector<object>& obj_set) {
-    // We launch a ray with origin orig (the camera) and direction dir
-    // The vector t is the array containing the spheres
-    double d;
-    double closest = infinity;
-    int closest_index = 0;
-
-    for (unsigned int i = 0; i < obj_set.size(); i++) {
-        d = obj_set.at(i).send(r);
-        /*
-            d is the distance between the origin of the ray and the
-            intersection point with the object
-        */
-        if (d < closest) {
-            closest = d;
-            closest_index = i;
-        }
-    }
-
-    if (closest != infinity) {
-        return obj_set.at(closest_index).get_color();
-    }
-    else {
-        return rt::color::BLACK;
-    }
-}
-
 /* ************************************************************************ */
 
 /* Light application */
 
 /* Returns a vector of colors resulting from the application of each light source on the given hit,
     while NOT taking other objects into account. */
+/* The formula for the addition of lights is:
+    (r1,g1,b1) + (r2,g2,b2) = (min(r1+r2, 255), min(g1+g2, 255), min(b1+b2, 255)) */
 vector<rt::color> apply_lights(const hit& h, const vector<source>& light_set) {
 
     const unsigned int n = light_set.size();
@@ -83,11 +51,6 @@ vector<rt::color> apply_lights(const hit& h, const vector<source>& light_set) {
 
     return color_set;
 }
-
-/*
-The formula for the addition of lights is:
-(r1,g1,b1) + (r2,g2,b2) = (min(r1+r2, 255), min(g1+g2, 255), min(b1+b2, 255))
-*/
 
 /* Returns a vector of colors resulting from the application of each light source on the given hit,
     while taking other objects into account. */
@@ -103,43 +66,15 @@ vector<rt::color> apply_lights_obj(const hit& h, const vector<object>& obj_set, 
     return color_set;
 }
 
-/* Ray tracing function: computes the hit of the given ray on the closest object,
-    then applies all the light from all the sources (blocked by the other objects),
-    and returns the resulting color. */
-rt::color launch_ray(const ray& r, const vector<object>& obj_set, const vector<source>& light_set) {
 
-    double d;
-    double closest = infinity;
-    int closest_index = 0;
-
-    // Seeking for the closest object
-    for (unsigned int i = 0; i < obj_set.size(); i++) {
-
-        d = obj_set.at(i).send(r);
-        if (d < closest) {
-            closest = d;
-            closest_index = i;
-        }
-    }
-
-    if (closest == infinity) {
-        return rt::color::BLACK; // No sphere hit, Black is returned as the color of the 'vacuum'
-    }
-    else {
-        const hit h = obj_set.at(closest_index).intersect(r, closest);
-
-        //return add_col_vect (apply_lights(h, light_set));
-        return add_col_vect (apply_lights_obj(h, obj_set, light_set));
-    }
-}
 
 /* ********************************* */
 /* ********** Render loop ********** */
 
 /* Sequential version */
 
-void render_loop_seq(const rt::screen& scr, int width, int height, double dist, const rt::vector& screen_center,
-    const vector<object>& obj_set, const vector<source>& light_set) {
+void render_loop_seq(const rt::screen& scr, const int width, const int height, const double dist,
+    const rt::vector& screen_center, const vector<object>& obj_set, const vector<source>& light_set) {
     
     rt::color pixel_col;
     rt::vector direct(0, 0, 0);
@@ -156,7 +91,7 @@ void render_loop_seq(const rt::screen& scr, int width, int height, double dist, 
             direct = (rt::vector(i, j, dist)) - screen_center;
             r = new ray(rt::vector(0, 0, 0), direct, rt::color::WHITE);
 
-            pixel_col = cast_ray(*r, obj_set);
+            pixel_col = r->cast_ray(obj_set);
             // pixel_col = launch_ray(*r, obj_set, light_set);
 
             scr.set_pixel(i, j, pixel_col);
@@ -175,8 +110,8 @@ void render_loop_seq(const rt::screen& scr, int width, int height, double dist, 
 
 /* Parallel version */
 
-void render_loop_parallel(const rt::screen& scr, int width, int height, double dist, const rt::vector& screen_center,
-    const vector<object>& obj_set, const vector<source>& light_set) {
+void render_loop_parallel(const rt::screen& scr, const int width, const int height, const double dist,
+    const rt::vector& screen_center, const vector<object>& obj_set, const vector<source>& light_set) {
     
     std::mutex m;
 
@@ -198,7 +133,7 @@ void render_loop_parallel(const rt::screen& scr, int width, int height, double d
             direct = (rt::vector(i, j, dist)) - screen_center;
             r = new ray(rt::vector(0, 0, 0), direct, rt::color::WHITE);
 
-            // pixel_col = cast_ray(*r, sphere_set);
+            // pixel_col = cast_ray(*r, obj_set);
             pixel_col = launch_ray(*r, obj_set, light_set);
 
             m.lock();

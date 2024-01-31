@@ -65,7 +65,7 @@ namespace rt {
 
 	/* Adds all the colors of the given color vector */
 	color add_col_vect(const std::vector<color>& color_set) {
-		unsigned int n = color_set.size();
+		const unsigned int n = color_set.size();
 		int r = 0;
 		int g = 0;
 		int b = 0;
@@ -79,10 +79,10 @@ namespace rt {
 			b += c->get_blue();
 		}
 
-		if (r>255) {r = 255;}
-		if (g>255) {g = 255;}
-		if (b>255) {b = 255;}
+		if (r > 255) {r = 255;}
+		if (g > 255) {g = 255;}
+		if (b > 255) {b = 255;}
 
-		return rt::color(r,g,b);
+		return rt::color(r, g, b);
 	}
 }
