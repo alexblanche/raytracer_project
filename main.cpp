@@ -21,7 +21,13 @@ const double infinity = real.infinity();
 #include "src/objects/headers/sphere.hpp"
 #include "src/objects/headers/plane.hpp"
 
+#include "parallel/parallel.h"
+#include "mingw.mutex.h"
+
 using namespace std;
+
+#define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](int start, int end){ for(int i = start; i < end; ++i)
+#define PARALLEL_FOR_END()})
 
 // -> To be KEPT and adapted to vector<object>
 
@@ -151,6 +157,89 @@ rt::color launch_ray3(ray r, vector<sphere> s, vector<plane> p, vector<light> l)
     }
 }
 
+/* ********************************* */
+/* ********** Render loop ********** */
+
+/* Sequential version */
+
+void render_loop_seq(rt::screen& scr, int width, int height, double dist, const rt::vector& screen_center,
+    const vector<sphere>& sphere_set, const vector<plane>& plane_set, const vector<light>& light_set) {
+    
+    rt::color pixel_col;
+    rt::vector direct(0, 0, 0);
+    ray *r;
+    // Progress bar
+    printf("[..................................................]\r[");
+    int pct = 0;
+    int newpct = 0;
+
+    for (int i = 0; i < width; i++) { // i is the abscissa
+        for (int j = 0; j < height; j++) { //j is the ordinate
+
+            direct = (rt::vector(i, j, dist)) - screen_center;
+            r = new ray(rt::vector(0, 0, 0), direct, rt::color::WHITE);
+
+            // pixel_col = launch_ray1(*r, sphere_set);
+            // pixel_col = launch_ray2(*r, sphere_set, light_set);
+            pixel_col = launch_ray3(*r, sphere_set, plane_set, light_set);
+
+            scr.set_pixel(i, j, pixel_col);
+        }
+
+        // Progress bar
+        newpct = 50*(i+1) / width;
+        if (newpct > pct) {
+            pct = newpct;
+            printf("I");
+        }
+    }
+    
+    printf("\n");
+}
+
+/* Parallel version */
+
+void render_loop_parallel(rt::screen& scr, int width, int height, double dist, const rt::vector& screen_center,
+    const vector<sphere>& sphere_set, const vector<plane>& plane_set, const vector<light>& light_set) {
+    
+    printf("[..................................................]\r[");
+    std::mutex m;
+    int cpt = 0;
+    int pct = 0;
+    int newpct = 0;
+
+    PARALLEL_FOR_BEGIN(width) {
+        ray *r;
+        rt::vector direct;
+        rt::color pixel_col;
+
+        for (int j = 0; j < height; j++) {
+
+            direct = (rt::vector(i, j, dist)) - screen_center;
+            r = new ray(rt::vector(0, 0, 0), direct, rt::color::WHITE);
+
+            // pixel_col = launch_ray1(*r, sphere_set);
+            // pixel_col = launch_ray2(*r, sphere_set, light_set);
+            pixel_col = launch_ray3(*r, sphere_set, plane_set, light_set);
+
+            m.lock();
+            scr.set_pixel(i, j, pixel_col);
+            m.unlock();
+        }
+        
+        m.lock();
+        cpt++;
+        newpct = 50*(cpt+1) / width;
+        if (newpct > pct) {
+            pct = newpct;
+            printf("I");
+        }
+        m.unlock();
+
+    } PARALLEL_FOR_END();
+}
+
+
 
 
 /* ********************************* */
@@ -214,8 +303,8 @@ int main(int argc, char *argv[]) {
     /* *************************** */
 
     // Screen
-    int width = 960;
-    int height = 680;
+    int width = 1366;
+    int height = 768;
     double dist = 400; // Distance between the camera and the image
 
     // The camera is supposed to be on the origin of the space: (0,0,0)
@@ -223,42 +312,20 @@ int main(int argc, char *argv[]) {
     // Vector that will center the 'screen' in the scene
     rt::vector screen_center(width/2, height/2, 0);
     
-
     rt::screen scr(width,height);
 
-    rt::color pixel_col;
-    rt::vector direct(0, 0, 0);
-    ray *r;
-    // Progress bar
-    printf("[..................................................]\r[");
-    int pct = 0;
-    int newpct = 0;
-
-    for (int i = 0; i < width; i++) { // i is the abscissa
-        for (int j = 0; j < height; j++) { //j is the ordinate
-
-            direct = (rt::vector(i, j, dist)) - screen_center;
-            r = new ray(rt::vector(0, 0, 0), direct, rt::color::WHITE);
-
-            // pixel_col = launch_ray1(*r, sphere_set);
-            // pixel_col = launch_ray2(*r, sphere_set, light_set);
-            pixel_col = launch_ray3(*r, sphere_set, plane_set, light_set);
-
-            scr.set_pixel(i, j, pixel_col);
-        }
-
-        // Progress bar
-        newpct = 50*(i+1) / width;
-        if (newpct > pct) {
-            pct = newpct;
-            printf("I");
-        }
-    }
+    //render_loop_seq(scr, width, height, dist, screen_center, sphere_set, plane_set, light_set);
+    render_loop_parallel(scr, width, height, dist, screen_center, sphere_set, plane_set, light_set);
     
-    printf("\n");
     scr.update();
 
     while(not scr.wait_quit_event()) {}
 
     return EXIT_SUCCESS;
 }
+
+/* Time for 1366x768 (in s):
+Seq:        8.12    8.37    8.35
+Parallel:   2.17    2.17    2.37
+Result: 3.7 times faster!
+*/
