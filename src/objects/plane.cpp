@@ -76,14 +76,14 @@ double plane::send(const ray& r) const {
         return infinity;
     }
     else {
-        t = -((n|A)+d) / pdt;
+        t = ((n|A)+d) / pdt;
         // t = -(axA+byA+czA+d)/(ax+by+cz)
 
-        if (t <= 0) { // the plane is "behind" the ray, so there is no intersection with the plane
+        if (t >= 0) { // the plane is "behind" the ray, so there is no intersection with the plane
             return infinity;
         }
         else {
-            return t;
+            return -t;
             // the intersection is:
             // (xA,yA,zA) + t(x,y,z)
         }

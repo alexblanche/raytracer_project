@@ -1,5 +1,5 @@
 all:
-	g++ -Wall -I sdl/include -L sdl/lib -o main.exe \
+	g++ -std=c++17 -Wall -I sdl/include -L sdl/lib -o main.exe \
 		src/screen/color.cpp \
 		src/screen/image.cpp \
 		src/screen/screen.cpp \

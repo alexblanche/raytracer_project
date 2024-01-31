@@ -51,9 +51,11 @@ double sphere::send(const ray& r) const {
     double uv = (u|v);
 
     double A = uv * uv + radius * radius - nv * nv;
+    
     // Delta = 4A
     numeric_limits<double> real;
     const double infinity = real.infinity();
+
     if (A > 0) {
         double t1 = uv - sqrt(A);
         //double t2 = uv + sqrt(A);

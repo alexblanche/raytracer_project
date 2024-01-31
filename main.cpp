@@ -243,7 +243,7 @@ int main(int argc, char *argv[]) {
             // pixel_col = launch_ray1(*r, sphere_set);
             // pixel_col = launch_ray2(*r, sphere_set, light_set);
             pixel_col = launch_ray3(*r, sphere_set, plane_set, light_set);
-            
+
             scr.set_pixel(i, j, pixel_col);
         }
 
