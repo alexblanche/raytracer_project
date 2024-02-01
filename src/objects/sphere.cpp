@@ -4,6 +4,8 @@
 #include <math.h>
 
 #include<limits>
+numeric_limits<double> realsph;
+const double infinity = realsph.infinity();
 
 
 /* Constructors */
@@ -43,22 +45,20 @@ double sphere::send(const ray& r) const {
 
     */
     rt::vector v = get_center() - r.get_origin();
-    rt::vector u = r.get_direction().unit();
+    rt::vector u = r.get_direction(); // the direction is assumed to be a unit vector
 
-    double nv = v.norm();
-    double uv = (u|v);
+    double nv2 = v.normsq();
+    double uv = (u | v);
 
-    double A = uv * uv + radius * radius - nv * nv;
+    const double a = uv * uv + radius * radius - nv2;
     
     // Delta = 4A
-    numeric_limits<double> real;
-    const double infinity = real.infinity();
 
-    if (A > 0) {
-        double t1 = uv - sqrt(A);
+    if (a > 0) {
+        const double t1 = uv - sqrt(a);
         //double t2 = uv + sqrt(A);
 
-        if (t1>0) { // t2>0 because t2>t1
+        if (t1 > 0) { // t2>0 because t2>t1
             return t1; // = min(t1,t2)
         }
         /*
@@ -79,11 +79,11 @@ double sphere::send(const ray& r) const {
 hit sphere::intersect(const ray& r, const double t) const {
 
     // Intersection point
-    rt::vector p = r.get_origin() + t * (r.get_direction().unit());
+    rt::vector p = r.get_origin() + t * r.get_direction();
     
     // Normal vector
     rt::vector n = (get_center() - p).unit();
 
-    return (hit(r, p, n, get_index()));
+    return hit(r, p, n, get_index());
 }
 

@@ -5,6 +5,8 @@
 #include "../light/headers/hit.hpp"
 
 #include<limits>
+numeric_limits<double> realpln;
+const double infinity = realpln.infinity();
 
 /* Constructors */
 
@@ -50,7 +52,7 @@ plane::plane(const double a, const double b, const double c, const rt::vector& p
 /* Accessors */
 
 rt::vector plane::get_normal() const {
-    return (rt::vector(a, b, c));
+    return rt::vector(a, b, c);
 }
 
 double plane::get_d() const {
@@ -63,23 +65,20 @@ double plane::get_d() const {
 double plane::send(const ray& r) const {
 
     rt::vector A = r.get_origin(); //A = (xA,yA,zA)
-    rt::vector v = r.get_direction().unit(); // v = (x,y,z)
+    rt::vector v = r.get_direction(); // v = (x,y,z)
 
     // We search t so that
     // a(xA+t*x)+b(yA+t*y)+c(zA+t*z)+d = 0
-    double t;
-    numeric_limits<double> real;
-    const double infinity = real.infinity();
 
     rt::vector n(a,b,c);
     n = n.unit();
-    double pdt = (n|v);
+    double pdt = (n | v);
 
     if (pdt == 0) { // v is parallel to the plane, so there is no intersection
         return infinity;
     }
     else {
-        t = ((n|A)+d) / pdt;
+        const double t = ((n | A) + d) / pdt;
         // t = -(axA+byA+czA+d)/(ax+by+cz)
 
         if (t >= 0) { // the plane is "behind" the ray, so there is no intersection with the plane
@@ -94,7 +93,7 @@ double plane::send(const ray& r) const {
 }
 
 hit plane::intersect(const ray& r, const double t) const {
-    rt::vector p = r.get_origin() + t * (r.get_direction().unit());
+    rt::vector p = r.get_origin() + t * r.get_direction();
     rt::vector n(a, b, c);
-    return (hit(r, p, n.unit(), get_index()));
+    return hit(r, p, n.unit(), get_index());
 }

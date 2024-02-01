@@ -31,11 +31,11 @@ namespace rt {
 			/**
 			 * Preset colors
 			*/
-			static color WHITE;
-			static color BLACK;
-			static color BLUE;
-			static color GREEN;
-			static color RED;
+			static const color WHITE;
+			static const color BLACK;
+			static const color BLUE;
+			static const color GREEN;
+			static const color RED;
 
 			/**
 			 * Default constructor. Builds a white color.

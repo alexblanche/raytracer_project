@@ -14,9 +14,7 @@
 
 /* Main constructor */
 hit::hit(const ray& g, const rt::vector& p, const rt::vector& n, const unsigned int i)
-    : gen(g), point(p), normal(n), obj_index(i) {
-        //printf("hit created, index = %u\n", i);
-    }
+    : gen(g), point(p), normal(n), obj_index(i) {}
 
 
 /* Default constructor */

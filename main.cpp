@@ -52,10 +52,10 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
         for (int j = 0; j < height; j++) { //j is the ordinate
 
             direct = rt::vector(i, j, dist) - screen_center;
-            r = new ray(rt::vector(0, 0, 0), direct, rt::color::WHITE);
+            r = new ray(rt::vector(0, 0, 0), direct.unit(), rt::color::WHITE);
 
-            //pixel_col = cast_ray(*r, obj_set);
-            pixel_col = launch_ray(*r, obj_set, light_set);
+            //pixel_col = raycast(*r, obj_set);
+            pixel_col = raytrace(*r, obj_set, light_set);
 
             scr.set_pixel(i, j, pixel_col);
         }
@@ -95,10 +95,10 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
         for (int j = 0; j < height; j++) {
 
             direct = rt::vector(i, j, dist) - screen_center;
-            r = new ray(rt::vector(0, 0, 0), direct, rt::color::WHITE);
+            r = new ray(rt::vector(0, 0, 0), direct.unit(), rt::color::WHITE);
 
-            // pixel_col = cast_ray(*r, obj_set);
-            pixel_col = launch_ray(*r, obj_set, light_set);
+            // pixel_col = raycast(*r, obj_set);
+            pixel_col = raytrace(*r, obj_set, light_set);
 
             m.lock();
             scr.set_pixel(i, j, pixel_col);
@@ -151,9 +151,9 @@ int main(int argc, char *argv[]) {
     // Spheres
 
     // Sphere 00
-    sphere sph0(rt::vector(-400,0,1000), 240, rt::color::WHITE, obj_counter++);
+    const sphere sph0(rt::vector(-400,0,1000), 240, rt::color::WHITE, obj_counter++);
     // Sphere 1
-    sphere sph1(rt::vector( 400,0,1000), 240, rt::color::WHITE, obj_counter++);
+    const sphere sph1(rt::vector( 400,0,1000), 240, rt::color::WHITE, obj_counter++);
 
     // Array of the spheres in the scene
     //vector<sphere> sphere_set {sph0, sph1};
@@ -163,22 +163,17 @@ int main(int argc, char *argv[]) {
     // Planes
 
     // Plane 0
-    plane pln0(0, 1, 0, rt::vector(0, 240, 0), rt::color::WHITE, obj_counter++);
+    const plane pln0(0, 1, 0, rt::vector(0, 240, 0), rt::color::WHITE, obj_counter++);
     // Plane 1
-    plane pln1(0, 0, 1, rt::vector(0, 0, 2000), rt::color::WHITE, obj_counter++);
+    const plane pln1(0, 0, 1, rt::vector(0, 0, 2000), rt::color::WHITE, obj_counter++);
 
     // Array of the planes in the scene
     //vector<plane> plane_set {pln0, pln1};
 
+    /* Object set */
+    /* Storing pointers allow the overridden methods send and intersect (from sphere, plane)
+       to be executed instead of the base (object) one */
     const vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1};
-
-    // test
-    /*
-    for (unsigned int i = 0; i < obj_set.size(); i++){
-        printf("%u ", obj_set.at(i)->get_index());
-    }
-    printf("\n");
-    */
     
 
 

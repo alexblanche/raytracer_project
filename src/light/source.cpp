@@ -69,18 +69,22 @@ rt::color source::apply_obj(const hit& h, const vector<const object*>& obj_set) 
 
     const ray reflected_ray(h.get_point(), to_the_light.unit(), rt::color::WHITE);
 
-    // Looking for an intersection with a sphere or a plane
+    // Looking for an intersection with an object
     double d;
 
     for (unsigned int i = 0; i < obj_set.size(); i++) {
         d = obj_set.at(i)->send(reflected_ray);
-        if (d <= dist) {
-            // The light is blocked by some object
+
+        //printf("%f ", d);
+
+        if (d > 0.1 && d <= dist) {
+            // d<=dist means the light is blocked by some object
+            // d==0 when the object of contact is tested
             return rt::color::BLACK;
         }
     }
+    //printf("\n");
 
-    //printf("source.cpp, apply_obj: index = %u\n", h.get_obj_index());
     const rt::color hit_color = obj_set.at(h.get_obj_index())->get_color();
     double cos_hit = (h.get_normal().unit() | (h.get_point() - position).unit());
     if (cos_hit < 0) {

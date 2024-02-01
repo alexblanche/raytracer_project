@@ -65,6 +65,11 @@ namespace rt {
 		double norm() const;
 
 		/**
+		 * Returns the squared norm of the vector (x^2+y^2+z^2)
+		 */
+		double normsq() const;
+
+		/**
 		 * return a vector of the same direction but of norm 1
 		 */
 		vector unit() const;

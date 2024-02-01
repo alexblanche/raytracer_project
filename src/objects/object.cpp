@@ -39,6 +39,5 @@ double object::send(const ray& r) const {
 hit object::intersect(const ray& r, const double t) const {
     rt::vector p = r.get_origin() + t * r.get_direction().unit();
     rt::vector n = (-1)*(r.get_direction().unit());
-    //printf("object.cpp, intersect: index = %u \n", index);
     return hit(r, p, n, index);
 }

@@ -69,8 +69,14 @@ namespace rt {
 	 * Returns the norm of the vector
 	 */
 	double vector::norm() const {
-		double n = std::sqrt(x*x+y*y+z*z);
-		return n;
+		return std::sqrt(x*x+y*y+z*z);
+	}
+
+	/**
+	 * Returns the squared norm of the vector (x^2+y^2+z^2)
+	 */
+	double vector::normsq() const {
+		return x*x + y*y + z*z;
 	}
 
 	/**
