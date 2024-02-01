@@ -145,9 +145,9 @@ int main(int argc, char *argv[]) {
     // Spheres
 
     // Sphere 00
-    // const sphere sph0(rt::vector(-400,0,1000), 240, obj_counter++, diffuse_material(rt::color::WHITE));
+    const sphere sph0(rt::vector(-400,0,1000), 240, obj_counter++, diffuse_material(rt::color::WHITE));
     // Sphere 1
-    // const sphere sph1(rt::vector( 400,0,1000), 240, obj_counter++, diffuse_material(rt::color::WHITE));
+    const sphere sph1(rt::vector( 400,0,1000), 240, obj_counter++, diffuse_material(rt::color::WHITE));
 
     // Array of the spheres in the scene
     //vector<sphere> sphere_set {sph0, sph1};
@@ -157,9 +157,9 @@ int main(int argc, char *argv[]) {
     // Planes
 
     // Plane 0
-    // const plane pln0(0, 1, 0, rt::vector(0, 240, 0), obj_counter++, diffuse_material(rt::color::WHITE));
+    const plane pln0(0, 1, 0, rt::vector(0, 240, 0), obj_counter++, diffuse_material(rt::color::WHITE));
     // Plane 1
-    // const plane pln1(0, 0, 1, rt::vector(0, 0, 2000), obj_counter++, diffuse_material(rt::color::WHITE));
+    const plane pln1(0, 0, 1, rt::vector(0, 0, 2000), obj_counter++, diffuse_material(rt::color::WHITE));
 
     // Array of the planes in the scene
     //vector<plane> plane_set {pln0, pln1};
@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
     /* Object set */
     /* Storing pointers allow the overridden methods send and intersect (from sphere, plane)
        to be executed instead of the base (object) one */
-    // const vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1};
+    const vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1};
     
 
 
@@ -196,10 +196,10 @@ int main(int argc, char *argv[]) {
     
     const rt::screen scr(width, height);
 
-    // render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set);
+    render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set);
     //render_loop_parallel(scr, width, height, dist, screen_center, obj_set, light_set);
 
-    scr.set_pixel(5, 5, rt::color::WHITE);
+    // scr.set_pixel(5, 5, rt::color::WHITE);
     
     scr.update();
 

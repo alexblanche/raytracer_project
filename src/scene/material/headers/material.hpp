@@ -22,7 +22,9 @@ class material {
 
     public:
 
-        static const material MIRROR;
+        /* Mirror surface */
+        //static const material MIRROR;
+
 
         /* Constructors */
 

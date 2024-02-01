@@ -1,6 +1,9 @@
 #include "headers/material.hpp"
 #include "../../screen/headers/color.hpp"
 
+/* Static element */
+//const material material::MIRROR = material(rt::color::WHITE, rt::color::WHITE, 1, 0);
+
 /* Constructors */
 
 material::material() : color(rt::color::WHITE), emitted_color(rt::color::WHITE),
@@ -13,9 +16,9 @@ material::material(const rt::color& color, const rt::color& emitted_color,
         reflectivity(reflectivity), emission_intensity(emission_intensity) {}
 
 
-/* Static element */
 
-const material material::MIRROR = material(rt::color::WHITE, rt::color::WHITE, 1, 0);
+
+
 
 
 /* Specific constructors */
