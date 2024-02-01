@@ -96,5 +96,5 @@ double plane::send(const ray& r) const {
 hit plane::intersect(const ray& r, const double t) const {
     rt::vector p = r.get_origin() + t * (r.get_direction().unit());
     rt::vector n(a, b, c);
-    return (hit(r, p, n.unit(), color));
+    return (hit(r, p, n.unit(), get_index()));
 }

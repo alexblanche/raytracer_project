@@ -2,6 +2,8 @@
 #include "../screen/headers/color.hpp"
 #include "headers/vector.hpp"
 
+#include <iostream>
+
 /** The hit class contains the information
  * of a ray hitting a surface: the ray in question,
  * the point of contact, the normal of the surface at
@@ -12,7 +14,9 @@
 
 /* Main constructor */
 hit::hit(const ray& g, const rt::vector& p, const rt::vector& n, const unsigned int i)
-    : gen(g), point(p), normal(n), obj_index(i) {}
+    : gen(g), point(p), normal(n), obj_index(i) {
+        //printf("hit created, index = %u\n", i);
+    }
 
 
 /* Default constructor */

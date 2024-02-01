@@ -59,7 +59,10 @@ rt::color launch_ray(const ray& r, const vector<const object*>& obj_set, const v
     }
 
     if (closest != infinity) {
+        //printf("tracing.cpp, launch_ray: closest_index = %d \n", closest_index);
+        //printf("tracing.cpp, launch_ray: obj_set.at(%d)->get_index() = %u \n", closest_index, obj_set.at(closest_index)->get_index());
         const hit h = obj_set.at(closest_index)->intersect(r, closest);
+        //printf("tracing.cpp, launch_ray: h.get_obj_index = %u \n", h.get_obj_index());
         return add_col_vect(apply_lights_obj(h, obj_set, light_set));
     }
     else {

@@ -25,6 +25,7 @@ class object {
 
         rt::color get_color() const;
 
+        unsigned int get_index() const;
 
         /* Intersection determination */
         // These two functions are overridden by derived classes

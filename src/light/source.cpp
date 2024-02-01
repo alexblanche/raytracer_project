@@ -80,6 +80,7 @@ rt::color source::apply_obj(const hit& h, const vector<const object*>& obj_set) 
         }
     }
 
+    //printf("source.cpp, apply_obj: index = %u\n", h.get_obj_index());
     const rt::color hit_color = obj_set.at(h.get_obj_index())->get_color();
     double cos_hit = (h.get_normal().unit() | (h.get_point() - position).unit());
     if (cos_hit < 0) {

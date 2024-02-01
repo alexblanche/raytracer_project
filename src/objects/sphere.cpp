@@ -84,6 +84,6 @@ hit sphere::intersect(const ray& r, const double t) const {
     // Normal vector
     rt::vector n = (get_center() - p).unit();
 
-    return (hit(r, p, n, color));
+    return (hit(r, p, n, get_index()));
 }
 

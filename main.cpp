@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
 
     // Spheres
 
-    // Sphere 0
+    // Sphere 00
     sphere sph0(rt::vector(-400,0,1000), 240, rt::color::WHITE, obj_counter++);
     // Sphere 1
     sphere sph1(rt::vector( 400,0,1000), 240, rt::color::WHITE, obj_counter++);
@@ -172,6 +172,13 @@ int main(int argc, char *argv[]) {
 
     const vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1};
 
+    // test
+    /*
+    for (unsigned int i = 0; i < obj_set.size(); i++){
+        printf("%u ", obj_set.at(i)->get_index());
+    }
+    printf("\n");
+    */
     
 
 
@@ -200,8 +207,8 @@ int main(int argc, char *argv[]) {
     
     const rt::screen scr(width, height);
 
-    //render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set);
-    render_loop_parallel(scr, width, height, dist, screen_center, obj_set, light_set);
+    render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set);
+    //render_loop_parallel(scr, width, height, dist, screen_center, obj_set, light_set);
     
     scr.update();
 
