@@ -1,7 +1,7 @@
 #include "../../light/headers/ray.hpp"
 #include "../../screen/headers/color.hpp"
-#include "../../light/headers/source.hpp"
-#include "../../objects/headers/object.hpp"
+#include "../../scene/sources/headers/source.hpp"
+#include "../../scene/objects/headers/object.hpp"
 
 #include "application.hpp"
 
@@ -15,3 +15,9 @@ rt::color raycast(const ray& r, const vector<const object*>& obj_set);
   then applies all the light from all the sources (blocked by the other objects),
   and returns the resulting color. */
 rt::color raytrace(const ray& r, const vector<const object*>& obj_set, const vector<source>& light_set);
+
+/* Path tracing function: computes the hit of the given ray on the closest object,
+    then recursively launches rays, with a distribution depending on the surface material,
+    until either a light-emitting object is hit, or the maximum number of bounced is reached.
+    The colors obtained are then combined to determine the color of the pixel. */
+rt::color pathtrace(const ray& r, const vector<const object*>& obj_set, const unsigned int bounce);

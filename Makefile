@@ -6,10 +6,10 @@ all:
 		src/light/hit.cpp \
 		src/light/ray.cpp \
 		src/light/vector.cpp \
-		src/light/source.cpp \
-		src/objects/object.cpp \
-		src/objects/plane.cpp \
-		src/objects/sphere.cpp \
+		src/scene/sources/source.cpp \
+		src/scene/objects/object.cpp \
+		src/scene/objects/plane.cpp \
+		src/scene/objects/sphere.cpp \
 		src/auxiliary/application.cpp \
 		src/auxiliary/tracing.cpp \
 		main.cpp -lmingw32 -lSDL2main -lSDL2

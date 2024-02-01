@@ -7,10 +7,13 @@ object::object() {
     position = rt::vector();
     color = rt::color::WHITE;
     index = 0;
+    mat = material();
 }
 
-object::object(const rt::vector& position, const rt::color& color, const unsigned int i)
-    : position(position), color(color), index(i) {}
+object::object(const rt::vector& position, const rt::color& color,
+    const unsigned int i, const material& m)
+
+    : position(position), color(color), index(i), mat(m) {}
 
 
 
@@ -26,6 +29,10 @@ rt::color object::get_color() const {
 
 unsigned int object::get_index() const {
     return index;
+}
+
+material object::get_material() const {
+    return mat;
 }
 
 /* Intersection determination */

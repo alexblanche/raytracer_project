@@ -11,14 +11,14 @@
 #include "src/light/headers/hit.hpp"
 */
 
-#include "src/light/headers/source.hpp"
+#include "src/scene/sources/headers/source.hpp"
 #include "src/light/headers/ray.hpp"
 
 /*
 #include "src/objects/headers/object.hpp"
 */
-#include "src/objects/headers/sphere.hpp"
-#include "src/objects/headers/plane.hpp"
+#include "src/scene/objects/headers/sphere.hpp"
+#include "src/scene/objects/headers/plane.hpp"
 
 #include "parallel/parallel.h"
 #include "mingw.mutex.h"
@@ -50,18 +50,19 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
 
     for (int i = 0; i < width; i++) { // i is the abscissa
         for (int j = 0; j < height; j++) { //j is the ordinate
-
+            
             direct = rt::vector(i, j, dist) - screen_center;
             r = new ray(rt::vector(0, 0, 0), direct.unit(), rt::color::WHITE);
 
-            //pixel_col = raycast(*r, obj_set);
-            pixel_col = raytrace(*r, obj_set, light_set);
+            // pixel_col = raycast(*r, obj_set);
+            // pixel_col = raytrace(*r, obj_set, light_set);
+            pixel_col = pathtrace(*r, obj_set, 2);
 
             scr.set_pixel(i, j, pixel_col);
         }
 
         // Progress bar
-        newpct = 50*(i+1) / width;
+        newpct = 50 * (i+1) / width;
         if (newpct > pct) {
             pct = newpct;
             printf("I");

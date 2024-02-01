@@ -1,23 +1,26 @@
 #pragma once
 
-#include "../../screen/headers/color.hpp"
-#include "../../light/headers/vector.hpp"
-#include "../../light/headers/hit.hpp"
-#include "../../light/headers/ray.hpp"
+#include "../../../screen/headers/color.hpp"
+#include "../../../light/headers/vector.hpp"
+#include "../../../light/headers/hit.hpp"
+#include "../../../light/headers/ray.hpp"
+#include "../../material/headers/material.hpp"
 
 class object {
+    
     protected:
+        
         rt::vector position;
         rt::color color;
-        // + material
         unsigned int index;
+        material mat;
 
     public:
         /* Constructors */
 
         object();
 
-        object(const rt::vector& pos, const rt::color& col, const unsigned int i);
+        object(const rt::vector& pos, const rt::color& col, const unsigned int i, const material& m);
 
         /* Accessors */
 
@@ -26,6 +29,8 @@ class object {
         rt::color get_color() const;
 
         unsigned int get_index() const;
+
+        material get_material() const;
 
         /* Intersection determination */
         // These two functions are overridden by derived classes

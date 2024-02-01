@@ -5,10 +5,10 @@
 #include <stdlib.h>
 #include <vector>
 
-#include "hit.hpp"
+#include "../../../light/headers/hit.hpp"
 #include "../../objects/headers/sphere.hpp"
 #include "../../objects/headers/plane.hpp"
-#include "../../screen/headers/color.hpp"
+#include "../../../screen/headers/color.hpp"
 
 using namespace std;
 
@@ -17,7 +17,9 @@ using namespace std;
  */
 
 class source {
+
     protected:
+    
         rt::vector position;
         rt::color color;
 

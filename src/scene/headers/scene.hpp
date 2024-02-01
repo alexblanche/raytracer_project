@@ -1,12 +1,13 @@
 #pragma once
 
 #include <vector>
-#include "../../object/object.hpp"
-#include "../../light/source.hpp"
+#include "../../objects/headers/object.hpp"
+#include "../sources/headers/source.hpp"
+
 
 class scene {
     public:
-        std::vector<object>& obj_set;
-        std::vector<light>& light_set;
-
+        std::vector<const object*>& obj_set;
+        std::vector<source>& light_set;
+        // camera...
 };

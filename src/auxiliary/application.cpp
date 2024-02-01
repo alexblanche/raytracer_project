@@ -1,6 +1,6 @@
 #include <vector>
 #include "../screen/headers/color.hpp"
-#include "../light/headers/source.hpp"
+#include "../scene/sources/headers/source.hpp"
 
 
 /* Light application */
