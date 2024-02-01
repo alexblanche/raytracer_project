@@ -43,5 +43,5 @@ class source {
 
         /* Applies the color of the light source on the given hit,
            or black if it is blocked by some object of the scene */
-        rt::color apply_obj(const hit& h, const vector<object>& obj_set) const;
+        rt::color apply_obj(const hit& h, const vector<const object*>& obj_set) const;
 };

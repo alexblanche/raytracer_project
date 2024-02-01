@@ -59,7 +59,7 @@ rt::color source::apply(const hit& h) const {
 
 /* Applies the color of the light source on the given hit,
    or black if it is blocked by some object of the scene */
-rt::color source::apply_obj(const hit& h, const vector<object>& obj_set) const {
+rt::color source::apply_obj(const hit& h, const vector<const object*>& obj_set) const {
 
     const rt::vector to_the_light = position - h.get_point();
     const double dist = to_the_light.norm();
@@ -70,7 +70,7 @@ rt::color source::apply_obj(const hit& h, const vector<object>& obj_set) const {
     double d;
 
     for (unsigned int i = 0; i < obj_set.size(); i++) {
-        d = obj_set.at(i).send(reflected_ray);
+        d = obj_set.at(i)->send(reflected_ray);
         if (d <= dist) {
             // The light is blocked by some object
             return rt::color::BLACK;

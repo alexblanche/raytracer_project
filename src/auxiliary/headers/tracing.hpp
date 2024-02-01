@@ -9,9 +9,9 @@
 
 /* Test raycasting function:
   Returns only the color of the surface hit by the ray */
-rt::color cast_ray(const ray& r, const vector<object>& obj_set);
+rt::color cast_ray(const ray& r, const vector<const object*>& obj_set);
 
 /* Ray tracing function: computes the hit of the given ray on the closest object,
   then applies all the light from all the sources (blocked by the other objects),
   and returns the resulting color. */
-rt::color launch_ray(const ray& r, const vector<object>& obj_set, const vector<source>& light_set);
+rt::color launch_ray(const ray& r, const vector<const object*>& obj_set, const vector<source>& light_set);

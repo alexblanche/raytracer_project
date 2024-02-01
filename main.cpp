@@ -20,7 +20,6 @@
 #include "src/objects/headers/sphere.hpp"
 #include "src/objects/headers/plane.hpp"
 
-
 #include "parallel/parallel.h"
 #include "mingw.mutex.h"
 
@@ -38,7 +37,7 @@ using namespace std;
 /* Sequential version */
 
 void render_loop_seq(const rt::screen& scr, const int width, const int height, const double dist,
-    const rt::vector& screen_center, const vector<object>& obj_set, const vector<source>& light_set) {
+    const rt::vector& screen_center, const vector<const object*>& obj_set, const vector<source>& light_set) {
     
     rt::color pixel_col;
     rt::vector direct(0, 0, 0);
@@ -76,7 +75,7 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
 /* Parallel version */
 
 void render_loop_parallel(const rt::screen& scr, const int width, const int height, const double dist,
-    const rt::vector& screen_center, const vector<object>& obj_set, const vector<source>& light_set) {
+    const rt::vector& screen_center, const vector<const object*>& obj_set, const vector<source>& light_set) {
     
     std::mutex m;
 
@@ -168,7 +167,7 @@ int main(int argc, char *argv[]) {
     // Array of the planes in the scene
     //vector<plane> plane_set {pln0, pln1};
 
-    const vector<object> obj_set {sph0, sph1, pln0, pln1};
+    const vector<const object*> obj_set { &sph0, &sph1, &pln0, &pln1 };
 
 
     /* *************************** */
