@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../../../screen/headers/color.hpp"
 
 class material {
@@ -20,11 +22,16 @@ class material {
 
     public:
 
+        static const material MIRROR;
+
         /* Constructors */
+
         material();
 
+        /* Main constructor */
         material(const rt::color& color, const rt::color& emitted_color,
             const double reflectivity, const double emission_intensity);
+
 
 
         /* Accessors */
@@ -38,3 +45,11 @@ class material {
         double get_emission_intensity() const;
 
 };
+
+/* Specific constructors */
+
+/* Returns a diffuse material of given color */
+material diffuse_material(const rt::color& color);
+
+/* Returns a light of given color and intensity */
+material light_material(const rt::color& color, const double emission_intensity);

@@ -1,6 +1,6 @@
 #include "headers/sphere.hpp"
-#include "../../screen/headers/color.hpp"
 #include "../../light/headers/vector.hpp"
+#include "../material/headers/material.hpp"
 #include <math.h>
 
 #include<limits>
@@ -10,9 +10,9 @@ const double infinity = realsph.infinity();
 
 /* Constructors */
 
-sphere::sphere(const rt::vector& center, const double radius, const rt::color& color,
-    const unsigned int index, const material& material)
-    : object(center, color, index, material), radius(radius) {}
+sphere::sphere(const rt::vector& center, const double radius, const unsigned int index,
+    const material& material)
+    : object(center, index, material), radius(radius) {}
 
 sphere::sphere() {
     radius = 0;

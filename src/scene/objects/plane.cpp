@@ -1,8 +1,8 @@
 #include "headers/plane.hpp"
 
-#include "../../screen/headers/color.hpp"
 #include "../../light/headers/vector.hpp"
 #include "../../light/headers/hit.hpp"
+#include "../material/headers/material.hpp"
 
 #include<limits>
 numeric_limits<double> realpln;
@@ -17,10 +17,8 @@ plane::plane() : a(0), b(0), c(0), d(0) {}
 /* A plane (P) of equation (P): ax + by + cz + d = 0
  defined by 4 doubles a,b,c,d */
 plane::plane(const double sa, const double sb, const double sc, const double sd,
-    const rt::color& color, const unsigned int index,
-    const material& material) {
+    const unsigned int index, const material& material) {
 
-    object::color = color;
     object::index = index;
     object::mat = material;
     
@@ -45,9 +43,8 @@ plane::plane(const double sa, const double sb, const double sc, const double sd,
 
 /* Constructor of a plane of normal vector (a,b,c) and touching the point v */
 plane::plane(const double a, const double b, const double c, const rt::vector& position,
-    const rt::color& color, const unsigned int index,
-    const material& material)
-    : object(position, color, index, material), a(a), b(b), c(c) {
+    const unsigned int index, const material& material)
+    : object(position, index, material), a(a), b(b), c(c) {
 
     d = -((rt::vector(a, b, c)) | position); // = -aX-bY-cZ if v = (X,Y,Z)
 }

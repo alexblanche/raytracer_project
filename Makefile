@@ -7,6 +7,7 @@ all:
 		src/light/ray.cpp \
 		src/light/vector.cpp \
 		src/scene/sources/source.cpp \
+		src/scene/material/material.cpp \
 		src/scene/objects/object.cpp \
 		src/scene/objects/plane.cpp \
 		src/scene/objects/sphere.cpp \

@@ -5,15 +5,13 @@
 
 object::object() {
     position = rt::vector();
-    color = rt::color::WHITE;
     index = 0;
     mat = material();
 }
 
-object::object(const rt::vector& position, const rt::color& color,
-    const unsigned int i, const material& m)
+object::object(const rt::vector& position, const unsigned int i, const material& m)
 
-    : position(position), color(color), index(i), mat(m) {}
+    : position(position), index(i), mat(m) {}
 
 
 
@@ -21,10 +19,6 @@ object::object(const rt::vector& position, const rt::color& color,
 
 rt::vector object::get_position() const {
     return position;
-}
-
-rt::color object::get_color() const {
-    return color;
 }
 
 unsigned int object::get_index() const {

@@ -2,9 +2,9 @@
 
 #include "object.hpp"
 
-#include "../../../screen/headers/color.hpp"
 #include "../../../light/headers/vector.hpp"
 #include "../../../light/headers/hit.hpp"
+#include "../../material/headers/material.hpp"
 
 class plane : public object {
     
@@ -21,13 +21,11 @@ class plane : public object {
 
         plane();
         
-        plane(const double a, const double b, const double c, const double d,
-            const rt::color& color, const unsigned int index,
-            const material& material);
+        plane(const double sa, const double sb, const double sc, const double sd,
+            const unsigned int index, const material& material);
         
         plane(const double a, const double b, const double c, const rt::vector& position,
-            const rt::color& color, const unsigned int index,
-            const material& material);
+            const unsigned int index, const material& material);
 
         /* Accessors */
 

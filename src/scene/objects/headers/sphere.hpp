@@ -2,9 +2,9 @@
 
 #include "object.hpp"
 
-#include "../../../screen/headers/color.hpp"
 #include "../../../light/headers/vector.hpp"
 #include "../../../light/headers/hit.hpp"
+#include "../../material/headers/material.hpp"
 
 class sphere : public object {
     
@@ -16,8 +16,7 @@ class sphere : public object {
 
         /* Constructors */
 
-        sphere(const rt::vector& center, const double radius,
-            const rt::color& color, const unsigned int index,
+        sphere(const rt::vector& center, const double radius, const unsigned int index,
             const material& material);
 
         sphere();

@@ -50,7 +50,7 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
 
     for (int i = 0; i < width; i++) { // i is the abscissa
         for (int j = 0; j < height; j++) { //j is the ordinate
-            
+
             direct = rt::vector(i, j, dist) - screen_center;
             r = new ray(rt::vector(0, 0, 0), direct.unit(), rt::color::WHITE);
 
@@ -152,9 +152,9 @@ int main(int argc, char *argv[]) {
     // Spheres
 
     // Sphere 00
-    const sphere sph0(rt::vector(-400,0,1000), 240, rt::color::WHITE, obj_counter++);
+    const sphere sph0(rt::vector(-400,0,1000), 240, obj_counter++, diffuse_material(rt::color::WHITE));
     // Sphere 1
-    const sphere sph1(rt::vector( 400,0,1000), 240, rt::color::WHITE, obj_counter++);
+    const sphere sph1(rt::vector( 400,0,1000), 240, obj_counter++, diffuse_material(rt::color::WHITE));
 
     // Array of the spheres in the scene
     //vector<sphere> sphere_set {sph0, sph1};
@@ -164,9 +164,9 @@ int main(int argc, char *argv[]) {
     // Planes
 
     // Plane 0
-    const plane pln0(0, 1, 0, rt::vector(0, 240, 0), rt::color::WHITE, obj_counter++);
+    const plane pln0(0, 1, 0, rt::vector(0, 240, 0), obj_counter++, diffuse_material(rt::color::WHITE));
     // Plane 1
-    const plane pln1(0, 0, 1, rt::vector(0, 0, 2000), rt::color::WHITE, obj_counter++);
+    const plane pln1(0, 0, 1, rt::vector(0, 0, 2000), obj_counter++, diffuse_material(rt::color::WHITE));
 
     // Array of the planes in the scene
     //vector<plane> plane_set {pln0, pln1};
@@ -203,8 +203,8 @@ int main(int argc, char *argv[]) {
     
     const rt::screen scr(width, height);
 
-    render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set);
-    //render_loop_parallel(scr, width, height, dist, screen_center, obj_set, light_set);
+    //render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set);
+    render_loop_parallel(scr, width, height, dist, screen_center, obj_set, light_set);
     
     scr.update();
 
@@ -212,9 +212,3 @@ int main(int argc, char *argv[]) {
 
     return EXIT_SUCCESS;
 }
-
-/* Time for 1366x768 (in s):
-Seq:        8.12    8.37    8.35
-Parallel:   2.17    2.17    2.37
-Result: 3.7 times faster!
-*/

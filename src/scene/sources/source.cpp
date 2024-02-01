@@ -86,7 +86,7 @@ rt::color source::apply_obj(const hit& h, const vector<const object*>& obj_set) 
     }
     //printf("\n");
 
-    const rt::color hit_color = obj_set.at(h.get_obj_index())->get_color();
+    const rt::color hit_color = obj_set.at(h.get_obj_index())->get_material().get_color();
     double cos_hit = (h.get_normal().unit() | (h.get_point() - position).unit());
     if (cos_hit < 0) {
         // The point is on the far side of the object

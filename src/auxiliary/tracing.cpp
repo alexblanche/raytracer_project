@@ -30,7 +30,7 @@ rt::color raycast(const ray& r, const vector<const object*>& obj_set) {
     }
 
     if (closest != infinity) {
-        return obj_set.at(closest_index)->get_color();
+        return obj_set.at(closest_index)->get_material().get_color();
     }
     else {
         return rt::color::BLACK;
