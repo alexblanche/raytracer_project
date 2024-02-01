@@ -39,7 +39,7 @@ class source {
       
         /* Applies the color of the light source on the given hit,
            while not taking into account the objects of the scene */
-        rt::color apply(const hit& h) const;
+        //rt::color apply(const hit& h) const;
 
         /* Applies the color of the light source on the given hit,
            or black if it is blocked by some object of the scene */

@@ -14,31 +14,34 @@ plane::plane() : a(0), b(0), c(0), d(0) {}
 /* Main constructor */
 /* A plane (P) of equation (P): ax + by + cz + d = 0
  defined by 4 doubles a,b,c,d */
-plane::plane(double a, double b, double c, double d, const rt::color& color) {
+plane::plane(const double sa, const double sb, const double sc, const double sd, const rt::color& color,
+    const unsigned int index) {
     object::color = color;
+    object::index = index;
     
-    if (a != 0) {
-        object::position = rt::vector(-d/a, 0, 0);
+    if (sa != 0) {
+        object::position = rt::vector(-sd/sa, 0, 0);
     }
-    else if (b != 0) {
-        object::position = rt::vector(0, -d/b, 0);
+    else if (sb != 0) {
+        object::position = rt::vector(0, -sd/sb, 0);
     }
-    else if (c != 0) {
-        object::position = rt::vector(0, 0, -d/c);
+    else if (sc != 0) {
+        object::position = rt::vector(0, 0, -sd/sc);
     }
     else {
         object::position = rt::vector(0, 0, 0);
     }
 
-    a = a;
-    b = b;
-    c = c;
-    d = d;
+    a = sa;
+    b = sb;
+    c = sc;
+    d = sd;
 }
 
 /* Constructor of a plane of normal vector (a,b,c) and touching the point v */
-plane::plane(double a, double b, double c, const rt::vector& position, const rt::color& color)
-    : object(position, color), a(a), b(b), c(c) {
+plane::plane(const double a, const double b, const double c, const rt::vector& position, const rt::color& color,
+    const unsigned int index)
+    : object(position, color, index), a(a), b(b), c(c) {
 
     d = -((rt::vector(a, b, c)) | position); // = -aX-bY-cZ if v = (X,Y,Z)
 }

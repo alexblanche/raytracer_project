@@ -5,10 +5,11 @@
 object::object() {
     position = rt::vector();
     color = rt::color::WHITE;
+    index = 0;
 }
 
-object::object(const rt::vector& position, const rt::color& color)
-    : position(position), color(color) {}
+object::object(const rt::vector& position, const rt::color& color, const unsigned int i)
+    : position(position), color(color), index(i) {}
 
 
 
@@ -33,5 +34,5 @@ double object::send(const ray& r) const {
 hit object::intersect(const ray& r, const double t) const {
     rt::vector p = r.get_origin() + t * r.get_direction().unit();
     rt::vector n = (-1)*(r.get_direction().unit());
-    return hit(r, p, n, color);
+    return hit(r, p, n, index);
 }

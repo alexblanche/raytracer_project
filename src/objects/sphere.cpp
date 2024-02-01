@@ -8,8 +8,9 @@
 
 /* Constructors */
 
-sphere::sphere(const rt::vector& center, const double radius, const rt::color& color)
-    : object(center, color), radius(radius) {}
+sphere::sphere(const rt::vector& center, const double radius, const rt::color& color,
+    const unsigned int index)
+    : object(center, color, index), radius(radius) {}
 
 sphere::sphere() {
     radius = 0;

@@ -21,9 +21,13 @@ class plane : public object {
 
         plane();
         
-        plane(double a, double b, double c, double d, const rt::color& color);
+        plane(const double a, const double b, const double c, const double d,
+            const rt::color& color,
+            const unsigned int index);
         
-        plane(double a, double b, double c, const rt::vector& position, const rt::color& color);
+        plane(const double a, const double b, const double c, const rt::vector& position,
+            const rt::color& color,
+            const unsigned int index);
 
         /* Accessors */
 

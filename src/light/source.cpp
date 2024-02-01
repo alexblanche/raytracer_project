@@ -34,10 +34,12 @@ rt::color source::get_color() const {
     return color;
 }
 
+
 /* Application of light on surfaces */
 
 /* Applies the color of the light source on the given hit,
    while not taking into account the objects of the scene */
+/*
 rt::color source::apply(const hit& h) const {
 
     const rt::color hit_color = h.get_color();
@@ -50,12 +52,13 @@ rt::color source::apply(const hit& h) const {
         const unsigned char r = (color.get_red() * hit_color.get_red()) * cos_hit / 255 ;
         const unsigned char g = (color.get_green() * hit_color.get_green()) * cos_hit / 255 ;
         const unsigned char b = (color.get_blue() * hit_color.get_blue()) * cos_hit / 255 ;
-        /* Application of a light on a surface
+        * Application of a light on a surface
         The formula is:
-        (r1,g1,b1) -> (r2,g2,b2) = (r1*r2/255, g1*g2/255, b1*b2/255) */
+        (r1,g1,b1) -> (r2,g2,b2) = (r1*r2/255, g1*g2/255, b1*b2/255) *
         return rt::color(r, g, b);
     }
 }
+*/
 
 /* Applies the color of the light source on the given hit,
    or black if it is blocked by some object of the scene */
@@ -66,7 +69,7 @@ rt::color source::apply_obj(const hit& h, const vector<const object*>& obj_set) 
 
     const ray reflected_ray(h.get_point(), to_the_light.unit(), rt::color::WHITE);
 
-    // Seeking for an intersection with a sphere or a plane
+    // Looking for an intersection with a sphere or a plane
     double d;
 
     for (unsigned int i = 0; i < obj_set.size(); i++) {
@@ -77,7 +80,7 @@ rt::color source::apply_obj(const hit& h, const vector<const object*>& obj_set) 
         }
     }
 
-    const rt::color hit_color = h.get_color();
+    const rt::color hit_color = obj_set.at(h.get_obj_index())->get_color();
     double cos_hit = (h.get_normal().unit() | (h.get_point() - position).unit());
     if (cos_hit < 0) {
         // The point is on the far side of the object

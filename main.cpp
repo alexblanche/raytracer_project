@@ -54,8 +54,8 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
             direct = rt::vector(i, j, dist) - screen_center;
             r = new ray(rt::vector(0, 0, 0), direct, rt::color::WHITE);
 
-            pixel_col = cast_ray(*r, obj_set);
-            // pixel_col = launch_ray(*r, obj_set, light_set);
+            //pixel_col = cast_ray(*r, obj_set);
+            pixel_col = launch_ray(*r, obj_set, light_set);
 
             scr.set_pixel(i, j, pixel_col);
         }
@@ -144,13 +144,16 @@ int main(int argc, char *argv[]) {
     */
 
     /* *************************** */
+    /* Scene description */
+
+    unsigned int obj_counter = 0;
 
     // Spheres
 
     // Sphere 0
-    const sphere sph0(rt::vector(-400,0,1000), 240, rt::color::WHITE);
+    sphere sph0(rt::vector(-400,0,1000), 240, rt::color::WHITE, obj_counter++);
     // Sphere 1
-    const sphere sph1(rt::vector( 400,0,1000), 240, rt::color::WHITE);
+    sphere sph1(rt::vector( 400,0,1000), 240, rt::color::WHITE, obj_counter++);
 
     // Array of the spheres in the scene
     //vector<sphere> sphere_set {sph0, sph1};
@@ -160,14 +163,16 @@ int main(int argc, char *argv[]) {
     // Planes
 
     // Plane 0
-    const plane pln0(0, 1, 0, rt::vector(0, 240, 0), my_red);//rt::color::WHITE);
+    plane pln0(0, 1, 0, rt::vector(0, 240, 0), rt::color::WHITE, obj_counter++);
     // Plane 1
-    const plane pln1(0, 0, 1, rt::vector(0, 0, 2000), my_blue); //rt::color::WHITE);
+    plane pln1(0, 0, 1, rt::vector(0, 0, 2000), rt::color::WHITE, obj_counter++);
 
     // Array of the planes in the scene
     //vector<plane> plane_set {pln0, pln1};
 
-    const vector<const object*> obj_set { &sph0, &sph1, &pln0, &pln1 };
+    const vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1};
+
+    
 
 
     /* *************************** */
@@ -193,10 +198,10 @@ int main(int argc, char *argv[]) {
     // Vector that will center the 'screen' in the scene
     const rt::vector screen_center(width/2, height/2, 0);
     
-    const rt::screen scr(width,height);
+    const rt::screen scr(width, height);
 
-    render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set);
-    //render_loop_parallel(scr, width, height, dist, screen_center, obj_set, light_set);
+    //render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set);
+    render_loop_parallel(scr, width, height, dist, screen_center, obj_set, light_set);
     
     scr.update();
 

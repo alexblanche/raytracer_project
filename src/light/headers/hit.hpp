@@ -15,11 +15,11 @@ class hit {
         ray gen;
         rt::vector point;
         rt::vector normal;
-        rt::color col;
+        unsigned int obj_index;
 
     public:
         /* Main constructor */
-        hit(const ray& g, const rt::vector& p, const rt::vector& n, const rt::color& c);
+        hit(const ray& g, const rt::vector& p, const rt::vector& n, const unsigned int i);
 
         hit();
 
@@ -29,6 +29,6 @@ class hit {
         rt::vector get_point() const;
         
         rt::vector get_normal() const;
-        
-        rt::color get_color() const;
+
+        unsigned int get_obj_index() const;
 };

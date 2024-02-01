@@ -10,19 +10,21 @@ class object {
         rt::vector position;
         rt::color color;
         // + material
+        unsigned int index;
 
     public:
         /* Constructors */
 
         object();
 
-        object(const rt::vector& pos, const rt::color& col);
+        object(const rt::vector& pos, const rt::color& col, const unsigned int i);
 
         /* Accessors */
 
         rt::vector get_position() const;
 
         rt::color get_color() const;
+
 
         /* Intersection determination */
         // These two functions are overridden by derived classes

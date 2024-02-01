@@ -16,7 +16,7 @@ class sphere : public object {
 
         /* Constructors */
 
-        sphere(const rt::vector& center, const double radius, const rt::color& color);
+        sphere(const rt::vector& center, const double radius, const rt::color& color, const unsigned int index);
 
         sphere();
 

@@ -19,11 +19,10 @@ rt::color cast_ray(const ray& r, const vector<const object*>& obj_set) {
     int closest_index = 0;
 
     for (unsigned int i = 0; i < obj_set.size(); i++) {
+
         d = obj_set.at(i)->send(r);
-        /*
-            d is the distance between the origin of the ray and the
-            intersection point with the object
-        */
+        /* d is the distance between the origin of the ray and the
+           intersection point with the object */
         if (d < closest) {
             closest = d;
             closest_index = i;
@@ -47,23 +46,23 @@ rt::color launch_ray(const ray& r, const vector<const object*>& obj_set, const v
     double closest = infinity;
     int closest_index = 0;
 
-    // Seeking for the closest object
+    // Looking for the closest object
     for (unsigned int i = 0; i < obj_set.size(); i++) {
 
         d = obj_set.at(i)->send(r);
+        /* d is the distance between the origin of the ray and the
+           intersection point with the object */
         if (d < closest) {
             closest = d;
             closest_index = i;
         }
     }
 
-    if (closest == infinity) {
-        return rt::color::BLACK; // No sphere hit, Black is returned as the color of the 'vacuum'
+    if (closest != infinity) {
+        const hit h = obj_set.at(closest_index)->intersect(r, closest);
+        return add_col_vect(apply_lights_obj(h, obj_set, light_set));
     }
     else {
-        const hit h = obj_set.at(closest_index)->intersect(r, closest);
-
-        // return add_col_vect(apply_lights(h, light_set));
-        return add_col_vect(apply_lights_obj(h, obj_set, light_set));
+        return rt::color::BLACK; // No object hit
     }
 }

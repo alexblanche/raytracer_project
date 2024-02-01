@@ -5,14 +5,14 @@
 /** The hit class contains the information
  * of a ray hitting a surface: the ray in question,
  * the point of contact, the normal of the surface at
- * this point and the color of the surface.
+ * this point and the index of the object the surface belongs to.
 */
 
 /* Constructors */
 
 /* Main constructor */
-hit::hit(const ray& g, const rt::vector& p, const rt::vector& n, const rt::color& c)
-    : gen(g), point(p), normal(n), col(c) {}
+hit::hit(const ray& g, const rt::vector& p, const rt::vector& n, const unsigned int i)
+    : gen(g), point(p), normal(n), obj_index(i) {}
 
 
 /* Default constructor */
@@ -20,7 +20,7 @@ hit::hit() {
     gen = ray();
     point = rt::vector();
     normal = rt::vector();
-    col = rt::color::BLACK;
+    obj_index = 0;
 }
 
 /* Accessors */
@@ -37,8 +37,8 @@ rt::vector hit::get_normal() const {
     return normal;
 }
 
-rt::color hit::get_color() const {
-    return col;
+unsigned int hit::get_obj_index() const {
+    return obj_index;
 }
 
 
