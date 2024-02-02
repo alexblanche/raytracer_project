@@ -4,11 +4,11 @@
 #include <vector>
 
 #include "src/screen/headers/color.hpp"
+#include "src/scene/material/headers/material.hpp"
 #include "src/screen/headers/screen.hpp"
 #include "src/light/headers/ray.hpp"
 
 #include "src/scene/sources/headers/source.hpp"
-#include "src/scene/material/headers/material.hpp"
 #include "src/scene/objects/headers/object.hpp"
 #include "src/scene/objects/headers/sphere.hpp"
 #include "src/scene/objects/headers/plane.hpp"
@@ -144,25 +144,15 @@ int main(int argc, char *argv[]) {
 
     // Spheres
 
-    // Sphere 00
-    const sphere sph0(rt::vector(-400,0,1000), 240, obj_counter++, diffuse_material(rt::color::WHITE));
-    // Sphere 1
+    material mirror = material(rt::color::WHITE, rt::color::WHITE, 1, 0);
+
+    const sphere sph0(rt::vector(-400,0,1000), 240, obj_counter++, mirror);//diffuse_material(rt::color::WHITE));
     const sphere sph1(rt::vector( 400,0,1000), 240, obj_counter++, diffuse_material(rt::color::WHITE));
-
-    // Array of the spheres in the scene
-    //vector<sphere> sphere_set {sph0, sph1};
-
-    /* *************************** */
 
     // Planes
 
-    // Plane 0
     const plane pln0(0, 1, 0, rt::vector(0, 240, 0), obj_counter++, diffuse_material(rt::color::WHITE));
-    // Plane 1
     const plane pln1(0, 0, 1, rt::vector(0, 0, 2000), obj_counter++, diffuse_material(rt::color::WHITE));
-
-    // Array of the planes in the scene
-    //vector<plane> plane_set {pln0, pln1};
 
     /* Object set */
     /* Storing pointers allow the overridden methods send and intersect (from sphere, plane)

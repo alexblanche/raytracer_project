@@ -1,4 +1,5 @@
 #include "headers/object.hpp"
+#include "../material/headers/material.hpp"
 #include <iostream>
 
 /* Constructors */

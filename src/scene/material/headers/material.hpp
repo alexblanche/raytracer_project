@@ -23,6 +23,7 @@ class material {
     public:
 
         /* Mirror surface */
+        /*** UNKNOWN BUG, see material.cpp ***/
         //static const material MIRROR;
 
 
