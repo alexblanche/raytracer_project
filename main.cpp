@@ -144,9 +144,9 @@ int main(int argc, char *argv[]) {
 
     // Spheres
 
-    material mirror = material(rt::color::WHITE, rt::color::WHITE, 1, 0);
+    //material mirror = material(rt::color::WHITE, rt::color::WHITE, 1, 0);
 
-    const sphere sph0(rt::vector(-400,0,1000), 240, obj_counter++, mirror);//diffuse_material(rt::color::WHITE));
+    const sphere sph0(rt::vector(-400,0,1000), 240, obj_counter++, material::MIRROR);//diffuse_material(rt::color::WHITE));
     const sphere sph1(rt::vector( 400,0,1000), 240, obj_counter++, diffuse_material(rt::color::WHITE));
 
     // Planes
@@ -159,7 +159,6 @@ int main(int argc, char *argv[]) {
        to be executed instead of the base (object) one */
     const vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1};
     
-
 
     /* *************************** */
 
