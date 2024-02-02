@@ -4,6 +4,7 @@ all:
 		src/scene/material/material.cpp \
 		src/screen/image.cpp \
 		src/screen/screen.cpp \
+		src/auxiliary/random.cpp \
 		src/light/hit.cpp \
 		src/light/ray.cpp \
 		src/light/vector.cpp \

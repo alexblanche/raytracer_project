@@ -38,28 +38,6 @@ rt::color source::get_color() const {
 
 /* Application of light on surfaces */
 
-/* Applies the color of the light source on the given hit,
-   while not taking into account the objects of the scene */
-/*
-rt::color source::apply(const hit& h) const {
-
-    const rt::color hit_color = h.get_color();
-    const double cos_hit = ((h.get_normal()).unit() | (h.get_point() - position).unit());
-    if (cos_hit < 0) {
-        // The point is on the far side of the sphere
-        return rt::color::BLACK;
-    } 
-    else {
-        const unsigned char r = (color.get_red() * hit_color.get_red()) * cos_hit / 255 ;
-        const unsigned char g = (color.get_green() * hit_color.get_green()) * cos_hit / 255 ;
-        const unsigned char b = (color.get_blue() * hit_color.get_blue()) * cos_hit / 255 ;
-        * Application of a light on a surface
-        The formula is:
-        (r1,g1,b1) -> (r2,g2,b2) = (r1*r2/255, g1*g2/255, b1*b2/255) *
-        return rt::color(r, g, b);
-    }
-}
-*/
 
 /* Applies the color of the light source on the given hit,
    or black if it is blocked by some object of the scene */

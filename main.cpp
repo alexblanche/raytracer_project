@@ -2,6 +2,7 @@
 #include <fstream>
 #include <stdlib.h>
 #include <vector>
+#include <ctime>
 
 #include "src/screen/headers/color.hpp"
 #include "src/scene/material/headers/material.hpp"
@@ -17,6 +18,8 @@
 #include "mingw.mutex.h"
 
 #include "src/auxiliary/headers/tracing.hpp"
+// #include "src/auxiliary/headers/random.hpp"
+#include <random>
 
 using namespace std;
 
@@ -48,8 +51,8 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
             r = new ray(rt::vector(0, 0, 0), direct.unit(), rt::color::WHITE);
 
             // pixel_col = raycast(*r, obj_set);
-            pixel_col = raytrace(*r, obj_set, light_set);
-            //pixel_col = pathtrace(*r, obj_set, 2);
+            // pixel_col = raytrace(*r, obj_set, light_set);
+            pixel_col = pathtrace(*r, obj_set, 2);
 
             scr.set_pixel(i, j, pixel_col);
         }

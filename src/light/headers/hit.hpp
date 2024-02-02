@@ -1,8 +1,11 @@
 #pragma once
 
+
 #include "../../screen/headers/color.hpp"
 #include "vector.hpp"
 #include "ray.hpp"
+#include <vector>
+#include "../../auxiliary/headers/random.hpp"
 
 /** The hit class contains the information
  * of a ray hitting a surface: the ray in question,
@@ -31,4 +34,14 @@ class hit {
         rt::vector get_normal() const;
 
         unsigned int get_obj_index() const;
+
+        /* Reflection */
+
+        /* Returns the reflected ray at the point of contact */
+        ray reflect_ray() const;
+
+        /* Returns a vector of n random reflected ray passing through the disk of given radius,
+           at given distance from the point of contact */
+        std::vector<ray> random_reflect(const unsigned int n,
+            const double radius, const double distance) const;
 };
