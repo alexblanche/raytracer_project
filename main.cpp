@@ -31,7 +31,7 @@ using namespace std;
 /* Sequential version */
 
 void render_loop_seq(const rt::screen& scr, const int width, const int height, const double dist,
-    const rt::vector& screen_center, const vector<const object*>& obj_set, const vector<source>& light_set) {
+    const rt::vector& screen_center, const vector<const object*>& obj_set) { //, const vector<source>& light_set) {
     
     rt::color pixel_col;
     rt::vector direct(0, 0, 0);
@@ -42,6 +42,9 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
     int pct = 0;
     int newpct = 0;
 
+    const unsigned int number_of_rays = 10;
+    const unsigned int number_of_bounces = 2;
+
     for (int i = 0; i < width; i++) { // i is the abscissa
         for (int j = 0; j < height; j++) { //j is the ordinate
 
@@ -49,8 +52,9 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
             r = new ray(rt::vector(0, 0, 0), direct.unit(), rt::color::WHITE);
 
             // pixel_col = raycast(*r, obj_set);
-            pixel_col = raytrace(*r, obj_set, light_set);
-            //pixel_col = pathtrace(*r, obj_set, 2);
+            // pixel_col = raytrace(*r, obj_set, light_set);
+
+            pixel_col = pathtrace(*r, obj_set, number_of_rays, number_of_bounces);
 
             scr.set_pixel(i, j, pixel_col);
         }
@@ -83,6 +87,9 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
     int newpct = 0;
     */
 
+    const unsigned int number_of_rays = 10;
+    const unsigned int number_of_bounces = 2;
+
     PARALLEL_FOR_BEGIN(width) {
         ray *r;
         rt::vector direct;
@@ -95,6 +102,8 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
 
             // pixel_col = raycast(*r, obj_set);
             // pixel_col = raytrace(*r, obj_set, light_set);
+            
+            pixel_col = pathtrace(*r, obj_set, number_of_rays, number_of_bounces);
 
             m.lock();
             scr.set_pixel(i, j, pixel_col);
@@ -146,23 +155,24 @@ int main(int argc, char *argv[]) {
 
     /* Old raytracer scene */
 
-    /* Spheres and planes */
+    /*
+    * Spheres and planes *
     const sphere sph0(rt::vector(-400, 0, 1000), 240, obj_counter++, material::MIRROR);
     const sphere sph1(rt::vector( 400, 0, 1000), 240, obj_counter++, diffuse_material(rt::color::WHITE));
     const plane pln0(0, -1, 0, rt::vector(0, 240, 0), obj_counter++, diffuse_material(rt::color::WHITE));
     const plane pln1(0, 0, -1, rt::vector(0, 0, 2000), obj_counter++, diffuse_material(rt::color::WHITE));
     const vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1};
 
-    /* Light sources */
+    * Light sources *
     const source light0(rt::vector(-500, 0, 600), rt::color::WHITE);
     const source light1(rt::vector(0, 0, 1000),   my_red);
     const source light2(rt::vector(750, 0, 900),  my_blue);
     const vector<source> light_set {light0, light1, light2};
-
+    */
 
     /* Path-tracer scene */
 
-    /*
+    
     // Spheres
 
     const sphere sph0(rt::vector(-400, 0, 1000), 200, obj_counter++, material::MIRROR);
@@ -175,11 +185,12 @@ int main(int argc, char *argv[]) {
 
     const plane pln0(0, 1, 0, rt::vector(0, 240, 0), obj_counter++, diffuse_material(rt::color::WHITE));
     const plane pln1(0, 0, 1, rt::vector(0, 0, 2000), obj_counter++, diffuse_material(rt::color::WHITE));
-    */
+    
     /* Object set */
     /* Storing pointers allow the overridden methods send and intersect (from sphere, plane)
        to be executed instead of the base (object) one */
-    //const vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1, &sphl1, & sphl2};
+
+    const vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1, &sphl1, & sphl2};
 
     
 
@@ -197,8 +208,8 @@ int main(int argc, char *argv[]) {
     
     const rt::screen scr(width, height);
 
-    render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set);
-    //render_loop_parallel(scr, width, height, dist, screen_center, obj_set, light_set);
+    render_loop_seq(scr, width, height, dist, screen_center, obj_set);
+    //render_loop_parallel(scr, width, height, dist, screen_center, obj_set);
 
     // scr.set_pixel(5, 5, rt::color::WHITE);
     

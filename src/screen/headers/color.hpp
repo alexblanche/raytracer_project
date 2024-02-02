@@ -125,6 +125,21 @@ namespace rt {
 			 * red being the most significant byte.
 			*/
 			virtual operator int() const;
+
+			/**
+			 * Scaling operator.
+			 */
+			virtual color operator*(const double x) const;
+
+			/**
+			 * Addition operator.
+			 */
+			virtual color operator+(const color& c) const;
+
+			/**
+	 		* Product operator.
+	 		*/
+			virtual color operator*(const color& c) const;
 	};
 
 	/* Adds all the colors of the given color vector */

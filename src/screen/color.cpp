@@ -63,6 +63,35 @@ namespace rt {
 		return 256*(256*(256*get_red() + get_green()) + get_blue()) + get_alpha();
 	}
 
+	/**
+	 * Scaling operator.
+	 */
+	color color::operator*(const double x) const {
+		return color(x * get_red(), x * get_green(), x * get_blue());
+	}
+
+	/**
+	 * Addition operator.
+	 */
+	color color::operator+(const color& c) const {
+		return color(
+			std::min(get_red() + c.get_red(), 	  255),
+			std::min(get_green() + c.get_green(), 255),
+			std::min(get_blue() + c.get_blue(),   255));
+	}
+
+	/**
+	 * Product operator.
+	 */
+	color color::operator*(const color& c) const {
+		return color(
+			get_red() * c.get_red() / 255,
+			get_green() * c.get_green() / 255,
+			get_blue() * c.get_blue() / 255);
+	}
+
+
+
 	/* Adds all the colors of the given color vector */
 	color add_col_vect(const std::vector<color>& color_set) {
 		const unsigned int n = color_set.size();
