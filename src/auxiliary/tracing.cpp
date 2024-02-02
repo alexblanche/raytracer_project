@@ -118,9 +118,9 @@ rt::color pathtrace(const ray& r, const vector<const object*>& obj_set,
             /* Determination of the disk toward which the bounced rays are cast*/
 
             // Angle between the direction vector and the extremity of the disk (pi/2 * reflectivity)
-            const double theta = 1.57079632679 * m.get_reflectivity();
+            const double theta = 1.57079632679 * (1 - m.get_reflectivity());
             const double sintheta = sin(theta);
-            const double dist = sqrt((1/(sintheta * sintheta)) - 1);
+            const double dist = sqrt((1/(0.01 + 0.99 * sintheta * sintheta)) - 1);
 
             const std::vector<ray> bouncing_rays = h.random_reflect(number_of_rays, 1, dist);
             std::vector<rt::color> return_colors(number_of_rays);
@@ -129,7 +129,7 @@ rt::color pathtrace(const ray& r, const vector<const object*>& obj_set,
                 return_colors.at(i) = pathtrace(bouncing_rays.at(i), obj_set, number_of_rays, bounce-1);
             }
 
-            const rt::color incoming_light = add_col_vect(return_colors);
+            const rt::color incoming_light = average_col_vect(return_colors);
 
             return (incoming_light * m.get_color()) + (m.get_emitted_color() * m.get_emission_intensity());
         }

@@ -144,5 +144,8 @@ namespace rt {
 
 	/* Adds all the colors of the given color vector */
 	color add_col_vect(const std::vector<color>& color_set);
+
+	/* Returns the average of all the colors of the given color vector */
+	color average_col_vect(const std::vector<color>& color_set);
 }
 

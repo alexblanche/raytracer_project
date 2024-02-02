@@ -80,14 +80,14 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
     std::mutex m;
 
     // Progress bar
-    /*
+    
     printf("[..................................................]\r[");
     int cpt = 0;
     int pct = 0;
     int newpct = 0;
-    */
+    
 
-    const unsigned int number_of_rays = 10;
+    const unsigned int number_of_rays = 30;
     const unsigned int number_of_bounces = 2;
 
     PARALLEL_FOR_BEGIN(width) {
@@ -111,7 +111,7 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
         }
         
         // Progress bar
-        /*m.lock();
+        m.lock();
         cpt++;
         newpct = 50*(cpt+1) / width;
         if (newpct > pct) {
@@ -119,7 +119,7 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
             printf("I");
         }
         m.unlock();
-        */
+        
     } PARALLEL_FOR_END();
 }
 
@@ -175,7 +175,7 @@ int main(int argc, char *argv[]) {
     
     // Spheres
 
-    const sphere sph0(rt::vector(-400, 0, 1000), 200, obj_counter++, material::MIRROR);
+    const sphere sph0(rt::vector(-400, 0, 1000), 200, obj_counter++, diffuse_material(rt::color::WHITE));
     const sphere sph1(rt::vector( 400, 0, 1000), 200, obj_counter++, diffuse_material(rt::color::WHITE));
     
     const sphere sphl1(rt::vector(   0, 0, 1000), 100, obj_counter++, light_material(rt::color::RED, 1));
@@ -208,8 +208,8 @@ int main(int argc, char *argv[]) {
     
     const rt::screen scr(width, height);
 
-    render_loop_seq(scr, width, height, dist, screen_center, obj_set);
-    //render_loop_parallel(scr, width, height, dist, screen_center, obj_set);
+    //render_loop_seq(scr, width, height, dist, screen_center, obj_set);
+    render_loop_parallel(scr, width, height, dist, screen_center, obj_set);
 
     // scr.set_pixel(5, 5, rt::color::WHITE);
     

@@ -114,4 +114,23 @@ namespace rt {
 
 		return rt::color(r, g, b);
 	}
+
+	/* Returns the average of all the colors of the given color vector */
+	color average_col_vect(const std::vector<color>& color_set) {
+		const unsigned int n = color_set.size();
+		int r = 0;
+		int g = 0;
+		int b = 0;
+		const rt::color *c;
+
+		for (unsigned int i = 0; i < n; i++) {
+			c = &(color_set.at(i));
+
+			r += c->get_red();
+			g += c->get_green();
+			b += c->get_blue();
+		}
+
+		return rt::color(r / n, g / n, b / n);
+	}
 }
