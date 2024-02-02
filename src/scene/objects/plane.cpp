@@ -63,7 +63,7 @@ double plane::get_d() const {
 
 /* Intersection determination */
 
-double plane::send(const ray& r) const {
+double plane::measure_distance(const ray& r) const {
 
     rt::vector A = r.get_origin(); //A = (xA,yA,zA)
     rt::vector v = r.get_direction(); // v = (x,y,z)
@@ -93,8 +93,13 @@ double plane::send(const ray& r) const {
     }
 }
 
-hit plane::intersect(const ray& r, const double t) const {
+hit plane::compute_intersection(const ray& r, const double t) const {
+
+    // Intersection point
     rt::vector p = r.get_origin() + t * r.get_direction();
+
+    // Normal vector
     rt::vector n(a, b, c);
+
     return hit(r, p, n.unit(), get_index());
 }

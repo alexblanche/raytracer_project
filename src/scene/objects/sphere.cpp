@@ -32,7 +32,7 @@ double sphere::get_radius() const {
 /* Intersection determination */
 
 /* Calculates and returns the intersection value t */
-double sphere::send(const ray& r) const {
+double sphere::measure_distance(const ray& r) const {
     /*
 
       We have to solve the equation ||/AC - t/u||^2 = R^2
@@ -76,13 +76,13 @@ double sphere::send(const ray& r) const {
 }
 
 /* Returns the hit corresponding with the given intersection value t */
-hit sphere::intersect(const ray& r, const double t) const {
+hit sphere::compute_intersection(const ray& r, const double t) const {
 
     // Intersection point
     rt::vector p = r.get_origin() + t * r.get_direction();
     
     // Normal vector
-    rt::vector n = (get_center() - p).unit();
+    rt::vector n = (p - get_center()).unit();
 
     return hit(r, p, n, get_index());
 }

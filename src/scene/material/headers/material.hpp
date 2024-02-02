@@ -19,6 +19,7 @@ class material {
         double emission_intensity;
 
         // texture, specular_probability, ...
+        // transparency
 
     public:
 

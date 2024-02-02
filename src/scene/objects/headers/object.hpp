@@ -31,7 +31,7 @@ class object {
         /* Intersection determination */
         // These two functions are overridden by derived classes
 
-        virtual double send(const ray& r) const;
+        virtual double measure_distance(const ray& r) const;
 
-        virtual hit intersect(const ray& r, const double t) const;
+        virtual hit compute_intersection(const ray& r, const double t) const;
 };

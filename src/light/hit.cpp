@@ -119,7 +119,7 @@ std::vector<ray> hit::random_reflect(const unsigned int n,
     for (unsigned int i = 0; i < n; i++) {
         r = rands01.at(i);
         theta = rands0twopi.at(i);
-        rays.at(i) = ray(point, scaled_dir + sqrt(r) * (cos(theta) * X + sin(theta) * Y));
+        rays.at(i) = ray(point, (scaled_dir + sqrt(r) * (cos(theta) * X + sin(theta) * Y)).unit());
     }
 
     return rays;

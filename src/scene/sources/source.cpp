@@ -52,7 +52,7 @@ rt::color source::apply_obj(const hit& h, const vector<const object*>& obj_set) 
     double d;
 
     for (unsigned int i = 0; i < obj_set.size(); i++) {
-        d = obj_set.at(i)->send(reflected_ray);
+        d = obj_set.at(i)->measure_distance(reflected_ray);
 
         //printf("%f ", d);
 
@@ -65,7 +65,12 @@ rt::color source::apply_obj(const hit& h, const vector<const object*>& obj_set) 
     //printf("\n");
 
     const rt::color hit_color = obj_set.at(h.get_obj_index())->get_material().get_color();
-    double cos_hit = (h.get_normal().unit() | (h.get_point() - position).unit());
+
+    /* normal is oriented outward the object, and position - h.get_point() is oriented toward the light source,
+       so cos_hit < 0 means the object is on the far side, cos_hit > 0 means the light hits the object.
+       This way, we avoid doing (-cos_hit) 3 times. */
+    double cos_hit = (h.get_normal() | (position - h.get_point()).unit());
+
     if (cos_hit < 0) {
         // The point is on the far side of the object
         return rt::color::BLACK;

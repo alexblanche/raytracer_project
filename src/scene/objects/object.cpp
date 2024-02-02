@@ -34,11 +34,11 @@ material object::get_material() const {
 
 /* Default versions: these two functions are overridden by derived classes */
 
-double object::send(const ray& r) const {
+double object::measure_distance(const ray& r) const {
     return (r.get_origin() - position).norm();
 }
 
-hit object::intersect(const ray& r, const double t) const {
+hit object::compute_intersection(const ray& r, const double t) const {
     rt::vector p = r.get_origin() + t * r.get_direction().unit();
     rt::vector n = (-1)*(r.get_direction().unit());
     return hit(r, p, n, index);

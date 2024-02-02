@@ -20,7 +20,7 @@ rt::color raycast(const ray& r, const vector<const object*>& obj_set) {
 
     for (unsigned int i = 0; i < obj_set.size(); i++) {
 
-        d = obj_set.at(i)->send(r);
+        d = obj_set.at(i)->measure_distance(r);
         /* d is the distance between the origin of the ray and the
            intersection point with the object */
         if (d < closest) {
@@ -49,7 +49,7 @@ rt::color raytrace(const ray& r, const vector<const object*>& obj_set, const vec
     // Looking for the closest object
     for (unsigned int i = 0; i < obj_set.size(); i++) {
 
-        d = obj_set.at(i)->send(r);
+        d = obj_set.at(i)->measure_distance(r);
         
         /* d is the distance between the origin of the ray and the
            intersection point with the object */
@@ -61,7 +61,7 @@ rt::color raytrace(const ray& r, const vector<const object*>& obj_set, const vec
     }
 
     if (closest != infinity) {
-        const hit h = obj_set.at(closest_index)->intersect(r, closest);
+        const hit h = obj_set.at(closest_index)->compute_intersection(r, closest);
         return add_col_vect(apply_lights_obj(h, obj_set, light_set));
     }
     else {
@@ -75,9 +75,40 @@ rt::color raytrace(const ray& r, const vector<const object*>& obj_set, const vec
 /* *************************** Path tracing *************************** */
 
 /* Path tracing function: computes the hit of the given ray on the closest object,
-    then recursively launches rays, with a distribution depending on the surface material,
-    until either a light-emitting object is hit, or the maximum number of bounced is reached.
+    then recursively launches (number_of_rays) rays, with a distribution depending on the surface material,
+    until either a light-emitting object is hit, or the maximum number of bounces is reached.
     The colors obtained are then combined to determine the color of the pixel. */
-rt::color pathtrace(const ray& r, const vector<const object*>& obj_set, const unsigned int bounce) {
-    return rt::color::BLUE;
+
+/*
+rt::color pathtrace(const ray& r, const vector<const object*>& obj_set, const unsigned int number_of_rays, const unsigned int bounce) {
+
+    double d;
+    double closest = infinity;
+    int closest_index = 0;
+
+    // Looking for the closest object
+    for (unsigned int i = 0; i < obj_set.size(); i++) {
+
+        d = obj_set.at(i)->measure_distance(r);
+        
+        * d is the distance between the origin of the ray and the
+           intersection point with the object *
+
+        if (d < closest) {
+            closest = d;
+            closest_index = i;
+        }
+    }
+
+    if (closest != infinity && bounce != 0) {
+
+        const hit h = obj_set.at(closest_index)->compute_intersection(r, closest);
+        const std::vector<ray> rays = h.random_reflect(number_of_rays, 1, );
+        
+        return add_col_vect();
+    }
+    else {
+        return rt::color::BLACK; // No object hit or maximum number of bounces reached
+    }
 }
+*/

@@ -18,8 +18,6 @@
 #include "mingw.mutex.h"
 
 #include "src/auxiliary/headers/tracing.hpp"
-// #include "src/auxiliary/headers/random.hpp"
-#include <random>
 
 using namespace std;
 
@@ -51,8 +49,8 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
             r = new ray(rt::vector(0, 0, 0), direct.unit(), rt::color::WHITE);
 
             // pixel_col = raycast(*r, obj_set);
-            // pixel_col = raytrace(*r, obj_set, light_set);
-            pixel_col = pathtrace(*r, obj_set, 2);
+            pixel_col = raytrace(*r, obj_set, light_set);
+            //pixel_col = pathtrace(*r, obj_set, 2);
 
             scr.set_pixel(i, j, pixel_col);
         }
@@ -72,7 +70,8 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
 /* Parallel version */
 
 void render_loop_parallel(const rt::screen& scr, const int width, const int height, const double dist,
-    const rt::vector& screen_center, const vector<const object*>& obj_set, const vector<source>& light_set) {
+    const rt::vector& screen_center, const vector<const object*>& obj_set) {
+        //, const vector<source>& light_set) {
     
     std::mutex m;
 
@@ -95,7 +94,7 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
             r = new ray(rt::vector(0, 0, 0), direct.unit(), rt::color::WHITE);
 
             // pixel_col = raycast(*r, obj_set);
-            pixel_col = raytrace(*r, obj_set, light_set);
+            // pixel_col = raytrace(*r, obj_set, light_set);
 
             m.lock();
             scr.set_pixel(i, j, pixel_col);
@@ -142,37 +141,47 @@ int main(int argc, char *argv[]) {
 
     /* *************************** */
     /* Scene description */
-
+    
     unsigned int obj_counter = 0;
 
+    /* Old raytracer scene */
+
+    /* Spheres and planes */
+    const sphere sph0(rt::vector(-400, 0, 1000), 240, obj_counter++, material::MIRROR);
+    const sphere sph1(rt::vector( 400, 0, 1000), 240, obj_counter++, diffuse_material(rt::color::WHITE));
+    const plane pln0(0, -1, 0, rt::vector(0, 240, 0), obj_counter++, diffuse_material(rt::color::WHITE));
+    const plane pln1(0, 0, -1, rt::vector(0, 0, 2000), obj_counter++, diffuse_material(rt::color::WHITE));
+    const vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1};
+
+    /* Light sources */
+    const source light0(rt::vector(-500, 0, 600), rt::color::WHITE);
+    const source light1(rt::vector(0, 0, 1000),   my_red);
+    const source light2(rt::vector(750, 0, 900),  my_blue);
+    const vector<source> light_set {light0, light1, light2};
+
+
+    /* Path-tracer scene */
+
+    /*
     // Spheres
 
-    //material mirror = material(rt::color::WHITE, rt::color::WHITE, 1, 0);
-
-    const sphere sph0(rt::vector(-400,0,1000), 240, obj_counter++, material::MIRROR);//diffuse_material(rt::color::WHITE));
-    const sphere sph1(rt::vector( 400,0,1000), 240, obj_counter++, diffuse_material(rt::color::WHITE));
+    const sphere sph0(rt::vector(-400, 0, 1000), 200, obj_counter++, material::MIRROR);
+    const sphere sph1(rt::vector( 400, 0, 1000), 200, obj_counter++, diffuse_material(rt::color::WHITE));
+    
+    const sphere sphl1(rt::vector(   0, 0, 1000), 100, obj_counter++, light_material(rt::color::RED, 1));
+    const sphere sphl2(rt::vector(-800, 0, 1000), 100, obj_counter++, light_material(rt::color::WHITE, 1));
 
     // Planes
 
     const plane pln0(0, 1, 0, rt::vector(0, 240, 0), obj_counter++, diffuse_material(rt::color::WHITE));
     const plane pln1(0, 0, 1, rt::vector(0, 0, 2000), obj_counter++, diffuse_material(rt::color::WHITE));
-
+    */
     /* Object set */
     /* Storing pointers allow the overridden methods send and intersect (from sphere, plane)
        to be executed instead of the base (object) one */
-    const vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1};
+    //const vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1, &sphl1, & sphl2};
+
     
-
-    /* *************************** */
-
-    // Light sources
-
-    const source light0(rt::vector(-500, 0, 600), rt::color::WHITE);
-    const source light1(rt::vector(0, 0, 1000),   my_red);
-    const source light2(rt::vector(750, 0, 900),  my_blue);
-
-    // Array of the lights in the scene
-    const vector<source> light_set {light0, light1, light2};
 
     /* *************************** */
 

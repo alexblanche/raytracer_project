@@ -31,7 +31,7 @@ class sphere : public object {
         
         /* Intersection determination */
 
-        double send(const ray& r) const;
+        double measure_distance(const ray& r) const;
 
-        hit intersect(const ray& r, const double t) const;
+        hit compute_intersection(const ray& r, const double t) const;
 };
