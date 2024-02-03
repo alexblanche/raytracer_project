@@ -50,7 +50,7 @@ ray hit::reflect_ray() const {
 
     // ray::direction and hit::normal are supposed to be unit vectors
     const rt::vector u = gen.get_direction();
-    const double cos = (u| normal);
+    const double cos = (-1) * (u | normal);
 
     return ray(point, (2*cos)*normal - u);
 }
@@ -77,7 +77,7 @@ ray hit::reflect_ray() const {
 */
 
 std::vector<ray> hit::random_reflect(const unsigned int n,
-    const double radius, const double distance) const {
+    const double radius, const double distance, const double reflectivity) const {
 
     const double twopi = 2 * 3.14159265358979323846;
 
@@ -86,7 +86,7 @@ std::vector<ray> hit::random_reflect(const unsigned int n,
     const std::vector<double> rands0twopi = random_double_array(n, twopi);
 
     // Central direction of the rays
-    const rt::vector central_dir = this->reflect_ray().get_direction();
+    const rt::vector central_dir = reflectivity * reflect_ray().get_direction() + (1 - reflectivity) * get_normal();
     const double a = central_dir.x;
     const double b = central_dir.y;
     const double c = central_dir.z;
@@ -111,14 +111,12 @@ std::vector<ray> hit::random_reflect(const unsigned int n,
     Y = radius * Y;
 
     const rt::vector scaled_dir = distance * central_dir;
-    double r = 0;
-    double theta = 0;
 
     // vector of random rays returned
     std::vector<ray> rays(n);
     for (unsigned int i = 0; i < n; i++) {
-        r = rands01.at(i);
-        theta = rands0twopi.at(i);
+        double r = rands01.at(i);
+        double theta = rands0twopi.at(i);
         rays.at(i) = ray(point, (scaled_dir + sqrt(r) * (cos(theta) * X + sin(theta) * Y)).unit());
     }
 

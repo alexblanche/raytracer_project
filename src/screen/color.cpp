@@ -121,14 +121,13 @@ namespace rt {
 		int r = 0;
 		int g = 0;
 		int b = 0;
-		const rt::color *c;
 
 		for (unsigned int i = 0; i < n; i++) {
-			c = &(color_set.at(i));
+			const rt::color c = color_set.at(i);
 
-			r += c->get_red();
-			g += c->get_green();
-			b += c->get_blue();
+			r += c.get_red();
+			g += c.get_green();
+			b += c.get_blue();
 		}
 
 		return rt::color(r / n, g / n, b / n);

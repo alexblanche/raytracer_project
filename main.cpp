@@ -35,7 +35,6 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
     
     rt::color pixel_col;
     rt::vector direct(0, 0, 0);
-    ray *r;
 
     // Progress bar
     printf("[..................................................]\r[");
@@ -46,15 +45,15 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
     const unsigned int number_of_bounces = 2;
 
     for (int i = 0; i < width; i++) { // i is the abscissa
-        for (int j = 0; j < height; j++) { //j is the ordinate
+        for (int j = 0; j < height; j++) { // j is the ordinate
 
             direct = rt::vector(i, j, dist) - screen_center;
-            r = new ray(rt::vector(0, 0, 0), direct.unit(), rt::color::WHITE);
+            ray r = ray(rt::vector(0, 0, 0), direct.unit(), rt::color::WHITE);
 
             // pixel_col = raycast(*r, obj_set);
             // pixel_col = raytrace(*r, obj_set, light_set);
 
-            pixel_col = pathtrace(*r, obj_set, number_of_rays, number_of_bounces);
+            pixel_col = pathtrace(r, obj_set, number_of_rays, number_of_bounces);
 
             scr.set_pixel(i, j, pixel_col);
         }
@@ -87,23 +86,22 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
     int newpct = 0;
     
 
-    const unsigned int number_of_rays = 30;
+    const unsigned int number_of_rays = 15;
     const unsigned int number_of_bounces = 2;
 
     PARALLEL_FOR_BEGIN(width) {
-        ray *r;
         rt::vector direct;
         rt::color pixel_col;
 
         for (int j = 0; j < height; j++) {
-
-            direct = rt::vector(i, j, dist) - screen_center;
-            r = new ray(rt::vector(0, 0, 0), direct.unit(), rt::color::WHITE);
-
-            // pixel_col = raycast(*r, obj_set);
-            // pixel_col = raytrace(*r, obj_set, light_set);
             
-            pixel_col = pathtrace(*r, obj_set, number_of_rays, number_of_bounces);
+            direct = rt::vector(i, j, dist) - screen_center;
+            ray r = ray(rt::vector(0, 0, 0), direct.unit(), rt::color::WHITE);
+
+            // pixel_col = raycast(r, obj_set);
+            // pixel_col = raytrace(r, obj_set, light_set);
+            
+            pixel_col = pathtrace(r, obj_set, number_of_rays, number_of_bounces);
 
             m.lock();
             scr.set_pixel(i, j, pixel_col);
@@ -175,22 +173,22 @@ int main(int argc, char *argv[]) {
     
     // Spheres
 
-    const sphere sph0(rt::vector(-400, 0, 1000), 200, obj_counter++, diffuse_material(rt::color::WHITE));
-    const sphere sph1(rt::vector( 400, 0, 1000), 200, obj_counter++, diffuse_material(rt::color::WHITE));
+    //const sphere sph0(rt::vector(-400, 0, 1000), 200, obj_counter++, material::MIRROR);//diffuse_material(rt::color::WHITE));
+    //const sphere sph1(rt::vector( 400, 0, 1000), 200, obj_counter++, diffuse_material(rt::color::WHITE));
     
     const sphere sphl1(rt::vector(   0, 0, 1000), 100, obj_counter++, light_material(rt::color::RED, 1));
-    const sphere sphl2(rt::vector(-800, 0, 1000), 100, obj_counter++, light_material(rt::color::WHITE, 1));
+    //const sphere sphl2(rt::vector(-800, 0, 1000), 100, obj_counter++, light_material(rt::color::WHITE, 1));
 
     // Planes
 
-    const plane pln0(0, 1, 0, rt::vector(0, 240, 0), obj_counter++, diffuse_material(rt::color::WHITE));
-    const plane pln1(0, 0, 1, rt::vector(0, 0, 2000), obj_counter++, diffuse_material(rt::color::WHITE));
+    const plane pln0(0, -1, 0, rt::vector(0, 240, 0), obj_counter++, diffuse_material(rt::color::WHITE));
+    //const plane pln1(0, 0, -1, rt::vector(0, 0, 2000), obj_counter++, diffuse_material(rt::color::WHITE));
     
     /* Object set */
     /* Storing pointers allow the overridden methods send and intersect (from sphere, plane)
        to be executed instead of the base (object) one */
 
-    const vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1, &sphl1, & sphl2};
+    const vector<const object*> obj_set {&sphl1, &pln0}; //{&sph0, &sph1, &pln0, &pln1, &sphl1, & sphl2};
 
     
 
