@@ -96,7 +96,7 @@ rt::color pathtrace(const ray& r, const vector<const object*>& obj_set,
         /* d is the distance between the origin of the ray and the
            intersection point with the object */
 
-        if (d < closest) {
+        if (d > 0.1 && d < closest) {
             closest = d;
             closest_index = i;
         }
@@ -104,10 +104,15 @@ rt::color pathtrace(const ray& r, const vector<const object*>& obj_set,
 
     if (closest != infinity) {
         const hit h = obj_set.at(closest_index)->compute_intersection(r, closest);
-        material m = obj_set.at(h.get_obj_index())->get_material();
+        const material m = obj_set.at(h.get_obj_index())->get_material();
 
         if (bounce == 0 || m.get_emission_intensity() == 1) {
             // Maximum number of bounces reached or light source touched
+            //rt::vector dir = r.get_direction();
+            //rt::vector orig = r.get_origin();
+            //printf("Ray origin : (%f, %f, %f), dir : (%f, %f, %f), ", orig.x, orig.y, orig.z, dir.x, dir.y, dir.z);
+            //printf("bounce = %u, emission = %f \n", bounce, m.get_emission_intensity());
+
             return m.get_emitted_color() * m.get_emission_intensity();
         }
         else if (m.get_reflectivity() == 1) {
@@ -118,24 +123,34 @@ rt::color pathtrace(const ray& r, const vector<const object*>& obj_set,
             /* Determination of the disk toward which the bounced rays are cast*/
 
             // Angle between the direction vector and the extremity of the disk (pi/2 * reflectivity)
-            const double theta = 1.57079632679 * 0.9 * (1 - m.get_reflectivity());
+            const double theta = 1.57079632679 * 0.95 * (1 - m.get_reflectivity());
             // const double sintheta = sin(theta);
             const double dist = 1 / tan(theta);
 
             const std::vector<ray> bouncing_rays = h.random_reflect(number_of_rays, 1, dist, m.get_reflectivity());
             std::vector<rt::color> return_colors(number_of_rays);
 
+            rt::vector dir = r.get_direction();
+            rt::vector orig = r.get_origin();
+            printf("Ray origin : (%f, %f, %f), dir : (%f, %f, %f), recursively calling... \n", orig.x, orig.y, orig.z, dir.x, dir.y, dir.z);
+
+
+            rt::vector normal = h.get_normal();
             for(unsigned int i = 0; i < number_of_rays; i++) {
-                return_colors.at(i) = pathtrace(bouncing_rays.at(i), obj_set, number_of_rays, bounce-1) * (bouncing_rays.at(i).get_direction() | h.get_normal());
+                return_colors.at(i) = pathtrace(bouncing_rays.at(i), obj_set, number_of_rays, bounce-1)
+                                        * ((bouncing_rays.at(i).get_direction() | normal) * 2);
             }
 
             const rt::color incoming_light = average_col_vect(return_colors);
+
+            printf("Average color = %u \n", ((incoming_light * m.get_color()) + (m.get_emitted_color() * m.get_emission_intensity())).get_red());
 
             return (incoming_light * m.get_color()) + (m.get_emitted_color() * m.get_emission_intensity());
         }
     }
     else {
         // No object hit
+
         return rt::color::BLACK; 
     }
 }

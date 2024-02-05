@@ -5,7 +5,7 @@
 #include "vector.hpp"
 #include "ray.hpp"
 #include <vector>
-#include "../../auxiliary/headers/random.hpp"
+#include "../../auxiliary/headers/randomgen.hpp"
 
 /** The hit class contains the information
  * of a ray hitting a surface: the ray in question,

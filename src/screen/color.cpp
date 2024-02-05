@@ -67,7 +67,10 @@ namespace rt {
 	 * Scaling operator.
 	 */
 	color color::operator*(const double x) const {
-		return color(x * get_red(), x * get_green(), x * get_blue());
+		return color(
+			std::min(x * get_red(),   255.0),
+			std::min(x * get_green(), 255.0),
+			std::min(x * get_blue(),  255.0));
 	}
 
 	/**
@@ -85,9 +88,9 @@ namespace rt {
 	 */
 	color color::operator*(const color& c) const {
 		return color(
-			get_red() * c.get_red() / 255,
+			get_red() 	* c.get_red() 	/ 255,
 			get_green() * c.get_green() / 255,
-			get_blue() * c.get_blue() / 255);
+			get_blue() 	* c.get_blue() 	/ 255);
 	}
 
 
@@ -98,14 +101,13 @@ namespace rt {
 		int r = 0;
 		int g = 0;
 		int b = 0;
-		const rt::color *c;
 
 		for (unsigned int i = 0; i < n; i++) {
-			c = &(color_set.at(i));
+			const rt::color c = color_set.at(i);
 
-			r += c->get_red();
-			g += c->get_green();
-			b += c->get_blue();
+			r += c.get_red();
+			g += c.get_green();
+			b += c.get_blue();
 		}
 
 		if (r > 255) {r = 255;}

@@ -125,6 +125,11 @@ namespace rt {
 			 * Draws a filled rectangle of a given color.
 			 */
 			virtual void fill_rect(int x1, int y1, int x2, int y2, const color& c);
+
+			/**
+			 * Erases the content of the buffer
+			 */
+			virtual void clear() const;
 	};
 
 }

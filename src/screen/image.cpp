@@ -154,4 +154,12 @@ namespace rt {
 		rect rct = rect(x1, y1, x2-x1+1, y2-y1+1);
 		SDL_RenderFillRect(renderer, &rct);
 	}
+
+	/**
+	 * Erases the content of the buffer
+	 */
+	void image::clear() const {
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+		SDL_RenderClear(renderer);
+	}
 }

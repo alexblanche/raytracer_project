@@ -1,7 +1,7 @@
 #include "headers/hit.hpp"
 #include "../screen/headers/color.hpp"
 #include "headers/vector.hpp"
-#include "../auxiliary/headers/random.hpp"
+#include "../auxiliary/headers/randomgen.hpp"
 #include <cmath>
 
 /** The hit class contains the information
@@ -48,11 +48,13 @@ unsigned int hit::get_obj_index() const {
 /* Returns the reflected ray at the point of contact */
 ray hit::reflect_ray() const {
 
-    // ray::direction and hit::normal are supposed to be unit vectors
+    /* ray::direction and hit::normal are supposed to be unit vectors
+       u is directed toward the surface, so the cos is computed with (-u),
+       and so is the reflected ray: (2*cos*normal - (-u)) */
     const rt::vector u = gen.get_direction();
     const double cos = (-1) * (u | normal);
 
-    return ray(point, (2*cos)*normal - u);
+    return ray(point, (2*cos)*normal + u);
 }
 
 /* Returns a vector of n random reflected ray passing through the disk of given radius,
@@ -80,10 +82,11 @@ std::vector<ray> hit::random_reflect(const unsigned int n,
     const double radius, const double distance, const double reflectivity) const {
 
     const double twopi = 2 * 3.14159265358979323846;
+    randomgen r;
 
     // n random doubles between 0 and 1, and n between 0 and 2*pi
-    const std::vector<double> rands01 = random_double_array(n, 1);
-    const std::vector<double> rands0twopi = random_double_array(n, twopi);
+    const std::vector<double> rands01 = random_double_array(r, n, 1);
+    const std::vector<double> rands0twopi = random_double_array(r, n, twopi);
 
     // Central direction of the rays
     const rt::vector central_dir = reflectivity * reflect_ray().get_direction() + (1 - reflectivity) * get_normal();
@@ -111,6 +114,10 @@ std::vector<ray> hit::random_reflect(const unsigned int n,
     Y = radius * Y;
 
     const rt::vector scaled_dir = distance * central_dir;
+
+    if ((X | Y) != 0 || (get_normal() | X) != 0 || (get_normal() | Y) != 0){
+        return std::vector<ray>(0);
+    }
 
     // vector of random rays returned
     std::vector<ray> rays(n);

@@ -34,14 +34,12 @@ double sphere::get_radius() const {
 /* Calculates and returns the intersection value t */
 double sphere::measure_distance(const ray& r) const {
     /*
-
-      We have to solve the equation ||/AC - t/u||^2 = R^2
+      v is the vector from the origin of the ray to the center of the sphere.
+      u is the direction of the ray (||u|| = 1).
+      We have to solve the equation ||v - t.u||^2 = radius^2
       The system is equivalent to:
-      t^2*||u||^2-2(u|v)t+||v||^2-R^2 = 0
-      Delta = 4((u|v)^2-||u||^2*(||v||^2-R^2))
-
-      where ||u|| = 1
-      and v = AC = (Cx-Ax, Cy-Ay, Cz-Az)
+      t^2*||u||^2 - 2(u|v)t + ||v||^2 - radius^2 = 0
+      Delta = 4 * ((u|v)^2 - 4 * ||u||^2 * (||v||^2 - radius^2))
 
     */
     rt::vector v = get_center() - r.get_origin();
@@ -51,14 +49,13 @@ double sphere::measure_distance(const ray& r) const {
     double uv = (u | v);
 
     const double a = uv * uv + radius * radius - nv2;
-    
-    // Delta = 4A
+    // Delta = 4*a
 
     if (a > 0) {
         const double t1 = uv - sqrt(a);
         //double t2 = uv + sqrt(A);
 
-        if (t1 > 0) { // t2>0 because t2>t1
+        if (t1 > 0) { // t2 > 0 because t2 > t1
             return t1; // = min(t1,t2)
         }
         /*
