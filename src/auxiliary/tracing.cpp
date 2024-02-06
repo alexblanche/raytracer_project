@@ -153,14 +153,31 @@ rt::color pathtrace(const ray& r, const vector<const object*>& obj_set, const un
                 }
             }           
             */
+            double total_bias = 0;
+
             const std::vector<ray> bouncing_rays = h.random_reflect(number_of_rays, rg, reflectivity, theta);
-                for(unsigned int i = 0; i < number_of_rays; i++) {
+            for(unsigned int i = 0; i < number_of_rays; i++) {
 
-                    return_colors.at(i) = pathtrace(bouncing_rays.at(i), obj_set, h.get_obj_index(), number_of_rays, bounce-1, rg)
-                                        * ((bouncing_rays.at(i).get_direction() | normal) * 2);
-                }
+                double bias = (bouncing_rays.at(i).get_direction() | normal) * 2;
+                total_bias += bias;
 
-            const rt::color incoming_light = average_col_vect(return_colors);
+                return_colors.at(i) = pathtrace(bouncing_rays.at(i), obj_set, h.get_obj_index(), number_of_rays, bounce-1, rg)
+                                    * bias;
+            }
+
+            /*const rt::color incoming_light = average_col_vect(return_colors);*/
+            unsigned int r = 0;
+            unsigned int g = 0;
+            unsigned int b = 0;
+            for(unsigned int i = 0; i < number_of_rays; i++) {
+                r += return_colors.at(i).get_red();
+                g += return_colors.at(i).get_green();
+                b += return_colors.at(i).get_blue();
+            }
+
+            total_bias = min(total_bias, number_of_rays*1.0);
+            const rt::color incoming_light = rt::color(r / total_bias, g / total_bias, b / total_bias);
+
 
             return m.get_color() * incoming_light + (m.get_emitted_color() * m.get_emission_intensity());
         }

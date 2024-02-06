@@ -78,13 +78,10 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
 /* Parallel version */
 
 void render_loop_parallel(const rt::screen& scr, const int width, const int height, const double dist,
+    const unsigned int number_of_rays, const unsigned int number_of_bounces,
     const rt::vector& screen_center, const vector<const object*>& obj_set) {
-        //, const vector<source>& light_set) {
     
     std::mutex m;
-
-    const unsigned int number_of_rays = 10;
-    const unsigned int number_of_bounces = 2;
     randomgen rg;
 
     printf("Number of rays at each bounce: %u, ", number_of_rays);
@@ -172,22 +169,26 @@ int main(int argc, char *argv[]) {
     
     // Spheres
 
-    const sphere sph0(rt::vector(-400, 0, 1000), 240, obj_counter++, material(rt::color(240, 240, 240), rt::color(), 0.98, 0));
+    const sphere sph0(rt::vector(-400, 0, 1000), 240, obj_counter++, material(rt::color::WHITE, rt::color(), 0.98, 0)); //material(rt::color(255, 40, 40), rt::color(), 0.98, 0));
     const sphere sph1(rt::vector( 400, 0, 1000), 240, obj_counter++, diffuse_material(rt::color::WHITE));
     
-    const sphere sphl1(rt::vector(   0, 0, 950), 100, obj_counter++, light_material(rt::color(255, 40, 40), 1));
+    const sphere sphl1(rt::vector( 500, 140, 660), 100, obj_counter++, light_material(rt::color::WHITE, 1));
     const sphere sphl2(rt::vector(-800, 0, 800), 100, obj_counter++, light_material(rt::color::WHITE, 1));
 
     // Planes
 
     const plane pln0(0, -1, 0, rt::vector(0, 240, 0), obj_counter++, diffuse_material(rt::color(80, 80, 255)));
     const plane pln1(0, 0, -1, rt::vector(0, 0, 2000), obj_counter++, diffuse_material(rt::color::WHITE));
+    const plane pln2(1, 0, 0, rt::vector(-1000, 0, 0), obj_counter++, diffuse_material(rt::color::RED));
+    const plane pln3(1, 0, 0, rt::vector(1000, 0, 0), obj_counter++, diffuse_material(rt::color::WHITE));
+    const plane pln4(0, 0, 1, rt::vector(0, 0, -500), obj_counter++, light_material(rt::color::WHITE, 1));
+    const plane pln5(0, 1, 0, rt::vector(0, -600, 0), obj_counter++, light_material(rt::color::WHITE, 1));
     
     /* Object set */
     /* Storing pointers allow the overridden methods send and intersect (from sphere, plane)
        to be executed instead of the base (object) one */
 
-    const vector<const object*> obj_set {&sph0, &sph1, &sphl1, &sphl2, &pln0, &pln1};
+    const vector<const object*> obj_set {&sph0, &sph1, &sphl1, &sphl2, &pln0, &pln1, &pln2, &pln3, &pln4, &pln5};
 
     
 
@@ -205,8 +206,17 @@ int main(int argc, char *argv[]) {
     
     rt::screen scr(width, height);
 
+    unsigned int number_of_rays = 5;
+    unsigned int number_of_bounces = 2;
+    if (argc > 1) {
+        number_of_rays = atoi(argv[1]);
+    }
+    if (argc > 2) {
+        number_of_bounces = atoi(argv[2]);
+    }
+
     //render_loop_seq(scr, width, height, dist, screen_center, obj_set);
-    render_loop_parallel(scr, width, height, dist, screen_center, obj_set);
+    render_loop_parallel(scr, width, height, dist, number_of_rays, number_of_bounces, screen_center, obj_set);
 
     
     scr.update();
