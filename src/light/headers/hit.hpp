@@ -42,6 +42,6 @@ class hit {
 
         /* Returns a vector of n random reflected ray passing through the disk of given radius,
            at given distance from the point of contact */
-        std::vector<ray> random_reflect(const unsigned int n,
+        std::vector<ray> random_reflect(const unsigned int n, randomgen& rg,
             const double reflectivity, const double theta_max) const;
 };

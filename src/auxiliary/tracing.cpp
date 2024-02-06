@@ -81,8 +81,8 @@ rt::color raytrace(const ray& r, const vector<const object*>& obj_set, const vec
     The colors obtained are then combined to determine the color of the pixel. */
 
 
-rt::color pathtrace(const ray& r, const vector<const object*>& obj_set,
-    const unsigned int number_of_rays, const unsigned int bounce) {
+rt::color pathtrace(const ray& r, const vector<const object*>& obj_set, const unsigned int origin_obj_index,
+    const unsigned int number_of_rays, const unsigned int bounce, randomgen& rg) {
 
     double d;
     double closest = infinity;
@@ -90,23 +90,27 @@ rt::color pathtrace(const ray& r, const vector<const object*>& obj_set,
 
     // Looking for the closest object
     for (unsigned int i = 0; i < obj_set.size(); i++) {
-
-        d = obj_set.at(i)->measure_distance(r);
         
-        /* d is the distance between the origin of the ray and the
-           intersection point with the object */
+        // We do not test the intersection with the object the rays is cast from
+        if (i != origin_obj_index) {
+            d = obj_set.at(i)->measure_distance(r);
+            
+            /* d is the distance between the origin of the ray and the
+            intersection point with the object */
 
-        if (d > 0.1 && d < closest) {
-            closest = d;
-            closest_index = i;
+            if (d < closest) {
+                closest = d;
+                closest_index = i;
+            }
         }
     }
 
     if (closest != infinity) {
         const hit h = obj_set.at(closest_index)->compute_intersection(r, closest);
         const material m = obj_set.at(h.get_obj_index())->get_material();
+        const double reflectivity = m.get_reflectivity();
 
-        if (bounce == 0 || m.get_emission_intensity() == 1) {
+        if (bounce == 0 || m.get_emission_intensity() > 0.9999) {
             // Maximum number of bounces reached or light source touched
             //rt::vector dir = r.get_direction();
             //rt::vector orig = r.get_origin();
@@ -115,41 +119,54 @@ rt::color pathtrace(const ray& r, const vector<const object*>& obj_set,
 
             return m.get_emitted_color() * m.get_emission_intensity();
         }
-        else if (m.get_reflectivity() == 1) {
+        else if (reflectivity > 0.9999) {
             // The surface hit is a mirror
-            return m.get_color() * pathtrace(h.reflect_ray(), obj_set, number_of_rays, bounce-1);
+            return m.get_color() * pathtrace(h.reflect_ray(), obj_set, h.get_obj_index(), number_of_rays, bounce-1, rg);
         }
         else {
             /* Determination of the disk toward which the bounced rays are cast*/
 
             // Angle between the direction vector and the extremity of the disk (pi/2 * (1-reflectivity))
-            const double theta = 1.57079632679 * (1 - m.get_reflectivity());
+            const double theta = 1.57079632679 * (1 - reflectivity);
+            rt::vector normal = h.get_normal();
 
-            const std::vector<ray> bouncing_rays = h.random_reflect(number_of_rays, m.get_reflectivity(), theta);
             std::vector<rt::color> return_colors(number_of_rays);
 
             /*
-            rt::vector dir = r.get_direction();
-            rt::vector orig = r.get_origin();
-            printf("Ray origin : (%f, %f, %f), dir : (%f, %f, %f), recursively calling... \n", orig.x, orig.y, orig.z, dir.x, dir.y, dir.z);
-            */
+            const double piovertwo = 1.57079632679;
+            const unsigned int number_of_reflected = reflectivity * number_of_rays;
 
-            rt::vector normal = h.get_normal();
-            for(unsigned int i = 0; i < number_of_rays; i++) {
-                return_colors.at(i) = pathtrace(bouncing_rays.at(i), obj_set, number_of_rays, bounce-1)
-                                        * ((bouncing_rays.at(i).get_direction() | normal) * 2);
+            if (number_of_reflected != 0) {
+                const std::vector<ray> reflected_rays = h.random_reflect(number_of_reflected, rg, 1, acos(-(r.get_direction() | normal)));
+                for(unsigned int i = 0; i < number_of_reflected; i++) {
+
+                    return_colors.at(i) = pathtrace(reflected_rays.at(i), obj_set, h.get_obj_index(), number_of_rays, bounce-1, rg)
+                                        * ((reflected_rays.at(i).get_direction() | normal) * 2);
+                }
             }
+            if (number_of_reflected != number_of_rays) {
+                const std::vector<ray> diffuse_rays = h.random_reflect(number_of_rays - number_of_reflected, rg, 0, piovertwo);
+                for(unsigned int i = number_of_reflected; i < number_of_rays; i++) {
+
+                    return_colors.at(i) = pathtrace(diffuse_rays.at(i - number_of_reflected), obj_set, h.get_obj_index(), number_of_rays, bounce-1, rg)
+                                        * ((diffuse_rays.at(i - number_of_reflected).get_direction() | normal) * 2);
+                }
+            }           
+            */
+            const std::vector<ray> bouncing_rays = h.random_reflect(number_of_rays, rg, reflectivity, theta);
+                for(unsigned int i = 0; i < number_of_rays; i++) {
+
+                    return_colors.at(i) = pathtrace(bouncing_rays.at(i), obj_set, h.get_obj_index(), number_of_rays, bounce-1, rg)
+                                        * ((bouncing_rays.at(i).get_direction() | normal) * 2);
+                }
 
             const rt::color incoming_light = average_col_vect(return_colors);
 
-            //printf("Average color = %u \n", ((incoming_light * m.get_color()) + (m.get_emitted_color() * m.get_emission_intensity())).get_red());
-
-            return (incoming_light * m.get_color()) + (m.get_emitted_color() * m.get_emission_intensity());
+            return m.get_color() * incoming_light + (m.get_emitted_color() * m.get_emission_intensity());
         }
     }
     else {
-        // No object hit
-
-        return rt::color::BLACK; 
+        // No object hit: background color
+        return rt::color(255, 255, 255); 
     }
 }

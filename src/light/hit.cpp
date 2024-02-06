@@ -78,11 +78,10 @@ ray hit::reflect_ray() const {
    Y = (ac, bc, -(a*a + b*b)) is a solution.
 */
 
-std::vector<ray> hit::random_reflect(const unsigned int n, const double reflectivity,
-    const double theta_max) const {
+std::vector<ray> hit::random_reflect(const unsigned int n, randomgen& rg,
+    const double reflectivity, const double theta_max) const {
 
     const double twopi = 2 * 3.14159265358979323846;
-    randomgen rg;
 
     // n random doubles between 0 and 1, and n between 0 and 2*pi
     const std::vector<double> rands01 = random_double_array(rg, n, 1);
@@ -125,7 +124,7 @@ std::vector<ray> hit::random_reflect(const unsigned int n, const double reflecti
         */
         const double cos_theta = 1 - p * (1-cos_theta_max);
         rays.at(i) = ray(point,
-            (cos(phi) * sqrt(1 - cos_theta * cos_theta)) * X
+              (cos(phi) * sqrt(1 - cos_theta * cos_theta)) * X
             + (sin(phi) * sqrt(1 - cos_theta * cos_theta)) * Y
             + cos_theta * central_dir);
     }

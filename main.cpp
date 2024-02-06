@@ -17,15 +17,9 @@
 #include "parallel/parallel.h"
 #include "mingw.mutex.h"
 
+#include "src/light/headers/hit.hpp"
+#include "src/auxiliary/headers/randomgen.hpp"
 #include "src/auxiliary/headers/tracing.hpp"
-
-
-#include <limits>
-std::numeric_limits<double> realllllllllll;
-const double infinity = realllllllllll.infinity();
-#include <cmath>
-
-
 
 using namespace std;
 
@@ -49,7 +43,9 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
     int pct = 0;
     int newpct = 0;
 
-    const unsigned int number_of_rays = 50;
+    randomgen rg;
+
+    const unsigned int number_of_rays = 30;
     const unsigned int number_of_bounces = 1;
 
     for (int i = 0; i < width; i++) { // i is the abscissa
@@ -61,7 +57,7 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
             // pixel_col = raycast(*r, obj_set);
             // pixel_col = raytrace(*r, obj_set, light_set);
 
-            pixel_col = pathtrace(r, obj_set, number_of_rays, number_of_bounces);
+            pixel_col = pathtrace(r, obj_set, -1, number_of_rays, number_of_bounces, rg);
 
             scr.set_pixel(i, j, pixel_col);
         }
@@ -87,16 +83,18 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
     
     std::mutex m;
 
+    const unsigned int number_of_rays = 10;
+    const unsigned int number_of_bounces = 2;
+    randomgen rg;
+
+    printf("Number of rays at each bounce: %u, ", number_of_rays);
+    printf("Number of bounces: %u\n", number_of_bounces);
+
     // Progress bar
-    
     printf("[..................................................]\r[");
     int cpt = 0;
     int pct = 0;
     int newpct = 0;
-    
-
-    const unsigned int number_of_rays = 30;
-    const unsigned int number_of_bounces = 2;
 
     PARALLEL_FOR_BEGIN(width) {
         rt::vector direct;
@@ -105,12 +103,12 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
         for (int j = 0; j < height; j++) {
             
             direct = rt::vector(i, j, dist) - screen_center;
-            ray r = ray(rt::vector(0, 0, 0), direct.unit(), rt::color::WHITE);
+            ray r = ray(rt::vector(0, 0, 0), direct.unit());
 
             // pixel_col = raycast(r, obj_set);
             // pixel_col = raytrace(r, obj_set, light_set);
             
-            pixel_col = pathtrace(r, obj_set, number_of_rays, number_of_bounces);
+            pixel_col = pathtrace(r, obj_set, -1, number_of_rays, number_of_bounces, rg);
 
             m.lock();
             scr.set_pixel(i, j, pixel_col);
@@ -140,14 +138,6 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
 
 
 int main(int argc, char *argv[]) {
-
-    const rt::color my_red(230, 15, 15);
-    const rt::color my_green(15, 230, 15);
-    const rt::color my_blue(15, 15, 230);
-    const rt::color my_white(230, 230, 230);
-    const rt::color my_black(15, 15, 15);
-    /* Non-pure colors, to prevent the "black hole" effect when
-     a red surface is under a blue spot */
 
     /* Orientation of the space:
     negative x on the left, positive on the right
@@ -182,22 +172,22 @@ int main(int argc, char *argv[]) {
     
     // Spheres
 
-    const sphere sph0(rt::vector(-400, 0, 1000), 200, obj_counter++, material::MIRROR);//diffuse_material(rt::color::WHITE));
-    const sphere sph1(rt::vector( 400, 0, 1000), 200, obj_counter++, diffuse_material(rt::color::WHITE));
+    const sphere sph0(rt::vector(-400, 0, 1000), 240, obj_counter++, material(rt::color(240, 240, 240), rt::color(), 0.98, 0));
+    const sphere sph1(rt::vector( 400, 0, 1000), 240, obj_counter++, diffuse_material(rt::color::WHITE));
     
-    const sphere sphl1(rt::vector(   0, 0, 600), 100, obj_counter++, light_material(rt::color::RED, 1));
-    const sphere sphl2(rt::vector(-800, 0, 1000), 100, obj_counter++, light_material(rt::color::WHITE, 1));
+    const sphere sphl1(rt::vector(   0, 0, 950), 100, obj_counter++, light_material(rt::color(255, 40, 40), 1));
+    const sphere sphl2(rt::vector(-800, 0, 800), 100, obj_counter++, light_material(rt::color::WHITE, 1));
 
     // Planes
 
-    const plane pln0(0, -1, 0, rt::vector(0, 240, 0), obj_counter++, diffuse_material(rt::color::WHITE));
+    const plane pln0(0, -1, 0, rt::vector(0, 240, 0), obj_counter++, diffuse_material(rt::color(80, 80, 255)));
     const plane pln1(0, 0, -1, rt::vector(0, 0, 2000), obj_counter++, diffuse_material(rt::color::WHITE));
     
     /* Object set */
     /* Storing pointers allow the overridden methods send and intersect (from sphere, plane)
        to be executed instead of the base (object) one */
 
-    const vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1, &sphl1, & sphl2};
+    const vector<const object*> obj_set {&sph0, &sph1, &sphl1, &sphl2, &pln0, &pln1};
 
     
 
@@ -218,37 +208,40 @@ int main(int argc, char *argv[]) {
     //render_loop_seq(scr, width, height, dist, screen_center, obj_set);
     render_loop_parallel(scr, width, height, dist, screen_center, obj_set);
 
+    
     scr.update();
 
     while(not scr.wait_quit_event()) {}
 
     return EXIT_SUCCESS;
+    
 
     /**************************************************************************/
     /**************************************************************************/
     /* Debugging */
     
+    /*
 
-    const unsigned int number_of_rays = 1000;
+    const unsigned int number_of_rays = 30;
     const double twopi = 2 * 3.14159527;
     randomgen rg;
 
     int i = width/2;
-    for (int j = height/2; j < height; j ++) {
+    for (int j = 0; j < height; j ++) {
         const std::vector<double> rands01 = random_double_array(rg, number_of_rays, 1);
         const std::vector<double> rands0twopi = random_double_array(rg, number_of_rays, twopi);
         
         //int j = 4*height/5;
         rt::vector direct = rt::vector(i, j, dist) - screen_center;
-        ray r = ray(rt::vector(0, 0, 0), direct.unit(), rt::color::WHITE);
+        ray r = ray(rt::vector(0, 0, 0), direct.unit());
         //rt::color pixel_col = pathtrace(r, obj_set, number_of_rays, number_of_bounces);
 
-        //double d;
+        double d;
         double closest = infinity;
         unsigned int closest_index = 0;
 
         // Looking for the closest object
-        /*
+        
         for (unsigned int k = 0; k < obj_set.size(); k++) {
 
             d = obj_set.at(k)->measure_distance(r);
@@ -258,14 +251,13 @@ int main(int argc, char *argv[]) {
                 closest_index = k;
             }
         }
-        */
 
-        // pln0
-        closest_index = 1;
-        closest = pln0.measure_distance(r);
+        printf("Closest_index = %u, distance = %f, ", closest_index, closest);
 
         const hit h = obj_set.at(closest_index)->compute_intersection(r, closest);
         const material m = obj_set.at(h.get_obj_index())->get_material();
+
+        printf("Emission = %f, Color = (%u, %u, %u) \n", m.get_emission_intensity(), m.get_color().get_red(), m.get_color().get_green(), m.get_color().get_blue());
 
         rt::vector normal = h.get_normal();
         //printf("closest_Index: %u, normal: (%f, %f, %f)\n", h.get_obj_index(), normal.x, normal.y, normal.z);
@@ -280,61 +272,31 @@ int main(int argc, char *argv[]) {
         int see_light = 0;
         double total_height = 0;
 
+        */
+
         //scr.set_pixel(15,15,rt::color::WHITE);
         //scr.draw_rect(10, height/2 - 10, width/2 - 10, 10, rt::color::RED);
-        scr.clear();
+        /*scr.clear();
         scr.draw_line(10, 10, width/2 - 10, 10, rt::color::WHITE);
         scr.draw_line(width/2 - 10, 10, width/2 - 10, height/2 - 10, rt::color::WHITE);
         scr.draw_line(10, 10, 10, height/2 - 10, rt::color::WHITE);
         scr.draw_line(10, height/2 - 10, width/2 - 10, height/2 - 10, rt::color::WHITE);
-
-
-        // double centerx = ;
-        // double centery = ;
-        // for(int k = 0; k < 32; k++) {
-        //     scr.draw_line()
-        // }
-        
-        
-        for (unsigned int i = 0; i < number_of_rays; i++) {
-            ray br = bouncing_rays.at(i);
-            rt::vector dir = br.get_direction();
-            //rt::vector orig = br.get_origin();
-            //printf("Ray origin : (%f, %f, %f), dir : (%f, %f, %f) \n", orig.x, orig.y, orig.z, dir.x, dir.y, dir.z);
-            //printf("norm = %f ", dir.norm());
-            total_height += (dir | normal);
-            double d = sphl1.measure_distance(br);
-            //printf("%f ", d);
-            if (d < infinity) {
-                see_light ++;
-            }
-
-            scr.draw_line(width/4, height/2 - 10, width/4 + dir.x * 200, height/2 - 10 + dir.y * 200, rt::color::GREEN);
-            
-        }
-        //printf("\n");
+        */
         
 
-        scr.update();
-        
-        printf("number of bounced rays that see the light: %d / %u   ", see_light, number_of_rays);
-
-        printf("Average height = %f \n", total_height / number_of_rays);
-        
-        while(not scr.wait_quit_event()) {}
-
-        scr.set_pixel(i, j, pathtrace(r, obj_set, 30, 1));
-    }
+        //scr.set_pixel(i, j, pathtrace(r, obj_set, 30, 1));
+    //}
 
     /**************************************************************************/
     /**************************************************************************/
 
 
     // scr.set_pixel(5, 5, rt::color::WHITE);
-    
+    /*
     scr.update();
 
     while(not scr.wait_quit_event()) {}
 
     return EXIT_SUCCESS;
+    */
 }
