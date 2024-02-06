@@ -93,6 +93,7 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
     int pct = 0;
     int newpct = 0;
 
+
     PARALLEL_FOR_BEGIN(width) {
         rt::vector direct;
         rt::color pixel_col;
@@ -169,20 +170,29 @@ int main(int argc, char *argv[]) {
     
     // Spheres
 
+    /*
+
     const sphere sph0(rt::vector(-400, 0, 1000), 240, obj_counter++, material(rt::color::WHITE, rt::color(), 0.98, 0)); //material(rt::color(255, 40, 40), rt::color(), 0.98, 0));
     const sphere sph1(rt::vector( 400, 0, 1000), 240, obj_counter++, diffuse_material(rt::color::WHITE));
     
     const sphere sphl1(rt::vector( 500, 140, 660), 100, obj_counter++, light_material(rt::color::WHITE, 1));
     const sphere sphl2(rt::vector(-800, 0, 800), 100, obj_counter++, light_material(rt::color::WHITE, 1));
 
+    */
+
+    const sphere sph0(rt::vector(-500, 0, 600), 120, obj_counter++, material(rt::color::WHITE, rt::color(), 0.2, 0));
+    const sphere sph1(rt::vector(-166, 0, 600), 120, obj_counter++, material(rt::color::WHITE, rt::color(), 0.6, 0));
+    const sphere sphl1(rt::vector(166, 0, 600), 120, obj_counter++, material(rt::color::WHITE, rt::color(), 0.95, 0));
+    const sphere sphl2(rt::vector(500, 0, 600), 120, obj_counter++, material(rt::color::WHITE, rt::color(), 1, 0));
+
     // Planes
 
     const plane pln0(0, -1, 0, rt::vector(0, 240, 0), obj_counter++, diffuse_material(rt::color(80, 80, 255)));
-    const plane pln1(0, 0, -1, rt::vector(0, 0, 2000), obj_counter++, diffuse_material(rt::color::WHITE));
+    const plane pln1(0, 0, -1, rt::vector(0, 0, 2000), obj_counter++, light_material(rt::color::WHITE, 1));
     const plane pln2(1, 0, 0, rt::vector(-1000, 0, 0), obj_counter++, diffuse_material(rt::color::RED));
-    const plane pln3(1, 0, 0, rt::vector(1000, 0, 0), obj_counter++, diffuse_material(rt::color::WHITE));
-    const plane pln4(0, 0, 1, rt::vector(0, 0, -500), obj_counter++, light_material(rt::color::WHITE, 1));
-    const plane pln5(0, 1, 0, rt::vector(0, -600, 0), obj_counter++, light_material(rt::color::WHITE, 1));
+    const plane pln3(1, 0, 0, rt::vector(1000, 0, 0), obj_counter++, diffuse_material(rt::color(80, 255, 80)));
+    const plane pln4(0, 0, 1, rt::vector(0, 0, 0), obj_counter++, light_material(rt::color::WHITE, 0));
+    const plane pln5(0, 1, 0, rt::vector(0, -600, 0), obj_counter++, light_material(rt::color::WHITE, 0));
     
     /* Object set */
     /* Storing pointers allow the overridden methods send and intersect (from sphere, plane)
@@ -197,7 +207,7 @@ int main(int argc, char *argv[]) {
     // Screen
     const int width = 1366;
     const int height = 768;
-    const double dist = 400; // Distance between the camera and the image
+    const double dist = 500; // Distance between the camera and the image
 
     // The camera is supposed to be on the origin of the space: (0,0,0)
     
