@@ -78,18 +78,18 @@ ray hit::reflect_ray() const {
    Y = (ac, bc, -(a*a + b*b)) is a solution.
 */
 
-std::vector<ray> hit::random_reflect(const unsigned int n,
-    const double radius, const double distance, const double reflectivity) const {
+std::vector<ray> hit::random_reflect(const unsigned int n, const double reflectivity,
+    const double theta_max) const {
 
     const double twopi = 2 * 3.14159265358979323846;
-    randomgen r;
+    randomgen rg;
 
     // n random doubles between 0 and 1, and n between 0 and 2*pi
-    const std::vector<double> rands01 = random_double_array(r, n, 1);
-    const std::vector<double> rands0twopi = random_double_array(r, n, twopi);
+    const std::vector<double> rands01 = random_double_array(rg, n, 1);
+    const std::vector<double> rands0twopi = random_double_array(rg, n, twopi);
 
     // Central direction of the rays
-    const rt::vector central_dir = reflectivity * reflect_ray().get_direction() + (1 - reflectivity) * get_normal();
+    const rt::vector central_dir = (reflectivity * reflect_ray().get_direction() + (1 - reflectivity) * get_normal()).unit();
     const double a = central_dir.x;
     const double b = central_dir.y;
     const double c = central_dir.z;
@@ -109,22 +109,25 @@ std::vector<ray> hit::random_reflect(const unsigned int n,
         Y = rt::vector(0, 1, 0);
     }
 
-    // In order to speed-up the calculations below
-    X = radius * X;
-    Y = radius * Y;
+    const double cos_theta_max = cos(theta_max);
 
-    const rt::vector scaled_dir = distance * central_dir;
-
-    if ((X | Y) != 0 || (get_normal() | X) != 0 || (get_normal() | Y) != 0){
-        return std::vector<ray>(0);
-    }
-
-    // vector of random rays returned
+    // vector of random rays in the cone of angle theta_max to central_dir
     std::vector<ray> rays(n);
     for (unsigned int i = 0; i < n; i++) {
-        double r = rands01.at(i);
-        double theta = rands0twopi.at(i);
-        rays.at(i) = ray(point, (scaled_dir + sqrt(r) * (cos(theta) * X + sin(theta) * Y)).unit());
+        const double p = rands01.at(i);
+        const double phi = rands0twopi.at(i);
+
+        /*
+        theta = acos(1 - p(1 - cos(theta_max)))
+        x = cos(phi) sin(theta) = cos(phi) * sqrt(1 - (1 - p(1-cos(theta_max))^2))
+        y = sin(phi) sin(theta) = sin(phi) * sqrt(1 - (1 - p(1-cos(theta_max))^2))
+        z = cos(theta)          = 1 - p(1-cos(theta_max))
+        */
+        const double cos_theta = 1 - p * (1-cos_theta_max);
+        rays.at(i) = ray(point,
+            (cos(phi) * sqrt(1 - cos_theta * cos_theta)) * X
+            + (sin(phi) * sqrt(1 - cos_theta * cos_theta)) * Y
+            + cos_theta * central_dir);
     }
 
     return rays;

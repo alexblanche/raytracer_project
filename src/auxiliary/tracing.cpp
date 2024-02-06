@@ -117,23 +117,22 @@ rt::color pathtrace(const ray& r, const vector<const object*>& obj_set,
         }
         else if (m.get_reflectivity() == 1) {
             // The surface hit is a mirror
-            return pathtrace(h.reflect_ray(), obj_set, number_of_rays, bounce-1);
+            return m.get_color() * pathtrace(h.reflect_ray(), obj_set, number_of_rays, bounce-1);
         }
         else {
             /* Determination of the disk toward which the bounced rays are cast*/
 
-            // Angle between the direction vector and the extremity of the disk (pi/2 * reflectivity)
-            const double theta = 1.57079632679 * 0.95 * (1 - m.get_reflectivity());
-            // const double sintheta = sin(theta);
-            const double dist = 1 / tan(theta);
+            // Angle between the direction vector and the extremity of the disk (pi/2 * (1-reflectivity))
+            const double theta = 1.57079632679 * (1 - m.get_reflectivity());
 
-            const std::vector<ray> bouncing_rays = h.random_reflect(number_of_rays, 1, dist, m.get_reflectivity());
+            const std::vector<ray> bouncing_rays = h.random_reflect(number_of_rays, m.get_reflectivity(), theta);
             std::vector<rt::color> return_colors(number_of_rays);
 
+            /*
             rt::vector dir = r.get_direction();
             rt::vector orig = r.get_origin();
             printf("Ray origin : (%f, %f, %f), dir : (%f, %f, %f), recursively calling... \n", orig.x, orig.y, orig.z, dir.x, dir.y, dir.z);
-
+            */
 
             rt::vector normal = h.get_normal();
             for(unsigned int i = 0; i < number_of_rays; i++) {
@@ -143,7 +142,7 @@ rt::color pathtrace(const ray& r, const vector<const object*>& obj_set,
 
             const rt::color incoming_light = average_col_vect(return_colors);
 
-            printf("Average color = %u \n", ((incoming_light * m.get_color()) + (m.get_emitted_color() * m.get_emission_intensity())).get_red());
+            //printf("Average color = %u \n", ((incoming_light * m.get_color()) + (m.get_emitted_color() * m.get_emission_intensity())).get_red());
 
             return (incoming_light * m.get_color()) + (m.get_emitted_color() * m.get_emission_intensity());
         }

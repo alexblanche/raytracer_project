@@ -58,6 +58,7 @@ namespace rt {
 		while(SDL_WaitEvent(&event)) {
 			switch(event.type) {
 				case SDL_QUIT:
+				case SDL_KEYDOWN:
 					return true;
 					break;
 			}
