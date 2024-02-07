@@ -117,7 +117,7 @@ hit find_closest_object(const ray& r, const vector<const object*>& obj_set, cons
     The colors obtained are then combined to determine the color of the pixel. */
 
 
-rt::color pathtrace(const ray& r, scene& scene, const unsigned int origin_obj_index,
+rt::color pathtrace_mult(const ray& r, scene& scene, const unsigned int origin_obj_index,
     const unsigned int number_of_rays, const unsigned int bounce) {
 
     const hit h = find_closest_object(r, scene.obj_set, origin_obj_index);
@@ -132,7 +132,7 @@ rt::color pathtrace(const ray& r, scene& scene, const unsigned int origin_obj_in
         }
         else if (reflectivity > 0.9999) {
             // The surface hit is a mirror
-            return m.get_color() * pathtrace(h.reflect_ray(), scene, h.get_obj_index(), number_of_rays, bounce-1);
+            return m.get_color() * pathtrace_mult(h.reflect_ray(), scene, h.get_obj_index(), number_of_rays, bounce-1);
         }
         else {
             // Angle of the cone toward which the rays are cast (pi/2 * (1-reflectivity))
@@ -142,11 +142,12 @@ rt::color pathtrace(const ray& r, scene& scene, const unsigned int origin_obj_in
             std::vector<rt::color> return_colors(number_of_rays);
 
             const std::vector<ray> bouncing_rays = h.random_reflect(number_of_rays, scene.rg, reflectivity, theta);
-            
+            const rt::vector central_dir = (reflectivity * h.reflect_ray().get_direction() + (1 - reflectivity) * h.get_normal()).unit();
+
             for(unsigned int i = 0; i < number_of_rays; i++) {
 
-                const double bias = (bouncing_rays.at(i).get_direction() | normal) * 2;
-                return_colors.at(i) = pathtrace(bouncing_rays.at(i), scene, h.get_obj_index(), number_of_rays, bounce-1)
+                const double bias = (bouncing_rays.at(i).get_direction() | central_dir) * 2;
+                return_colors.at(i) = pathtrace_mult(bouncing_rays.at(i), scene, h.get_obj_index(), number_of_rays, bounce-1)
                                     * bias;
             }
 

@@ -22,6 +22,8 @@
 #include "src/auxiliary/headers/tracing.hpp"
 #include "src/scene/headers/scene.hpp"
 
+#include "src/postprocess/headers/blur.hpp"
+
 using namespace std;
 
 // Parallel for-loop macros
@@ -46,7 +48,7 @@ void render_loop_seq(vector<vector<rt::color>>& matrix, scene& scene,
 
             const rt::vector direct = (rt::vector(i, j, scene.distance) - scene.screen_center).unit();
             const ray r = ray(scene.position, direct);
-            const rt::color pixel_col = pathtrace(r, scene, -1, number_of_rays, number_of_bounces);
+            const rt::color pixel_col = pathtrace_mult(r, scene, -1, number_of_rays, number_of_bounces);
 
             matrix.at(i).at(j) = pixel_col;
         }
@@ -87,7 +89,7 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene,
             
             const rt::vector direct = (rt::vector(i, j, scene.distance) - scene.screen_center).unit();
             const ray r = ray(scene.position, direct);
-            const rt::color pixel_col = pathtrace(r, scene, -1, number_of_rays, number_of_bounces);
+            const rt::color pixel_col = pathtrace_mult(r, scene, -1, number_of_rays, number_of_bounces);
 
             m.lock();
             matrix.at(i).at(j) = pixel_col;
@@ -105,6 +107,8 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene,
         m.unlock();
         
     } PARALLEL_FOR_END();
+
+    printf("\n");
 }
 
 
@@ -223,7 +227,15 @@ int main(int argc, char *argv[]) {
 
     // Display of the image on screen
     const rt::screen scr(width, height);
+    
     scr.copy(matrix, width, height);
+    scr.update();
+
+    while(not scr.wait_quit_event()) {}
+
+    // Post-process blurring
+
+    scr.copy(blur(matrix, 3), width, height);
     scr.update();
 
     while(not scr.wait_quit_event()) {}

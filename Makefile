@@ -15,4 +15,5 @@ all:
 		src/auxiliary/application.cpp \
 		src/auxiliary/tracing.cpp \
 		src/scene/scene.cpp \
+		src/postprocess/blur.cpp \
 		main.cpp -lmingw32 -lSDL2main -lSDL2

@@ -21,5 +21,5 @@ rt::color raytrace(const ray& r, const vector<const object*>& obj_set, const vec
     then recursively launches rays, with a distribution depending on the surface material,
     until either a light-emitting object is hit, or the maximum number of bounced is reached.
     The colors obtained are then combined to determine the color of the pixel. */
-rt::color pathtrace(const ray& r, scene& scene, const unsigned int origin_obj_index,
+rt::color pathtrace_mult(const ray& r, scene& scene, const unsigned int origin_obj_index,
     const unsigned int number_of_rays, const unsigned int bounce);
