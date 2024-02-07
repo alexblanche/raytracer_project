@@ -52,17 +52,12 @@ double sphere::measure_distance(const ray& r) const {
     // Delta = 4*a
 
     if (a > 0) {
+        /* Two solutions: uv - sqrt(a) and uv + sqrt(a),
+           Only the first, the minimum one, is returned. */
         const double t1 = uv - sqrt(a);
-        //double t2 = uv + sqrt(A);
-
-        if (t1 > 0) { // t2 > 0 because t2 > t1
-            return t1; // = min(t1,t2)
+        if (t1 > 0) {
+            return t1;
         }
-        /*
-        else if (t2>0) {
-            return t2;
-        }
-        */
         else {
             return infinity;
         }
@@ -76,10 +71,10 @@ double sphere::measure_distance(const ray& r) const {
 hit sphere::compute_intersection(const ray& r, const double t) const {
 
     // Intersection point
-    rt::vector p = r.get_origin() + t * r.get_direction();
+    const rt::vector p = r.get_origin() + t * r.get_direction();
     
     // Normal vector
-    rt::vector n = (p - get_center()).unit();
+    const rt::vector n = (p - get_center()) / get_radius();
 
     return hit(r, p, n, get_index());
 }

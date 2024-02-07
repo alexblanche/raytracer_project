@@ -69,7 +69,7 @@ namespace rt {
 	 * Returns the norm of the vector
 	 */
 	double vector::norm() const {
-		return std::sqrt(x*x+y*y+z*z);
+		return std::sqrt(x*x + y*y + z*z);
 	}
 
 	/**
@@ -83,9 +83,8 @@ namespace rt {
 	 * return a vector of the same direction but of norm 1
 	 */
 	vector vector::unit() const {
-		double n = norm();
-		vector v(x/n,y/n,z/n);
-		return v;
+		const double n = norm();
+		return vector(x/n, y/n, z/n);
 	}
 
 	/**
@@ -102,5 +101,13 @@ namespace rt {
 	 */
 	vector operator*(const vector& v, const double& a) {
 		return vector(a*v.x,a*v.y,a*v.z);
+	}
+
+	/**
+	 * Division by a scalar
+	 * (a,b,c) / x = (a/x, b/x, c/x)
+	 */
+	vector operator/(const vector& v, const double& a) {
+		return vector(v.x / a, v.y / a, v.z / a);
 	}
 }

@@ -16,42 +16,50 @@ plane::plane() : a(0), b(0), c(0), d(0) {}
 /* Main constructor */
 /* A plane (P) of equation (P): ax + by + cz + d = 0
  defined by 4 doubles a,b,c,d */
-plane::plane(const double sa, const double sb, const double sc, const double sd,
+/* The normal vector (a, b, c) is a unit vector */
+plane::plane(const double pa, const double pb, const double pc, const double pd,
     const unsigned int index, const material& material) {
 
     object::index = index;
     object::mat = material;
+
+    /* Normalization of the normal vector */
+    const rt::vector n = rt::vector(pa, pb, pc).unit();
+    a = n.x;
+    b = n.y;
+    c = n.z;
+    d = pd / sqrt(pa*pa + pb*pb + pc*pc);
     
-    if (sa != 0) {
-        object::position = rt::vector(-sd/sa, 0, 0);
+    if (pa != 0) {
+        object::position = rt::vector(-d/a, 0, 0);
     }
-    else if (sb != 0) {
-        object::position = rt::vector(0, -sd/sb, 0);
+    else if (pb != 0) {
+        object::position = rt::vector(0, -d/b, 0);
     }
-    else if (sc != 0) {
-        object::position = rt::vector(0, 0, -sd/sc);
+    else if (pc != 0) {
+        object::position = rt::vector(0, 0, -d/c);
     }
     else {
         object::position = rt::vector(0, 0, 0);
     }
-
-    a = sa;
-    b = sb;
-    c = sc;
-    d = sd;
 }
 
 /* Constructor of a plane of normal vector (a,b,c) and touching the point v */
-plane::plane(const double a, const double b, const double c, const rt::vector& position,
+plane::plane(const double pa, const double pb, const double pc, const rt::vector& position,
     const unsigned int index, const material& material)
-    : object(position, index, material), a(a), b(b), c(c) {
+    : object(position, index, material) {
+    const rt::vector n = rt::vector(pa, pb, pc).unit();
+    a = n.x;
+    b = n.y;
+    c = n.z;
 
-    d = -((rt::vector(a, b, c)) | position); // = -aX-bY-cZ if v = (X,Y,Z)
+    d = -(n | position); // = -aX-bY-cZ if position = (X,Y,Z)
 }
 
 
 /* Accessors */
 
+/* The normal is assumed to be a unit vector, ensured at construction */
 rt::vector plane::get_normal() const {
     return rt::vector(a, b, c);
 }
@@ -65,31 +73,27 @@ double plane::get_d() const {
 
 double plane::measure_distance(const ray& r) const {
 
-    rt::vector A = r.get_origin(); //A = (xA,yA,zA)
-    rt::vector v = r.get_direction(); // v = (x,y,z)
+    /* Origin of the ray:    u   = (X, Y, Z)
+       Direction of the ray: dir = (x, y, z)
+       Normal of the plane:  n   = (a, b, c)
+       The normal and the direction are supposed to be unit vectors.
+       
+       We search t so that u + t.dir belongs to the plane,
+       i.e. a(X + tx) + b(Y + ty) + c(Z + tz) + d = 0,
+       => t = -(aX + bY + cZ + d) / (ax + by + cz)
+    */
 
-    // We search t so that
-    // a(xA+t*x)+b(yA+t*y)+c(zA+t*z)+d = 0
+    const rt::vector n = get_normal();
+    const double pdt = (n | r.get_direction()); // ax + by + cz
+    const double upln = (n | r.get_origin()) + d; // aX + bY + cZ + d
+    
+    // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
 
-    rt::vector n(a,b,c);
-    n = n.unit();
-    double pdt = (n | v);
-
-    if (pdt == 0) { // v is parallel to the plane, so there is no intersection
-        return infinity;
+    if (pdt * upln < 0) {
+        return (- upln / pdt);
     }
     else {
-        const double t = ((n | A) + d) / pdt;
-        // t = -(axA+byA+czA+d)/(ax+by+cz)
-
-        if (t >= 0) { // the plane is "behind" the ray, so there is no intersection with the plane
-            return infinity;
-        }
-        else {
-            return -t;
-            // the intersection is:
-            // (xA,yA,zA) + t(x,y,z)
-        }
+        return infinity;
     }
 }
 
@@ -98,8 +102,7 @@ hit plane::compute_intersection(const ray& r, const double t) const {
     // Intersection point
     rt::vector p = r.get_origin() + t * r.get_direction();
 
-    // Normal vector
-    rt::vector n(a, b, c);
+    // The normal vector (a, b, c) is assumed to be a unit vector
 
-    return hit(r, p, n.unit(), get_index());
+    return hit(r, p, get_normal(), get_index());
 }

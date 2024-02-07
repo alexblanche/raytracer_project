@@ -86,6 +86,12 @@ namespace rt {
 	 * (a,b,c) * x = (ax,bx,cx)
 	 */
 	vector operator*(const vector& v, const double& x);
+
+	/**
+	 * Division by a scalar
+	 * (a,b,c) / x = (a/x, b/x, c/x)
+	 */
+	vector operator/(const vector& v, const double& a);
 }
 
 
