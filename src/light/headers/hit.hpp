@@ -19,6 +19,7 @@ class hit {
         rt::vector point;
         rt::vector normal;
         unsigned int obj_index;
+        bool is_hit_bool;
 
     public:
         /* Main constructor */
@@ -34,6 +35,8 @@ class hit {
         rt::vector get_normal() const;
 
         unsigned int get_obj_index() const;
+
+        bool is_hit() const;
 
         /* Reflection */
 

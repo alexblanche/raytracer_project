@@ -14,4 +14,5 @@ all:
 		src/scene/objects/sphere.cpp \
 		src/auxiliary/application.cpp \
 		src/auxiliary/tracing.cpp \
+		src/scene/scene.cpp \
 		main.cpp -lmingw32 -lSDL2main -lSDL2

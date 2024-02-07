@@ -14,15 +14,12 @@
 
 /* Main constructor */
 hit::hit(const ray& g, const rt::vector& p, const rt::vector& n, const unsigned int i)
-    : gen(g), point(p), normal(n), obj_index(i) {}
+    : gen(g), point(p), normal(n), obj_index(i), is_hit_bool(true) {}
 
 
 /* Default constructor */
 hit::hit() {
-    gen = ray();
-    point = rt::vector();
-    normal = rt::vector();
-    obj_index = 0;
+    is_hit_bool = false;
 }
 
 /* Accessors */
@@ -41,6 +38,10 @@ rt::vector hit::get_normal() const {
 
 unsigned int hit::get_obj_index() const {
     return obj_index;
+}
+
+bool hit::is_hit() const {
+    return is_hit_bool;
 }
 
 /* Reflection */

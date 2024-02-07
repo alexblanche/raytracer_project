@@ -54,6 +54,12 @@ namespace rt {
 			 * @return true if we get a quit event, or false if there was an error while waiting for the quit event
 			 */
 			bool wait_quit_event() const;
+
+			/**
+			 * Copies the rt::color matrix onto the screen
+			*/
+			void copy(std::vector<std::vector<rt::color>> matrix,
+				const unsigned int width, const unsigned int height) const;
 	};
 
 }

@@ -43,3 +43,4 @@ hit object::compute_intersection(const ray& r, const double t) const {
     rt::vector n = (-1)*(r.get_direction().unit());
     return hit(r, p, n, index);
 }
+

@@ -65,4 +65,14 @@ namespace rt {
 		}
 		return false;
 	}
+
+	void screen::copy(std::vector<std::vector<rt::color>> matrix,
+		const unsigned int width, const unsigned int height) const {
+			
+		for (unsigned int i = 0; i < width; i++) {
+			for (unsigned int j = 0; j < height; j++) {
+				set_pixel(i, j, matrix.at(i).at(j));
+			}
+		}
+	}
 }
