@@ -36,3 +36,23 @@ rt::vector ray::get_direction() const {
 rt::color ray::get_color() const {
     return color;
 }
+
+
+/* Mutators */
+
+void ray::set_origin(const rt::vector& o) {
+    origin = o;
+}
+
+void ray::set_direction(const rt::vector& d) {
+    direction = d;
+}
+
+void ray::set_color(const rt::color& c) {
+    color = c;
+}
+
+/* Multiplies the ray color by the given color */
+void ray::apply_color(const rt::color& c) {
+    color = color * c;
+}

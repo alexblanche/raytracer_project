@@ -68,7 +68,7 @@ namespace rt {
 			/**
 			 * Returns the red component.
 			 */
-			virtual inline unsigned char get_red() const {
+			virtual inline unsigned int get_red() const {
 				return red;
 			}
 
@@ -82,7 +82,7 @@ namespace rt {
 			/**
 			 * Returns the green component.
 			 */
-			virtual inline unsigned char get_green() const {
+			virtual inline unsigned int get_green() const {
 				return green;
 			}
 
@@ -96,7 +96,7 @@ namespace rt {
 			/**
 			 * Returns the blue component.
 			 */
-			virtual inline unsigned char get_blue() const {
+			virtual inline unsigned int get_blue() const {
 				return blue;
 			}
 
@@ -110,7 +110,7 @@ namespace rt {
 			/**
 			 * Returns the alpha component.
 			 */
-			virtual inline unsigned char get_alpha() const {
+			virtual inline unsigned int get_alpha() const {
 				return alpha;
 			}
 
@@ -140,6 +140,11 @@ namespace rt {
 	 		* Product operator.
 	 		*/
 			virtual color operator*(const color& c) const;
+
+			/**
+			 * Division operator.
+			 */
+			virtual color operator/(const double x) const;
 	};
 
 	/* Adds all the colors of the given color vector */

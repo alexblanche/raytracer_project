@@ -16,9 +16,9 @@ namespace rt {
 	const color color::RED   = color(255,0,0);
 
 	/**
-	 * Default constructor. Builds a white color.
+	 * Default constructor. Builds a black color.
 	 */
-	color::color() : red(255), green(255), blue(255), alpha(255) {}
+	color::color() : red(0), green(0), blue(0), alpha(255) {}
 
 	/**
 	 * Copy constructor.
@@ -68,9 +68,9 @@ namespace rt {
 	 */
 	color color::operator*(const double x) const {
 		return color(
-			std::min(x * get_red(),   255.0),
-			std::min(x * get_green(), 255.0),
-			std::min(x * get_blue(),  255.0));
+			x * get_red(),
+			x * get_green(),
+			x * get_blue());
 	}
 
 	/**
@@ -78,9 +78,9 @@ namespace rt {
 	 */
 	color color::operator+(const color& c) const {
 		return color(
-			std::min(get_red() + c.get_red(), 	  255),
-			std::min(get_green() + c.get_green(), 255),
-			std::min(get_blue() + c.get_blue(),   255));
+			get_red() + c.get_red(),
+			get_green() + c.get_green(),
+			get_blue() + c.get_blue());
 	}
 
 	/**
@@ -91,6 +91,16 @@ namespace rt {
 			get_red() 	* c.get_red() 	/ 255,
 			get_green() * c.get_green() / 255,
 			get_blue() 	* c.get_blue() 	/ 255);
+	}
+
+	/**
+	 * Division by a scalar operator.
+	 */
+	color color::operator/(const double x) const {
+		return color(
+			get_red() 	/ x,
+			get_green() / x,
+			get_blue() 	/ x);
 	}
 
 

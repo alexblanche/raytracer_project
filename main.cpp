@@ -35,6 +35,7 @@ using namespace std;
 
 /* Sequential version */
 
+/*
 void render_loop_seq(vector<vector<rt::color>>& matrix, scene& scene,
     const unsigned int number_of_rays, const unsigned int number_of_bounces) {
 
@@ -64,6 +65,7 @@ void render_loop_seq(vector<vector<rt::color>>& matrix, scene& scene,
     
     printf("\n");
 }
+*/
 
 
 /* Parallel version */
@@ -72,9 +74,6 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene,
     const unsigned int number_of_rays, const unsigned int number_of_bounces) {
     
     std::mutex m;
-
-    printf("Number of rays at each bounce: %u, ", number_of_rays);
-    printf("Number of bounces: %u\n", number_of_bounces);
 
     // Progress bar
     printf("[..................................................]\r[");
@@ -88,11 +87,18 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene,
         for (int j = 0; j < scene.height; j++) {
             
             const rt::vector direct = (rt::vector(i, j, scene.distance) - scene.screen_center).unit();
-            const ray r = ray(scene.position, direct);
-            const rt::color pixel_col = pathtrace_mult(r, scene, -1, number_of_rays, number_of_bounces);
+            ray r = ray(scene.position, direct, rt::color::WHITE);
+            const rt::color pixel_col = pathtrace(r, scene, -1, number_of_bounces);
+            
+            // Updating the color matrix
+            const rt::color current_col = matrix.at(i).at(j);
+            const rt::color new_col = rt::color(
+                ((number_of_rays - 1) * current_col.get_red()   + pixel_col.get_red())   / number_of_rays,
+                ((number_of_rays - 1) * current_col.get_green() + pixel_col.get_green()) / number_of_rays,
+                ((number_of_rays - 1) * current_col.get_blue()  + pixel_col.get_blue())  / number_of_rays);
 
             m.lock();
-            matrix.at(i).at(j) = pixel_col;
+            matrix.at(i).at(j) = new_col;
             m.unlock();
         }
         
@@ -167,24 +173,25 @@ int main(int argc, char *argv[]) {
 
     const sphere sph0(rt::vector(-500, 0, 600), 120, obj_counter++, material(rt::color::WHITE, rt::color(), 0.2, 0));
     const sphere sph1(rt::vector(-166, 0, 600), 120, obj_counter++, material(rt::color::WHITE, rt::color(), 0.6, 0));
-    const sphere sphl1(rt::vector(166, 0, 600), 120, obj_counter++, material(rt::color::WHITE, rt::color(), 0.95, 0));
-    const sphere sphl2(rt::vector(500, 0, 600), 120, obj_counter++, material(rt::color::WHITE, rt::color(), 1, 0));
+    const sphere sph2(rt::vector(166, 0, 600), 120, obj_counter++, material(rt::color::WHITE, rt::color(), 0.95, 0));
+    const sphere sph3(rt::vector(500, 0, 600), 120, obj_counter++, material(rt::color::WHITE, rt::color(), 1, 0));
 
     // Planes
 
-    const double reflec = 0.8;
-    const plane pln0(0, -1, 0, rt::vector(0, 160, 0),   obj_counter++, material(/*rt::color(80, 80, 255)*/ rt::color::WHITE, rt::color(), reflec, 0));
+    const plane pln0(0, -1, 0, rt::vector(0, 160, 0),   obj_counter++, material(rt::color(80, 80, 255), rt::color(), 0, 0));
     const plane pln1(0, 0, -1, rt::vector(0, 0, 2000),  obj_counter++, light_material(rt::color::WHITE, 1));
     const plane pln2(1, 0, 0,  rt::vector(-1000, 0, 0), obj_counter++, material(rt::color::RED, rt::color(), 0, 0));
     const plane pln3(1, 0, 0,  rt::vector(1000, 0, 0),  obj_counter++, material(rt::color(80, 255, 80), rt::color(), 0, 0));
     const plane pln4(0, 0, 1,  rt::vector(0, 0, 0),     obj_counter++, light_material(rt::color::WHITE, 1));
     const plane pln5(0, 1, 0,  rt::vector(0, -600, 0),  obj_counter++, material(rt::color::WHITE, rt::color(), 0, 0));
+
+    const sphere sphl1(rt::vector(0, 0, 600), 30, obj_counter++, light_material(rt::color::WHITE, 1));
     
     /* Object set */
     /* Storing pointers allow the overridden methods send and intersect (from sphere, plane)
        to be executed instead of the base (object) one */
 
-    const vector<const object*> obj_set {&sph0, &sph1, &sphl1, &sphl2, &pln0, &pln1, &pln2, &pln3, &pln4, &pln5};
+    const vector<const object*> obj_set {&sph0, &sph1, &sph2, &sph3, &pln0, &pln1, &pln2, &pln3, &pln4, &pln5, &sphl1};
 
     // Screen
     const int width = 1366;
@@ -207,38 +214,48 @@ int main(int argc, char *argv[]) {
     /* ********************************************************** */
 
     /* Specification of the parameters through console arguments */
-    unsigned int number_of_rays = 5;
+    //unsigned int number_of_rays = 5;
     unsigned int number_of_bounces = 2;
     if (argc > 1) {
-        number_of_rays = atoi(argv[1]);
+        number_of_bounces = atoi(argv[1]);
     }
+    /*
     if (argc > 2) {
         number_of_bounces = atoi(argv[2]);
     }
+    */
+
+    //printf("Number of rays at each bounce: %u, ", number_of_rays);
+    printf("Number of bounces: %u\n", number_of_bounces);
 
     /* Definition of the matrix in which we will write the image */
     vector<vector<rt::color>> matrix(width, vector<rt::color>(height));
 
     //render_loop_seq(matrix, scene, number_of_rays, number_of_bounces);
-    render_loop_parallel(matrix, scene, number_of_rays, number_of_bounces);
+    //render_loop_parallel(matrix, scene, number_of_rays, number_of_bounces);
 
     // BMP file generation
     //generate_bmp(matrix, "pathtrace.bmp");
 
     // Display of the image on screen
     const rt::screen scr(width, height);
+
+    render_loop_parallel(matrix, scene, 1, number_of_bounces);
     
     scr.copy(matrix, width, height);
     scr.update();
 
-    while(not scr.wait_quit_event()) {}
+    unsigned int number_of_rays = 1;
 
-    // Post-process blurring
+    while (not scr.is_quit_event()) {
+        number_of_rays ++;
+        printf("Number of rays per pixel: %u\n", number_of_rays);
 
-    scr.copy(blur(matrix, 3), width, height);
-    scr.update();
-
-    while(not scr.wait_quit_event()) {}
+        render_loop_parallel(matrix, scene, number_of_rays, number_of_bounces);
+    
+        scr.copy(matrix, width, height);
+        scr.update();
+    }
 
     return EXIT_SUCCESS;
 }

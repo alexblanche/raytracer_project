@@ -50,10 +50,16 @@ namespace rt {
 			virtual void update() const;
 
 			/**
-			 * @brief wait indefinitely for the next quit event
+			 * @brief Wait indefinitely for the next quit event
 			 * @return true if we get a quit event, or false if there was an error while waiting for the quit event
 			 */
 			bool wait_quit_event() const;
+
+			/**
+			 * @brief Stop at the next quit event
+			 * @return true if we get a quit event, false if we get a keydown event
+			 */
+			bool is_quit_event() const;
 
 			/**
 			 * Copies the rt::color matrix onto the screen

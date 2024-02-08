@@ -41,10 +41,18 @@ class hit {
         /* Reflection */
 
         /* Returns the reflected ray at the point of contact */
-        ray reflect_ray() const;
+        ray get_reflected_ray() const;
 
-        /* Returns a vector of n random reflected ray passing through the disk of given radius,
-           at given distance from the point of contact */
+        /* Returns the interpolated direction between the normal and the reflected direction */
+        rt::vector get_central_direction(const double reflectivity) const;
+
+        /* Returns a vector of n random reflected ray in the cone of center hit::reflect_ray(),
+           within solid angle theta_max */
         std::vector<ray> random_reflect(const unsigned int n, randomgen& rg,
-            const double reflectivity, const double theta_max) const;
+            const rt::vector& central_dir, const double theta_max) const;
+
+        /* Returns the direction of a random reflected ray in the cone of center hit::reflect_ray(),
+           within solid angle theta_max */
+        rt::vector random_reflect_single(randomgen& rg, const rt::vector& central_dir,
+            const double theta_max) const;
 };

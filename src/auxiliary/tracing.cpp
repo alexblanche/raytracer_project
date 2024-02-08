@@ -111,7 +111,10 @@ hit find_closest_object(const ray& r, const vector<const object*>& obj_set, cons
 
 
 
-/* Path tracing function: computes the hit of the given ray on the closest object,
+/* Path tracing function */
+
+/* Multiple rays version:
+    Computes the hit of the given ray on the closest object,
     then recursively launches (number_of_rays) rays, with a distribution depending on the surface material,
     until either a light-emitting object is hit, or the maximum number of bounces is reached.
     The colors obtained are then combined to determine the color of the pixel. */
@@ -132,17 +135,16 @@ rt::color pathtrace_mult(const ray& r, scene& scene, const unsigned int origin_o
         }
         else if (reflectivity > 0.9999) {
             // The surface hit is a mirror
-            return m.get_color() * pathtrace_mult(h.reflect_ray(), scene, h.get_obj_index(), number_of_rays, bounce-1);
+            return m.get_color() * pathtrace_mult(h.get_reflected_ray(), scene, h.get_obj_index(), number_of_rays, bounce-1);
         }
         else {
             // Angle of the cone toward which the rays are cast (pi/2 * (1-reflectivity))
-            const double theta = 1.57079632679 * (1 - reflectivity); //acos(reflectivity); 
-            const rt::vector normal = h.get_normal();
+            const double theta = 1.57079632679 * (1 - reflectivity);
 
             std::vector<rt::color> return_colors(number_of_rays);
-
-            const std::vector<ray> bouncing_rays = h.random_reflect(number_of_rays, scene.rg, reflectivity, theta);
-            const rt::vector central_dir = (reflectivity * h.reflect_ray().get_direction() + (1 - reflectivity) * h.get_normal()).unit();
+            
+            const rt::vector central_dir = h.get_central_direction(reflectivity);
+            const std::vector<ray> bouncing_rays = h.random_reflect(number_of_rays, scene.rg, central_dir, theta);
 
             for(unsigned int i = 0; i < number_of_rays; i++) {
 
@@ -160,4 +162,49 @@ rt::color pathtrace_mult(const ray& r, scene& scene, const unsigned int origin_o
         // No object hit: background color
         return scene.background;
     }
+}
+
+/* Single ray version:
+    Computes the hit of the given ray on the closest object,
+    then launches one ray, in a direction and with a color depending on the surface material,
+    until it is too dim, or a light-emitting object is hit, or the maximum number of bounces is reached. */
+rt::color pathtrace(ray& r, scene& scene, const unsigned int origin_obj_index,
+    const unsigned int bounce) {
+
+    rt::color incoming_color = rt::color::BLACK;
+
+    for (unsigned int i = 0; i < bounce; i++) {
+
+        const hit h = find_closest_object(r, scene.obj_set, origin_obj_index);
+
+        if (h.is_hit()) {
+            const material m = scene.obj_set.at(h.get_obj_index())->get_material();
+            const double reflectivity = m.get_reflectivity();
+
+            if (m.get_emission_intensity() > 0.9999) {
+                // Light source touched
+                return r.get_color() * (m.get_emitted_color() * m.get_emission_intensity());
+            }
+            else {
+                // Angle of the cone toward which the rays are cast (pi/2 * (1-reflectivity))
+                const double theta = 1.57079632679 * (1 - reflectivity); 
+                
+                // Redirecting ray r
+                r.set_origin(h.get_point());
+                const rt::vector central_dir = h.get_central_direction(reflectivity);
+                const rt::vector bouncing_dir = h.random_reflect_single(scene.rg, central_dir, theta);
+                r.set_direction(bouncing_dir);
+                
+                const double bias = (bouncing_dir | central_dir) * 2;
+                incoming_color = incoming_color * bias + m.get_emitted_color() * m.get_emission_intensity() * r.get_color();
+                r.apply_color(m.get_color());
+            }
+        }
+        else {
+            // No object hit: background color
+            return r.get_color() * scene.background;
+        }
+    }
+
+    return incoming_color;
 }
