@@ -9,20 +9,20 @@ randomgen::randomgen() {
 }
 
 void randomgen::update_seed() {
-    seed ++;
+    seed = seed * 17 + 326;
 }
 
 /* Returns a random double between 0 and m */
 double random_double(randomgen& r, const double m) {
+    r.update_seed();
     std::default_random_engine eng (r.seed);
     std::uniform_real_distribution<double> unif(0, m);
-    
-    r.update_seed();
     return unif(eng);
 }
 
 /* Returns an array of n random doubles between 0 and m */
 std::vector<double> random_double_array(randomgen& r, const unsigned int n, const double m) {
+    r.update_seed();
     std::default_random_engine eng (r.seed);
 
     std::uniform_real_distribution<double> unif(0, m);
@@ -31,7 +31,5 @@ std::vector<double> random_double_array(randomgen& r, const unsigned int n, cons
     for (unsigned int i = 0; i < n; i++) {
         rands.at(i) = unif(eng);
     }
-
-    r.update_seed();
     return rands;
 }

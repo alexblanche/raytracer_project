@@ -76,10 +76,10 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene,
     std::mutex m;
 
     // Progress bar
-    printf("[..................................................]\r[");
-    int cpt = 0;
-    int pct = 0;
-    int newpct = 0;
+    // printf("[..................................................]\r[");
+    // int cpt = 0;
+    // int pct = 0;
+    // int newpct = 0;
 
 
     PARALLEL_FOR_BEGIN(scene.width) {
@@ -103,18 +103,18 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene,
         }
         
         // Progress bar
-        m.lock();
-        cpt++;
-        newpct = 50*(cpt+1) / scene.width;
-        if (newpct > pct) {
-            pct = newpct;
-            printf("I");
-        }
-        m.unlock();
+        // m.lock();
+        // cpt++;
+        // newpct = 50*(cpt+1) / scene.width;
+        // if (newpct > pct) {
+        //     pct = newpct;
+        //     printf("I");
+        // }
+        // m.unlock();
         
     } PARALLEL_FOR_END();
 
-    printf("\n");
+    // printf("\n");
 }
 
 
@@ -249,11 +249,11 @@ int main(int argc, char *argv[]) {
 
     while (not scr.is_quit_event()) {
         number_of_rays ++;
-        printf("Number of rays per pixel: %u\n", number_of_rays);
 
         render_loop_parallel(matrix, scene, number_of_rays, number_of_bounces);
     
         scr.copy(matrix, width, height);
+        printf("Number of rays per pixel: %u\n", number_of_rays);
         scr.update();
     }
 
