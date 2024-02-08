@@ -168,10 +168,16 @@ rt::color pathtrace_mult(const ray& r, scene& scene, const unsigned int origin_o
     Computes the hit of the given ray on the closest object,
     then launches one ray, in a direction and with a color depending on the surface material,
     until it is too dim, or a light-emitting object is hit, or the maximum number of bounces is reached. */
+
+/* In recursive form, the light equation is of the form u(n) = a(n) * u(n-1) + b(n),
+   in iterative form, we have an accumulator color_materials of the product of the a(k), k=n..,
+   and an accumulator (emitted_colors) of the (product of a(j), j=n..k) * b(k). */
+
 rt::color pathtrace(ray& r, scene& scene, const unsigned int origin_obj_index,
     const unsigned int bounce) {
 
-    rt::color incoming_color = rt::color::BLACK;
+    rt::color color_materials = rt::color::WHITE;
+    rt::color emitted_colors = rt::color::BLACK;
 
     for (unsigned int i = 0; i < bounce; i++) {
 
@@ -183,7 +189,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int origin_obj_index,
 
             if (m.get_emission_intensity() > 0.9999) {
                 // Light source touched
-                return r.get_color() * (m.get_emitted_color() * m.get_emission_intensity());
+                return color_materials * (m.get_emitted_color() * m.get_emission_intensity()) + emitted_colors;
             }
             else {
                 // Angle of the cone toward which the rays are cast (pi/2 * (1-reflectivity))
@@ -196,15 +202,19 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int origin_obj_index,
                 r.set_direction(bouncing_dir);
                 
                 const double bias = (bouncing_dir | central_dir) * 2;
-                incoming_color = incoming_color * bias + m.get_emitted_color() * m.get_emission_intensity() * r.get_color();
-                r.apply_color(m.get_color());
+                const rt::color emitted_light = m.get_emitted_color() * m.get_emission_intensity();
+
+                // Updating the accumulators
+                color_materials = color_materials * bias * m.get_color();
+                emitted_colors = color_materials * emitted_light;
             }
         }
         else {
             // No object hit: background color
-            return r.get_color() * scene.background;
+            return color_materials * scene.background + emitted_colors;
         }
     }
 
-    return incoming_color;
+    // Maximum number of bounces reached: the final color is black
+    return emitted_colors;
 }

@@ -18,7 +18,13 @@ class material {
         /* Real between 0 and 1: 0 does not emit light, 1 is maximum intensity */
         double emission_intensity;
 
-        // texture, specular_probability, ...
+        /* Probability of a specular bounce */
+        double specular_probability;
+
+        /* True if the material color is reflected in specular bounces, false if it is white */
+        bool reflects_color;
+
+        // texture
         // transparency
 
     public:

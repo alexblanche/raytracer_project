@@ -14,12 +14,9 @@ class ray {
     protected:
         rt::vector origin;
         rt::vector direction;
-        rt::color color;
 
     public :
         /* Constructors */
-
-        ray (const rt::vector& o,const rt::vector& d, const rt::color& c);
         
         ray (const rt::vector& o, const rt::vector& d);
         
@@ -29,19 +26,10 @@ class ray {
         rt::vector get_origin() const;
         
         rt::vector get_direction() const;
-        
-        rt::color get_color() const;
-
-        // apply_color (= current_color * new_color)
 
         /* Mutators */
         void set_origin(const rt::vector& origin);
 
         void set_direction(const rt::vector& direction);
-
-        void set_color(const rt::color& color);
-
-        /* Multiplies the ray color by the given color */
-        void apply_color(const rt::color& color);
 };
 

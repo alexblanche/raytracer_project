@@ -87,7 +87,7 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene,
         for (int j = 0; j < scene.height; j++) {
             
             const rt::vector direct = (rt::vector(i, j, scene.distance) - scene.screen_center).unit();
-            ray r = ray(scene.position, direct, rt::color::WHITE);
+            ray r = ray(scene.position, direct);
             const rt::color pixel_col = pathtrace(r, scene, -1, number_of_bounces);
             
             // Updating the color matrix

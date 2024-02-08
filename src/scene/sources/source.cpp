@@ -46,7 +46,7 @@ rt::color source::apply_obj(const hit& h, const vector<const object*>& obj_set) 
     const rt::vector to_the_light = position - h.get_point();
     const double dist = to_the_light.norm();
 
-    const ray reflected_ray(h.get_point(), to_the_light.unit(), rt::color::WHITE);
+    const ray reflected_ray(h.get_point(), to_the_light.unit());
 
     // Looking for an intersection with an object
     double d;
