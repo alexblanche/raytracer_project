@@ -24,7 +24,7 @@ namespace rt {
 	 */
 	class color {
 		private:
-			unsigned char red, green, blue, alpha; /*!< Red, green blue and alpha components */
+			unsigned int red, green, blue, alpha; /*!< Red, green blue and alpha components */
 
 		public:
 
@@ -51,17 +51,17 @@ namespace rt {
 			 * Builds a color from its red, green and blue components.
 			 * Alpha is set to 255.
 			 */
-			color(unsigned char r, unsigned char g, unsigned char b);
+			color(unsigned int r, unsigned int g, unsigned int b);
 
 			/**
 			 * Builds a color from its red, green, blue and alpha components.
 			 */
-			color(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+			color(unsigned int r, unsigned int g, unsigned int b, unsigned int a);
 
 			/**
 			 * Sets the red component.
 			 */
-			virtual inline void set_red(unsigned char r) {
+			virtual inline void set_red(unsigned int r) {
 				red = r;
 			}
 
@@ -75,7 +75,7 @@ namespace rt {
 			/**
 			 * Sets the green component.
 			 */
-			virtual inline void set_green(unsigned char g) {
+			virtual inline void set_green(unsigned int g) {
 				green = g;
 			}
 
@@ -89,7 +89,7 @@ namespace rt {
 			/**
 			 * Sets the blue component.
 			 */
-			virtual inline void set_blue(unsigned char b) {
+			virtual inline void set_blue(unsigned int b) {
 				blue = b;
 			}
 
@@ -103,7 +103,7 @@ namespace rt {
 			/**
 			 * Sets the alpha component.
 			 */
-			virtual inline void set_alpha(unsigned char a) {
+			virtual inline void set_alpha(unsigned int a) {
 				alpha = a;
 			}
 

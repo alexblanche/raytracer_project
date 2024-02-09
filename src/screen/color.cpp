@@ -34,14 +34,14 @@ namespace rt {
 	 * Builds a color from its red, green and blue components.
 	 * Alpha is set to 255.
 	 */
-	color::color(const unsigned char r, const unsigned char g, const unsigned char b)
+	color::color(const unsigned int r, const unsigned int g, const unsigned int b)
 		: red(r), green(g), blue(b), alpha(255) {}
 
 
 	/**
 	 * Builds a color from its red, green, blue and alpha components.
 	 */
-	color::color(const unsigned char r, const unsigned char g, const unsigned char b, const unsigned char a)
+	color::color(const unsigned int r, const unsigned int g, const unsigned int b, const unsigned int a)
 		: red(r), green(g), blue(b), alpha(a) {}
 
 	/**
