@@ -78,9 +78,9 @@ namespace rt {
 	 */
 	color color::operator+(const color& c) const {
 		return color(
-			get_red() + c.get_red(),
-			get_green() + c.get_green(),
-			get_blue() + c.get_blue());
+			std::min(get_red() + c.get_red(), 255u),
+			std::min(get_green() + c.get_green(), 255u),
+			std::min(get_blue() + c.get_blue(), 255u));
 	}
 
 	/**

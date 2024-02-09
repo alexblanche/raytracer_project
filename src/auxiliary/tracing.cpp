@@ -187,7 +187,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int origin_obj_index,
             const material m = scene.obj_set.at(h.get_obj_index())->get_material();
             const double reflectivity = m.get_reflectivity();
 
-            if (m.get_emission_intensity() > 0.9999) {
+            if (m.get_emission_intensity() == 1) {
                 // Light source touched
                 return color_materials * (m.get_emitted_color() * m.get_emission_intensity()) + emitted_colors;
             }
@@ -203,15 +203,10 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int origin_obj_index,
                 
                 const double bias = (bouncing_dir | central_dir) * 2;
                 const rt::color emitted_light = m.get_emitted_color() * m.get_emission_intensity();
-                const rt::color incoming_color = m.get_color() * bias;
-
 
                 // Updating the accumulators
-                color_materials = color_materials * incoming_color;
                 emitted_colors = emitted_colors + color_materials * emitted_light;
-                /* Wrong now: previous one was
-                incoming_color = incoming_color * bias + emitted_light * ray_color;
-                ray_color = ray_color * m.get_color(); */
+                color_materials = color_materials * (m.get_color() * bias);
             }
         }
         else {

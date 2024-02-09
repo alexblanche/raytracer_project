@@ -37,9 +37,13 @@ class material {
 
         material();
 
+        /* Constructs a material with no emitted light, with specular probability 1 */
+        material(const rt::color& color, const double reflectivity);
+
         /* Main constructor */
         material(const rt::color& color, const rt::color& emitted_color,
-            const double reflectivity, const double emission_intensity);
+            const double reflectivity, const double emission_intensity,
+            const double specular_probability, const bool reflects_color);
 
 
 
@@ -53,6 +57,9 @@ class material {
 
         double get_emission_intensity() const;
 
+        double get_specular_proba() const;
+
+        bool does_reflect_color() const;
 };
 
 /* Specific constructors */

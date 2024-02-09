@@ -148,11 +148,11 @@ rt::vector hit::random_reflect_single(randomgen& rg, const rt::vector& central_d
     // Orthonormal base of the plane orthogonal to central_dir
     rt::vector X, Y;
     if (a != 0) {
-        X = rt::vector(- b / a, 1, 0).unit();
+        X = rt::vector(- b, a, 0).unit();
         Y = rt::vector(a * c, b * c, - a*a - b*b).unit();
     } else if (b != 0) {
         // central_dir = (0,b,c)
-        X = rt::vector(0, - c / b, 1).unit();
+        X = rt::vector(0, - c, b).unit();
         Y = rt::vector(1, 0, 0);
     } else {
         // central_dir = (0,0,1)
