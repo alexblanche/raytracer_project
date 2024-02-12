@@ -197,20 +197,47 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
             }
             else {
                 // Angle of the cone toward which the rays are cast (pi/2 * (1-reflectivity))
-                const double theta = 1.57079632679 * (1 - reflectivity); 
-                
-                // Redirecting ray r
+                const double theta = 1.57079632679 * (1 - reflectivity);
                 r.set_origin(h.get_point());
-                const rt::vector central_dir = h.get_central_direction(reflectivity);
-                const rt::vector bouncing_dir = h.random_reflect_single(scene.rg, central_dir, theta);
-                r.set_direction(bouncing_dir);
                 
-                const double bias = (bouncing_dir | central_dir);
-                const rt::color emitted_light = m.get_emitted_color() * m.get_emission_intensity();
+                if (random_double(scene.rg, 1) <= m.get_specular_proba()) {
+                    /* Specular bounce */
 
-                // Updating the accumulators
-                emitted_colors = emitted_colors + (color_materials * emitted_light);
-                color_materials = color_materials * (m.get_color() * bias);
+                    // Redirecting ray r
+                    const rt::vector central_dir = h.get_central_direction(reflectivity);
+                    const rt::vector bouncing_dir = h.random_reflect_single(scene.rg, central_dir, theta);
+                    r.set_direction(bouncing_dir);
+                    
+                    const double bias = (bouncing_dir | central_dir);
+                    const rt::color emitted_light = m.get_emitted_color() * m.get_emission_intensity();
+
+                    // Updating the accumulators
+                    emitted_colors = emitted_colors + (color_materials * emitted_light);
+                    if (m.does_reflect_color()) {
+                        // Reflections have the material color (like a christmas tree ball)
+                        color_materials = color_materials * (m.get_color() * bias);
+                    }
+                    else {
+                        // Reflections have the original color (like a tomato)
+                        color_materials = color_materials * bias;
+                    }
+                    
+                }
+                else {
+                    /* Diffuse bounce */
+
+                    const rt::vector bouncing_dir = h.random_reflect_single(scene.rg, h.get_normal(), 1.57079632679);
+                    r.set_direction(bouncing_dir);
+                    
+                    // const double bias = (bouncing_dir | h.get_normal());
+                    const rt::color emitted_light = m.get_emitted_color() * m.get_emission_intensity();
+
+                    // Updating the accumulators
+                    emitted_colors = emitted_colors + (color_materials * emitted_light);
+                    color_materials = color_materials * m.get_color(); //(m.get_color() * bias);
+                }
+
+                
             }
         }
         else {

@@ -142,27 +142,29 @@ int main(int argc, char *argv[]) {
 
     /* 4 metal spheres of increasing reflectivity */
 
+    /*
     const sphere sph0(rt::vector(-500, 0, 600), 120, obj_counter++, material(rt::color::WHITE, 0.2));
     const sphere sph1(rt::vector(-166, 0, 600), 120, obj_counter++, material(rt::color::WHITE, 0.6));
     const sphere sph2(rt::vector(166, 0, 600),  120, obj_counter++, material(rt::color::WHITE, 0.95));
     const sphere sph3(rt::vector(500, 0, 600),  120, obj_counter++, material(rt::color::WHITE, 1));
+    */
 
     /* 4 mirror spheres of decreasing specular_probability */
-    /*
-    const sphere sph0(rt::vector(-500, 0, 600), 120, obj_counter++, material(rt::color::WHITE, rt::color(); 1, 0, 0.3, false));
-    const sphere sph1(rt::vector(-166, 0, 600), 120, obj_counter++, material(rt::color::WHITE, rt::color(); 1, 0, 0.6, false));
-    const sphere sph2(rt::vector(166, 0, 600),  120, obj_counter++, material(rt::color::WHITE, rt::color(); 1, 0, 0.8, false));
-    const sphere sph3(rt::vector(500, 0, 600),  120, obj_counter++, material(rt::color::WHITE, rt::color(); 1, 0, 0.95, false));
-    */
+    
+    const sphere sph0(rt::vector(-500, 0, 600), 120, obj_counter++, material(rt::color(255, 255, 255), rt::color(), 1, 0, 1.0, false));
+    const sphere sph1(rt::vector(-166, 0, 600), 120, obj_counter++, material(rt::color(255, 255, 255), rt::color(), 1, 0, 0.4, false));
+    const sphere sph2(rt::vector(166, 0, 600),  120, obj_counter++, material(rt::color(255, 255, 255), rt::color(), 1, 0, 0.2, false));
+    const sphere sph3(rt::vector(500, 0, 600),  120, obj_counter++, material(rt::color(255, 255, 255), rt::color(), 1, 0, 0.08, false));
+    
 
     // Planes
 
-    const plane pln0(0, -1, 0, rt::vector(0, 160, 0),   obj_counter++, material(rt::color(20, 20, 255), 0));
-    const plane pln1(0, 0, -1, rt::vector(0, 0, 1200),  obj_counter++, light_material(rt::color::WHITE, 1000));
+    const plane pln0(0, -1, 0, rt::vector(0, 160, 0),   obj_counter++, material(rt::color(10, 10, 10), rt::color(), 0.8, 0, 0.1, false));;
+    const plane pln1(0, 0, -1, rt::vector(0, 0, 1200),  obj_counter++, light_material(rt::color::WHITE, 0));
     const plane pln2(1, 0, 0,  rt::vector(-1000, 0, 0), obj_counter++, material(rt::color(255, 20, 20), 0));
     const plane pln3(1, 0, 0,  rt::vector(1000, 0, 0),  obj_counter++, material(rt::color(20, 255, 20), 0));
-    const plane pln4(0, 0, 1,  rt::vector(0, 0, 0),     obj_counter++, light_material(rt::color::WHITE, 0));
-    const plane pln5(0, 1, 0,  rt::vector(0, -600, 0),  obj_counter++, light_material(rt::color::WHITE, 0));
+    const plane pln4(0, 0, 1,  rt::vector(0, 0, 0),     obj_counter++, light_material(rt::color(10, 180, 255), 0));
+    const plane pln5(0, 1, 0,  rt::vector(0, -600, 0),  obj_counter++, light_material(rt::color::WHITE, 1));
 
     // const sphere sphl1(rt::vector(0, 0, 600), 30, obj_counter++, light_material(rt::color::WHITE, 1));
     

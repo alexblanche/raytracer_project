@@ -11,11 +11,11 @@ const material material::MIRROR = material(rt::color(255,255,255), 1);
 /* Constructors */
 
 material::material() : color(rt::color::WHITE), emitted_color(rt::color::WHITE),
-    reflectivity(0), emission_intensity(0), specular_probability(1), reflects_color(false) {}
+    reflectivity(0), emission_intensity(0), specular_probability(0), reflects_color(false) {}
 
 material::material(const rt::color& color, const double reflectivity)
     : color(color), reflectivity(reflectivity), emission_intensity(0),
-        specular_probability(1), reflects_color(false) {}
+        specular_probability(0), reflects_color(false) {}
 
 material::material(const rt::color& color, const rt::color& emitted_color,
     const double reflectivity, const double emission_intensity,
@@ -35,7 +35,7 @@ material diffuse_material(const rt::color& color) {
 
 /* Returns a light of given color and intensity */
 material light_material(const rt::color& color, const double emission_intensity) {
-    return material(color, color, 0, emission_intensity, 1, false);
+    return material(color, color, 0, emission_intensity, 0, false);
 }
 
 
