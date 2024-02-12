@@ -9,7 +9,7 @@ randomgen::randomgen() {
 }
 
 void randomgen::update_seed() {
-    seed = seed * 17 + 326;
+    seed = seed * 337 + 511;
 }
 
 /* Returns a random double between 0 and m */

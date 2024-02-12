@@ -4,17 +4,18 @@
 std::numeric_limits<double> real;
 const double infinity = real.infinity();
 #include "../screen/headers/color.hpp"
-#include "../scene/sources/headers/source.hpp"
+//#include "../scene/sources/headers/source.hpp"
 #include "../scene/objects/headers/object.hpp"
 #include "../scene/headers/scene.hpp"
 
-#include "headers/application.hpp"
+// #include "headers/application.hpp"
 
 
 /* Tracing the ray */
 
 /* Test raycasting function:
   Casts a ray and returns only the color of the surface hit */
+/*
 rt::color raycast(const ray& r, const vector<const object*>& obj_set) {
     
     double d;
@@ -24,8 +25,8 @@ rt::color raycast(const ray& r, const vector<const object*>& obj_set) {
     for (unsigned int i = 0; i < obj_set.size(); i++) {
 
         d = obj_set.at(i)->measure_distance(r);
-        /* d is the distance between the origin of the ray and the
-           intersection point with the object */
+        * d is the distance between the origin of the ray and the
+           intersection point with the object *
         if (d < closest) {
             closest = d;
             closest_index = i;
@@ -39,10 +40,12 @@ rt::color raycast(const ray& r, const vector<const object*>& obj_set) {
         return rt::color::BLACK;
     }
 }
+*/
 
 /* Ray tracing function: computes the hit of the given ray on the closest object,
     then applies all the light from all the sources (blocked by the other objects),
     and returns the resulting color. */
+/*
 rt::color raytrace(const ray& r, const vector<const object*>& obj_set, const vector<source>& light_set) {
 
     double d;
@@ -54,8 +57,8 @@ rt::color raytrace(const ray& r, const vector<const object*>& obj_set, const vec
 
         d = obj_set.at(i)->measure_distance(r);
         
-        /* d is the distance between the origin of the ray and the
-           intersection point with the object */
+        * d is the distance between the origin of the ray and the
+           intersection point with the object *
 
         if (d < closest) {
             closest = d;
@@ -71,7 +74,7 @@ rt::color raytrace(const ray& r, const vector<const object*>& obj_set, const vec
         return rt::color::BLACK; // No object hit
     }
 }
-
+*/
 
 
 /* ******************************************************************** */
@@ -148,7 +151,7 @@ rt::color pathtrace_mult(const ray& r, scene& scene, const unsigned int origin_o
 
             for(unsigned int i = 0; i < number_of_rays; i++) {
 
-                const double bias = (bouncing_rays.at(i).get_direction() | central_dir) * 2;
+                const double bias = (bouncing_rays.at(i).get_direction() | central_dir);
                 return_colors.at(i) = pathtrace_mult(bouncing_rays.at(i), scene, h.get_obj_index(), number_of_rays, bounce-1)
                                     * bias;
             }
@@ -173,23 +176,24 @@ rt::color pathtrace_mult(const ray& r, scene& scene, const unsigned int origin_o
    in iterative form, we have an accumulator color_materials of the product of the a(k), k=n..,
    and an accumulator (emitted_colors) of the (product of a(j), j=n..k) * b(k). */
 
-rt::color pathtrace(ray& r, scene& scene, const unsigned int origin_obj_index,
-    const unsigned int bounce) {
+rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
 
     rt::color color_materials = rt::color::WHITE;
     rt::color emitted_colors = rt::color::BLACK;
+    unsigned int origin_obj_index = -1;
 
     for (unsigned int i = 0; i < bounce; i++) {
 
         const hit h = find_closest_object(r, scene.obj_set, origin_obj_index);
+        origin_obj_index = h.get_obj_index();
 
         if (h.is_hit()) {
             const material m = scene.obj_set.at(h.get_obj_index())->get_material();
             const double reflectivity = m.get_reflectivity();
 
-            if (m.get_emission_intensity() == 1) {
+            if (m.get_emission_intensity() >= 1) {
                 // Light source touched
-                return color_materials * (m.get_emitted_color() * m.get_emission_intensity()) + emitted_colors;
+                return (color_materials * (m.get_emitted_color() * m.get_emission_intensity())) + emitted_colors;
             }
             else {
                 // Angle of the cone toward which the rays are cast (pi/2 * (1-reflectivity))
@@ -201,17 +205,17 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int origin_obj_index,
                 const rt::vector bouncing_dir = h.random_reflect_single(scene.rg, central_dir, theta);
                 r.set_direction(bouncing_dir);
                 
-                const double bias = (bouncing_dir | central_dir) * 2;
+                const double bias = (bouncing_dir | central_dir);
                 const rt::color emitted_light = m.get_emitted_color() * m.get_emission_intensity();
 
                 // Updating the accumulators
-                emitted_colors = emitted_colors + color_materials * emitted_light;
+                emitted_colors = emitted_colors + (color_materials * emitted_light);
                 color_materials = color_materials * (m.get_color() * bias);
             }
         }
         else {
             // No object hit: background color
-            return color_materials * scene.background + emitted_colors;
+            return (color_materials * scene.background) + emitted_colors;
         }
     }
 

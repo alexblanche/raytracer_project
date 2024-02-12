@@ -12,6 +12,6 @@ scene::scene(const std::vector<const object*>& obj_set,
     //const rt::vector direction,
     const rt::vector screen_center)
 
-    : obj_set(obj_set), width(width), height(height),
+    : obj_set(obj_set), background(background), width(width), height(height),
     distance(distance), position(position), //direction(direction),
     screen_center(screen_center), rg(randomgen()) {}

@@ -78,12 +78,12 @@ namespace rt {
 	 */
 	color color::operator+(const color& c) const {
 		return color(
-			std::min(get_red()   + c.get_red(),   255.0),
-			std::min(get_green() + c.get_green(), 255.0),
-			std::min(get_blue()  + c.get_blue(),  255.0));
-			// get_red()   + c.get_red(),
-			// get_green() + c.get_green(),
-			// get_blue()  + c.get_blue());
+			// std::min(get_red()   + c.get_red(),   255.0),
+			// std::min(get_green() + c.get_green(), 255.0),
+			// std::min(get_blue()  + c.get_blue(),  255.0));
+			get_red()   + c.get_red(),
+			get_green() + c.get_green(),
+			get_blue()  + c.get_blue());
 	}
 
 	/**

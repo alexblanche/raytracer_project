@@ -18,9 +18,7 @@ hit::hit(const ray& g, const rt::vector& p, const rt::vector& n, const unsigned 
 
 
 /* Default constructor */
-hit::hit() {
-    is_hit_bool = false;
-}
+hit::hit() : is_hit_bool(false) {}
 
 /* Accessors */
 
@@ -171,7 +169,8 @@ rt::vector hit::random_reflect_single(randomgen& rg, const rt::vector& central_d
     */
     const double cos_theta = 1 - p * (1-cos_theta_max);
 
-    return ((cos(phi) * sqrt(1 - cos_theta * cos_theta)) * X
+    return (
+          (cos(phi) * sqrt(1 - cos_theta * cos_theta)) * X
         + (sin(phi) * sqrt(1 - cos_theta * cos_theta)) * Y
         + cos_theta * central_dir);
 }
