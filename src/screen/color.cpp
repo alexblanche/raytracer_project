@@ -18,7 +18,7 @@ namespace rt {
 	/**
 	 * Default constructor. Builds a black color.
 	 */
-	color::color() : red(0), green(0), blue(0), alpha(255) {}
+	color::color() : red(0), green(0), blue(0) /*, alpha(255)*/ {}
 
 	/**
 	 * Copy constructor.
@@ -27,22 +27,22 @@ namespace rt {
 		red   = c.get_red();
 		green = c.get_green();
 		blue  = c.get_blue();
-		alpha = c.get_alpha();
+		//alpha = c.get_alpha();
 	}
 
 	/**
 	 * Builds a color from its red, green and blue components.
 	 * Alpha is set to 255.
 	 */
-	color::color(const unsigned int r, const unsigned int g, const unsigned int b)
-		: red(r), green(g), blue(b), alpha(255) {}
+	color::color(const double r, const double g, const double b)
+		: red(r), green(g), blue(b) /*, alpha(255)*/ {}
 
 
 	/**
 	 * Builds a color from its red, green, blue and alpha components.
 	 */
-	color::color(const unsigned int r, const unsigned int g, const unsigned int b, const unsigned int a)
-		: red(r), green(g), blue(b), alpha(a) {}
+	// color::color(const double r, const double g, const double b, const double a)
+	// 	: red(r), green(g), blue(b), alpha(a) {}
 
 	/**
 	 * Comparison operator.
@@ -50,8 +50,8 @@ namespace rt {
 	bool color::operator==(const color& c) const {
 		return (c.get_red()   == get_red())
 			&& (c.get_green() == get_green())
-			&& (c.get_blue()  == get_blue())
-			&& (c.get_alpha() == get_alpha());
+			&& (c.get_blue()  == get_blue());
+			// && (c.get_alpha() == get_alpha());
 	}
 
 	/**
@@ -59,9 +59,9 @@ namespace rt {
 	 * Represents the color as a int, with
 	 * red being the most significant byte.
 	*/
-	color::operator int() const {
-		return 256*(256*(256*get_red() + get_green()) + get_blue()) + get_alpha();
-	}
+	// color::operator int() const {
+	// 	return 256*(256*(256*get_red() + get_green()) + get_blue()) + get_alpha();
+	// }
 
 	/**
 	 * Scaling operator.
@@ -78,9 +78,12 @@ namespace rt {
 	 */
 	color color::operator+(const color& c) const {
 		return color(
-			std::min(get_red() + c.get_red(), 255u),
-			std::min(get_green() + c.get_green(), 255u),
-			std::min(get_blue() + c.get_blue(), 255u));
+			std::min(get_red()   + c.get_red(),   255.0),
+			std::min(get_green() + c.get_green(), 255.0),
+			std::min(get_blue()  + c.get_blue(),  255.0));
+			// get_red()   + c.get_red(),
+			// get_green() + c.get_green(),
+			// get_blue()  + c.get_blue());
 	}
 
 	/**
@@ -88,9 +91,9 @@ namespace rt {
 	 */
 	color color::operator*(const color& c) const {
 		return color(
-			get_red() 	* c.get_red() 	/ 255,
-			get_green() * c.get_green() / 255,
-			get_blue() 	* c.get_blue() 	/ 255);
+			get_red() 	* c.get_red() 	/ 255.0,
+			get_green() * c.get_green() / 255.0,
+			get_blue() 	* c.get_blue() 	/ 255.0);
 	}
 
 	/**
@@ -108,9 +111,9 @@ namespace rt {
 	/* Adds all the colors of the given color vector */
 	color add_col_vect(const std::vector<color>& color_set) {
 		const unsigned int n = color_set.size();
-		int r = 0;
-		int g = 0;
-		int b = 0;
+		double r = 0;
+		double g = 0;
+		double b = 0;
 
 		for (unsigned int i = 0; i < n; i++) {
 			const rt::color c = color_set.at(i);
@@ -130,9 +133,9 @@ namespace rt {
 	/* Returns the average of all the colors of the given color vector */
 	color average_col_vect(const std::vector<color>& color_set) {
 		const unsigned int n = color_set.size();
-		int r = 0;
-		int g = 0;
-		int b = 0;
+		double r = 0;
+		double g = 0;
+		double b = 0;
 
 		for (unsigned int i = 0; i < n; i++) {
 			const rt::color c = color_set.at(i);

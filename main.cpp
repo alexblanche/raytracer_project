@@ -2,7 +2,6 @@
 #include <fstream>
 #include <stdlib.h>
 #include <vector>
-#include <ctime>
 
 #include "src/screen/headers/color.hpp"
 #include "src/scene/material/headers/material.hpp"
@@ -21,8 +20,6 @@
 #include "src/auxiliary/headers/randomgen.hpp"
 #include "src/auxiliary/headers/tracing.hpp"
 #include "src/scene/headers/scene.hpp"
-
-#include "src/postprocess/headers/blur.hpp"
 
 using namespace std;
 
@@ -90,19 +87,16 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene,
             ray r = ray(scene.position, direct);
             const rt::color pixel_col = pathtrace(r, scene, -1, number_of_bounces);
             
-            // Updating the color matrix
-            const rt::color current_col = matrix.at(i).at(j);
-            const unsigned int gamma_corrected_r = 255 * sqrt(pixel_col.get_red() / 255.0);
-            const unsigned int gamma_corrected_g = 255 * sqrt(pixel_col.get_green() / 255.0);
-            const unsigned int gamma_corrected_b = 255 * sqrt(pixel_col.get_blue() / 255.0);
-            const rt::color new_col = rt::color(
-                // Attempt at gamma correction
-                ((number_of_rays - 1) * current_col.get_red()   + gamma_corrected_r) / ((double) number_of_rays),
-                ((number_of_rays - 1) * current_col.get_green() + gamma_corrected_g) / ((double) number_of_rays),
-                ((number_of_rays - 1) * current_col.get_blue()  + gamma_corrected_b) / ((double) number_of_rays));
+            const rt::color current_color = matrix.at(i).at(j);
+            const rt::color new_color (
+                current_color.get_red() + pixel_col.get_red(),
+                current_color.get_green() + pixel_col.get_green(),
+                current_color.get_blue() + pixel_col.get_blue()
+            );
 
+            // Updating the color matrix
             m.lock();
-            matrix.at(i).at(j) = new_col;
+            matrix.at(i).at(j) = new_color;
             m.unlock();
         }
         
@@ -256,7 +250,7 @@ int main(int argc, char *argv[]) {
 
     render_loop_parallel(matrix, scene, 1, number_of_bounces);
     
-    scr.copy(matrix, width, height);
+    scr.copy(matrix, width, height, 1);
     scr.update();
 
     unsigned int number_of_rays = 1;
@@ -265,10 +259,28 @@ int main(int argc, char *argv[]) {
         number_of_rays ++;
 
         render_loop_parallel(matrix, scene, number_of_rays, number_of_bounces);
-    
-        scr.copy(matrix, width, height);
+
         printf("\rNumber of rays per pixel: %u", number_of_rays);
-        scr.update();
+        if (number_of_rays % 10 == 0) {
+            scr.copy(matrix, width, height, number_of_rays);
+            scr.update();
+        }
+
+        /* Average brightness */
+        /*
+        double r = 0;
+        double g = 0;
+        double b = 0;
+        for(int i = 0; i < scene.width; i++) {
+            for(int j = 0; j < scene.height; j++) {
+                const rt::color c = matrix.at(i).at(j);
+                r += c.get_red();
+                g += c.get_green();
+                b += c.get_blue();
+            }
+        }
+        printf("\nAverage brightness: %f\n", (r + g + b) / (3 * number_of_rays * scene.width * scene.height));
+        */
     }
 
     printf("\n");

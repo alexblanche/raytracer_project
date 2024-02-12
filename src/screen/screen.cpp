@@ -2,6 +2,7 @@
 #include <iostream>
 #include <signal.h>
 #include <SDL2/SDL.h>
+#include <cmath>
 
 #include "headers/screen.hpp"
 
@@ -87,12 +88,45 @@ namespace rt {
 		return false;
 	}
 
+	/**
+	 * Copies the rt::color matrix onto the screen, by averaging the number_of_rays colors per pixel
+	*/
 	void screen::copy(std::vector<std::vector<rt::color>> matrix,
-		const unsigned int width, const unsigned int height) const {
+		const unsigned int width, const unsigned int height,
+		const unsigned int number_of_rays) const {
 			
 		for (unsigned int i = 0; i < width; i++) {
 			for (unsigned int j = 0; j < height; j++) {
-				set_pixel(i, j, matrix.at(i).at(j));
+				const rt::color pixel_col = matrix.at(i).at(j);
+				// Maxed values
+				const double r = std::min(pixel_col.get_red()   / number_of_rays, 255.0);
+				const double g = std::min(pixel_col.get_green() / number_of_rays, 255.0);
+				const double b = std::min(pixel_col.get_blue()  / number_of_rays, 255.0);
+				set_pixel(i, j, rt::color(r, g, b));
+			}
+		}
+	}
+	
+	/**
+	 * Copies the rt::color matrix onto the screen, by averaging the number_of_rays colors per pixel
+	 * and applying a square root to each component to increase the brightness
+	*/
+	void screen::copy_gamma_corrected(std::vector<std::vector<rt::color>> matrix,
+		const unsigned int width, const unsigned int height,
+		const unsigned int number_of_rays) const {
+			
+		for (unsigned int i = 0; i < width; i++) {
+			for (unsigned int j = 0; j < height; j++) {
+				const rt::color pixel_col = matrix.at(i).at(j);
+				// Maxed values
+				const double r = std::min(pixel_col.get_red()   / number_of_rays, 255.0);
+				const double g = std::min(pixel_col.get_green() / number_of_rays, 255.0);
+				const double b = std::min(pixel_col.get_blue()  / number_of_rays, 255.0);
+				// Gamma corrected values
+				const double gamma_corrected_r = 255 * sqrt(r / 255.0);
+            	const double gamma_corrected_g = 255 * sqrt(g / 255.0);
+            	const double gamma_corrected_b = 255 * sqrt(b / 255.0);
+				set_pixel(i, j, rt::color(gamma_corrected_r, gamma_corrected_g, gamma_corrected_b));
 			}
 		}
 	}

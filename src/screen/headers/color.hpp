@@ -24,7 +24,8 @@ namespace rt {
 	 */
 	class color {
 		private:
-			unsigned int red, green, blue, alpha; /*!< Red, green blue and alpha components */
+			/* Red, green blue and alpha components */
+			double red, green, blue;//, alpha; 
 
 		public:
 
@@ -51,68 +52,68 @@ namespace rt {
 			 * Builds a color from its red, green and blue components.
 			 * Alpha is set to 255.
 			 */
-			color(unsigned int r, unsigned int g, unsigned int b);
+			color(double r, double g, double b);
 
 			/**
 			 * Builds a color from its red, green, blue and alpha components.
 			 */
-			color(unsigned int r, unsigned int g, unsigned int b, unsigned int a);
+			//color(unsigned int r, unsigned int g, unsigned int b, unsigned int a);
 
 			/**
 			 * Sets the red component.
 			 */
-			virtual inline void set_red(unsigned int r) {
+			virtual inline void set_red(double r) {
 				red = r;
 			}
 
 			/**
 			 * Returns the red component.
 			 */
-			virtual inline unsigned int get_red() const {
+			virtual inline double get_red() const {
 				return red;
 			}
 
 			/**
 			 * Sets the green component.
 			 */
-			virtual inline void set_green(unsigned int g) {
+			virtual inline void set_green(double g) {
 				green = g;
 			}
 
 			/**
 			 * Returns the green component.
 			 */
-			virtual inline unsigned int get_green() const {
+			virtual inline double get_green() const {
 				return green;
 			}
 
 			/**
 			 * Sets the blue component.
 			 */
-			virtual inline void set_blue(unsigned int b) {
+			virtual inline void set_blue(double b) {
 				blue = b;
 			}
 
 			/**
 			 * Returns the blue component.
 			 */
-			virtual inline unsigned int get_blue() const {
+			virtual inline double get_blue() const {
 				return blue;
 			}
 
 			/**
 			 * Sets the alpha component.
 			 */
-			virtual inline void set_alpha(unsigned int a) {
-				alpha = a;
-			}
+			// virtual inline void set_alpha(double a) {
+			// 	alpha = a;
+			// }
 
 			/**
 			 * Returns the alpha component.
 			 */
-			virtual inline unsigned int get_alpha() const {
-				return alpha;
-			}
+			// virtual inline unsigned int get_alpha() const {
+			// 	return alpha;
+			// }
 
 			/**
 			 * Comparison operator.
@@ -124,7 +125,7 @@ namespace rt {
 			 * Represents the color as a int, with
 			 * red being the most significant byte.
 			*/
-			virtual operator int() const;
+			// virtual operator int() const;
 
 			/**
 			 * Scaling operator.
