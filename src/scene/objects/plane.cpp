@@ -88,7 +88,7 @@ double plane::measure_distance(const ray& r) const {
     const double upln = (n | r.get_origin()) + d; // aX + bY + cZ + d
     
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
-
+    
     if (pdt * upln < 0) {
         return (- upln / pdt);
     }

@@ -70,6 +70,7 @@ double triangle::measure_distance(const ray& r) const {
             const double l2 = (v1.x * c.y - v1.y * c.x) / det;
             if (l2 >= 0 && l1 + l2 <= 1) {
                 // Checking if row z is satisfied by our solution
+                /*
                 const double z = l1 * v1.z + l2 * v2.z - c.z;
                 if (z*z < 0.001) {
                     return t;
@@ -77,6 +78,9 @@ double triangle::measure_distance(const ray& r) const {
                 else {
                     return infinity;
                 }
+                */
+                // Useless: it always does
+                return t;
             }
             else {
                 return infinity;
