@@ -6,14 +6,14 @@ The goal of this project is to code a bidirectional path-tracer, that handles al
 
 ### State of the project
 
-The project currently handles spheres and infinite planes, made up of materials of various reflectivity (from diffuse to glossy, to mirror), and specular probability (to simulate realistic reflections on non-metallic materials).
+The project currently handles spheres, infinite planes and triangles, made up of materials of various reflectivity (from diffuse to glossy, to mirror), and specular probability (to simulate realistic reflections on non-metallic materials).
 
 Current state:
 
-![Screen](pathtracer11_1000rpp.jpg)
+![Screen](pictures/pathtracer11_1000rpp.jpg)
 
 Next steps:
-Triangles and quads, texturing, refraction, variable reflectivity (at angle ~pi/2 of the normal, a diffuse plane becomes reflective), triangle and quad meshes, bounding boxes (to accelerate the intersection computation), photon mapping (to accelerate the rendering of dark scenes).
+Quads, cubes (boxes), texturing, refraction, variable reflectivity (at angle ~pi/2 of the normal, a diffuse plane becomes reflective), triangle and quad meshes (and parsing of models), bounding boxes (to accelerate the intersection computation), photon mapping (to accelerate the rendering of dark scenes).
 
 
 ## How to run the code
@@ -26,4 +26,4 @@ To use the parallel render loop, I copied the ```parallel/parallel.h``` file fro
 ## Sources
 
 [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html)  
-[Scratchapixel](https://www.scratchapixel.com)
+[_Scratchapixel_](https://www.scratchapixel.com)
