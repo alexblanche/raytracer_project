@@ -35,13 +35,6 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const
     
     std::mutex m;
 
-    // Progress bar
-    // printf("[..................................................]\r[");
-    // int cpt = 0;
-    // int pct = 0;
-    // int newpct = 0;
-
-
     PARALLEL_FOR_BEGIN(scene.width) {
 
         for (int j = 0; j < scene.height; j++) {
@@ -53,37 +46,18 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const
             
             const rt::color current_color = matrix.at(i).at(j);
             const rt::color new_color (
-                current_color.get_red()   + min(pixel_col.get_red(), 255.0),
-                current_color.get_green() + min(pixel_col.get_green(), 255.0),
-                current_color.get_blue()  + min(pixel_col.get_blue(), 255.0)
+                current_color.get_red() + pixel_col.get_red(), // min(pixel_col.get_red(), 255.0),
+                current_color.get_green() + pixel_col.get_green(), // min(pixel_col.get_green(), 255.0),
+                current_color.get_blue() + pixel_col.get_blue() // min(pixel_col.get_blue(), 255.0)
             );
 
             // Updating the color matrix
             m.lock();
             matrix.at(i).at(j) = new_color;
             m.unlock();
-
-            // if (i == 3*scene.width/4 && j >= 4*scene.height/5) {
-            //     printf("(%f, %f, %f)\n", new_color.get_red(), new_color.get_green(), new_color.get_blue());
-            //     m.lock();
-            //     matrix.at(i).at(j) = rt::color::RED;
-            //     m.unlock();
-            // }
         }
         
-        // Progress bar
-        // m.lock();
-        // cpt++;
-        // newpct = 50*(cpt+1) / scene.width;
-        // if (newpct > pct) {
-        //     pct = newpct;
-        //     printf("I");
-        // }
-        // m.unlock();
-        
     } PARALLEL_FOR_END();
-
-    // printf("\n");
 }
 
 
@@ -141,7 +115,6 @@ int main(int argc, char *argv[]) {
     */
 
     /* 4 metal spheres of increasing reflectivity */
-
     /*
     const sphere sph0(rt::vector(-500, 0, 600), 120, obj_counter++, material(rt::color::WHITE, 0.2));
     const sphere sph1(rt::vector(-166, 0, 600), 120, obj_counter++, material(rt::color::WHITE, 0.6));
@@ -150,23 +123,21 @@ int main(int argc, char *argv[]) {
     */
 
     /* 4 mirror spheres of decreasing specular_probability */
-    
     const sphere sph0(rt::vector(-500, 0, 600), 120, obj_counter++, material(rt::color(255, 255, 255), rt::color(), 1, 0, 1.0, false));
     const sphere sph1(rt::vector(-166, 0, 600), 120, obj_counter++, material(rt::color(255, 255, 255), rt::color(), 1, 0, 0.4, false));
     const sphere sph2(rt::vector(166, 0, 600),  120, obj_counter++, material(rt::color(255, 255, 255), rt::color(), 1, 0, 0.2, false));
     const sphere sph3(rt::vector(500, 0, 600),  120, obj_counter++, material(rt::color(255, 255, 255), rt::color(), 1, 0, 0.08, false));
-    
 
     // Planes
-
-    const plane pln0(0, -1, 0, rt::vector(0, 160, 0),   obj_counter++, material(rt::color(10, 10, 10), rt::color(), 0.8, 0, 0.1, false));;
+    const plane pln0(0, -1, 0, rt::vector(0, 160, 0),   obj_counter++, material(rt::color(10, 10, 10), rt::color(), 0.8, 0, 0.5, false));;
     const plane pln1(0, 0, -1, rt::vector(0, 0, 1200),  obj_counter++, light_material(rt::color::WHITE, 0));
     const plane pln2(1, 0, 0,  rt::vector(-1000, 0, 0), obj_counter++, material(rt::color(255, 20, 20), 0));
     const plane pln3(1, 0, 0,  rt::vector(1000, 0, 0),  obj_counter++, material(rt::color(20, 255, 20), 0));
-    const plane pln4(0, 0, 1,  rt::vector(0, 0, 0),     obj_counter++, light_material(rt::color(10, 180, 255), 0));
-    const plane pln5(0, 1, 0,  rt::vector(0, -600, 0),  obj_counter++, light_material(rt::color::WHITE, 1));
+    const plane pln4(0, 0, 1,  rt::vector(0, 0, 0),     obj_counter++, /*light_material(rt::color::WHITE, 0));*/light_material(rt::color(10, 180, 255), 0));
+    const plane pln5(0, 1, 0,  rt::vector(0, -600, 0),  obj_counter++, light_material(rt::color::WHITE, 1.5));
+    
 
-    // const sphere sphl1(rt::vector(0, 0, 600), 30, obj_counter++, light_material(rt::color::WHITE, 1));
+    //const sphere sphl1(rt::vector(0, 0, 600), 30, obj_counter++, light_material(rt::color::WHITE, 1));
     
     /* Object set */
     /* Storing pointers allow the overridden methods send and intersect (from sphere, plane)
@@ -174,11 +145,13 @@ int main(int argc, char *argv[]) {
 
     const vector<const object*> obj_set {&sph0, &sph1, &sph2, &sph3, &pln0, &pln1, &pln2, &pln3, &pln4, &pln5};//, &sphl1};
 
-    /*const sphere sph0(rt::vector(-200, 0, 600), 160, obj_counter++, material(rt::color::WHITE, 0));
-    const sphere sph1(rt::vector(200, 0, 600),  60, obj_counter++, light_material(rt::color::WHITE, 1000));
-    const plane pln0(0, -1, 0, rt::vector(0, 160, 0), obj_counter++, material(rt::color::WHITE, 0));
+    /*
+    const sphere sph0(rt::vector(-200, 80, 600), 160, obj_counter++, material(rt::color(220, 220, 220), 1));
+    const sphere sph1(rt::vector(200, 0, 600),  60, obj_counter++, light_material(rt::color::WHITE, 1));
+    const plane pln0(0, -1, 0, rt::vector(0, 160, 0), obj_counter++, material(rt::color(220, 220, 220), 0));
     const vector<const object*> obj_set {&sph0, &sph1, &pln0};
     */
+    
 
     // Screen
     const int width = 1366;
@@ -191,7 +164,7 @@ int main(int argc, char *argv[]) {
     const rt::vector screen_center(width/2, height/2, 0);
     
     scene scene(obj_set,
-        rt::color::RED, //rt::color(190, 235, 255), // Background color
+        rt::color(190, 235, 255), // Background color
         width, height, dist,
         rt::vector(0, 0, 0), // Camera position
         screen_center);
@@ -227,7 +200,7 @@ int main(int argc, char *argv[]) {
 
     render_loop_parallel(matrix, scene, number_of_bounces);
     
-    scr.copy_gamma_corrected(matrix, width, height, 1);
+    scr.copy(matrix, width, height, 1);
     scr.update();
 
     unsigned int number_of_rays = 1;
@@ -239,7 +212,7 @@ int main(int argc, char *argv[]) {
 
         printf("\rNumber of rays per pixel: %u", number_of_rays);
         if (number_of_rays % 10 == 0) {
-            scr.copy_gamma_corrected(matrix, width, height, number_of_rays);
+            scr.copy(matrix, width, height, number_of_rays);
             scr.update();
         }
     }
