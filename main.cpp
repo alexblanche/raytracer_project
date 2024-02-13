@@ -123,27 +123,26 @@ int main(int argc, char *argv[]) {
     */
 
     /* 4 mirror spheres of decreasing specular_probability */
-    const sphere sph0(rt::vector(-500, 0, 600), 120, obj_counter++, material(rt::color(255, 255, 255), rt::color(), 1, 0, 1.0, false));
-    const sphere sph1(rt::vector(-166, 0, 600), 120, obj_counter++, material(rt::color(255, 255, 255), rt::color(), 1, 0, 0.4, false));
-    const sphere sph2(rt::vector(166, 0, 600),  120, obj_counter++, material(rt::color(255, 255, 255), rt::color(), 1, 0, 0.2, false));
-    const sphere sph3(rt::vector(500, 0, 600),  120, obj_counter++, material(rt::color(255, 255, 255), rt::color(), 1, 0, 0.08, false));
+    const sphere sph0(rt::vector(-500, 0, 600), 120, obj_counter++, material(rt::color(255, 100, 100), rt::color(), 1, 0, 1.0, false));
+    const sphere sph1(rt::vector(-166, 0, 600), 120, obj_counter++, material(rt::color(255, 100, 100), rt::color(), 1, 0, 0.6, false));
+    const sphere sph2(rt::vector(166, 0, 600),  120, obj_counter++, material(rt::color(255, 100, 100), rt::color(), 1, 0, 0.1, false));
+    const sphere sph3(rt::vector(500, 0, 600),  120, obj_counter++, material(rt::color(255, 100, 100), rt::color(), 1, 0, 0.05, false));
 
     // Planes
-    const plane pln0(0, -1, 0, rt::vector(0, 160, 0),   obj_counter++, material(rt::color(10, 10, 10), rt::color(), 0.8, 0, 0.5, false));;
+    const plane pln0(0, -1, 0, rt::vector(0, 160, 0),   obj_counter++, material(rt::color(10, 10, 10), rt::color(), 0.8, 0, 0.5, false));
     const plane pln1(0, 0, -1, rt::vector(0, 0, 1200),  obj_counter++, light_material(rt::color::WHITE, 0));
-    const plane pln2(1, 0, 0,  rt::vector(-1000, 0, 0), obj_counter++, material(rt::color(255, 20, 20), 0));
-    const plane pln3(1, 0, 0,  rt::vector(1000, 0, 0),  obj_counter++, material(rt::color(20, 255, 20), 0));
+    const plane pln2(1, 0, 0,  rt::vector(-1000, 0, 0), obj_counter++, material(rt::color(255, 80, 80), 0));
+    const plane pln3(-1, 0, 0, rt::vector(1000, 0, 0),  obj_counter++, material(rt::color(80, 255, 80), 0));
     const plane pln4(0, 0, 1,  rt::vector(0, 0, 0),     obj_counter++, /*light_material(rt::color::WHITE, 0));*/light_material(rt::color(10, 180, 255), 0));
-    const plane pln5(0, 1, 0,  rt::vector(0, -600, 0),  obj_counter++, light_material(rt::color::WHITE, 1.5));
+    const plane pln5(0, 1, 0,  rt::vector(0, -600, 0),  obj_counter++, light_material(rt::color::WHITE, 2));
     
-
-    //const sphere sphl1(rt::vector(0, 0, 600), 30, obj_counter++, light_material(rt::color::WHITE, 1));
+    // const sphere sphl1(rt::vector(0, 0, 600), 30, obj_counter++, light_material(rt::color::WHITE, 30));
     
     /* Object set */
     /* Storing pointers allow the overridden methods send and intersect (from sphere, plane)
        to be executed instead of the base (object) one */
 
-    const vector<const object*> obj_set {&sph0, &sph1, &sph2, &sph3, &pln0, &pln1, &pln2, &pln3, &pln4, &pln5};//, &sphl1};
+    const vector<const object*> obj_set {&sph0, &sph1, &sph2, &sph3, &pln0, &pln1, &pln2, &pln3, &pln4, &pln5 /*, &sphl1*/};
 
     /*
     const sphere sph0(rt::vector(-200, 80, 600), 160, obj_counter++, material(rt::color(220, 220, 220), 1));
