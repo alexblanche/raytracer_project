@@ -61,10 +61,7 @@ double triangle::measure_distance(const ray& r) const {
     const rt::vector c = pt - position;
     const double det = v1.x * v2.y - v1.y * v2.x;
 
-    if (det * det < 0.00001) {
-        return infinity;
-    }
-    else {
+    if (det * det > 0.00001) {
         const double l1 = (c.x * v2.y - c.y * v2.x) / det;
         if (l1 >= 0 && l1 <= 1) {
             const double l2 = (v1.x * c.y - v1.y * c.x) / det;
@@ -79,7 +76,7 @@ double triangle::measure_distance(const ray& r) const {
                     return infinity;
                 }
                 */
-                // Useless: it always does
+                // Useless: it is always satisfied
                 return t;
             }
             else {
@@ -89,7 +86,29 @@ double triangle::measure_distance(const ray& r) const {
         else {
             return infinity;
         }
-        
+    }
+    else {
+        // The vectors v1, v2 are colinear when projected on the plane z = 0
+        // Another attempt with rows x, z (if it fails, it also fails for rows y, z)
+        const double detxz = v1.x * v2.z - v1.z * v2.x;
+        if (detxz * detxz > 0.00001) {
+            const double l1xz = (c.x * v2.z - c.z * v2.x) / detxz;
+            if (l1xz >= 0 && l1xz <= 1) {
+                const double l2xz = (v1.x * c.z - v1.z * c.x) / detxz;
+                if (l2xz >= 0 && l1xz + l2xz <= 1) {
+                    return t;
+                }
+                else {
+                    return infinity;
+                }
+            }
+            else {
+                return infinity;
+            }
+        }
+        else {
+            return infinity;
+        }
     }
 }
         
@@ -103,7 +122,15 @@ hit triangle::compute_intersection(const ray& r, const double t) const {
 rt::vector triangle::get_barycentric(const rt::vector& p) const {
     const rt::vector c = p - position;
     const double det = v1.x * v2.y - v1.y * v2.x;
-    const double l1 = (c.x * v2.y - c.y * v2.x) / det;
-    const double l2 = (v1.x * c.y - v1.y * c.x) / det;
-    return rt::vector(l1, l2, 0);
+    if (det * det > 0.00001) {
+        const double l1 = (c.x * v2.y - c.y * v2.x) / det;
+        const double l2 = (v1.x * c.y - v1.y * c.x) / det;
+        return rt::vector(l1, l2, 0);
+    }
+    else {
+        const double detxz = v1.x * v2.z - v1.z * v2.x;
+        const double l1 = (c.x * v2.z - c.z * v2.x) / detxz;
+        const double l2 = (v1.x * c.z - v1.z * c.x) / detxz;
+        return rt::vector(l1, l2, 0);
+    }
 }
