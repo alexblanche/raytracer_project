@@ -12,6 +12,7 @@ all:
 		src/scene/objects/plane.cpp \
 		src/scene/objects/sphere.cpp \
 		src/scene/objects/triangle.cpp \
+		src/scene/objects/box.cpp \
 		src/auxiliary/tracing.cpp \
 		src/scene/scene.cpp \
 		main.cpp -lmingw32 -lSDL2main -lSDL2

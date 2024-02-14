@@ -100,7 +100,7 @@ double plane::measure_distance(const ray& r) const {
 hit plane::compute_intersection(const ray& r, const double t) const {
 
     // Intersection point
-    rt::vector p = r.get_origin() + t * r.get_direction();
+    const rt::vector p = r.get_origin() + t * r.get_direction();
 
     // The normal vector (a, b, c) is assumed to be a unit vector
 
