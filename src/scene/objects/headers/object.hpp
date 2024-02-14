@@ -13,6 +13,8 @@ class object {
         unsigned int index;
         material mat;
 
+        static unsigned int counter;
+
     public:
         /* Constructors */
 

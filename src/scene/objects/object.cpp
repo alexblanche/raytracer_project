@@ -8,11 +8,14 @@ object::object() {
     position = rt::vector();
     index = 0;
     mat = material();
+    counter ++;
 }
 
 object::object(const rt::vector& position, const unsigned int i, const material& m)
 
-    : position(position), index(i), mat(m) {}
+    : position(position), index(i), mat(m) {
+        counter ++;
+    }
 
 
 
