@@ -22,10 +22,10 @@ class plane : public object {
         plane();
         
         plane(const double sa, const double sb, const double sc, const double sd,
-            const unsigned int index, const material& material);
+            const material& material);
         
         plane(const double a, const double b, const double c, const rt::vector& position,
-            const unsigned int index, const material& material);
+            const material& material);
 
         /* Accessors */
 

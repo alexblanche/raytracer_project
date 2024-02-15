@@ -12,10 +12,9 @@ box::box() : object(), n1(rt::vector(1,0,0)), n2(rt::vector(0,1,0)), n3(rt::vect
         
 /* The vector n3 is taken as the cross product of n1 and n2 */
 box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
-            const double l1, const double l2, const double l3,
-            const unsigned int index, const material& material)
+            const double l1, const double l2, const double l3, const material& material)
     
-    : object(center, index, material), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1/2), l2(l2/2), l3(l3/2) {}
+    : object(center, material), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1/2), l2(l2/2), l3(l3/2) {}
 
 
 /* Intersection determination */
@@ -59,6 +58,8 @@ double box::measure_distance(const ray& r) const {
         else {
             t1 = infinity;
         }
+
+        if (t1 < 0) { return infinity; }
     }
 
     if (pdt2 * pdt2 > 0.0000001) {
@@ -76,6 +77,8 @@ double box::measure_distance(const ray& r) const {
         else {
             t2 = infinity;
         }
+
+        if (t2 < 0) { return infinity; }
     }
 
     if (pdt3 * pdt3 > 0.0000001) {
@@ -93,6 +96,8 @@ double box::measure_distance(const ray& r) const {
         else {
             t3 = infinity;
         }
+
+        if (t3 < 0) { return infinity; }
     }
 
     return std::min(t1, std::min(t2, t3));

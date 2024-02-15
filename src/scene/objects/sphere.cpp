@@ -10,13 +10,14 @@ const double infinity = realsph.infinity();
 
 /* Constructors */
 
-sphere::sphere(const rt::vector& center, const double radius, const unsigned int index,
-    const material& material)
-    : object(center, index, material), radius(radius) {}
-
 sphere::sphere() {
     radius = 0;
 }
+
+sphere::sphere(const rt::vector& center, const double radius, const material& material)
+    : object(center, material), radius(radius) {}
+
+
 
 /* Accessors */
 
@@ -54,9 +55,9 @@ double sphere::measure_distance(const ray& r) const {
     if (a > 0) {
         /* Two solutions: uv - sqrt(a) and uv + sqrt(a),
            Only the first, the minimum one, is returned. */
-        const double t1 = uv - sqrt(a);
-        if (t1 > 0) {
-            return t1;
+        const double t = uv - sqrt(a);
+        if (t > 0) {
+            return t;
         }
         else {
             return infinity;

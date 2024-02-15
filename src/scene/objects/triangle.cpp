@@ -14,21 +14,21 @@ const double infinity = realtr.infinity();
 triangle::triangle() : p(plane()), v1(rt::vector()), v2(rt::vector()) {}
         
 // Constructor from the stored the parameters
-triangle::triangle(const plane& p, const unsigned int index,
-    const rt::vector& position, const rt::vector& v1, const rt::vector& v2, const material& material)
+triangle::triangle(const plane& p,const rt::vector& position, const rt::vector& v1, const rt::vector& v2,
+    const material& material)
 
-    : object(position, index, material), p(p), v1(v1), v2(v2) {}
+    : object(position, material), p(p), v1(v1), v2(v2) {}
         
 // Constructor from three points
 triangle::triangle(const rt::vector& p1, const rt::vector& p2, const rt::vector& p3, 
-    const unsigned int index, const material& material)
+    const material& material)
 
-    : object(p1, index, material) {
+    : object(p1, material) {
 
     v1 = p2 - p1;
     v2 = p3 - p1;
     const rt::vector n = (v1 ^ v2);
-    p = plane(n.x, n.y, n.z, p1, index, material);
+    p = plane(n.x, n.y, n.z, p1, material);
 }
 
 /* Accessors */

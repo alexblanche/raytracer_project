@@ -188,7 +188,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
         origin_obj_index = h.get_obj_index();
 
         if (h.is_hit()) {
-            const material m = scene.obj_set.at(h.get_obj_index())->get_material();
+            const material& m = scene.obj_set.at(h.get_obj_index())->get_material();
             const double reflectivity = m.get_reflectivity();
 
             if (m.get_emission_intensity() >= 1) {
@@ -208,7 +208,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                         r.set_direction(central_dir);
                     }
                     else {
-                        const rt::vector bouncing_dir = (central_dir +
+                        const rt::vector& bouncing_dir = (central_dir +
                             ((1 - reflectivity) * h.random_reflect_single(scene.rg, central_dir, 3.14159265358979323846))).unit();
                         r.set_direction(bouncing_dir);
                     }

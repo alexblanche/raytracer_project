@@ -13,14 +13,14 @@ class object {
         unsigned int index;
         material mat;
 
-        static unsigned int counter;
-
     public:
+    
+        static unsigned int counter;
         /* Constructors */
 
         object();
 
-        object(const rt::vector& pos, const unsigned int i, const material& m);
+        object(const rt::vector& pos, const material& m);
 
         /* Accessors */
 

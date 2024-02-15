@@ -15,12 +15,10 @@ class sphere : public object {
     public:
 
         /* Constructors */
-
-        sphere(const rt::vector& center, const double radius, const unsigned int index,
-            const material& material);
-
+        
         sphere();
 
+        sphere(const rt::vector& center, const double radius, const material& material);
 
         /* Accessors */
 

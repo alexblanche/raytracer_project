@@ -25,12 +25,12 @@ class triangle : public object {
         triangle();
         
         // Constructor from the stored the parameters
-        triangle(const plane& p, const unsigned int index,
-            const rt::vector& position, const rt::vector& v1, const rt::vector& v2, const material& material);
+        triangle(const plane& p, const rt::vector& position, const rt::vector& v1, const rt::vector& v2,
+            const material& material);
         
         // Constructor from three points
         triangle(const rt::vector& p1, const rt::vector& p2, const rt::vector& p3, 
-            const unsigned int index, const material& material);
+            const material& material);
 
         /* Accessors */
 

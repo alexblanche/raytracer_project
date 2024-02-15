@@ -4,18 +4,17 @@
 
 /* Constructors */
 
-object::object() {
-    position = rt::vector();
-    index = 0;
-    mat = material();
+unsigned int object::counter = 0;
+
+object::object()
+    : position(rt::vector()), index(counter), mat(material()) {
     counter ++;
 }
 
-object::object(const rt::vector& position, const unsigned int i, const material& m)
-
-    : position(position), index(i), mat(m) {
-        counter ++;
-    }
+object::object(const rt::vector& position, const material& m)
+    : position(position), index(counter), mat(m) {
+    counter ++;
+}
 
 
 
