@@ -88,8 +88,8 @@ hit find_closest_object(const ray& r, const vector<const object*>& obj_set, cons
     int closest_index = -1;
 
     // Looking for the closest object
-    for (unsigned int i = 0; i < obj_set.size(); i++) {
-            
+    for (unsigned int i = 0; i < object::counter; i++) {
+        
         // We do not test the intersection with the object the rays is cast from
         if (i != origin_obj_index) {
             const double d = obj_set.at(i)->measure_distance(r);

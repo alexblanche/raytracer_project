@@ -15,7 +15,14 @@ class object {
 
     public:
     
+        /* Counter of objects created */
         static unsigned int counter;
+
+        /* Set of all the objects in the scene */
+        /* Storing pointers allow the overridden methods send and intersect (from sphere, plane, triangle...)
+           to be executed instead of the base (object) one */
+        static std::vector<const object*> set;
+
         /* Constructors */
 
         object();

@@ -152,10 +152,6 @@ int main(int argc, char *argv[]) {
     */
 
     //const sphere sphl1(rt::vector(0, 0, 600), 30, obj_counter++, light_material(rt::color::WHITE, 30));
-    
-    /* Object set */
-    /* Storing pointers allow the overridden methods send and intersect (from sphere, plane)
-       to be executed instead of the base (object) one */
 
     const box bx0(rt::vector(100, -100, 600),
         rt::vector(1, 0, 0), rt::vector(0, 1, 0),
@@ -163,13 +159,12 @@ int main(int argc, char *argv[]) {
         //light_material(rt::color(10, 180, 255), 3));
         material(rt::color(10, 180, 255), rt::color(), 1, 0, 0.3, false));
 
-    const vector<const object*> obj_set {&sph0,/*&sph1, &sph2, &sph3,*/ /*&tr0, &tr1,*/ &pln0, &pln1, &pln2, &pln3, &pln4, &pln5, &bx0}; //, &sphl1};
+    
 
     /*
     const sphere sph0(rt::vector(-200, 80, 600), 160, obj_counter++, material(rt::color(220, 220, 220), 1));
     const sphere sph1(rt::vector(200, 0, 600),  60, obj_counter++, light_material(rt::color::WHITE, 1));
     const plane pln0(0, -1, 0, rt::vector(0, 160, 0), obj_counter++, material(rt::color(220, 220, 220), 0));
-    const vector<const object*> obj_set {&sph0, &sph1, &pln0};
     */
     
 
@@ -183,7 +178,7 @@ int main(int argc, char *argv[]) {
     // Vector that will center the 'screen' in the scene
     const rt::vector screen_center(width/2, height/2, 0);
     
-    scene scene(obj_set,
+    scene scene(object::set,
         rt::color(190, 235, 255), // Background color
         width, height, dist,
         rt::vector(0, 0, 0), // Camera position
@@ -222,6 +217,8 @@ int main(int argc, char *argv[]) {
     
     scr.copy(matrix, width, height, 1);
     scr.update();
+
+    printf("Number of rays per pixel: 1");
 
     unsigned int number_of_rays = 1;
 

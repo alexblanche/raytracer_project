@@ -2,18 +2,23 @@
 #include "../material/headers/material.hpp"
 #include <iostream>
 
-/* Constructors */
+/* Static members */
 
 unsigned int object::counter = 0;
+std::vector<const object*> object::set;
+
+/* Constructors */
 
 object::object()
     : position(rt::vector()), index(counter), mat(material()) {
     counter ++;
+    set.push_back(this);
 }
 
 object::object(const rt::vector& position, const material& m)
     : position(position), index(counter), mat(m) {
     counter ++;
+    set.push_back(this);
 }
 
 
