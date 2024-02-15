@@ -38,10 +38,10 @@ namespace rt {
 	image::~image() {
 		if (renderer != NULL){
 			SDL_DestroyRenderer(renderer);
-		};
+		}
 		if(window != NULL){
 			SDL_DestroyWindow(window);
-		};
+		}
 		SDL_Quit();
 	}
 

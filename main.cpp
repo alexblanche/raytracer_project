@@ -153,21 +153,25 @@ int main(int argc, char *argv[]) {
 
     //const sphere sphl1(rt::vector(0, 0, 600), 30, obj_counter++, light_material(rt::color::WHITE, 30));
 
-    const box bx0(rt::vector(100, -100, 600),
+    /*const box bx0(rt::vector(100, -100, 600),
         rt::vector(1, 0, 0), rt::vector(0, 1, 0),
         500, 500, 500,
         //light_material(rt::color(10, 180, 255), 3));
-        material(rt::color(10, 180, 255), rt::color(), 1, 0, 0.3, false));
+        material(rt::color(10, 180, 255), rt::color(), 1, 0, 0.3, false));*/
 
+    //for(unsigned int i = 0; i < 100; i+=100000) {
+        unsigned int i = 0;
+        new triangle(rt::vector(-150 + 4*i, -100, 700), rt::vector(-50 + 4*i, 100, 700), rt::vector(-100 + 4*i, -200, 700),
+            light_material(rt::color(10+2*i, 180, 255), 0));
+    //}
+    // Bug with the intersection with the triangles...
+
+    /* Test of usefulness of bounding boxes:
     
-
-    /*
-    const sphere sph0(rt::vector(-200, 80, 600), 160, obj_counter++, material(rt::color(220, 220, 220), 1));
-    const sphere sph1(rt::vector(200, 0, 600),  60, obj_counter++, light_material(rt::color::WHITE, 1));
-    const plane pln0(0, -1, 0, rt::vector(0, 160, 0), obj_counter++, material(rt::color(220, 220, 220), 0));
-    */
+    For 30 rays, 5 bounces:
+    1 box, no triangle:  47s
+    0 box, 10 triangles: 54s */
     
-
     // Screen
     const int width = 1366;
     const int height = 768;
@@ -200,6 +204,7 @@ int main(int argc, char *argv[]) {
 
     //printf("Number of rays at each bounce: %u, ", number_of_rays);
     printf("Number of bounces: %u\n", number_of_bounces);
+    printf("Initialization...");
 
     /* Definition of the matrix in which we will write the image */
     vector<vector<rt::color>> matrix(width, vector<rt::color>(height));
@@ -218,7 +223,7 @@ int main(int argc, char *argv[]) {
     scr.copy(matrix, width, height, 1);
     scr.update();
 
-    printf("Number of rays per pixel: 1");
+    printf("\rNumber of rays per pixel: 1");
 
     unsigned int number_of_rays = 1;
 
