@@ -129,7 +129,7 @@ rt::color pathtrace_mult(const ray& r, scene& scene, const unsigned int origin_o
     const hit h = find_closest_object(r, scene.obj_set, origin_obj_index);
 
     if (h.is_hit()) {
-        const material m = scene.obj_set.at(h.get_obj_index())->get_material();
+        const material& m = scene.obj_set.at(h.get_obj_index())->get_material();
         const double reflectivity = m.get_reflectivity();
 
         if (bounce == 0 || m.get_emission_intensity() > 0.9999) {

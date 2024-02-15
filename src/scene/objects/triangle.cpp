@@ -11,38 +11,58 @@ const double infinity = realtr.infinity();
 
 /* Constructors */
 
-triangle::triangle() : p(plane()), v1(rt::vector()), v2(rt::vector()) {}
-        
-// Constructor from the stored the parameters
-triangle::triangle(const plane& p,const rt::vector& position, const rt::vector& v1, const rt::vector& v2,
-    const material& material)
-
-    : object(position, material), p(p), v1(v1), v2(v2) {}
+triangle::triangle() : normal(rt::vector()), v1(rt::vector()), v2(rt::vector()), d(0) {}
         
 // Constructor from three points
-triangle::triangle(const rt::vector& p1, const rt::vector& p2, const rt::vector& p3, 
+triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, 
     const material& material)
 
-    : object(p1, material) {
+    : object(p0, material) {
 
-    v1 = p2 - p1;
-    v2 = p3 - p1;
+    v1 = p1 - p0;
+    v2 = p2 - p0;
     const rt::vector n = (v1 ^ v2);
-    p = plane(n.x, n.y, n.z, p1, material);
+    normal = n.unit();
+    vn0 = normal;
+    vn1 = normal;
+    vn2 = normal;
+    d = - (normal | p0);
+}
+
+// Constructor from three points with vertex normals
+triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
+    const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
+    const material& material)
+
+    : object(p0, material), vn0(vn0.unit()), vn1(vn1.unit()), vn2(vn2.unit()) {
+    
+    v1 = p1 - p0;
+    v2 = p2 - p0;
+    const rt::vector n = (v1 ^ v2);
+    normal = n.unit();
+    d = - (normal | p0);
 }
 
 /* Accessors */
 
 rt::vector triangle::get_normal() const {
-    return p.get_normal();
+    return normal;
 }
 
 
 /* Intersection determination */
 
 double triangle::measure_distance(const ray& r) const {
-    // Intersection of the ray and the plane p
-    const double t = p.measure_distance(r);
+    // Intersection between the ray and the triangle plane
+    const double pdt = (normal | r.get_direction()); // ax + by + cz
+    const double upln = (normal | r.get_origin()) + d; // aX + bY + cZ + d
+    
+    // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
+    if (pdt * upln >= 0) {
+        return infinity;
+    }
+
+    const double t = - upln / pdt;
     const rt::vector pt = r.get_origin() + (t * r.get_direction());
 
     // Check if the point of intersection lies inside the triangle
@@ -111,13 +131,10 @@ double triangle::measure_distance(const ray& r) const {
         }
     }
 }
-        
-hit triangle::compute_intersection(const ray& r, const double t) const {
-    return p.compute_intersection(r, t);
-}
 
 /* Returns a vector (only the first two coordinates matter) with the barycentric coordinates (l1, l2):
    p = position + l1 * v1 + l2 * v2
+   (0 <= l1, l2 <= 1)
 */
 rt::vector triangle::get_barycentric(const rt::vector& p) const {
     const rt::vector c = p - position;
@@ -133,4 +150,18 @@ rt::vector triangle::get_barycentric(const rt::vector& p) const {
         const double l2 = (v1.x * c.z - v1.z * c.x) / detxz;
         return rt::vector(l1, l2, 0);
     }
+}
+
+rt::vector triangle::get_interpolated_normal(const double& l1, const double& l2) const {
+    return (((1 - l1 - l2) * vn0) + (l1 * vn1) + (l2 * vn2));
+}
+
+hit triangle::compute_intersection(const ray& r, const double t) const {
+    const rt::vector p = r.get_origin() + t * r.get_direction();
+
+    // Computation of the interpolated normal vector
+    const rt::vector bc = get_barycentric(p);
+    // Also used to get the texture info (to be implemented here later)
+
+    return hit(r, p, get_interpolated_normal(bc.x, bc.y), get_index());
 }
