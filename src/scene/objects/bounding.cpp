@@ -41,6 +41,7 @@ bounding::bounding(const box* b, const std::stack<const bounding*>& children)
 void bounding::check_box(const ray& r,
     std::stack<std::stack<unsigned int>>& object_stack,
     std::stack<std::stack<const bounding*>>& bounding_stack) const {
+
     if (is_terminal) {
         object_stack.push(content);
     }
@@ -71,40 +72,46 @@ hit bounding::find_closest_object(const ray& r) {
 
     /* Step 2: apply the same to the bounding box stack */
     while (not bounding_stack.empty()) {
-        std::stack<const bounding*>& bd_s = bounding_stack.top();
+        std::stack<const bounding*> bd_s = bounding_stack.top();
+        bounding_stack.pop();
         while (not bd_s.empty()) {
             bd_s.top()->check_box(r, object_stack, bounding_stack);
             bd_s.pop();
         }
-        bounding_stack.pop();
     }
 
     /* Step 3: search through the objects of the object stack */
     double closest = infinity;
     unsigned int closest_index = -1;
     const unsigned int origin_obj_index = r.get_origin_index();
+    const std::vector<const object*>& obj_set = object::set;
+
+    //unsigned int cpt = 0;
 
     while (not object_stack.empty()) {
-        std::stack<unsigned int>& ob_s = object_stack.top();
+        std::stack<unsigned int> ob_s = object_stack.top();
+        object_stack.pop();
         while (not ob_s.empty()) {
-            unsigned int i = ob_s.top();
+            const unsigned int i = ob_s.top();
+            ob_s.pop();
+            //cpt++;
             if (i != origin_obj_index) {
-                const double d = object::set.at(i)->measure_distance(r);
+                const double d = obj_set.at(i)->measure_distance(r);
                 if (d < closest) {
                     closest = d;
                     closest_index = i;
                 }
-            }
-            ob_s.pop();
+            } 
         }
-        object_stack.pop();
     }
+    
+    //printf("%u", cpt);
 
     /* Finally, return the hit corresponding to the closest object intersected by the ray */
-    if (closest_index == (unsigned int) -1) {
-        return hit();
+    if (closest_index != (unsigned int) -1) {
+        return obj_set.at(closest_index)->compute_intersection(r, closest);
     }
     else {
-        return object::set.at(closest_index)->compute_intersection(r, closest);
+        return hit();
     }
 }

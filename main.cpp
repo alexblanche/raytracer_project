@@ -76,6 +76,22 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const
 
 int main(int argc, char *argv[]) {
 
+    /* Specification of the parameters through console arguments */
+    //unsigned int number_of_rays = 5;
+    unsigned int number_of_bounces = 2;
+    if (argc > 1) {
+        number_of_bounces = atoi(argv[1]);
+    }
+    /*
+    if (argc > 2) {
+        number_of_bounces = atoi(argv[2]);
+    }
+    */
+
+    //printf("Number of rays at each bounce: %u, ", number_of_rays);
+    printf("Number of bounces: %u\n", number_of_bounces);
+    printf("Initialization...");
+
     /* Orientation of the space:
     negative x on the left, positive on the right
     negative y at the top,  positive at the bottom (Be careful!!!)
@@ -130,9 +146,9 @@ int main(int argc, char *argv[]) {
 
     // Box 2 (terminal): contains the two balls on the right
     stack<unsigned int> obs2;
-    obs1.push(sph2.get_index());
-    obs1.push(sph3.get_index());
-    const bounding c2;
+    obs2.push(sph2.get_index());
+    obs2.push(sph3.get_index());
+    const bounding c2(obs2);
 
     // Box 2: containing Content 2
     const box bx2((0.5 * sph2.get_position() + 0.5 * sph3.get_position()),
@@ -145,6 +161,7 @@ int main(int argc, char *argv[]) {
     const bounding bd2(&bx2, bds2);
 
     // Box 3: contains boxes 1 and 2
+    
     const box bx3((0.5 * bx1.get_position() + 0.5 * bx2.get_position()),
         rt::vector(1, 0, 0), rt::vector(0, 1, 0),
         sph3.get_position().x + sph3.get_radius() - (sph0.get_position().x - sph0.get_radius()),
@@ -154,8 +171,10 @@ int main(int argc, char *argv[]) {
     bds3.push(&bd1);
     bds3.push(&bd2);
     const bounding bd3(&bx3, bds3);
+    
 
     // Box 4: contains bx_light and box 3
+    
     const box bx4((0.5 * bx3.get_position() + 0.5 * bx_light.get_position()),
         rt::vector(1, 0, 0), rt::vector(0, 1, 0),
         sph3.get_position().x + sph3.get_radius() - (sph0.get_position().x - sph0.get_radius()),
@@ -168,6 +187,7 @@ int main(int argc, char *argv[]) {
     bds4.push(&bd3);
     bds4.push(&c4);
     const bounding bd4(&bx4, bds4);
+    
 
     // Content 5 (terminal): contains the six planes
     stack<unsigned int> obs5;
@@ -181,7 +201,6 @@ int main(int argc, char *argv[]) {
 
     // Bounding box set: contains boxes 4 and 5
     bounding::set = {&bd4, &c5};
-    
 
 
     // Boxes
@@ -234,22 +253,6 @@ int main(int argc, char *argv[]) {
 
     /* ********************************************************** */
 
-    /* Specification of the parameters through console arguments */
-    //unsigned int number_of_rays = 5;
-    unsigned int number_of_bounces = 2;
-    if (argc > 1) {
-        number_of_bounces = atoi(argv[1]);
-    }
-    /*
-    if (argc > 2) {
-        number_of_bounces = atoi(argv[2]);
-    }
-    */
-
-    //printf("Number of rays at each bounce: %u, ", number_of_rays);
-    printf("Number of bounces: %u\n", number_of_bounces);
-    printf("Initialization...");
-
     /* Definition of the matrix in which we will write the image */
     vector<vector<rt::color>> matrix(width, vector<rt::color>(height));
 
@@ -262,11 +265,14 @@ int main(int argc, char *argv[]) {
     // Display of the image on screen
     const rt::screen scr(width, height);
 
+    printf("\rInitialization complete, computing the first ray...");
+
     render_loop_parallel(matrix, scene, number_of_bounces);
     
     scr.copy(matrix, width, height, 1);
     scr.update();
 
+    printf("\r                                                   ");
     printf("\rNumber of rays per pixel: 1");
 
     unsigned int number_of_rays = 1;
