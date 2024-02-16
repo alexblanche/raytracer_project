@@ -82,71 +82,37 @@ int main(int argc, char *argv[]) {
     /* *************************** */
     /* Scene description */
 
-    /* Old raytracer scene */
-
-    /*
-    * Spheres and planes *
-    const sphere sph0(rt::vector(-400, 0, 1000), 240, obj_counter++, material::MIRROR);
-    const sphere sph1(rt::vector( 400, 0, 1000), 240, obj_counter++, diffuse_material(rt::color::WHITE));
-    const plane pln0(0, -1, 0, rt::vector(0, 240, 0), obj_counter++, diffuse_material(rt::color::WHITE));
-    const plane pln1(0, 0, -1, rt::vector(0, 0, 2000), obj_counter++, diffuse_material(rt::color::WHITE));
-    const vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1};
-
-    * Light sources *
-    const source light0(rt::vector(-500, 0, 600), rt::color::WHITE);
-    const source light1(rt::vector(0, 0, 1000),   my_red);
-    const source light2(rt::vector(750, 0, 900),  my_blue);
-    const vector<source> light_set {light0, light1, light2};
-    */
-
-    /* Path-tracer scene */
-
-    
-    // Spheres
-
-    /*
-
-    const sphere sph0(rt::vector(-400, 0, 1000), 240, material(rt::color::WHITE, rt::color(), 0.98, 0)); //material(rt::color(255, 40, 40), rt::color(), 0.98, 0));
-    const sphere sph1(rt::vector( 400, 0, 1000), 240, diffuse_material(rt::color::WHITE));
-    
-    const sphere sphl1(rt::vector( 500, 140, 660), 100, light_material(rt::color::WHITE, 1));
-    const sphere sphl2(rt::vector(-800, 0, 800), 100, light_material(rt::color::WHITE, 1));
-
-    */
-
-    /* 4 metal spheres of increasing reflectivity */
-    /*
-    const sphere sph0(rt::vector(-500, 0, 600), 120, material(rt::color::WHITE, 0.2));
-    const sphere sph1(rt::vector(-166, 0, 600), 120, material(rt::color::WHITE, 0.6));
-    const sphere sph2(rt::vector(166, 0, 600),  120, material(rt::color::WHITE, 0.95));
-    const sphere sph3(rt::vector(500, 0, 600),  120, material(rt::color::WHITE, 1));
-    */
-
     /* 4 mirror spheres of decreasing specular_probability */
     const sphere sph0(rt::vector(-500, 0, 600), 120, material(rt::color::WHITE, rt::color(), 1, 0, 1.0, false));
 
-    /* const sphere sph1(rt::vector(-166, 0, 600), 120, material(rt::color::WHITE, rt::color(), 1, 0, 0.6, false));
+    const sphere sph1(rt::vector(-166, 0, 600), 120, material(rt::color::WHITE, rt::color(), 1, 0, 0.6, false));
     const sphere sph2(rt::vector(166, 0, 600),  120, material(rt::color::WHITE, rt::color(), 1, 0, 0.1, false));
-    const sphere sph3(rt::vector(500, 0, 600),  120, material(rt::color::WHITE, rt::color(), 1, 0, 0.05, false)); */
+    const sphere sph3(rt::vector(500, 0, 600),  120, material(rt::color::WHITE, rt::color(), 1, 0, 0.05, false));
 
     // Triangle
     //const triangle tr0(rt::vector(-950, -500, 1150), rt::vector(950, -500, 50), rt::vector(-950, -500, 50), light_material(rt::color(10, 180, 255), 0));
     //const triangle tr1(rt::vector(-950, -500, 1150), rt::vector(950, -500, 1150), rt::vector(950, -500, 50), light_material(rt::color(10, 180, 255), 0));
 
     // Planes
-    const plane pln0(0, -1, 0, rt::vector(0, 160, 0),   material(rt::color(10, 10, 10), rt::color(), 0.8, 0, 0.5, false));
+    const plane pln0(0, -1, 0, rt::vector(0, 160, 0),   material(rt::color(10, 10, 10), rt::color(), 0.2, 0, 0.2, false));
     const plane pln1(0, 0, -1, rt::vector(0, 0, 1200),  light_material(rt::color::WHITE, 0));
     const plane pln2(1, 0, 0,  rt::vector(-1000, 0, 0), material(rt::color(255, 80, 80), 0));
     const plane pln3(-1, 0, 0, rt::vector(1000, 0, 0),  material(rt::color(80, 255, 80), 0));
     const plane pln4(0, 0, 1,  rt::vector(0, 0, 0),     light_material(rt::color(10, 180, 255), 0));/*light_material(rt::color::WHITE, 0));*/
-    const plane pln5(0, 1, 0,  rt::vector(0, -600, 0),  light_material(rt::color::WHITE, 1.5));
+    const plane pln5(0, 1, 0,  rt::vector(0, -600, 0),  material(rt::color(10, 10, 10), rt::color(), 0.8, 0, 0.5, false));//light_material(rt::color::WHITE, 1.5));
+    
+    const box bx0(rt::vector(0, -600, 600),
+        rt::vector(1, 0, 0), rt::vector(0, 1, 0),
+        800, 30, 400,
+        light_material(rt::color::WHITE, 5));
 
+    
     // Boxes
+    
     /*
     const box bx0(rt::vector(166, -200, 600),
         rt::vector(100, 100, -100).unit(), rt::vector(-200, 100, -100).unit(),
         300, 200, 300,
-        obj_counter++,
         //light_material(rt::color(10, 180, 255), 3));
         material(rt::color(10, 180, 255), rt::color(), 1, 0, 0.3, false));
     */
@@ -159,18 +125,19 @@ int main(int argc, char *argv[]) {
         //light_material(rt::color(10, 180, 255), 3));
         material(rt::color(10, 180, 255), rt::color(), 1, 0, 0.3, false));*/
 
-    //for(unsigned int i = 0; i < 100; i+=100000) {
-        unsigned int i = 0;
-        new triangle(rt::vector(-150 + 4*i, -100, 700), rt::vector(-50 + 4*i, 100, 700), rt::vector(-100 + 4*i, -200, 700),
+    /*for(unsigned int i = 0; i < 1000; i++) {
+        new triangle(rt::vector(-150 + 5*((double) i), -100, 700), rt::vector(-50 + 5*((double) i), 100, 700), rt::vector(-100 + 5*((double) i), -200, 700),
             light_material(rt::color(10+2*i, 180, 255), 0));
-    //}
-    // Bug with the intersection with the triangles...
+    }*/
 
     /* Test of usefulness of bounding boxes:
     
     For 30 rays, 5 bounces:
     1 box, no triangle:  47s
-    0 box, 10 triangles: 54s */
+    0 box, 10 triangles: 54s
+    0 box, 100 triangles: 180s (3min)
+    0 box, 1000 triangles: estimated 30min
+     */
     
     // Screen
     const int width = 1366;

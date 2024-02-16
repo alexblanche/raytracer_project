@@ -43,4 +43,6 @@ class object {
         virtual double measure_distance(const ray& r) const;
 
         virtual hit compute_intersection(const ray& r, const double t) const;
+
+        static hit find_closest_object(const ray& r);
 };

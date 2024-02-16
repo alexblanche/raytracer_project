@@ -11,13 +11,11 @@ using namespace std;
 /* Constructors */
 
 ray::ray(const rt::vector& o, const rt::vector& d)
-    : origin(o), direction(d) {}
+    : origin(o), direction(d), origin_index(-1) {}
 
+ray::ray()
+    : origin(rt::vector()), direction(rt::vector()), origin_index(-1) {}
 
-ray::ray() {
-    origin = rt::vector();
-    direction = rt::vector();
-}
 
 /* Accessors */
 
@@ -29,6 +27,9 @@ rt::vector ray::get_direction() const {
     return direction;
 }
 
+unsigned int ray::get_origin_index() const {
+    return origin_index;
+}
 
 /* Mutators */
 
@@ -38,4 +39,8 @@ void ray::set_origin(const rt::vector& o) {
 
 void ray::set_direction(const rt::vector& d) {
     direction = d;
+}
+
+void ray::set_origin_index(const unsigned int index) {
+    origin_index = index;
 }

@@ -53,9 +53,12 @@ rt::vector triangle::get_normal() const {
 /* Intersection determination */
 
 double triangle::measure_distance(const ray& r) const {
+    const rt::vector& u = r.get_origin();
+    const rt::vector& dir = r.get_direction();
+
     // Intersection between the ray and the triangle plane
-    const double pdt = (normal | r.get_direction()); // ax + by + cz
-    const double upln = (normal | r.get_origin()) + d; // aX + bY + cZ + d
+    const double pdt = (normal | dir); // ax + by + cz
+    const double upln = (normal | u) + d; // aX + bY + cZ + d
     
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
     if (pdt * upln >= 0) {
@@ -63,7 +66,6 @@ double triangle::measure_distance(const ray& r) const {
     }
 
     const double t = - upln / pdt;
-    const rt::vector pt = r.get_origin() + (t * r.get_direction());
 
     // Check if the point of intersection lies inside the triangle
     /* The system we try to solve is:
@@ -78,7 +80,7 @@ double triangle::measure_distance(const ray& r) const {
        In our case, when det = v1x * v2y - v1y * v2x,
        l1 = (cx * v2y - cy * v2x) / det and l2 = (v1x * cy - v1y * cx) / det */
 
-    const rt::vector c = pt - position;
+    const rt::vector c = u + (t * dir) - position;
     const double det = v1.x * v2.y - v1.y * v2.x;
 
     if (det * det > 0.00001) {
@@ -86,17 +88,6 @@ double triangle::measure_distance(const ray& r) const {
         if (l1 >= 0 && l1 <= 1) {
             const double l2 = (v1.x * c.y - v1.y * c.x) / det;
             if (l2 >= 0 && l1 + l2 <= 1) {
-                // Checking if row z is satisfied by our solution
-                /*
-                const double z = l1 * v1.z + l2 * v2.z - c.z;
-                if (z*z < 0.001) {
-                    return t;
-                }
-                else {
-                    return infinity;
-                }
-                */
-                // Useless: it is always satisfied
                 return t;
             }
             else {

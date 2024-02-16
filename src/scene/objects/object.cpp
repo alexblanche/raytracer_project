@@ -2,6 +2,10 @@
 #include "../material/headers/material.hpp"
 #include <iostream>
 
+#include <limits>
+std::numeric_limits<double> real;
+const double infinity = real.infinity();
+
 /* Static members */
 
 unsigned int object::counter = 0;
@@ -51,3 +55,35 @@ hit object::compute_intersection(const ray& r, const double t) const {
     return hit(r, p, n, index);
 }
 
+
+
+/* Computing the intersection of a ray with the scene */
+hit object::find_closest_object(const ray& r) {
+    
+    double closest = infinity;
+    unsigned int closest_index = -1;
+    const unsigned int origin_obj_index = r.get_origin_index();
+
+    // Looking for the closest object
+    for (unsigned int i = 0; i < object::counter; i++) {
+        
+        // We do not test the intersection with the object the rays is cast from
+        if (i != origin_obj_index) {
+            const double d = object::set.at(i)->measure_distance(r);
+                
+            /* d is the distance between the origin of the ray and the
+               intersection point with the object */
+
+            if (d < closest) {
+                closest = d;
+                closest_index = i;
+            }
+        }
+    }
+    if (closest_index == ((unsigned int) -1)) {
+        return hit();
+    }
+    else {
+        return object::set.at(closest_index)->compute_intersection(r, closest);
+    }
+}
