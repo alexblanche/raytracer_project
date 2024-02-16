@@ -27,6 +27,9 @@ class box : public object {
         box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
             const double l1, const double l2, const double l3, const material& material);
 
+        box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
+            const double l1, const double l2, const double l3);
+
 
         /* Intersection determination */
 

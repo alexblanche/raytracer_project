@@ -7,6 +7,7 @@
 //#include "../scene/sources/headers/source.hpp"
 #include "../scene/objects/headers/object.hpp"
 #include "../scene/headers/scene.hpp"
+#include "../scene/objects/headers/bounding.hpp"
 
 // #include "headers/application.hpp"
 
@@ -32,7 +33,8 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
 
     for (unsigned int i = 0; i < bounce; i++) {
 
-        const hit h = object::find_closest_object(r);
+        //const hit h = object::find_closest_object(r);
+        const hit h = bounding::find_closest_object(r);
         r.set_origin_index(h.get_obj_index());
 
         if (h.is_hit()) {
