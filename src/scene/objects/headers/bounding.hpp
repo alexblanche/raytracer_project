@@ -8,6 +8,7 @@
 #include "../../material/headers/material.hpp"
 
 #include <stack>
+#include <vector>
 
 class bounding {
     
@@ -25,10 +26,10 @@ class bounding {
         const box* b;
 
         /* If the node is terminal: indices of the objects contained in the box */
-        std::stack<unsigned int> content;
+        std::vector<unsigned int> content;
 
         /* If the node is internal: bounding boxes contained in the box */
-        std::stack<const bounding*> children;
+        std::vector<const bounding*> children;
 
 
     public:
@@ -40,20 +41,20 @@ class bounding {
 
         bounding();
         
-        bounding(const bool is_terminal, const box* b, const std::stack<unsigned int>& content, const std::stack<const bounding*>& children);
+        bounding(const bool is_terminal, const box* b, const std::vector<unsigned int>& content, const std::vector<const bounding*>& children);
 
         /* Terminal node constructor */
-        bounding(const std::stack<unsigned int>& content);
+        bounding(const std::vector<unsigned int>& content);
 
         /* Internal node constructor */
-        bounding(const box* b, const std::stack<const bounding*>& children);
+        bounding(const box* b, const std::vector<const bounding*>& children);
         
 
         void check_box(const ray& r,
-            std::stack<std::stack<unsigned int>>& object_stack,
-            std::stack<std::stack<const bounding*>>& bounding_stack) const;
+            std::stack<unsigned int>& object_stack,
+            std::stack<const bounding*>& bounding_stack) const;
 
-        static hit find_closest_object(const ray& r);
+        static hit find_closest_object(const ray& r, const unsigned int bounce);
 };
 
 

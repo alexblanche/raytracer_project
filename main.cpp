@@ -23,7 +23,6 @@
 #include "src/scene/headers/scene.hpp"
 
 #include "src/scene/objects/headers/bounding.hpp"
-#include <stack>
 
 using namespace std;
 
@@ -64,8 +63,6 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const
         
     } PARALLEL_FOR_END();
 }
-
-
 
 
 /* ********************************* */
@@ -117,8 +114,8 @@ int main(int argc, char *argv[]) {
     const plane pln1(0, 0, -1, rt::vector(0, 0, 1200),  light_material(rt::color::WHITE, 0));
     const plane pln2(1, 0, 0,  rt::vector(-1000, 0, 0), material(rt::color(255, 80, 80), 0));
     const plane pln3(-1, 0, 0, rt::vector(1000, 0, 0),  material(rt::color(80, 255, 80), 0));
-    const plane pln4(0, 0, 1,  rt::vector(0, 0, 0),     light_material(rt::color(10, 180, 255), 0));/*light_material(rt::color::WHITE, 0));*/
-    const plane pln5(0, 1, 0,  rt::vector(0, -600, 0),  material(rt::color(10, 10, 10), rt::color(), 0.8, 0, 0.5, false));//light_material(rt::color::WHITE, 1.5));
+    const plane pln4(0, 0, 1,  rt::vector(0, 0, 0),     light_material(rt::color(10, 180, 255), 0)); /*light_material(rt::color::WHITE, 0));*/
+    const plane pln5(0, 1, 0,  rt::vector(0, -600, 0),  material(rt::color(10, 10, 10), rt::color(), 0.8, 0, 0.5, false)); //light_material(rt::color::WHITE, 1.5));
     
     const box bx_light(rt::vector(0, -600, 600),
         rt::vector(1, 0, 0), rt::vector(0, 1, 0),
@@ -129,10 +126,8 @@ int main(int argc, char *argv[]) {
     // Bounding boxes
 
     // Content 1 (terminal): contains the two balls on the left
-    stack<unsigned int> obs1;
-    obs1.push(sph0.get_index());
-    obs1.push(sph1.get_index());
-    const bounding c1(obs1);
+    vector<unsigned int> obv1 = {sph0.get_index(), sph1.get_index()};
+    const bounding c1(obv1);
 
     // Box 1: containing Content 1
     const box bx1((0.5 * sph0.get_position() + 0.5 * sph1.get_position()),
@@ -140,15 +135,12 @@ int main(int argc, char *argv[]) {
         sph1.get_position().x + sph1.get_radius() - (sph0.get_position().x - sph0.get_radius()),
         sph1.get_position().y + sph1.get_radius() - (sph0.get_position().y - sph0.get_radius()),
         sph1.get_position().z + sph1.get_radius() - (sph0.get_position().z - sph0.get_radius()));
-    stack<const bounding*> bds1;
-    bds1.push(&c1);
-    const bounding bd1(&bx1, bds1);
+    vector<const bounding*> bdv1 = {&c1};
+    const bounding bd1(&bx1, bdv1);
 
     // Box 2 (terminal): contains the two balls on the right
-    stack<unsigned int> obs2;
-    obs2.push(sph2.get_index());
-    obs2.push(sph3.get_index());
-    const bounding c2(obs2);
+    vector<unsigned int> obv2 = {sph2.get_index(), sph3.get_index()};
+    const bounding c2(obv2);
 
     // Box 2: containing Content 2
     const box bx2((0.5 * sph2.get_position() + 0.5 * sph3.get_position()),
@@ -156,9 +148,8 @@ int main(int argc, char *argv[]) {
         sph3.get_position().x + sph3.get_radius() - (sph2.get_position().x - sph2.get_radius()),
         sph3.get_position().y + sph3.get_radius() - (sph2.get_position().y - sph2.get_radius()),
         sph3.get_position().z + sph3.get_radius() - (sph2.get_position().z - sph2.get_radius()));
-    stack<const bounding*> bds2;
-    bds2.push(&c2);
-    const bounding bd2(&bx2, bds2);
+    vector<const bounding*> bdv2 = {&c2};
+    const bounding bd2(&bx2, bdv2);
 
     // Box 3: contains boxes 1 and 2
     
@@ -167,37 +158,29 @@ int main(int argc, char *argv[]) {
         sph3.get_position().x + sph3.get_radius() - (sph0.get_position().x - sph0.get_radius()),
         sph3.get_position().y + sph3.get_radius() - (sph0.get_position().y - sph0.get_radius()),
         sph3.get_position().z + sph3.get_radius() - (sph0.get_position().z - sph0.get_radius()));
-    stack<const bounding*> bds3;
-    bds3.push(&bd1);
-    bds3.push(&bd2);
-    const bounding bd3(&bx3, bds3);
+    vector<const bounding*> bdv3 = {&bd1, &bd2};
+    const bounding bd3(&bx3, bdv3);
     
 
     // Box 4: contains bx_light and box 3
+
+    vector<unsigned int> obv4 = {bx_light.get_index()};
+    const bounding c4(obv4);
     
-    const box bx4((0.5 * bx3.get_position() + 0.5 * bx_light.get_position()),
+    const box bx4((0.5 * bx3.get_position() + 0.5 * bx_light.get_position() + rt::vector(0, 0.5 * (120 - 15), 0)),
         rt::vector(1, 0, 0), rt::vector(0, 1, 0),
         sph3.get_position().x + sph3.get_radius() - (sph0.get_position().x - sph0.get_radius()),
-        sph3.get_position().y + sph3.get_radius() - (-630),
-        sph3.get_position().z + sph3.get_radius() - (sph0.get_position().z - sph0.get_radius()));
-    stack<unsigned int> obs4;
-    obs4.push(bx_light.get_index());
-    const bounding c4(obs4);
-    stack<const bounding*> bds4;
-    bds4.push(&bd3);
-    bds4.push(&c4);
-    const bounding bd4(&bx4, bds4);
+        sph3.get_position().y + sph3.get_radius() - (-615),//(-615),
+        400);
+        //(sph3.get_position().z + sph3.get_radius() - (sph0.get_position().z - sph0.get_radius())));
+
+    vector<const bounding*> bdv4 = {&bd3, &c4};
+    const bounding bd4(&bx4, bdv4);
     
 
     // Content 5 (terminal): contains the six planes
-    stack<unsigned int> obs5;
-    obs5.push(pln0.get_index());
-    obs5.push(pln1.get_index());
-    obs5.push(pln2.get_index());
-    obs5.push(pln3.get_index());
-    obs5.push(pln4.get_index());
-    obs5.push(pln5.get_index());
-    const bounding c5(obs5);
+    vector<unsigned int> obv5 = {pln0.get_index(), pln1.get_index(), pln2.get_index(), pln3.get_index(), pln4.get_index(), pln5.get_index()};
+    const bounding c5(obv5);
 
     // Bounding box set: contains boxes 4 and 5
     bounding::set = {&bd4, &c5};

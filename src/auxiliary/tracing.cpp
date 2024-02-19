@@ -37,7 +37,8 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
         //const hit h = object::find_closest_object(r);
 
         /* Tree search through the bounding boxes */
-        const hit h = bounding::find_closest_object(r);
+        const hit h = bounding::find_closest_object(r, i);
+
         
         r.set_origin_index(h.get_obj_index());
 
@@ -83,7 +84,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                 }
                 else {
                     /* Diffuse bounce */
-
+                    
                     const rt::vector bouncing_dir = (h.get_normal() + h.random_reflect_single(scene.rg, h.get_normal(), 3.14159265358979323846)).unit();
                     r.set_direction(bouncing_dir);
                     

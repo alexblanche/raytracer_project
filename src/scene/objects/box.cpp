@@ -31,14 +31,58 @@ double box::measure_distance(const ray& r) const {
        where u is the origin of the ray, and dir its direction,
        So t1 = ((pos + l1.n1 - u) | n1) / (dir | n1)
        We then check whether |((pos + l1.n1 - (u + t1.dir)) | n2)| <= l2 and |(((pos + l1.n1 - (u + t1.dir)) | n3)| <= l3,
-       to make sure the intersection point lies on the face.s
+       to make sure the intersection point lies on the face.
 
        Same with the other two directions, we obtain t2, t3.
        If (dir | n) = 0 for n among n1, n2, n3, then the ray does not intersect the plane and the associated t is infinity.
     */
 
-    const rt::vector dir = r.get_direction();
-    const rt::vector u = r.get_origin();
+    const rt::vector& dir = r.get_direction();
+    const rt::vector& u = r.get_origin();
+
+    /** This whole function to be optimized (it will then become incomprehensible)
+     * 
+     * const vector pmu = position - u;
+     * t1 = ((c1 - u) | n1) / pdt1
+     *      = ((position - (l1 * pdt1 / abs(pdt1)) * n1 - u) | n1) / pdt1;
+     *      = ((pmu | n1) - l1 * pdt1 / abs(pdt1)) / pdt1;
+     *      = ((pmu | n1) / pdt1 - l1 / abs(pdt1));
+     * 
+     * (p | n2)
+     *      = ((c1 - u - (t1*dir)) | n2)
+     *      = ((position - (...)*n1 - u - t1*dir) | n2)
+     *      = (pmu | n2) - t1 * pdt2
+     * 
+     * So:
+     * const double pmun1 = (pmu | n1);
+     * const double pmun2 = (pmu | n2);
+     * const double pmun3 = (pmu | n3);
+     * t1 = pmun1 / pdt1 - l1 / abs(pdt1);
+     * const double checkpdt2 = pmun2 - t1 * pdt2;
+     * ...
+     * const double checkpdt3 = pmun3 - t1 * pdt3;
+     * 
+     * t2 = pmun2 / pdt2 - l2 / abs(pdt2);
+     * const double checkpdt1 = pmun1 - t2 * pdt1;
+     * ...
+     * const double checkpdt3 = pmun3 - t2 * pdt3;
+     * 
+     * t3 = pmun3 / pdt3 - l3 / abs(pdt3);
+     * const double checkpdt1 = pmun1 - t3 * pdt1;
+     * ...
+     * const double checkpdt2 = pmun2 - t3 * pdt2;
+     * **/
+
+    //printf("norm: %f, l1 = %f, l2 = %f, l3 = %f\n", (position - u).norm(), l1, l2, l3);
+    const rt::vector pmu = position - u;
+    const double pmun1 = (pmu | n1);
+    const double pmun2 = (pmu | n2);
+    const double pmun3 = (pmu | n3);
+    if (pmun1 * pmun1 <= l1 * l1 && pmun2 * pmun2 <= l2 * l2 && pmun3 * pmun3 <= l3 * l3) {
+        // u is inside the box
+        return 0;
+    }
+
     double t1 = infinity;
     double t2 = infinity;
     double t3 = infinity;
@@ -53,10 +97,10 @@ double box::measure_distance(const ray& r) const {
         t1 = ((c1 - u) | n1) / pdt1;
 
         // Check that t1 gives a point inside the face
-        const rt::vector p = u + (t1 * dir);
-        const double checkpdt2 = ((c1 - p) | n2);
+        const rt::vector p = c1 - u - (t1 * dir);
+        const double checkpdt2 = (p | n2);
         if (checkpdt2 * checkpdt2 <= l2 * l2) {
-            const double checkpdt3 = ((c1 - p) | n3);
+            const double checkpdt3 = (p | n3);
             if (checkpdt3 * checkpdt3 > l3 * l3) {
                 t1 = infinity;
             }
@@ -72,10 +116,10 @@ double box::measure_distance(const ray& r) const {
         const rt::vector c2 = position - (l2 * pdt2/ abs(pdt2)) * n2;
         t2 = ((c2 - u) | n2) / pdt2;
     
-        const rt::vector p = u + (t2 * dir);
-        const double checkpdt1 = ((c2 - p) | n1);
+        const rt::vector p = c2 - u - (t2 * dir);
+        const double checkpdt1 = (p | n1);
         if (checkpdt1 * checkpdt1 <= l1 * l1) {
-            const double checkpdt3 = ((c2 - p) | n3);
+            const double checkpdt3 = (p | n3);
             if (checkpdt3 * checkpdt3 > l3 * l3) {
                 t2 = infinity;
             }
@@ -91,10 +135,10 @@ double box::measure_distance(const ray& r) const {
         const rt::vector c3 = position - (l3 * pdt3/ abs(pdt3)) * n3;
         t3 = ((c3 - u) | n3) / pdt3;
         
-        const rt::vector p = u + (t3 * dir);
-        const double checkpdt1 = ((c3 - p) | n1);
+        const rt::vector p = c3 - u - (t3 * dir);
+        const double checkpdt1 = (p | n1);
         if (checkpdt1 * checkpdt1 <= l1 * l1) {
-            const double checkpdt2 = ((c3 - p) | n2);
+            const double checkpdt2 = (p | n2);
             if (checkpdt2 * checkpdt2 > l2 * l2) {
                 t3 = infinity;
             }
