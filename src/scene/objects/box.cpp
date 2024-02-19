@@ -93,6 +93,61 @@ double box::measure_distance(const ray& r) const {
 
     if (pdt1 * pdt1 > 0.0000001) {
         // Determination of t1
+        t1 = pmun1 / pdt1 - l1 / abs(pdt1);
+
+        // Check that t1 gives a point inside the face
+        const double checkpdt2 = pmun2 - t1 * pdt2;
+        if (checkpdt2 * checkpdt2 <= l2 * l2) {
+            const double checkpdt3 = pmun3 - t1 * pdt3;
+            if (checkpdt3 * checkpdt3 > l3 * l3) {
+                t1 = infinity;
+            }
+        }
+        else {
+            t1 = infinity;
+        }
+
+        if (t1 < 0) { return infinity; }
+    }
+
+    if (pdt2 * pdt2 > 0.0000001) {
+        t2 = pmun2 / pdt2 - l2 / abs(pdt2);
+    
+        const double checkpdt1 = pmun1 - t2 * pdt1;
+        if (checkpdt1 * checkpdt1 <= l1 * l1) {
+            const double checkpdt3 = pmun3 - t2 * pdt3;
+            if (checkpdt3 * checkpdt3 > l3 * l3) {
+                t2 = infinity;
+            }
+        }
+        else {
+            t2 = infinity;
+        }
+
+        if (t2 < 0) { return infinity; }
+    }
+
+    if (pdt3 * pdt3 > 0.0000001) {
+        t3 = pmun3 / pdt3 - l3 / abs(pdt3);
+        
+        const double checkpdt1 = pmun1 - t3 * pdt1;
+        if (checkpdt1 * checkpdt1 <= l1 * l1) {
+            const double checkpdt2 = pmun2 - t3 * pdt2;
+            if (checkpdt2 * checkpdt2 > l2 * l2) {
+                t3 = infinity;
+            }
+        }
+        else {
+            t3 = infinity;
+        }
+
+        if (t3 < 0) { return infinity; }
+    }
+
+    /** Original version */
+    /*
+    if (pdt1 * pdt1 > 0.0000001) {
+        // Determination of t1
         const rt::vector c1 = position - (l1 * pdt1 / abs(pdt1)) * n1;
         t1 = ((c1 - u) | n1) / pdt1;
 
@@ -149,6 +204,7 @@ double box::measure_distance(const ray& r) const {
 
         if (t3 < 0) { return infinity; }
     }
+    */
 
     return std::min(t1, std::min(t2, t3));
 }
