@@ -64,7 +64,7 @@ namespace rt {
 			/**
 			 * Copies the rt::color matrix onto the screen, by averaging the number_of_rays colors per pixel
 			*/
-			void copy(std::vector<std::vector<rt::color>> matrix,
+			void copy(std::vector<std::vector<rt::color>>& matrix,
 				const unsigned int width, const unsigned int height,
 				const unsigned int number_of_rays) const;
 
@@ -72,7 +72,7 @@ namespace rt {
 			 * Copies the rt::color matrix onto the screen, by averaging the number_of_rays colors per pixel
 			 * and applying a square root to each component to increase the brightness
 			*/
-			void copy_gamma_corrected(std::vector<std::vector<rt::color>> matrix,
+			void copy_gamma_corrected(std::vector<std::vector<rt::color>>& matrix,
 				const unsigned int width, const unsigned int height,
 				const unsigned int number_of_rays) const;
 	};

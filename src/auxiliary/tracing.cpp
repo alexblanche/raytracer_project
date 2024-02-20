@@ -34,10 +34,10 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
     for (unsigned int i = 0; i < bounce; i++) {
 
         /* Linear search through object::set */
-        //const hit h = object::find_closest_object(r);
+        const hit h = object::find_closest_object(r);
 
         /* Tree search through the bounding boxes */
-        const hit h = bounding::find_closest_object(r, i);
+        //const hit h = bounding::find_closest_object(r, i);
 
         
         r.set_origin_index(h.get_obj_index());

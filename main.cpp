@@ -33,8 +33,6 @@ using namespace std;
 
 /* ********** Render loop ********** */
 
-/* Parallel version */
-
 void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const unsigned int number_of_bounces) {
     
     std::mutex m;
@@ -49,11 +47,12 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const
                 pathtrace(r, scene, number_of_bounces);
             
             const rt::color& current_color = matrix.at(i).at(j);
-            const rt::color new_color (
-                current_color.get_red() + pixel_col.get_red(),
-                current_color.get_green() + pixel_col.get_green(),
-                current_color.get_blue() + pixel_col.get_blue()
-            );
+            // const rt::color new_color (
+            //     current_color.get_red() + pixel_col.get_red(),
+            //     current_color.get_green() + pixel_col.get_green(),
+            //     current_color.get_blue() + pixel_col.get_blue()
+            // );
+            const rt::color new_color = current_color + pixel_col;
 
             // Updating the color matrix
             m.lock();
@@ -99,11 +98,11 @@ int main(int argc, char *argv[]) {
     /* Scene description */
 
     /* 4 mirror spheres of decreasing specular_probability */
-    const sphere sph0(rt::vector(-500, 0, 600), 120, material(rt::color::WHITE, rt::color(), 1, 0, 1.0, false));
+    // const sphere sph0(rt::vector(-500, 0, 600), 120, material(rt::color::WHITE, rt::color(), 1, 0, 1.0, false));
 
-    const sphere sph1(rt::vector(-166, 0, 600), 120, material(rt::color::WHITE, rt::color(), 1, 0, 0.6, false));
-    const sphere sph2(rt::vector(166, 0, 600),  120, material(rt::color::WHITE, rt::color(), 1, 0, 0.1, false));
-    const sphere sph3(rt::vector(500, 0, 600),  120, material(rt::color::WHITE, rt::color(), 1, 0, 0.05, false));
+    // const sphere sph1(rt::vector(-166, 0, 600), 120, material(rt::color::WHITE, rt::color(), 1, 0, 0.6, false));
+    // const sphere sph2(rt::vector(166, 0, 600),  120, material(rt::color::WHITE, rt::color(), 1, 0, 0.1, false));
+    // const sphere sph3(rt::vector(500, 0, 600),  120, material(rt::color::WHITE, rt::color(), 1, 0, 0.05, false));
 
     // Triangle
     //const triangle tr0(rt::vector(-950, -500, 1150), rt::vector(950, -500, 50), rt::vector(-950, -500, 50), light_material(rt::color(10, 180, 255), 0));
@@ -122,9 +121,9 @@ int main(int argc, char *argv[]) {
         800, 30, 400,
         light_material(rt::color::WHITE, 5));
 
-
+    
     // Bounding boxes
-
+    /*
     // Content 1 (terminal): contains the two balls on the left
     vector<unsigned int> obv1 = {sph0.get_index(), sph1.get_index()};
     const bounding c1(obv1);
@@ -176,26 +175,22 @@ int main(int argc, char *argv[]) {
 
     vector<const bounding*> bdv4 = {&bd3, &c4};
     const bounding bd4(&bx4, bdv4);
-    
 
     // Content 5 (terminal): contains the six planes
-    vector<unsigned int> obv5 = {pln0.get_index(), pln1.get_index(), pln2.get_index(), pln3.get_index(), pln4.get_index(), pln5.get_index()};
+    vector<unsigned int> obv5 = {pln0.get_index(), pln1.get_index(), pln2.get_index(), pln3.get_index(), pln4.get_index(), pln5.get_index()};//, bx0.get_index()};
     const bounding c5(obv5);
 
     // Bounding box set: contains boxes 4 and 5
     bounding::set = {&bd4, &c5};
-
-
-    // Boxes
     
-    /*
-    const box bx0(rt::vector(166, -200, 600),
+    */
+
+    /*const box bx0(rt::vector(166, -200, 600),
         rt::vector(100, 100, -100).unit(), rt::vector(-200, 100, -100).unit(),
         300, 200, 300,
         //light_material(rt::color(10, 180, 255), 3));
-        material(rt::color(10, 180, 255), rt::color(), 1, 0, 0.3, false));
-    */
-
+        material(rt::color(10, 180, 255), rt::color(), 1, 0, 0.3, false));*/
+    
     //const sphere sphl1(rt::vector(0, 0, 600), 30, obj_counter++, light_material(rt::color::WHITE, 30));
 
     /*const box bx0(rt::vector(100, -100, 600),
@@ -204,19 +199,22 @@ int main(int argc, char *argv[]) {
         //light_material(rt::color(10, 180, 255), 3));
         material(rt::color(10, 180, 255), rt::color(), 1, 0, 0.3, false));*/
 
-    /*for(unsigned int i = 0; i < 1000; i++) {
-        new triangle(rt::vector(-150 + 5*((double) i), -100, 700), rt::vector(-50 + 5*((double) i), 100, 700), rt::vector(-100 + 5*((double) i), -200, 700),
-            light_material(rt::color(10+2*i, 180, 255), 0));
-    }*/
+    const unsigned int number_of_triangles = 1000;
+    const double shift = (2 * 620) / (((double) number_of_triangles) - 1);
+    //const double color_shift = 245 / (((double) number_of_triangles) - 1);
 
-    /* Test of usefulness of bounding boxes:
-    
-    For 30 rays, 5 bounces:
-    1 box, no triangle:  47s
-    0 box, 10 triangles: 54s
-    0 box, 100 triangles: 180s (3min)
-    0 box, 1000 triangles: estimated 30min
-     */
+    for(unsigned int i = 0; i < number_of_triangles; i++) {
+        new triangle(
+            rt::vector(-620 + 0   + shift * ((double) i), -100, 600),
+            rt::vector(-620 + 100 + shift * ((double) i),  100, 500),
+            rt::vector(-620 + 80  + shift * ((double) i), -200, 700),
+            light_material(rt::color(10/*+ color_shift * ((double) i)*/, 180, 255), 0));
+    }
+
+    //const sphere sph(rt::vector(0, -300, 600), 80, material(rt::color::WHITE, 0.6));
+
+    /* Test of usefulness of bounding boxes:    
+    */
     
     // Screen
     const int width = 1366;
@@ -246,14 +244,17 @@ int main(int argc, char *argv[]) {
     //generate_bmp(matrix, "pathtrace.bmp");
 
     // Display of the image on screen
-    const rt::screen scr(width, height);
+    //const rt::screen scr(width, height);
 
     printf("\rInitialization complete, computing the first ray...");
 
     render_loop_parallel(matrix, scene, number_of_bounces);
     
+    const rt::screen scr(width, height);
     scr.copy(matrix, width, height, 1);
     scr.update();
+    scr.wait_quit_event();
+    delete(&scr);
 
     printf("\r                                                   ");
     printf("\rNumber of rays per pixel: 1");
@@ -267,8 +268,11 @@ int main(int argc, char *argv[]) {
 
         printf("\rNumber of rays per pixel: %u", number_of_rays);
         if (number_of_rays % 10 == 0) {
+            const rt::screen scr(width, height);
             scr.copy(matrix, width, height, number_of_rays);
             scr.update();
+            scr.wait_quit_event();
+            delete(&scr);
         }
     }
 

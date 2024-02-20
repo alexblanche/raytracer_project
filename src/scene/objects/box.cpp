@@ -63,11 +63,11 @@ double box::measure_distance(const ray& r) const {
         return 0;
     }
 
-    double t1 = infinity;
-
     const double pdt1 = (dir | n1);
     const double pdt2 = (dir | n2);
     const double pdt3 = (dir | n3);
+
+    double t1 = infinity;
     const double abspdt1 = abs(pdt1);
 
     if (abspdt1 > 0.0000001) {
@@ -203,23 +203,23 @@ hit box::compute_intersection(const ray& r, const double t) const {
 
     const rt::vector v = p - position;
     const double pdt1 = (v | n1);
-    if ((pdt1 - l1)*(pdt1 - l1) < 0.0000001) {
+    if (abs(pdt1 - l1) < 0.0000001) {
         return hit(r, p, n1, get_index());
     }
-    else if ((pdt1 + l1)*(pdt1 + l1) < 0.0000001) {
+    else if (abs(pdt1 + l1) < 0.0000001) {
         return hit(r, p, (-1)*n1, get_index());
     }
     else {
         const double pdt2 = (v | n2);
-        if ((pdt2 - l2)*(pdt2 - l2) < 0.0000001) {
+        if (abs(pdt2 - l2) < 0.0000001) {
             return hit(r, p, n2, get_index());
         }
-        else if ((pdt2 + l2)*(pdt2 + l2) < 0.0000001) {
+        else if (abs(pdt2 + l2) < 0.0000001) {
             return hit(r, p, (-1)*n2, get_index());
         }
         else {
             const double pdt3 = (v | n3);
-            if ((pdt3 - l3)*(pdt3 - l3) < 0.0000001) {
+            if (abs(pdt3 - l3) < 0.0000001) {
                 return hit(r, p, n3, get_index());
             }
             else {
