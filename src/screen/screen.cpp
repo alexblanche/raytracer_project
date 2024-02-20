@@ -41,6 +41,7 @@ namespace rt {
 	 */
 	screen::~screen() {
 		initialized--;
+		printf("Screen destroyer done.\n");
 	}
 
 	/**
@@ -59,7 +60,6 @@ namespace rt {
 		while(SDL_WaitEvent(&event)) {
 			switch(event.type) {
 				case SDL_QUIT:
-					printf("SDL_QUIT event detected\n");
 					return true;
 					break;
 				case SDL_KEYDOWN:

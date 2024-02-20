@@ -69,29 +69,22 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const
 int main(int argc, char *argv[]) {
 
     /* Specification of the parameters through console arguments */
-    //unsigned int number_of_rays = 5;
     unsigned int number_of_bounces = 2;
     if (argc > 1) {
         number_of_bounces = atoi(argv[1]);
     }
-    /*
-    if (argc > 2) {
-        number_of_bounces = atoi(argv[2]);
-    }
-    */
 
-    //printf("Number of rays at each bounce: %u, ", number_of_rays);
     printf("Number of bounces: %u\n", number_of_bounces);
     printf("Initialization...");
 
+    /* *************************** */
+    /* Scene description */
+    
     /* Orientation of the space:
     negative x on the left, positive on the right
     negative y at the top,  positive at the bottom (Be careful!!!)
     negative z behind the camera, positive in front of it
     */
-
-    /* *************************** */
-    /* Scene description */
 
     /* 4 mirror spheres of decreasing specular_probability */
     // const sphere sph0(rt::vector(-500, 0, 600), 120, material(rt::color::WHITE, rt::color(), 1, 0, 1.0, false));
@@ -116,70 +109,6 @@ int main(int argc, char *argv[]) {
         rt::vector(1, 0, 0), rt::vector(0, 1, 0),
         800, 30, 400,
         light_material(rt::color::WHITE, 5));
-
-    
-    // Bounding boxes
-    /*
-    // Content 1 (terminal): contains the two balls on the left
-    vector<unsigned int> obv1 = {sph0.get_index(), sph1.get_index()};
-    const bounding c1(obv1);
-
-    // Box 1: containing Content 1
-    const box bx1((0.5 * sph0.get_position() + 0.5 * sph1.get_position()),
-        rt::vector(1, 0, 0), rt::vector(0, 1, 0),
-        sph1.get_position().x + sph1.get_radius() - (sph0.get_position().x - sph0.get_radius()),
-        sph1.get_position().y + sph1.get_radius() - (sph0.get_position().y - sph0.get_radius()),
-        sph1.get_position().z + sph1.get_radius() - (sph0.get_position().z - sph0.get_radius()));
-    vector<const bounding*> bdv1 = {&c1};
-    const bounding bd1(&bx1, bdv1);
-
-    // Box 2 (terminal): contains the two balls on the right
-    vector<unsigned int> obv2 = {sph2.get_index(), sph3.get_index()};
-    const bounding c2(obv2);
-
-    // Box 2: containing Content 2
-    const box bx2((0.5 * sph2.get_position() + 0.5 * sph3.get_position()),
-        rt::vector(1, 0, 0), rt::vector(0, 1, 0),
-        sph3.get_position().x + sph3.get_radius() - (sph2.get_position().x - sph2.get_radius()),
-        sph3.get_position().y + sph3.get_radius() - (sph2.get_position().y - sph2.get_radius()),
-        sph3.get_position().z + sph3.get_radius() - (sph2.get_position().z - sph2.get_radius()));
-    vector<const bounding*> bdv2 = {&c2};
-    const bounding bd2(&bx2, bdv2);
-
-    // Box 3: contains boxes 1 and 2
-    
-    const box bx3((0.5 * bx1.get_position() + 0.5 * bx2.get_position()),
-        rt::vector(1, 0, 0), rt::vector(0, 1, 0),
-        sph3.get_position().x + sph3.get_radius() - (sph0.get_position().x - sph0.get_radius()),
-        sph3.get_position().y + sph3.get_radius() - (sph0.get_position().y - sph0.get_radius()),
-        sph3.get_position().z + sph3.get_radius() - (sph0.get_position().z - sph0.get_radius()));
-    vector<const bounding*> bdv3 = {&bd1, &bd2};
-    const bounding bd3(&bx3, bdv3);
-    
-
-    // Box 4: contains bx_light and box 3
-
-    vector<unsigned int> obv4 = {bx_light.get_index()};
-    const bounding c4(obv4);
-    
-    const box bx4((0.5 * bx3.get_position() + 0.5 * bx_light.get_position() + rt::vector(0, 0.5 * (120 - 15), 0)),
-        rt::vector(1, 0, 0), rt::vector(0, 1, 0),
-        sph3.get_position().x + sph3.get_radius() - (sph0.get_position().x - sph0.get_radius()),
-        sph3.get_position().y + sph3.get_radius() - (-615),//(-615),
-        400);
-        //(sph3.get_position().z + sph3.get_radius() - (sph0.get_position().z - sph0.get_radius())));
-
-    vector<const bounding*> bdv4 = {&bd3, &c4};
-    const bounding bd4(&bx4, bdv4);
-
-    // Content 5 (terminal): contains the six planes
-    vector<unsigned int> obv5 = {pln0.get_index(), pln1.get_index(), pln2.get_index(), pln3.get_index(), pln4.get_index(), pln5.get_index()};//, bx0.get_index()};
-    const bounding c5(obv5);
-
-    // Bounding box set: contains boxes 4 and 5
-    bounding::set = {&bd4, &c5};
-    
-    */
 
     /*const box bx0(rt::vector(166, -200, 600),
         rt::vector(100, 100, -100).unit(), rt::vector(-200, 100, -100).unit(),
@@ -207,62 +136,7 @@ int main(int argc, char *argv[]) {
             light_material(rt::color(10, 180, 255), 0));
     }
     
-    /* Bounding boxes definition */
-    /*
-    vector<unsigned int> obvtr0(number_of_triangles/4);
-    for(unsigned int i = 0; i < number_of_triangles/4; i++) {
-        obvtr0.at(i) = 7 + i;
-    }
-    const bounding ctr0(obvtr0);
-
-    
-    vector<unsigned int> obvtr1(number_of_triangles/4);
-    for(unsigned int i = 0; i < number_of_triangles/4; i++) {
-        obvtr1.at(i) = 7 + (number_of_triangles/4) + i;
-    }
-    const bounding ctr1(obvtr1);
-
-    vector<unsigned int> obvtr2(number_of_triangles/4);
-    for(unsigned int i = 0; i < number_of_triangles/4; i++) {
-        obvtr2.at(i) = 7 + (number_of_triangles/2) + i;
-    }
-    const bounding ctr2(obvtr2);
-
-    vector<unsigned int> obvtr3(number_of_triangles/4);
-    for(unsigned int i = 0; i < number_of_triangles/4; i++) {
-        obvtr3.at(i) = 7 + (3*number_of_triangles/4) + i;
-    }
-    const bounding ctr3(obvtr3);
-
-    const box b0(rt::vector((-310+100+(-620))/2, -50, 600),
-        rt::vector(1,0,0), rt::vector(0,1,0),
-        (-310+100 - (-620)), 302, 202);
-    const box b1(rt::vector((-310+100)/2, -50, 600),
-        rt::vector(1,0,0), rt::vector(0,1,0),
-        100-(-310), 302, 202);
-    const box b2(rt::vector((310+100)/2, -50, 600),
-        rt::vector(1,0,0), rt::vector(0,1,0),
-        310+100, 302, 202);
-    const box b3(rt::vector((620+100 + 310)/2, -50, 600),
-        rt::vector(1,0,0), rt::vector(0,1,0),
-        620+100-310, 302, 202);
-
-    const bounding bd0(&b0, {&ctr0});
-    const bounding bd1(&b1, {&ctr1});
-    const bounding bd2(&b2, {&ctr2});
-    const bounding bd3(&b3, {&ctr3});
-
-    const bounding bd01 = containing_bounding(bd0, bd1);
-    const bounding bd23 = containing_bounding(bd2, bd3);
-    const bounding bd = containing_bounding(bd01, bd23);
-
-    // Content (terminal): contains the six planes and the light box
-    vector<unsigned int> obv = {pln0.get_index(), pln1.get_index(), pln2.get_index(), pln3.get_index(), pln4.get_index(), pln5.get_index(), bx_light.get_index()};
-    const bounding c(obv);
-
-    bounding::set = {&bd, &c};
-    */
-
+    /* Automatic bounding boxes definition */
     queue<const bounding*> bounding_queue;
     const unsigned int triangles_per_terminal = 10;
 
@@ -274,24 +148,6 @@ int main(int argc, char *argv[]) {
         }
         bounding_queue.push(containing_objects(v));
     }
-
-    // Test
-    /*************************
-    for (unsigned int i = 0; i < 512; i++) {
-        const bounding* bd = bounding_queue.front();
-        bounding_queue.pop();
-
-        vector<const bounding*> ch = bd->get_children();
-        printf("Triangles in box no%u: ", i);
-        vector<unsigned int> v = ch.at(0)->get_content();
-        for (unsigned int j = 0; j < v.size(); j++) {
-            printf("%u ", v.at(j));
-        }
-        printf("\n");
-    }
-
-    return 0;
-    *************************/
 
     // Grouping them by two until there is only one left
     while (bounding_queue.size() != 1) {
@@ -311,25 +167,6 @@ int main(int argc, char *argv[]) {
     const bounding* bd = bounding_queue.front();
     bounding::set = {bd, &c};
 
-    // Test
-    /*************************
-    printf("bd has %u children\n", bounding::set.at(0)->get_children().size());
-
-    const bounding* b = bounding::set.at(0);
-    while (b->get_children().size() != 0) {
-        b = b->get_children().at(b->get_children().size() - 1);
-    }
-
-    printf("Last ten triangles: ");
-
-    vector<unsigned int> v = b->get_content();
-    for (unsigned int j = 0; j < v.size(); j++) {
-        printf("%u ", v.at(j));
-    }
-    printf("\n");
-
-    return 0;
-    *************************/
 
     /* Test of usefulness of bounding boxes:
     5120 triangles, 5 bounces, 1 ray:
@@ -338,6 +175,7 @@ int main(int argc, char *argv[]) {
     1 box:   3'50" (or slightly more)
     2 boxes: 2'37"
     4 boxes: 1'43"
+    automatic boxing, 10 tr per box, total 1023 boxes: 46"
     */
     
     // Screen
@@ -371,9 +209,10 @@ int main(int argc, char *argv[]) {
     printf("\r                                                   ");
     printf("\rNumber of rays per pixel: 1");
     scr.wait_quit_event();
+    printf("Deleting scr...\n");
     delete(&scr);
 
-    printf("La\n");
+    printf("\nDeletion done\n");
 
     unsigned int number_of_rays = 1;
     bool stop = false;
