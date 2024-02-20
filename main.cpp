@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
         material(rt::color(10, 180, 255), rt::color(), 1, 0, 0.3, false));*/
 
     /* Creation of the triangles */
-    const unsigned int number_of_triangles = 10*512;
+    const unsigned int number_of_triangles = 10 * 512;
     const double shift = (2 * 620) / (((double) number_of_triangles) - 1);
 
     for(unsigned int i = 0; i < number_of_triangles; i++) {
@@ -203,16 +203,15 @@ int main(int argc, char *argv[]) {
 
     render_loop_parallel(matrix, scene, number_of_bounces);
     
-    const rt::screen scr(width, height);
-    scr.copy(matrix, width, height, 1);
-    scr.update();
+    const rt::screen* scr = new rt::screen(width, height);
+    scr->copy(matrix, width, height, 1);
+    scr->update();
+
     printf("\r                                                   ");
     printf("\rNumber of rays per pixel: 1");
-    scr.wait_quit_event();
-    printf("Deleting scr...\n");
-    delete(&scr);
-
-    printf("\nDeletion done\n");
+    
+    scr->wait_quit_event();
+    delete(scr);
 
     unsigned int number_of_rays = 1;
     bool stop = false;
@@ -224,11 +223,11 @@ int main(int argc, char *argv[]) {
 
         printf("\rNumber of rays per pixel: %u", number_of_rays);
         if (number_of_rays % 5 == 0) {
-            const rt::screen scr(width, height);
-            scr.copy(matrix, width, height, number_of_rays);
-            scr.update();
-            stop = scr.wait_quit_event();
-            delete(&scr);
+            const rt::screen* scr = new rt::screen(width, height);
+            scr->copy(matrix, width, height, number_of_rays);
+            scr->update();
+            stop = scr->wait_quit_event();
+            delete(scr);
         }
     }
 

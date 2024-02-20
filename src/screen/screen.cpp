@@ -41,7 +41,6 @@ namespace rt {
 	 */
 	screen::~screen() {
 		initialized--;
-		printf("Screen destroyer done.\n");
 	}
 
 	/**

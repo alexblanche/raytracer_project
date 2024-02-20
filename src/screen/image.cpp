@@ -45,7 +45,6 @@ namespace rt {
 			SDL_DestroyWindow(window);
 		}
 		SDL_Quit();
-		printf("Image destroyer done\n");
 	}
 
 	/**
