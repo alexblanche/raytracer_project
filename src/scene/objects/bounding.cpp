@@ -35,10 +35,19 @@ bounding::bounding(const box* b, const std::vector<const bounding*>& children)
     : is_terminal(false), b(b), children(children) {}
 
 
+/* Accessors */
+
 const box* bounding::get_b() const {
     return b;
 }
 
+const std::vector<unsigned int>& bounding::get_content() const {
+    return content;
+}
+
+const std::vector<const bounding*>& bounding::get_children() const {
+    return children;
+}
 
 
 /* Tree-search version of the closest object to the ray r */
@@ -147,7 +156,7 @@ bounding* containing_bounding(const bounding& bd0, const bounding& bd1) {
    containing the triangles whose indices are in the obj vector */
 bounding* containing_objects(const std::vector<unsigned int>& obj) {
 
-    const bounding container = bounding(obj);
+    const bounding* container = new bounding(obj);
 
     double min_x = infinity;
     double max_x = -infinity;
@@ -183,5 +192,5 @@ bounding* containing_objects(const std::vector<unsigned int>& obj) {
         max_x - min_x, max_y - min_y, max_z - min_z
     );
 
-    return new bounding(b, {&container});
+    return new bounding(b, {container});
 }

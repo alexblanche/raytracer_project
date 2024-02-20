@@ -36,15 +36,11 @@ using namespace std;
 
 void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const unsigned int number_of_bounces) {
     
-    //std::mutex m;
+    mutex m;
 
-    //PARALLEL_FOR_BEGIN(scene.width) {
+    PARALLEL_FOR_BEGIN(scene.width) {
 
-        //for (int j = 0; j < scene.height; j++) {
-
-            unsigned int i = scene.width/2;
-            unsigned int j = 3*scene.height/4;
-            printf("Rendering %u, %u\n", i, j);
+        for (int j = 0; j < scene.height; j++) {
             
             const rt::vector& direct = (rt::vector(i, j, scene.distance) - scene.screen_center).unit();
             ray r = ray(scene.position, direct);
@@ -52,21 +48,15 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const
                 pathtrace(r, scene, number_of_bounces);
             
             const rt::color& current_color = matrix.at(i).at(j);
-            // const rt::color new_color (
-            //     current_color.get_red() + pixel_col.get_red(),
-            //     current_color.get_green() + pixel_col.get_green(),
-            //     current_color.get_blue() + pixel_col.get_blue()
-            // );
             const rt::color new_color = current_color + pixel_col;
 
             // Updating the color matrix
-            //m.lock();
+            m.lock();
             matrix.at(i).at(j) = new_color;
-            //m.unlock();
-        //}
+            m.unlock();
+        }
         
-    //} PARALLEL_FOR_END();
-    printf("Rendering done.\n");
+    } PARALLEL_FOR_END();
 }
 
 
@@ -278,14 +268,30 @@ int main(int argc, char *argv[]) {
 
     // Creation of the terminal nodes and their non-terminal containers
     for(unsigned int i = 0; i < number_of_triangles / triangles_per_terminal; i++) {
-        std::vector<unsigned int>* v = new std::vector<unsigned int>(triangles_per_terminal);
+        vector<unsigned int> v(triangles_per_terminal);
         for(unsigned int j = 0; j < triangles_per_terminal; j++) {
-            v->at(j) = 7 + i * triangles_per_terminal + j;
+            v.at(j) = 7 + i * triangles_per_terminal + j;
         }
-        bounding_queue.push(containing_objects(*v));
+        bounding_queue.push(containing_objects(v));
     }
 
-    
+    // Test
+    /*************************
+    for (unsigned int i = 0; i < 512; i++) {
+        const bounding* bd = bounding_queue.front();
+        bounding_queue.pop();
+
+        vector<const bounding*> ch = bd->get_children();
+        printf("Triangles in box no%u: ", i);
+        vector<unsigned int> v = ch.at(0)->get_content();
+        for (unsigned int j = 0; j < v.size(); j++) {
+            printf("%u ", v.at(j));
+        }
+        printf("\n");
+    }
+
+    return 0;
+    *************************/
 
     // Grouping them by two until there is only one left
     while (bounding_queue.size() != 1) {
@@ -305,6 +311,25 @@ int main(int argc, char *argv[]) {
     const bounding* bd = bounding_queue.front();
     bounding::set = {bd, &c};
 
+    // Test
+    /*************************
+    printf("bd has %u children\n", bounding::set.at(0)->get_children().size());
+
+    const bounding* b = bounding::set.at(0);
+    while (b->get_children().size() != 0) {
+        b = b->get_children().at(b->get_children().size() - 1);
+    }
+
+    printf("Last ten triangles: ");
+
+    vector<unsigned int> v = b->get_content();
+    for (unsigned int j = 0; j < v.size(); j++) {
+        printf("%u ", v.at(j));
+    }
+    printf("\n");
+
+    return 0;
+    *************************/
 
     /* Test of usefulness of bounding boxes:
     5120 triangles, 5 bounces, 1 ray:
@@ -343,25 +368,27 @@ int main(int argc, char *argv[]) {
     const rt::screen scr(width, height);
     scr.copy(matrix, width, height, 1);
     scr.update();
+    printf("\r                                                   ");
+    printf("\rNumber of rays per pixel: 1");
     scr.wait_quit_event();
     delete(&scr);
 
-    printf("\r                                                   ");
-    printf("\rNumber of rays per pixel: 1");
+    printf("La\n");
 
     unsigned int number_of_rays = 1;
+    bool stop = false;
 
-    while (not scr.is_quit_event()) {
+    while (not stop) {
         number_of_rays ++;
 
         render_loop_parallel(matrix, scene, number_of_bounces);
 
         printf("\rNumber of rays per pixel: %u", number_of_rays);
-        if (number_of_rays % 10 == 0) {
+        if (number_of_rays % 5 == 0) {
             const rt::screen scr(width, height);
             scr.copy(matrix, width, height, number_of_rays);
             scr.update();
-            scr.wait_quit_event();
+            stop = scr.wait_quit_event();
             delete(&scr);
         }
     }

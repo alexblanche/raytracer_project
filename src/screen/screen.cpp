@@ -59,6 +59,7 @@ namespace rt {
 		while(SDL_WaitEvent(&event)) {
 			switch(event.type) {
 				case SDL_QUIT:
+					printf("SDL_QUIT event detected\n");
 					return true;
 					break;
 				case SDL_KEYDOWN:
@@ -117,7 +118,7 @@ namespace rt {
 			
 		for (unsigned int i = 0; i < width; i++) {
 			for (unsigned int j = 0; j < height; j++) {
-				const rt::color pixel_col = matrix.at(i).at(j);
+				const rt::color& pixel_col = matrix.at(i).at(j);
 				// Maxed values
 				const double r = std::min(pixel_col.get_red()   / number_of_rays, 255.0);
 				const double g = std::min(pixel_col.get_green() / number_of_rays, 255.0);
