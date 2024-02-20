@@ -2,6 +2,7 @@
 #include <fstream>
 #include <stdlib.h>
 #include <vector>
+#include <queue>
 
 #include "src/screen/headers/color.hpp"
 #include "src/scene/material/headers/material.hpp"
@@ -35,11 +36,15 @@ using namespace std;
 
 void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const unsigned int number_of_bounces) {
     
-    std::mutex m;
+    //std::mutex m;
 
-    PARALLEL_FOR_BEGIN(scene.width) {
+    //PARALLEL_FOR_BEGIN(scene.width) {
 
-        for (int j = 0; j < scene.height; j++) {
+        //for (int j = 0; j < scene.height; j++) {
+
+            unsigned int i = scene.width/2;
+            unsigned int j = 3*scene.height/4;
+            printf("Rendering %u, %u\n", i, j);
             
             const rt::vector& direct = (rt::vector(i, j, scene.distance) - scene.screen_center).unit();
             ray r = ray(scene.position, direct);
@@ -55,12 +60,13 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const
             const rt::color new_color = current_color + pixel_col;
 
             // Updating the color matrix
-            m.lock();
+            //m.lock();
             matrix.at(i).at(j) = new_color;
-            m.unlock();
-        }
+            //m.unlock();
+        //}
         
-    } PARALLEL_FOR_END();
+    //} PARALLEL_FOR_END();
+    printf("Rendering done.\n");
 }
 
 
@@ -199,6 +205,7 @@ int main(int argc, char *argv[]) {
         //light_material(rt::color(10, 180, 255), 3));
         material(rt::color(10, 180, 255), rt::color(), 1, 0, 0.3, false));*/
 
+    /* Creation of the triangles */
     const unsigned int number_of_triangles = 10*512;
     const double shift = (2 * 620) / (((double) number_of_triangles) - 1);
 
@@ -210,7 +217,8 @@ int main(int argc, char *argv[]) {
             light_material(rt::color(10, 180, 255), 0));
     }
     
-    
+    /* Bounding boxes definition */
+    /*
     vector<unsigned int> obvtr0(number_of_triangles/4);
     for(unsigned int i = 0; i < number_of_triangles/4; i++) {
         obvtr0.at(i) = 7 + i;
@@ -254,20 +262,49 @@ int main(int argc, char *argv[]) {
     const bounding bd2(&b2, {&ctr2});
     const bounding bd3(&b3, {&ctr3});
 
-    const box b01 = containing(bd0, bd1);
-    const bounding bd01 = bounding(&b01, {&bd0, &bd1});
-    const box b23 = containing(bd2, bd3);
-    const bounding bd23 = bounding(&b23, {&bd2, &bd3});
-
-    const box b = containing(bd01, bd23);
-    const bounding bd = bounding(&b, {&bd01, &bd23});
+    const bounding bd01 = containing_bounding(bd0, bd1);
+    const bounding bd23 = containing_bounding(bd2, bd3);
+    const bounding bd = containing_bounding(bd01, bd23);
 
     // Content (terminal): contains the six planes and the light box
     vector<unsigned int> obv = {pln0.get_index(), pln1.get_index(), pln2.get_index(), pln3.get_index(), pln4.get_index(), pln5.get_index(), bx_light.get_index()};
     const bounding c(obv);
 
     bounding::set = {&bd, &c};
+    */
+
+    queue<const bounding*> bounding_queue;
+    const unsigned int triangles_per_terminal = 10;
+
+    // Creation of the terminal nodes and their non-terminal containers
+    for(unsigned int i = 0; i < number_of_triangles / triangles_per_terminal; i++) {
+        std::vector<unsigned int>* v = new std::vector<unsigned int>(triangles_per_terminal);
+        for(unsigned int j = 0; j < triangles_per_terminal; j++) {
+            v->at(j) = 7 + i * triangles_per_terminal + j;
+        }
+        bounding_queue.push(containing_objects(*v));
+    }
+
     
+
+    // Grouping them by two until there is only one left
+    while (bounding_queue.size() != 1) {
+        const bounding* bd0 = bounding_queue.front();
+        bounding_queue.pop();
+        const bounding* bd1 = bounding_queue.front();
+        bounding_queue.pop();
+
+        const bounding* bd01 = containing_bounding(*bd0, *bd1);
+        bounding_queue.push(bd01);
+    }
+
+    const bounding c(
+        {pln0.get_index(), pln1.get_index(), pln2.get_index(), pln3.get_index(), pln4.get_index(), pln5.get_index(), bx_light.get_index()}
+    );
+
+    const bounding* bd = bounding_queue.front();
+    bounding::set = {bd, &c};
+
 
     /* Test of usefulness of bounding boxes:
     5120 triangles, 5 bounces, 1 ray:
@@ -298,15 +335,6 @@ int main(int argc, char *argv[]) {
 
     /* Definition of the matrix in which we will write the image */
     vector<vector<rt::color>> matrix(width, vector<rt::color>(height));
-
-    //render_loop_seq(matrix, scene, number_of_rays, number_of_bounces);
-    //render_loop_parallel(matrix, scene, number_of_rays, number_of_bounces);
-
-    // BMP file generation
-    //generate_bmp(matrix, "pathtrace.bmp");
-
-    // Display of the image on screen
-    //const rt::screen scr(width, height);
 
     printf("\rInitialization complete, computing the first ray...");
 

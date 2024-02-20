@@ -42,6 +42,9 @@ class triangle : public object {
 
         rt::vector get_normal() const;
 
+        rt::vector get_v1() const;
+        rt::vector get_v2() const;
+
 
         /* Intersection determination */
 

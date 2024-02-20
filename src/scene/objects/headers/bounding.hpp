@@ -58,11 +58,15 @@ class bounding {
             std::stack<unsigned int>& object_stack,
             std::stack<const bounding*>& bounding_stack) const;
 
-        static hit find_closest_object(const ray& r, const unsigned int bounce);
+        static hit find_closest_object(const ray& r);
 };
 
-/* Returns a bounding box (with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
+/* Returns a bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the bounding boxes bd0 and bd1 */
-box containing(const bounding& bd0, const bounding& bd1);
+bounding* containing_bounding(const bounding& bd0, const bounding& bd1);
+
+/* Returns a bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
+   containing the triangles whose indices are in the obj vector */
+bounding* containing_objects(const std::vector<unsigned int>& obj);
 
 

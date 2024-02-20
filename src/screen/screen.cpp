@@ -66,7 +66,7 @@ namespace rt {
 					break;
 			}
 		}
-		return true;
+		return false;
 	}
 
 	/**
