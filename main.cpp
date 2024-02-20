@@ -179,37 +179,42 @@ int main(int argc, char *argv[]) {
     */
     
     // Screen
-    const int width = 1366;
-    const int height = 768;
-    const double dist = 400; // Distance between the camera and the image
+    //const int width = 1366;
+    //const int height = 768;
+
+    // Distance between the camera and the image
+    //const double dist = 400;
 
     // The camera is supposed to be on the origin of the space: (0,0,0)
     
     // Vector that will center the 'screen' in the scene
-    const rt::vector screen_center(width/2, height/2, 0);
+    //const rt::vector screen_center(width/2, height/2, 0);
     
+    /*
     scene scene(object::set,
         rt::color(190, 235, 255), // Background color
         width, height, dist,
         rt::vector(0, 0, 0), // Camera position
         screen_center);
+    */
+    scene scene("scene.txt");
 
     /* ********************************************************** */
 
     /* Definition of the matrix in which we will write the image */
-    vector<vector<rt::color>> matrix(width, vector<rt::color>(height));
+    vector<vector<rt::color>> matrix(scene.width, vector<rt::color>(scene.height));
 
     printf("\rInitialization complete, computing the first ray...");
 
     render_loop_parallel(matrix, scene, number_of_bounces);
     
-    const rt::screen* scr = new rt::screen(width, height);
-    scr->copy(matrix, width, height, 1);
+    const rt::screen* scr = new rt::screen(scene.width, scene.height);
+    scr->copy(matrix, scene.width, scene.height, 1);
     scr->update();
 
     printf("\r                                                   ");
     printf("\rNumber of rays per pixel: 1");
-    
+
     scr->wait_quit_event();
     delete(scr);
 
@@ -223,8 +228,8 @@ int main(int argc, char *argv[]) {
 
         printf("\rNumber of rays per pixel: %u", number_of_rays);
         if (number_of_rays % 5 == 0) {
-            const rt::screen* scr = new rt::screen(width, height);
-            scr->copy(matrix, width, height, number_of_rays);
+            const rt::screen* scr = new rt::screen(scene.width, scene.height);
+            scr->copy(matrix, scene.width, scene.height, number_of_rays);
             scr->update();
             stop = scr->wait_quit_event();
             delete(scr);

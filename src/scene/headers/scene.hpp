@@ -14,14 +14,14 @@ class scene {
         const rt::color background;
 
         // Screen parameters
-        const int width;
-        const int height;
-        const double distance;
+        int width;
+        int height;
+        double distance;
 
         // Camera position
-        const rt::vector position;
+        rt::vector position;
         //const rt::vector direction;
-        const rt::vector screen_center;
+        rt::vector screen_center;
 
         // Random number generator
         randomgen rg;
@@ -29,6 +29,7 @@ class scene {
 
         /* Constructor */
 
+        /* Main constructor */
         scene(const std::vector<const object*>& obj_set,
             const rt::color background,
             const int width,
@@ -37,4 +38,7 @@ class scene {
             const rt::vector position,
             //const rt::vector direction,
             const rt::vector screen_center);
+
+        /* Constructor from an external file */
+        scene(const char* file_name);
 };

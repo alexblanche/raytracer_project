@@ -1,0 +1,5 @@
+width 1366
+height 768
+distance 200
+position 0 0 0
+background 190 235 255
