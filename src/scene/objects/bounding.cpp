@@ -34,6 +34,10 @@ bounding::bounding(const box* b, const std::vector<const bounding*>& children)
     : is_terminal(false), b(b), children(children) {}
 
 
+const box* bounding::get_b() const {
+    return b;
+}
+
 
 
 /* Tree-search version of the closest object to the ray r */
@@ -45,20 +49,15 @@ void bounding::check_box(const ray& r,
 
     if (is_terminal) {
         for (unsigned int i = 0; i < content.size(); i++) {
-            //printf("Pushing object of index %u\n", content.at(i));
             object_stack.push(content.at(i));
         }
     }
     else {
         if (b->measure_distance(r) != infinity) {
             for (unsigned int i = 0; i < children.size(); i++) {
-                //printf("Pushing one bounding box.\n");
                 bounding_stack.push(children.at(i));
             }
         }
-        //else {
-            //printf("One box was not intersected.\n");
-        //}
     }
 }
 
@@ -75,16 +74,10 @@ hit bounding::find_closest_object(const ray& r, const unsigned int bounce) {
     std::stack<unsigned int> object_stack;
     std::stack<const bounding*> bounding_stack;
 
-    //printf("Finding_closest_object: bounce = %u\n", bounce);
-
-    //printf("Step 1\n");
-
     /* Step 1: pass through the set of first-level bounding boxes */
     for (unsigned int i = 0; i < bounding::set.size(); i++) {
         bounding::set.at(i)->check_box(r, object_stack, bounding_stack);
     }
-
-    //printf("Step 2\n");
 
     /* Step 2: apply the same to the bounding box stack */
     while (not bounding_stack.empty()) {
@@ -92,8 +85,6 @@ hit bounding::find_closest_object(const ray& r, const unsigned int bounce) {
         bounding_stack.pop();
         bd->check_box(r, object_stack, bounding_stack);
     }
-
-    //printf("Step 3\n");
 
     /* Step 3: search through the objects of the object stack */
     double closest = infinity;
@@ -121,4 +112,32 @@ hit bounding::find_closest_object(const ray& r, const unsigned int bounce) {
     else {
         return hit();
     }
+}
+
+/* Returns a bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
+   containing the standard non-terminal bounding boxes bd0 and bd1 */
+box containing(const bounding& bd0, const bounding& bd1) {
+    const box* b0 = bd0.get_b();
+    const box* b1 = bd1.get_b();
+    const double bd0l1 = b0->get_l1();
+    const double bd0l2 = b0->get_l2();
+    const double bd0l3 = b0->get_l3();
+    const double bd1l1 = b1->get_l1();
+    const double bd1l2 = b1->get_l2();
+    const double bd1l3 = b1->get_l3();
+
+    const rt::vector& pos0 = b0->get_position();
+    const rt::vector& pos1 = b1->get_position();
+    const rt::vector position(
+        (pos1.x + bd1l1 + (pos0.x - bd0l1)) / 2,
+        (pos1.y + bd1l2 + (pos0.y - bd0l2)) / 2,
+        (pos1.z + bd1l3 + (pos0.z - bd0l3)) / 2);
+
+    const box b(position,
+        rt::vector(1,0,0), rt::vector(0,1,0),
+        (pos1.x - pos0.x) + bd0l1 + bd1l1,
+        (pos1.y - pos0.y) + bd0l2 + bd1l2,
+        (pos1.z - pos0.z) + bd0l3 + bd1l3);
+    
+    return b;
 }

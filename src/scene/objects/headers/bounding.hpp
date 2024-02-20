@@ -48,6 +48,10 @@ class bounding {
 
         /* Internal node constructor */
         bounding(const box* b, const std::vector<const bounding*>& children);
+
+        /* Accessors */
+
+        const box* get_b() const;
         
 
         void check_box(const ray& r,
@@ -56,5 +60,9 @@ class bounding {
 
         static hit find_closest_object(const ray& r, const unsigned int bounce);
 };
+
+/* Returns a bounding box (with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
+   containing the bounding boxes bd0 and bd1 */
+box containing(const bounding& bd0, const bounding& bd1);
 
 

@@ -23,6 +23,21 @@ box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
     : object(center, material()), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1/2), l2(l2/2), l3(l3/2) {}
 
 
+/* Accessors */
+
+double box::get_l1() const {
+    return l1;
+}
+
+double box::get_l2() const {
+    return l2;
+}
+
+double box::get_l3() const {
+    return l3;
+}
+
+
 /* Intersection determination */
 
 double box::measure_distance(const ray& r) const {

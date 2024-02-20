@@ -199,21 +199,83 @@ int main(int argc, char *argv[]) {
         //light_material(rt::color(10, 180, 255), 3));
         material(rt::color(10, 180, 255), rt::color(), 1, 0, 0.3, false));*/
 
-    const unsigned int number_of_triangles = 1000;
+    const unsigned int number_of_triangles = 10*512;
     const double shift = (2 * 620) / (((double) number_of_triangles) - 1);
-    //const double color_shift = 245 / (((double) number_of_triangles) - 1);
 
     for(unsigned int i = 0; i < number_of_triangles; i++) {
         new triangle(
             rt::vector(-620 + 0   + shift * ((double) i), -100, 600),
             rt::vector(-620 + 100 + shift * ((double) i),  100, 500),
             rt::vector(-620 + 80  + shift * ((double) i), -200, 700),
-            light_material(rt::color(10/*+ color_shift * ((double) i)*/, 180, 255), 0));
+            light_material(rt::color(10, 180, 255), 0));
     }
+    
+    
+    vector<unsigned int> obvtr0(number_of_triangles/4);
+    for(unsigned int i = 0; i < number_of_triangles/4; i++) {
+        obvtr0.at(i) = 7 + i;
+    }
+    const bounding ctr0(obvtr0);
 
-    //const sphere sph(rt::vector(0, -300, 600), 80, material(rt::color::WHITE, 0.6));
+    
+    vector<unsigned int> obvtr1(number_of_triangles/4);
+    for(unsigned int i = 0; i < number_of_triangles/4; i++) {
+        obvtr1.at(i) = 7 + (number_of_triangles/4) + i;
+    }
+    const bounding ctr1(obvtr1);
 
-    /* Test of usefulness of bounding boxes:    
+    vector<unsigned int> obvtr2(number_of_triangles/4);
+    for(unsigned int i = 0; i < number_of_triangles/4; i++) {
+        obvtr2.at(i) = 7 + (number_of_triangles/2) + i;
+    }
+    const bounding ctr2(obvtr2);
+
+    vector<unsigned int> obvtr3(number_of_triangles/4);
+    for(unsigned int i = 0; i < number_of_triangles/4; i++) {
+        obvtr3.at(i) = 7 + (3*number_of_triangles/4) + i;
+    }
+    const bounding ctr3(obvtr3);
+
+    const box b0(rt::vector((-310+100+(-620))/2, -50, 600),
+        rt::vector(1,0,0), rt::vector(0,1,0),
+        (-310+100 - (-620)), 302, 202);
+    const box b1(rt::vector((-310+100)/2, -50, 600),
+        rt::vector(1,0,0), rt::vector(0,1,0),
+        100-(-310), 302, 202);
+    const box b2(rt::vector((310+100)/2, -50, 600),
+        rt::vector(1,0,0), rt::vector(0,1,0),
+        310+100, 302, 202);
+    const box b3(rt::vector((620+100 + 310)/2, -50, 600),
+        rt::vector(1,0,0), rt::vector(0,1,0),
+        620+100-310, 302, 202);
+
+    const bounding bd0(&b0, {&ctr0});
+    const bounding bd1(&b1, {&ctr1});
+    const bounding bd2(&b2, {&ctr2});
+    const bounding bd3(&b3, {&ctr3});
+
+    const box b01 = containing(bd0, bd1);
+    const bounding bd01 = bounding(&b01, {&bd0, &bd1});
+    const box b23 = containing(bd2, bd3);
+    const bounding bd23 = bounding(&b23, {&bd2, &bd3});
+
+    const box b = containing(bd01, bd23);
+    const bounding bd = bounding(&b, {&bd01, &bd23});
+
+    // Content (terminal): contains the six planes and the light box
+    vector<unsigned int> obv = {pln0.get_index(), pln1.get_index(), pln2.get_index(), pln3.get_index(), pln4.get_index(), pln5.get_index(), bx_light.get_index()};
+    const bounding c(obv);
+
+    bounding::set = {&bd, &c};
+    
+
+    /* Test of usefulness of bounding boxes:
+    5120 triangles, 5 bounces, 1 ray:
+    with the object method:   6'10"
+    with the bounding method:
+    1 box:   3'50" (or slightly more)
+    2 boxes: 2'37"
+    4 boxes: 1'43"
     */
     
     // Screen
