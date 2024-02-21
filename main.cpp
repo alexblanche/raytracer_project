@@ -79,6 +79,20 @@ int main(int argc, char *argv[]) {
 
     /* *************************** */
     /* Scene description */
+
+    // Screen
+    //const int width = 1366;
+    //const int height = 768;
+
+    // Distance between the camera and the image
+    //const double dist = 400;
+
+    // The camera is supposed to be on the origin of the space: (0,0,0)
+    
+    // Vector that will center the 'screen' in the scene
+    //const rt::vector screen_center(width/2, height/2, 0);
+    
+    scene scene("scene.txt");
     
     /* Orientation of the space:
     negative x on the left, positive on the right
@@ -98,17 +112,19 @@ int main(int argc, char *argv[]) {
     //const triangle tr1(rt::vector(-950, -500, 1150), rt::vector(950, -500, 1150), rt::vector(950, -500, 50), light_material(rt::color(10, 180, 255), 0));
 
     // Planes
+    /*
     const plane pln0(0, -1, 0, rt::vector(0, 160, 0),   material(rt::color(10, 10, 10), rt::color(), 0.2, 0, 0.2, false));
     const plane pln1(0, 0, -1, rt::vector(0, 0, 1200),  light_material(rt::color::WHITE, 0));
     const plane pln2(1, 0, 0,  rt::vector(-1000, 0, 0), material(rt::color(255, 80, 80), 0));
     const plane pln3(-1, 0, 0, rt::vector(1000, 0, 0),  material(rt::color(80, 255, 80), 0));
-    const plane pln4(0, 0, 1,  rt::vector(0, 0, 0),     light_material(rt::color(10, 180, 255), 0)); /*light_material(rt::color::WHITE, 0));*/
+    const plane pln4(0, 0, 1,  rt::vector(0, 0, 0),     light_material(rt::color(10, 180, 255), 0)); //light_material(rt::color::WHITE, 0));
     const plane pln5(0, 1, 0,  rt::vector(0, -600, 0),  material(rt::color(10, 10, 10), rt::color(), 0.8, 0, 0.5, false)); //light_material(rt::color::WHITE, 1.5));
     
     const box bx_light(rt::vector(0, -600, 600),
         rt::vector(1, 0, 0), rt::vector(0, 1, 0),
         800, 30, 400,
         light_material(rt::color::WHITE, 5));
+    */
 
     /*const box bx0(rt::vector(166, -200, 600),
         rt::vector(100, 100, -100).unit(), rt::vector(-200, 100, -100).unit(),
@@ -125,7 +141,7 @@ int main(int argc, char *argv[]) {
         material(rt::color(10, 180, 255), rt::color(), 1, 0, 0.3, false));*/
 
     /* Creation of the triangles */
-    const unsigned int number_of_triangles = 10 * 512;
+    /*const unsigned int number_of_triangles = 10 * 512;
     const double shift = (2 * 620) / (((double) number_of_triangles) - 1);
 
     for(unsigned int i = 0; i < number_of_triangles; i++) {
@@ -136,10 +152,23 @@ int main(int argc, char *argv[]) {
             light_material(rt::color(10, 180, 255), 0));
     }
     
-    /* Automatic bounding boxes definition */
+    // Automatic bounding boxes definition
     queue<const bounding*> bounding_queue;
-    const unsigned int triangles_per_terminal = 10;
+    const unsigned int triangles_per_terminal = 5120;
+    */
+    /* Search for the best parameter:
+    triangles_per_terminal should be 10 times a power of 2
+    5 -> 40"
+    10 -> 33"
+    20 -> 27.5"
+    40 -> 26"
+    80 -> 25"
+    160 -> 26"
+    ...
+    5120 -> 2'05"
+    Best so far: around 80 (for this distribution of triangles) */
 
+    /*
     // Creation of the terminal nodes and their non-terminal containers
     for(unsigned int i = 0; i < number_of_triangles / triangles_per_terminal; i++) {
         vector<unsigned int> v(triangles_per_terminal);
@@ -166,6 +195,7 @@ int main(int argc, char *argv[]) {
 
     const bounding* bd = bounding_queue.front();
     bounding::set = {bd, &c};
+    */
 
 
     /* Test of usefulness of bounding boxes:
@@ -178,27 +208,15 @@ int main(int argc, char *argv[]) {
     automatic boxing, 10 tr per box, total 1023 boxes: 46"
     -> optimization of the search (without obj_stack): 33"
     */
-    
-    // Screen
-    //const int width = 1366;
-    //const int height = 768;
 
-    // Distance between the camera and the image
-    //const double dist = 400;
-
-    // The camera is supposed to be on the origin of the space: (0,0,0)
+    /* Temporary: pushing all objects to the bounding set */
+    vector<unsigned int> indices(object::set.size());
+    for (unsigned int i = 0; i < object::set.size(); i++) {
+        indices.at(i) = object::set.at(i)->get_index();
+    }
+    const bounding c(indices);
+    bounding::set = {&c};
     
-    // Vector that will center the 'screen' in the scene
-    //const rt::vector screen_center(width/2, height/2, 0);
-    
-    /*
-    scene scene(object::set,
-        rt::color(190, 235, 255), // Background color
-        width, height, dist,
-        rt::vector(0, 0, 0), // Camera position
-        screen_center);
-    */
-    scene scene("scene.txt");
 
     /* ********************************************************** */
 
@@ -228,7 +246,7 @@ int main(int argc, char *argv[]) {
         render_loop_parallel(matrix, scene, number_of_bounces);
 
         printf("\rNumber of rays per pixel: %u", number_of_rays);
-        if (number_of_rays % 5 == 0) {
+        if (number_of_rays % 10 == 0) {
             const rt::screen* scr = new rt::screen(scene.width, scene.height);
             scr->copy(matrix, scene.width, scene.height, number_of_rays);
             scr->update();

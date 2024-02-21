@@ -29,20 +29,25 @@
 rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
 
     rt::color color_materials = rt::color::WHITE;
-    rt::color emitted_colors = rt::color::BLACK;
+    rt::color emitted_colors = rt::color::BLACK;    
 
     for (unsigned int i = 0; i < bounce; i++) {
 
-        /* Linear search through object::set */
-        //const hit h = object::find_closest_object(r);
-
-        /* Tree search through the bounding boxes */
-        const hit h = bounding::find_closest_object(r);
+        
+        hit h;
+        if (scene.triangles_per_bounding != 0) {
+            // Tree search through the bounding boxes
+            h = bounding::find_closest_object(r);
+        }
+        else {
+            // Linear search through object::set
+            h = object::find_closest_object(r);
+        }
         
         r.set_origin_index(h.get_obj_index());
 
         if (h.is_hit()) {
-            const material& m = scene.obj_set.at(h.get_obj_index())->get_material();
+            const material& m = object::set.at(h.get_obj_index())->get_material();
             const double reflectivity = m.get_reflectivity();
 
             if (m.get_emission_intensity() >= 1) {
