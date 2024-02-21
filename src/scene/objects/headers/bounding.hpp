@@ -43,8 +43,11 @@ class bounding {
         
         bounding(const bool is_terminal, const box* b, const std::vector<unsigned int>& content, const std::vector<const bounding*>& children);
 
-        /* Terminal node constructor */
+        /* Container node constructor (only for first-level non-triangle objects) */
         bounding(const std::vector<unsigned int>& content);
+
+        /* Terminal node constructor (with a bounding box, containing triangles) */
+        bounding(const std::vector<unsigned int>& content, const box* b);
 
         /* Internal node constructor */
         bounding(const box* b, const std::vector<const bounding*>& children);

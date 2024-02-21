@@ -24,10 +24,15 @@ bounding::bounding(const bool is_terminal, const box* b, const std::vector<unsig
 
     : is_terminal(is_terminal), b(b), content(content), children(children) {}
 
-/* Terminal node constructor */
+/* Container node constructor (only for first-level non-triangle objects) */
 bounding::bounding(const std::vector<unsigned int>& content)
 
-    : is_terminal(true), content(content) {}
+    : is_terminal(true), b(NULL), content(content) {}
+
+/* Terminal node constructor (with a bounding box, containing triangles) */
+bounding::bounding(const std::vector<unsigned int>& content, const box* b)
+
+    : is_terminal(true), b(b), content(content) {}
 
 /* Internal node constructor */
 bounding::bounding(const box* b, const std::vector<const bounding*>& children)
@@ -59,13 +64,15 @@ void bounding::check_box(const ray& r,
     std::stack<const bounding*>& bounding_stack) const {
 
     if (is_terminal) {
-        for (unsigned int i = 0; i < content.size(); i++) {
-            const unsigned int obj_i = content.at(i);
-            if (obj_i != origin_obj_index) {
-                const double d = object::set.at(obj_i)->measure_distance(r);
-                if (d < closest) {
-                    closest = d;
-                    closest_index = obj_i;
+        if (b == NULL || b->measure_distance(r) != infinity) {
+            for (unsigned int i = 0; i < content.size(); i++) {
+                const unsigned int obj_i = content.at(i);
+                if (obj_i != origin_obj_index) {
+                    const double d = object::set.at(obj_i)->measure_distance(r);
+                    if (d < closest) {
+                        closest = d;
+                        closest_index = obj_i;
+                    }
                 }
             }
         }
@@ -145,8 +152,6 @@ bounding* containing_bounding(const bounding& bd0, const bounding& bd1) {
    containing the triangles whose indices are in the obj vector */
 bounding* containing_objects(const std::vector<unsigned int>& obj) {
 
-    const bounding* container = new bounding(obj);
-
     double min_x = infinity;
     double max_x = -infinity;
     double min_y = infinity;
@@ -178,8 +183,10 @@ bounding* containing_objects(const std::vector<unsigned int>& obj) {
     const box* b = new box(
         rt::vector((max_x + min_x) / 2, (max_y + min_y) / 2, (max_z + min_z) / 2),
         rt::vector(1, 0, 0), rt::vector(0, 1, 0),
-        max_x - min_x, max_y - min_y, max_z - min_z
+        max_x - min_x,
+        max_y - min_y,
+        max_z - min_z
     );
 
-    return new bounding(b, {container});
+    return new bounding(obj, b);
 }
