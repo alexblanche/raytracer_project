@@ -176,6 +176,7 @@ int main(int argc, char *argv[]) {
     2 boxes: 2'37"
     4 boxes: 1'43"
     automatic boxing, 10 tr per box, total 1023 boxes: 46"
+    -> optimization of the search (without obj_stack): 33"
     */
     
     // Screen

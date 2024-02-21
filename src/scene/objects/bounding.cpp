@@ -54,12 +54,20 @@ const std::vector<const bounding*>& bounding::get_children() const {
 
 /* Auxiliary function */
 void bounding::check_box(const ray& r,
-    std::stack<unsigned int>& object_stack,
+    double& closest, unsigned int& closest_index,
+    unsigned int origin_obj_index,
     std::stack<const bounding*>& bounding_stack) const {
 
     if (is_terminal) {
         for (unsigned int i = 0; i < content.size(); i++) {
-            object_stack.push(content.at(i));
+            const unsigned int obj_i = content.at(i);
+            if (obj_i != origin_obj_index) {
+                const double d = object::set.at(obj_i)->measure_distance(r);
+                if (d < closest) {
+                    closest = d;
+                    closest_index = obj_i;
+                }
+            }
         }
     }
     else {
@@ -73,51 +81,32 @@ void bounding::check_box(const ray& r,
 
 hit bounding::find_closest_object(const ray& r) {
     /* For all the bounding boxes in bounding::set, we do the following:
-       If the bounding box is terminal, add its content to the object stack.
-       If it is internal, check the the ray intersects the box.
-       If it does, add its children to the bounding stack.
-       Then apply the same algorithm to the bounding box stack, until it is empty.
-       Finally, apply a linear search for the object of minimum distance on the
-       objects of the object stack.
+       If the bounding box is terminal, look for the object of minimum distance.
+       If it is internal, if the ray intersects the box, add its children to the bounding stack.
+       Then apply the same algorithm to the bounding stack, until it is empty.
+       Finally, compute the hit associated with the object of minimum distance.
      */
 
-    std::stack<unsigned int> object_stack;
-    std::stack<const bounding*> bounding_stack;
-
-    /* Step 1: pass through the set of first-level bounding boxes */
-    for (unsigned int i = 0; i < bounding::set.size(); i++) {
-        bounding::set.at(i)->check_box(r, object_stack, bounding_stack);
-    }
-
-    /* Step 2: apply the same to the bounding box stack */
-    while (not bounding_stack.empty()) {
-        const bounding* bd = bounding_stack.top();
-        bounding_stack.pop();
-        bd->check_box(r, object_stack, bounding_stack);
-    }
-
-    /* Step 3: search through the objects of the object stack */
     double closest = infinity;
     unsigned int closest_index = -1;
     const unsigned int origin_obj_index = r.get_origin_index();
-    const std::vector<const object*>& obj_set = object::set;
+    std::stack<const bounding*> bounding_stack;
 
-    while (not object_stack.empty()) {
-        unsigned int i = object_stack.top();
-        object_stack.pop();
-        if (i != origin_obj_index) {
-            const double d = obj_set.at(i)->measure_distance(r);
-            if (d < closest) {
-                closest = d;
-                closest_index = i;
-            }
-        } 
+    /* Pass through the set of first-level bounding boxes */
+    for (unsigned int i = 0; i < bounding::set.size(); i++) {
+        bounding::set.at(i)->check_box(r, closest, closest_index, origin_obj_index, bounding_stack);
+    }
+
+    /* Apply the same to the bounding box stack */
+    while (not bounding_stack.empty()) {
+        const bounding* bd = bounding_stack.top();
+        bounding_stack.pop();
+        bd->check_box(r, closest, closest_index, origin_obj_index, bounding_stack);
     }
 
     /* Finally, return the hit corresponding to the closest object intersected by the ray */
     if (closest_index != (unsigned int) -1) {
-        //printf("Returning true: closest_index = %u\n", closest_index);
-        return obj_set.at(closest_index)->compute_intersection(r, closest);
+        return object::set.at(closest_index)->compute_intersection(r, closest);
     }
     else {
         return hit();

@@ -59,7 +59,8 @@ class bounding {
         
 
         void check_box(const ray& r,
-            std::stack<unsigned int>& object_stack,
+            double& closest, unsigned int& closest_index,
+            unsigned int origin_obj_index,
             std::stack<const bounding*>& bounding_stack) const;
 
         static hit find_closest_object(const ray& r);
