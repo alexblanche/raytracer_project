@@ -78,7 +78,7 @@ double triangle::measure_distance(const ray& r) const {
     // Check if the point of intersection lies inside the triangle
     /* The system we try to solve is:
        l1 * v1 + l2 * v2 = c (= pt - pos), so 3 equations (on x, y, z) and two variables.
-       We calculate the solution to the rows x and y, and then check if it solves the row z.
+       We calculate the solution to the rows x and y (it necessarily solves row z)
        
        According to Cramer's rule, the solution to
        ax + by = e
@@ -89,12 +89,12 @@ double triangle::measure_distance(const ray& r) const {
        l1 = (cx * v2y - cy * v2x) / det and l2 = (v1x * cy - v1y * cx) / det */
 
     const rt::vector c = u + (t * dir) - position;
-    const double det = v1.x * v2.y - v1.y * v2.x;
+    const double detxy = v1.x * v2.y - v1.y * v2.x;
 
-    if (abs(det) > 0.00001) {
-        const double l1 = (c.x * v2.y - c.y * v2.x) / det;
+    if (abs(detxy) > 0.00001) {
+        const double l1 = (c.x * v2.y - c.y * v2.x) / detxy;
         if (l1 >= 0 && l1 <= 1) {
-            const double l2 = (v1.x * c.y - v1.y * c.x) / det;
+            const double l2 = (v1.x * c.y - v1.y * c.x) / detxy;
             if (l2 >= 0 && l1 + l2 <= 1) {
                 return t;
             }
@@ -108,7 +108,7 @@ double triangle::measure_distance(const ray& r) const {
     }
     else {
         // The vectors v1, v2 are colinear when projected on the plane z = 0
-        // Another attempt with rows x, z (if it fails, it also fails for rows y, z)
+        // Another attempt with rows x, z
         const double detxz = v1.x * v2.z - v1.z * v2.x;
         if (abs(detxz) > 0.00001) {
             const double l1xz = (c.x * v2.z - c.z * v2.x) / detxz;
@@ -126,7 +126,28 @@ double triangle::measure_distance(const ray& r) const {
             }
         }
         else {
-            return infinity;
+            // The vectors v1, v2 are colinear when projected on the planes y = 0 and z = 0
+            // (e.g. the triangle lies in the plane x = constant)
+            // Last attempt with rows y, z
+            const double detyz = v1.y * v2.z - v1.z * v2.y;
+            if (abs(detyz) > 0.00001) {
+                const double l1yz = (c.y * v2.z - c.z * v2.y) / detyz;
+                if (l1yz >= 0 && l1yz <= 1) {
+                    const double l2yz = (v1.y * c.z - v1.z * c.y) / detyz;
+                    if (l2yz >= 0 && l1yz + l2yz <= 1) {
+                        return t;
+                    }
+                    else {
+                        return infinity;
+                    }
+                }
+                else {
+                    return infinity;
+                }
+            }
+            else {
+                return infinity;
+            }
         }
     }
 }
@@ -138,15 +159,22 @@ double triangle::measure_distance(const ray& r) const {
 void triangle::get_barycentric(const rt::vector& p, double& l1, double& l2) const {
 
     const rt::vector c = p - position;
-    const double det = v1.x * v2.y - v1.y * v2.x;
-    if (abs(det) > 0.00001) {
-        l1 = (c.x * v2.y - c.y * v2.x) / det;
-        l2 = (v1.x * c.y - v1.y * c.x) / det;
+    const double detxy = v1.x * v2.y - v1.y * v2.x;
+    if (abs(detxy) > 0.00001) {
+        l1 = (c.x * v2.y - c.y * v2.x) / detxy;
+        l2 = (v1.x * c.y - v1.y * c.x) / detxy;
     }
     else {
         const double detxz = v1.x * v2.z - v1.z * v2.x;
-        l1 = (c.x * v2.z - c.z * v2.x) / detxz;
-        l2 = (v1.x * c.z - v1.z * c.x) / detxz;
+        if (abs(detxz) > 0.00001) {
+            l1 = (c.x * v2.z - c.z * v2.x) / detxz;
+            l2 = (v1.x * c.z - v1.z * c.x) / detxz;
+        }
+        else {
+            const double detyz = v1.y * v2.z - v1.z * v2.y;
+            l1 = (c.y * v2.z - c.z * v2.y) / detyz;
+            l2 = (v1.y * c.z - v1.z * c.y) / detyz;
+        }
     }
 }
 

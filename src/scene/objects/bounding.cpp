@@ -162,6 +162,7 @@ bounding* containing_objects(const std::vector<unsigned int>& obj) {
     /* Computation of the dimensions of the triangle set */
     for(unsigned int i = 0; i < obj.size(); i++) {
         const rt::vector& p0 = object::set.at(obj.at(i))->get_position();
+        // To do: adapt to also handle quads
         const rt::vector p1 = p0 + ((triangle*) object::set.at(obj.at(i)))->get_v1();
         const rt::vector p2 = p0 + ((triangle*) object::set.at(obj.at(i)))->get_v2();
 
