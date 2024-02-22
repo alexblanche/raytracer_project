@@ -3,19 +3,12 @@ height 768
 distance 400
 position 0 0 0
 background 190 235 255
-triangles_per_bounding 0
+triangles_per_bounding 80
 
-sphere center:(-500,0,600) radius:120 material:(color:(255,255,255) emitted_color:(0,0,0) reflectivity:1 emission:0 specular_p:1.0 reflects_color:false)
-sphere center:(-166,0,600) radius:120 material:(color:(255,255,255) emitted_color:(0,0,0) reflectivity:1 emission:0 specular_p:0.5 reflects_color:false)
-sphere center:(166,0,600) radius:120 material:(color:(255,255,255) emitted_color:(0,0,0) reflectivity:1 emission:0 specular_p:0.1 reflects_color:false)
-sphere center:(500,0,600) radius:120 material:(color:(255,255,255) emitted_color:(0,0,0) reflectivity:1 emission:0 specular_p:0.05 reflects_color:false)
 plane normal:(0,-1,0) position:(0,160,0) material:(color:(10,10,10) emitted_color:(0,0,0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false)
 plane normal:(0,0,-1) position:(0,0,1200) material:(color:(255,255,255) emitted_color:(0,0,0) reflectivity:0 emission:0 specular_p:0 reflects_color:false)
 plane normal:(1,0,0) position:(-1000,0,0) material:(color:(255,80,80) emitted_color:(0,0,0) reflectivity:0 emission:0 specular_p:0 reflects_color:false)
 plane normal:(-1,0,0) position:(1000,0,0) material:(color:(80,255,80) emitted_color:(0,0,0) reflectivity:0 emission:0 specular_p:0 reflects_color:false)
 plane normal:(0,0,1) position:(0,0,0) material:(color:(10,180,255) emitted_color:(0,0,0) reflectivity:0 emission:0 specular_p:0 reflects_color:false)
 plane normal:(0,1,0) position:(0,-600,0) material:(color:(10,10,10) emitted_color:(0,0,0) reflectivity:0.8 emission:0 specular_p:0.5 reflects_color:false)
-box center:(0,-600,600) x_axis:(1,0,0) y_axis:(0,1,0) 800 30 400 material:(color:(255,255,255) emitted_color:(255,255,255) reflectivity:0 emission:5 specular_p:0 reflects_color:false)
-quad (900,-400,900) (900,100,900) (900,100,200) (900,-400,200) material:(color:(255,255,255) emitted_color:(10,10,255) reflectivity:0 emission:2 specular_p:0 reflects_color:false)
-quad (-100,-400,900) (-300,-100,900) (700,-80,900) (400,-400,900) material:(color:(255,255,255) emitted_color:(255,255,255) reflectivity:0 emission:2 specular_p:0 reflects_color:false)
-quad (-300,-500,500) (-300,100,500) (-300,100,900) (-300,-500,900) material:(color:(255,255,255) emitted_color:(10,255,10) reflectivity:0 emission:2 specular_p:0 reflects_color:false)
+quad (-400,-599,800) (-400,-599,400) (400,-599,400) (400,-599,800) material:(color:(255,255,255) emitted_color:(255,255,255) reflectivity:0 emission:5 specular_p:0 reflects_color:false)

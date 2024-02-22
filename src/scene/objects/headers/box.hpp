@@ -41,4 +41,8 @@ class box : public object {
         double measure_distance(const ray& r) const;
         
         hit compute_intersection(const ray& r, const double t) const;
+
+        /* Specific to boxes: returns 0 when the origin is inside the box,
+           only returns a boolean that indicates whether the ray intersects the box */
+        bool does_hit(const ray& r) const;
 };

@@ -37,6 +37,8 @@ using namespace std;
 void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const unsigned int number_of_bounces) {
     
     mutex m;
+    // float cpt = 0;
+    // float x = 100.0 / (((double) scene.width) * ((double) scene.height));
 
     PARALLEL_FOR_BEGIN(scene.width) {
 
@@ -49,12 +51,17 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const
             
             const rt::color& current_color = matrix.at(i).at(j);
             const rt::color new_color = current_color + pixel_col;
+            // cpt += 1;
 
             // Updating the color matrix
             m.lock();
             matrix.at(i).at(j) = new_color;
             m.unlock();
         }
+
+        // m.lock();
+        // printf("%f / 100\n", cpt * x);
+        // m.unlock();
         
     } PARALLEL_FOR_END();
 }
@@ -89,7 +96,23 @@ int main(int argc, char *argv[]) {
     */
 
     /* Creation of the triangles */
-    /*const unsigned int number_of_triangles = 10 * 512;
+    const unsigned int triangles_per_terminal = 80;
+    const unsigned int number_of_triangles = 10 * 512;
+    //const unsigned int triangles_per_terminal = 100;
+    //const unsigned int number_of_triangles = 100 * 16384;
+
+    /* Time test:
+        10 tpt, 5120 tr -> 34"
+        80 tpt, 5120 tr -> 26"
+        100 tpt, 1'638'400 tr -> estimated 78.5min = 4700" :'(
+        tr * 320, time * 180... :(
+        Not good considering the algorithm is supposed to be logarithmic...
+
+        New optimization (method does_hit instead of measure_distance)
+        
+    */
+
+
     const double shift = (2 * 620) / (((double) number_of_triangles) - 1);
 
     for(unsigned int i = 0; i < number_of_triangles; i++) {
@@ -102,21 +125,10 @@ int main(int argc, char *argv[]) {
     
     // Automatic bounding boxes definition
     queue<const bounding*> bounding_queue;
-    const unsigned int triangles_per_terminal = 5120;
-    */
-    /* Search for the best parameter:
-    triangles_per_terminal should be 10 times a power of 2
-    5 -> 40"
-    10 -> 33"
-    20 -> 27.5"
-    40 -> 26"
-    80 -> 25"
-    160 -> 26"
-    ...
-    5120 -> 2'05"
-    Best so far: around 80 (for this distribution of triangles) */
 
-    /*
+
+
+    
     // Creation of the terminal nodes and their non-terminal containers
     for(unsigned int i = 0; i < number_of_triangles / triangles_per_terminal; i++) {
         vector<unsigned int> v(triangles_per_terminal);
@@ -136,19 +148,24 @@ int main(int argc, char *argv[]) {
         const bounding* bd01 = containing_bounding(*bd0, *bd1);
         bounding_queue.push(bd01);
     }
-    */
-
-    /* Temporary: pushing all objects to the bounding set */
+    
+    vector<unsigned int> indices(7);
+    for (unsigned int i = 0; i < 7; i++) {
+        indices.at(i) = object::set.at(i)->get_index();
+    }
+    const bounding c(indices);
+    const bounding* bd = bounding_queue.front();
+    bounding::set = {bd, &c};
+    
+    /*
+    // Temporary: pushing all objects to the bounding set
     vector<unsigned int> indices(object::set.size());
     for (unsigned int i = 0; i < object::set.size(); i++) {
         indices.at(i) = object::set.at(i)->get_index();
     }
     const bounding c(indices);
-    /*
-    const bounding* bd = bounding_queue.front();
-    bounding::set = {bd, &c};
-    */
     bounding::set = {&c};
+    */
 
     /* Test of usefulness of bounding boxes:
     5120 triangles, 5 bounces, 1 ray:

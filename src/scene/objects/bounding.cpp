@@ -64,7 +64,7 @@ void bounding::check_box(const ray& r,
     std::stack<const bounding*>& bounding_stack) const {
 
     if (is_terminal) {
-        if (b == NULL || b->measure_distance(r) != infinity) {
+        if (b == NULL || b->does_hit(r)) {
             for (unsigned int i = 0; i < content.size(); i++) {
                 const unsigned int obj_i = content.at(i);
                 if (obj_i != origin_obj_index) {
@@ -78,7 +78,7 @@ void bounding::check_box(const ray& r,
         }
     }
     else {
-        if (b->measure_distance(r) != infinity) {
+        if (b->does_hit(r)) {
             for (unsigned int i = 0; i < children.size(); i++) {
                 bounding_stack.push(children.at(i));
             }

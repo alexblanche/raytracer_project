@@ -73,6 +73,8 @@ double box::measure_distance(const ray& r) const {
     const double pmun1 = (pmu | n1);
     const double pmun2 = (pmu | n2);
     const double pmun3 = (pmu | n3);
+
+    // TODO: delete this condition and adapt the code to work inside the box
     if (abs(pmun1) <= l1 && abs(pmun2) <= l2 && abs(pmun3) <= l3) {
         // u is inside the box
         return 0;
@@ -242,4 +244,71 @@ hit box::compute_intersection(const ray& r, const double t) const {
             } 
         }   
     }   
+}
+
+bool box::does_hit(const ray& r) const {
+
+    // Fall-back option
+    //return (measure_distance(r) != infinity);
+    
+    const rt::vector& dir = r.get_direction();
+
+    // See measure_distance
+
+    const rt::vector pmu = position - r.get_origin();
+    const double pmun1 = (pmu | n1);
+    const double pmun2 = (pmu | n2);
+    const double pmun3 = (pmu | n3);
+    
+    if (abs(pmun1) <= l1 && abs(pmun2) <= l2 && abs(pmun3) <= l3) {
+        // u is inside the box
+        return true;
+    }
+
+    const double pdt1 = (dir | n1);
+    const double pdt2 = (dir | n2);
+    const double pdt3 = (dir | n3);
+
+    const double abspdt1 = abs(pdt1);
+
+    if (abspdt1 > 0.0000001) {
+        // Determination of t1
+        const double t1 = pmun1 / pdt1 - l1 / abspdt1;
+        if (t1 < 0) { return false; }
+
+        // Check that t1 gives a point inside the face
+        const double checkpdt2 = pmun2 - t1 * pdt2;
+        if (abs(checkpdt2) <= l2) {
+            const double checkpdt3 = pmun3 - t1 * pdt3;
+            if (abs(checkpdt3) <= l3) { return true; }
+        }
+    }
+
+    const double abspdt2 = abs(pdt2);
+
+    if (abspdt2 > 0.0000001) {
+        const double t2 = pmun2 / pdt2 - l2 / abspdt2;
+        if (t2 < 0) { return false; }
+    
+        const double checkpdt1 = pmun1 - t2 * pdt1;
+        if (abs(checkpdt1) <= l1) {
+            const double checkpdt3 = pmun3 - t2 * pdt3;
+            if (abs(checkpdt3) <= l3) { return true; }
+        }
+    }
+
+    const double abspdt3 = abs(pdt3);
+
+    if (abspdt3 > 0.0000001) {
+        const double t3 = pmun3 / pdt3 - l3 / abspdt3;
+        if (t3 < 0) { return false; }
+        
+        const double checkpdt1 = pmun1 - t3 * pdt1;
+        if (abs(checkpdt1) <= l1) {
+            const double checkpdt2 = pmun2 - t3 * pdt2;
+            if (abs(checkpdt2) <= l2) { return true; }
+        }   
+    }
+
+    return false;
 }
