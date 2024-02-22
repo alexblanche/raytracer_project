@@ -91,7 +91,7 @@ double triangle::measure_distance(const ray& r) const {
     const rt::vector c = u + (t * dir) - position;
     const double det = v1.x * v2.y - v1.y * v2.x;
 
-    if (det * det > 0.00001) {
+    if (abs(det) > 0.00001) {
         const double l1 = (c.x * v2.y - c.y * v2.x) / det;
         if (l1 >= 0 && l1 <= 1) {
             const double l2 = (v1.x * c.y - v1.y * c.x) / det;
@@ -110,7 +110,7 @@ double triangle::measure_distance(const ray& r) const {
         // The vectors v1, v2 are colinear when projected on the plane z = 0
         // Another attempt with rows x, z (if it fails, it also fails for rows y, z)
         const double detxz = v1.x * v2.z - v1.z * v2.x;
-        if (detxz * detxz > 0.00001) {
+        if (abs(detxz) > 0.00001) {
             const double l1xz = (c.x * v2.z - c.z * v2.x) / detxz;
             if (l1xz >= 0 && l1xz <= 1) {
                 const double l2xz = (v1.x * c.z - v1.z * c.x) / detxz;
@@ -131,23 +131,23 @@ double triangle::measure_distance(const ray& r) const {
     }
 }
 
-/* Returns a vector (only the first two coordinates matter) with the barycentric coordinates (l1, l2):
+/* Writes the barycentric coordinates in variables l1, l2:
    p = position + l1 * v1 + l2 * v2
    (0 <= l1, l2 <= 1)
 */
-rt::vector triangle::get_barycentric(const rt::vector& p) const {
+void triangle::get_barycentric(const rt::vector& p,
+    double& l1, double& l2) const {
+
     const rt::vector c = p - position;
     const double det = v1.x * v2.y - v1.y * v2.x;
-    if (det * det > 0.00001) {
-        const double l1 = (c.x * v2.y - c.y * v2.x) / det;
-        const double l2 = (v1.x * c.y - v1.y * c.x) / det;
-        return rt::vector(l1, l2, 0);
+    if (abs(det) > 0.00001) {
+        l1 = (c.x * v2.y - c.y * v2.x) / det;
+        l2 = (v1.x * c.y - v1.y * c.x) / det;
     }
     else {
         const double detxz = v1.x * v2.z - v1.z * v2.x;
-        const double l1 = (c.x * v2.z - c.z * v2.x) / detxz;
-        const double l2 = (v1.x * c.z - v1.z * c.x) / detxz;
-        return rt::vector(l1, l2, 0);
+        l1 = (c.x * v2.z - c.z * v2.x) / detxz;
+        l2 = (v1.x * c.z - v1.z * c.x) / detxz;
     }
 }
 
@@ -159,8 +159,9 @@ hit triangle::compute_intersection(const ray& r, const double t) const {
     const rt::vector p = r.get_origin() + t * r.get_direction();
 
     // Computation of the interpolated normal vector
-    const rt::vector bc = get_barycentric(p);
+    double l1, l2;
+    get_barycentric(p, l1, l2);
     // Also used to get the texture info (to be implemented here later)
 
-    return hit(r, p, get_interpolated_normal(bc.x, bc.y), get_index());
+    return hit(r, p, get_interpolated_normal(l1, l2), get_index());
 }

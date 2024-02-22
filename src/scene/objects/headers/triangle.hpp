@@ -50,12 +50,13 @@ class triangle : public object {
 
         double measure_distance(const ray& r) const;
 
-        /* Returns a vector (only the first two coordinates matter) with the barycentric coordinates (l1, l2):
+        /* Writes the barycentric coordinates in variables l1, l2:
            p = position + l1 * v1 + l2 * v2
            (0 <= l1, l2 <= 1)
         */
-        rt::vector get_barycentric(const rt::vector& p) const;
-
+        void triangle::get_barycentric(const rt::vector& p,
+            double& l1, double& l2) const;
+            
         rt::vector get_interpolated_normal(const double& l1, const double& l2) const;
 
         hit compute_intersection(const ray& r, const double t) const;

@@ -79,18 +79,6 @@ int main(int argc, char *argv[]) {
 
     /* *************************** */
     /* Scene description */
-
-    // Screen
-    //const int width = 1366;
-    //const int height = 768;
-
-    // Distance between the camera and the image
-    //const double dist = 400;
-
-    // The camera is supposed to be on the origin of the space: (0,0,0)
-    
-    // Vector that will center the 'screen' in the scene
-    //const rt::vector screen_center(width/2, height/2, 0);
     
     scene scene("scene.txt");
     
@@ -99,46 +87,6 @@ int main(int argc, char *argv[]) {
     negative y at the top,  positive at the bottom (Be careful!!!)
     negative z behind the camera, positive in front of it
     */
-
-    /* 4 mirror spheres of decreasing specular_probability */
-    // const sphere sph0(rt::vector(-500, 0, 600), 120, material(rt::color::WHITE, rt::color(), 1, 0, 1.0, false));
-
-    // const sphere sph1(rt::vector(-166, 0, 600), 120, material(rt::color::WHITE, rt::color(), 1, 0, 0.6, false));
-    // const sphere sph2(rt::vector(166, 0, 600),  120, material(rt::color::WHITE, rt::color(), 1, 0, 0.1, false));
-    // const sphere sph3(rt::vector(500, 0, 600),  120, material(rt::color::WHITE, rt::color(), 1, 0, 0.05, false));
-
-    // Triangle
-    //const triangle tr0(rt::vector(-950, -500, 1150), rt::vector(950, -500, 50), rt::vector(-950, -500, 50), light_material(rt::color(10, 180, 255), 0));
-    //const triangle tr1(rt::vector(-950, -500, 1150), rt::vector(950, -500, 1150), rt::vector(950, -500, 50), light_material(rt::color(10, 180, 255), 0));
-
-    // Planes
-    /*
-    const plane pln0(0, -1, 0, rt::vector(0, 160, 0),   material(rt::color(10, 10, 10), rt::color(), 0.2, 0, 0.2, false));
-    const plane pln1(0, 0, -1, rt::vector(0, 0, 1200),  light_material(rt::color::WHITE, 0));
-    const plane pln2(1, 0, 0,  rt::vector(-1000, 0, 0), material(rt::color(255, 80, 80), 0));
-    const plane pln3(-1, 0, 0, rt::vector(1000, 0, 0),  material(rt::color(80, 255, 80), 0));
-    const plane pln4(0, 0, 1,  rt::vector(0, 0, 0),     light_material(rt::color(10, 180, 255), 0)); //light_material(rt::color::WHITE, 0));
-    const plane pln5(0, 1, 0,  rt::vector(0, -600, 0),  material(rt::color(10, 10, 10), rt::color(), 0.8, 0, 0.5, false)); //light_material(rt::color::WHITE, 1.5));
-    
-    const box bx_light(rt::vector(0, -600, 600),
-        rt::vector(1, 0, 0), rt::vector(0, 1, 0),
-        800, 30, 400,
-        light_material(rt::color::WHITE, 5));
-    */
-
-    /*const box bx0(rt::vector(166, -200, 600),
-        rt::vector(100, 100, -100).unit(), rt::vector(-200, 100, -100).unit(),
-        300, 200, 300,
-        //light_material(rt::color(10, 180, 255), 3));
-        material(rt::color(10, 180, 255), rt::color(), 1, 0, 0.3, false));*/
-    
-    //const sphere sphl1(rt::vector(0, 0, 600), 30, obj_counter++, light_material(rt::color::WHITE, 30));
-
-    /*const box bx0(rt::vector(100, -100, 600),
-        rt::vector(1, 0, 0), rt::vector(0, 1, 0),
-        500, 500, 500,
-        //light_material(rt::color(10, 180, 255), 3));
-        material(rt::color(10, 180, 255), rt::color(), 1, 0, 0.3, false));*/
 
     /* Creation of the triangles */
     /*const unsigned int number_of_triangles = 10 * 512;
@@ -188,25 +136,6 @@ int main(int argc, char *argv[]) {
         const bounding* bd01 = containing_bounding(*bd0, *bd1);
         bounding_queue.push(bd01);
     }
-
-    const bounding c(
-        {pln0.get_index(), pln1.get_index(), pln2.get_index(), pln3.get_index(), pln4.get_index(), pln5.get_index(), bx_light.get_index()}
-    );
-
-    const bounding* bd = bounding_queue.front();
-    bounding::set = {bd, &c};
-    */
-
-
-    /* Test of usefulness of bounding boxes:
-    5120 triangles, 5 bounces, 1 ray:
-    with the object method:   6'10"
-    with the bounding method:
-    1 box:   3'50" (or slightly more)
-    2 boxes: 2'37"
-    4 boxes: 1'43"
-    automatic boxing, 10 tr per box, total 1023 boxes: 46"
-    -> optimization of the search (without obj_stack): 33"
     */
 
     /* Temporary: pushing all objects to the bounding set */
@@ -215,8 +144,23 @@ int main(int argc, char *argv[]) {
         indices.at(i) = object::set.at(i)->get_index();
     }
     const bounding c(indices);
+    /*
+    const bounding* bd = bounding_queue.front();
+    bounding::set = {bd, &c};
+    */
     bounding::set = {&c};
-    
+
+    /* Test of usefulness of bounding boxes:
+    5120 triangles, 5 bounces, 1 ray:
+    with the object method: 6'10"
+    with the bounding method:
+    1 box:   3'50" (or slightly more)
+    2 boxes: 2'37"
+    4 boxes: 1'43"
+    automatic boxing, 10 tr per box, total 1023 boxes: 46"
+    -> optimization of the search (without obj_stack): 33"
+    -> 80 tr per box, total 127 boxes:                 25"
+    */
 
     /* ********************************************************** */
 
