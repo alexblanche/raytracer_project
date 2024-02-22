@@ -96,8 +96,8 @@ int main(int argc, char *argv[]) {
     */
 
     /* Creation of the triangles */
-    const unsigned int triangles_per_terminal = 80;
-    const unsigned int number_of_triangles = 10 * 512;
+    const unsigned int triangles_per_terminal = 10;
+    const unsigned int number_of_triangles = 10 * 4;
     //const unsigned int triangles_per_terminal = 100;
     //const unsigned int number_of_triangles = 100 * 16384;
 
@@ -115,6 +115,8 @@ int main(int argc, char *argv[]) {
 
     const double shift = (2 * 620) / (((double) number_of_triangles) - 1);
 
+    const unsigned int nb_obj = object::set.size();
+
     for(unsigned int i = 0; i < number_of_triangles; i++) {
         new triangle(
             rt::vector(-620 + 0   + shift * ((double) i), -100, 600),
@@ -125,15 +127,12 @@ int main(int argc, char *argv[]) {
     
     // Automatic bounding boxes definition
     queue<const bounding*> bounding_queue;
-
-
-
     
     // Creation of the terminal nodes and their non-terminal containers
     for(unsigned int i = 0; i < number_of_triangles / triangles_per_terminal; i++) {
         vector<unsigned int> v(triangles_per_terminal);
         for(unsigned int j = 0; j < triangles_per_terminal; j++) {
-            v.at(j) = 7 + i * triangles_per_terminal + j;
+            v.at(j) = nb_obj + i * triangles_per_terminal + j;
         }
         bounding_queue.push(containing_objects(v));
     }
@@ -149,8 +148,8 @@ int main(int argc, char *argv[]) {
         bounding_queue.push(bd01);
     }
     
-    vector<unsigned int> indices(7);
-    for (unsigned int i = 0; i < 7; i++) {
+    vector<unsigned int> indices(nb_obj);
+    for (unsigned int i = 0; i < nb_obj; i++) {
         indices.at(i) = object::set.at(i)->get_index();
     }
     const bounding c(indices);

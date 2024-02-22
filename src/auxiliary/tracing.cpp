@@ -32,7 +32,6 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
     rt::color emitted_colors = rt::color::BLACK;    
 
     for (unsigned int i = 0; i < bounce; i++) {
-
         
         hit h;
         if (scene.triangles_per_bounding != 0) {

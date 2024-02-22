@@ -87,6 +87,15 @@ double box::measure_distance(const ray& r) const {
     double t1 = infinity;
     const double abspdt1 = abs(pdt1);
 
+    /** Bug note:
+     * When the line "if (t1 < 0) { return infinity; }" (and t2, t3)
+     * is located AFTER the two tests
+     * "if (abs(checkpdt2) <= l2) {", "if (abs(checkpdt3) > l3) {"
+     * the boxes are properly detected,
+     * when the line is located before (right after "t1 = ..."),
+     * the boxes are not detected at all...
+    */
+
     if (abspdt1 > 0.0000001) {
         // Determination of t1
         t1 = pmun1 / pdt1 - l1 / abspdt1;
@@ -123,7 +132,7 @@ double box::measure_distance(const ray& r) const {
             t2 = infinity;
         }
 
-        if (t2 < 0) { return infinity; }
+        if (t2 < 0) {return infinity; }
     }
 
     double t3 = infinity;
@@ -145,6 +154,8 @@ double box::measure_distance(const ray& r) const {
 
         if (t3 < 0) { return infinity; }
     }
+
+    return std::min(t1, std::min(t2, t3));
 
     /** Original version */
     /*
@@ -206,9 +217,9 @@ double box::measure_distance(const ray& r) const {
 
         if (t3 < 0) { return infinity; }
     }
-    */
-
+    
     return std::min(t1, std::min(t2, t3));
+    */
 }
         
 hit box::compute_intersection(const ray& r, const double t) const {
@@ -248,8 +259,9 @@ hit box::compute_intersection(const ray& r, const double t) const {
 
 bool box::does_hit(const ray& r) const {
 
-    // Fall-back option
-    //return (measure_distance(r) != infinity);
+    // Fall-back option: temporary, waiting for the bug in does_hit to be solved
+    return (measure_distance(r) != infinity);
+    
     
     const rt::vector& dir = r.get_direction();
 
@@ -274,7 +286,6 @@ bool box::does_hit(const ray& r) const {
     if (abspdt1 > 0.0000001) {
         // Determination of t1
         const double t1 = pmun1 / pdt1 - l1 / abspdt1;
-        if (t1 < 0) { return false; }
 
         // Check that t1 gives a point inside the face
         const double checkpdt2 = pmun2 - t1 * pdt2;
@@ -282,32 +293,36 @@ bool box::does_hit(const ray& r) const {
             const double checkpdt3 = pmun3 - t1 * pdt3;
             if (abs(checkpdt3) <= l3) { return true; }
         }
+
+        //if (t1 < 0) { return false; }
     }
 
     const double abspdt2 = abs(pdt2);
 
     if (abspdt2 > 0.0000001) {
         const double t2 = pmun2 / pdt2 - l2 / abspdt2;
-        if (t2 < 0) { return false; }
     
         const double checkpdt1 = pmun1 - t2 * pdt1;
         if (abs(checkpdt1) <= l1) {
             const double checkpdt3 = pmun3 - t2 * pdt3;
             if (abs(checkpdt3) <= l3) { return true; }
         }
+
+        //if (t2 < 0) { return false; }
     }
 
     const double abspdt3 = abs(pdt3);
 
     if (abspdt3 > 0.0000001) {
         const double t3 = pmun3 / pdt3 - l3 / abspdt3;
-        if (t3 < 0) { return false; }
         
         const double checkpdt1 = pmun1 - t3 * pdt1;
         if (abs(checkpdt1) <= l1) {
             const double checkpdt2 = pmun2 - t3 * pdt2;
             if (abs(checkpdt2) <= l2) { return true; }
-        }   
+        }
+
+        //if (t3 < 0) { return false; }
     }
 
     return false;
