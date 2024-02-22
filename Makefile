@@ -12,6 +12,7 @@ all:
 		src/scene/objects/plane.cpp \
 		src/scene/objects/sphere.cpp \
 		src/scene/objects/triangle.cpp \
+		src/scene/objects/quad.cpp \
 		src/scene/objects/box.cpp \
 		src/scene/objects/bounding.cpp \
 		src/auxiliary/tracing.cpp \

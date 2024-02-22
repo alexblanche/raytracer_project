@@ -4,6 +4,7 @@
 #include "objects/headers/plane.hpp"
 #include "objects/headers/box.hpp"
 #include "objects/headers/triangle.hpp"
+#include "objects/headers/quad.hpp"
 #include "../screen/headers/color.hpp"
 #include "../auxiliary/headers/randomgen.hpp"
 
@@ -101,6 +102,8 @@ scene::scene(const char* file_name)
 
     triangle (-620,-100,600) (-520,100,500) (-540,-200,700) [material]
 
+    quad (-620,-100,600) (-520,100,600) (-540,-200,600) (-500,-250,600) [material]
+
     For boxes, the axes do not need to be unit vectors, they will be normalized when the objects are defined.
     */
 
@@ -111,7 +114,7 @@ scene::scene(const char* file_name)
 
         if (strcmp(s, "sphere") == 0) {
             /* center:(-500,0,600) radius:120 [material] */
-            double x, y, z, r = 0;
+            double x, y, z, r;
             fscanf(file, "center:(%lf,%lf,%lf) radius:%lf ",
                 &x, &y, &z, &r);
             material m = parse_materials(file);
@@ -119,28 +122,49 @@ scene::scene(const char* file_name)
         }
         else if (strcmp(s, "plane") == 0) {
             /* normal:(0,-1,0) position:(0, 160, 0) [material] */
-            double nx, ny, nz, px, py, pz = 0;
+            double nx, ny, nz, px, py, pz;
             fscanf(file, "normal:(%lf,%lf,%lf) position:(%lf,%lf,%lf) ",
-                &nx, &ny, &nz, &px, &py, &pz);
+                &nx, &ny, &nz,
+                &px, &py, &pz);
             material m = parse_materials(file);
             new plane(nx, ny, nz, rt::vector(px, py, pz), m);
         }
         else if (strcmp(s, "box") == 0) {
             /* center:(166,-200,600) x_axis:(100,100,-100) y_axis:(-200,100,-100) 300 200 300 */
-            double cx, cy, cz, n1x, n1y, n1z, n2x, n2y, n2z, l1, l2, l3 = 0;
+            double cx, cy, cz, n1x, n1y, n1z, n2x, n2y, n2z, l1, l2, l3;
             fscanf(file, "center:(%lf,%lf,%lf) x_axis:(%lf,%lf,%lf) y_axis:(%lf,%lf,%lf) %lf %lf %lf ",
-                &cx, &cy, &cz, &n1x, &n1y, &n1z, &n2x, &n2y, &n2z, &l1, &l2, &l3);
+                &cx, &cy, &cz,
+                &n1x, &n1y, &n1z,
+                &n2x, &n2y, &n2z,
+                &l1, &l2, &l3);
             material m = parse_materials(file);
             new box(rt::vector(cx, cy, cz), rt::vector(n1x, n1y, n1z).unit(), rt::vector(n2x, n2y, n2z).unit(),
                 l1, l2, l3, m);
         }
         else if (strcmp(s, "triangle") == 0) {
             /* (-620,-100,600) (-520,100,500) (-540,-200,700) [material] */
-            double x0, y0, z0, x1, y1, z1, x2, y2, z2 = 0;
+            double x0, y0, z0, x1, y1, z1, x2, y2, z2;
             fscanf(file, "(%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) ",
-                &x0, &y0, &z0, &x1, &y1, &z1, &x2, &y2, &z2);
+                &x0, &y0, &z0,
+                &x1, &y1, &z1,
+                &x2, &y2, &z2);
             material m = parse_materials(file);
             new triangle(rt::vector(x0, y0, z0), rt::vector(x1, y1, z1), rt::vector(x2, y2, z2), m);
+        }
+        else if (strcmp(s, "quad") == 0) {
+            /* (-620,-100,600) (-520,100,600) (-540,-200,600) (-500,-250,600) [material] */
+            double x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3;
+            fscanf(file, "(%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) ",
+                &x0, &y0, &z0,
+                &x1, &y1, &z1,
+                &x2, &y2, &z2,
+                &x3, &y3, &z3);
+            material m = parse_materials(file);
+            new quad(rt::vector(x0, y0, z0), rt::vector(x1, y1, z1), rt::vector(x2, y2, z2), rt::vector(x3, y3, z3), m);
+        }
+        else {
+            printf("Parsing error: %s\n", s);
+            fclose(file);
         }
     }
     
