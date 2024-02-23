@@ -184,6 +184,18 @@ int main(int argc, char *argv[]) {
 
     /* ********************************************************** */
 
+    // const rt::vector c(0,0,400);
+    // const rt::vector xa = rt::vector(-1,1,-1).unit();
+    // const rt::vector ya = rt::vector(-1,-2,-1).unit();
+    // const rt::vector za = (xa ^ ya).unit();
+
+    // const rt::vector p1 = c + 100*xa + 100*ya + 100*za;
+    // const rt::vector p2 = c + 100*xa + 100*ya - 100*za;
+    // const rt::vector p3 = c + 100*xa - 100*ya + 100*za;
+    // const rt::vector p4 = c + 100*xa - 100*ya - 100*za;
+    // printf("(%f, %f, %f) (%f, %f, %f) (%f, %f, %f) (%f, %f, %f)\n",
+    //     p1.x, p1.y, p1.z, p2.x, p2.y, p2.z, p3.x, p3.y, p3.z, p4.x, p4.y, p4.z);
+
     /* Definition of the matrix in which we will write the image */
     vector<vector<rt::color>> matrix(scene.width, vector<rt::color>(scene.height));
 

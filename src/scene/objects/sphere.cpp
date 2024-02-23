@@ -82,21 +82,20 @@ double sphere::measure_distance(const ray& r) const {
 hit sphere::compute_intersection(const ray& r, const double t) const {
 
     // Intersection point
-    const rt::vector u = r.get_origin();
+    const rt::vector& u = r.get_origin();
     const rt::vector p = u + t * r.get_direction();
     
-    // Normal vector
-    const double radius = get_radius();
-    const rt::vector c = get_center();
-    if ((u - c).normsq() > radius * radius) {
+    const bool outside = (u - position).normsq() > radius * radius;
+    
+    if (outside) {
         // The ray originates from outside the sphere
-        const rt::vector n = (p - c) / radius;
-        return hit(r, p, n, get_index());
+        const rt::vector n = (p - position) / radius;
+        return hit(r, p + ((0.001 / radius) * n), n, get_index());
     }
     else {
         // The rays originates from inside the sphere
-        const rt::vector n = (c - p) / radius;
-        return hit(r, p, n, get_index());
+        const rt::vector n = (position - p) / radius;
+        return hit(r, p + ((0.001 / radius) * n), n, get_index());
     }
 }
 

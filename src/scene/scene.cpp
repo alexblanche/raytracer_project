@@ -35,8 +35,8 @@ material parse_materials(FILE* file) {
 
     fscanf(file, "material:(color:(%lf,%lf,%lf) emitted_color:(%lf,%lf,%lf) reflectivity:%lf emission:%lf specular_p:%lf reflects_color:%s)\n", 
         &r, &g, &b, &er, &eg, &eb, &refl, &em_int, &spec_p, refl_c);
-
-    if (strcmp(refl_c, "true") == 0) {
+        
+    if (strcmp(refl_c, "true)") == 0) {
         refl_color = true;
     }
 

@@ -5,11 +5,12 @@ position 0 0 0
 background 136 210 235
 triangles_per_bounding 0
 
-plane normal:(0,-1,0) position:(0,160,0) material:(color:(10,10,10) emitted_color:(0,0,0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false)
+plane normal:(0,-1,0) position:(0,160,0) material:(color:(150,150,150) emitted_color:(0,0,0) reflectivity:1 emission:0 specular_p:1 reflects_color:true)
 plane normal:(0,0,-1) position:(0,0,1200) material:(color:(255,255,255) emitted_color:(0,0,0) reflectivity:0 emission:0 specular_p:0 reflects_color:false)
 plane normal:(1,0,0) position:(-1000,0,0) material:(color:(255,80,80) emitted_color:(0,0,0) reflectivity:0 emission:0 specular_p:0 reflects_color:false)
 plane normal:(-1,0,0) position:(1000,0,0) material:(color:(80,255,80) emitted_color:(0,0,0) reflectivity:0 emission:0 specular_p:0 reflects_color:false)
 plane normal:(0,0,1) position:(0,0,0) material:(color:(10,180,255) emitted_color:(0,0,0) reflectivity:0 emission:0 specular_p:0 reflects_color:false)
 plane normal:(0,1,0) position:(0,-600,0) material:(color:(10,10,10) emitted_color:(0,0,0) reflectivity:0.8 emission:0 specular_p:0.5 reflects_color:false)
-quad (-400,-599,800) (-400,-599,400) (400,-599,400) (400,-599,800) material:(color:(255,255,255) emitted_color:(255,255,255) reflectivity:0 emission:1.5 specular_p:0 reflects_color:false)
-box center:(0,0,400) x_axis:(-1,1,-1) y_axis:(-1,-2,-1) 200 200 200 material:(color:(20,20,255) emitted_color:(0,0,0) reflectivity:0.4 emission:0 specular_p:0.1 reflects_color:false)
+quad (-400,-599,800) (-400,-599,400) (400,-599,400) (400,-599,800) material:(color:(255,255,255) emitted_color:(255,255,255) reflectivity:0 emission:5 specular_p:0 reflects_color:false)
+box center:(0,0,600) x_axis:(-1,1,-1) y_axis:(-1,-2,-1) 200 200 200 material:(color:(20,20,255) emitted_color:(0,0,0) reflectivity:0.4 emission:0 specular_p:0.1 reflects_color:false)
+quad (-169.270534,-23.914631,571.150822) (-87.620876,139.384685,652.800480) (53.800480,139.384685,511.379124) (-27.849178,-23.914631,429.729466) material:(color:(255,255,255) emitted_color:(255,255,255) reflectivity:0 emission:0.5 specular_p:0 reflects_color:false)
