@@ -36,31 +36,41 @@ double sphere::get_radius() const {
 double sphere::measure_distance(const ray& r) const {
     /*
       v is the vector from the origin of the ray to the center of the sphere.
-      u is the direction of the ray (||u|| = 1).
-      We have to solve the equation ||v - t.u||^2 = radius^2
+      dir is the direction of the ray (||dir|| = 1).
+      We have to solve the equation ||v - t.dir||^2 = radius^2
       The system is equivalent to:
-      t^2*||u||^2 - 2(u|v)t + ||v||^2 - radius^2 = 0
-      Delta = 4 * ((u|v)^2 - 4 * ||u||^2 * (||v||^2 - radius^2))
+      t^2*||dir||^2 - 2(dir|v)t + ||v||^2 - radius^2 = 0
+      Delta = 4 * ((dir|v)^2 - 4 * ||dir||^2 * (||v||^2 - radius^2))
 
     */
     rt::vector v = get_center() - r.get_origin();
-    rt::vector u = r.get_direction(); // the direction is assumed to be a unit vector
+    rt::vector dir = r.get_direction(); // the direction is assumed to be a unit vector
 
     double nv2 = v.normsq();
-    double uv = (u | v);
+    double dv = (dir | v);
 
-    const double a = uv * uv + radius * radius - nv2;
+    const double a = dv * dv + radius * radius - nv2;
     // Delta = 4*a
 
     if (a > 0) {
-        /* Two solutions: uv - sqrt(a) and uv + sqrt(a),
-           Only the first, the minimum one, is returned. */
-        const double t = uv - sqrt(a);
-        if (t > 0) {
-            return t;
+        /* Two solutions: t1 = dv - sqrt(a) and t2 = dv + sqrt(a),
+           If t1 >= 0, this means the ray originates from outside the sphere
+           and the sphere is in front of the origin, and thus t1 is returned,
+           If t1 < 0 and t2 >= 0, this means the ray originates from inside the sphere,
+           and t2 is returned.
+           Otherwise, t1 < 0 and t2 < 0 means the sphere is behind the ray and is not hit. */
+        const double t1 = dv - sqrt(a);
+        if (t1 >= 0) {
+            return t1;
         }
         else {
-            return infinity;
+            const double t2 = dv + sqrt(a);
+            if (t2 >= 0) {
+                return t2;
+            }
+            else {
+                return infinity;
+            }
         }
     }
     else {
@@ -72,11 +82,21 @@ double sphere::measure_distance(const ray& r) const {
 hit sphere::compute_intersection(const ray& r, const double t) const {
 
     // Intersection point
-    const rt::vector p = r.get_origin() + t * r.get_direction();
+    const rt::vector u = r.get_origin();
+    const rt::vector p = u + t * r.get_direction();
     
     // Normal vector
-    const rt::vector n = (p - get_center()) / get_radius();
-
-    return hit(r, p, n, get_index());
+    const double radius = get_radius();
+    const rt::vector c = get_center();
+    if ((u - c).normsq() > radius * radius) {
+        // The ray originates from outside the sphere
+        const rt::vector n = (p - c) / radius;
+        return hit(r, p, n, get_index());
+    }
+    else {
+        // The rays originates from inside the sphere
+        const rt::vector n = (c - p) / radius;
+        return hit(r, p, n, get_index());
+    }
 }
 

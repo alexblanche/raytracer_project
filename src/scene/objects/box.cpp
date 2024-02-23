@@ -50,6 +50,8 @@ double box::measure_distance(const ray& r) const {
 
        Same with the other two directions, we obtain t2, t3.
        If (dir | n) = 0 for n among n1, n2, n3, then the ray does not intersect the plane and the associated t is infinity.
+
+       Only one of t1, t2, t3 can be finite at the end, so we return one as soon as we find it.
     */
 
     const rt::vector& dir = r.get_direction();
@@ -84,78 +86,43 @@ double box::measure_distance(const ray& r) const {
     const double pdt2 = (dir | n2);
     const double pdt3 = (dir | n3);
 
-    double t1 = infinity;
     const double abspdt1 = abs(pdt1);
-
-    /** Bug note:
-     * When the line "if (t1 < 0) { return infinity; }" (and t2, t3)
-     * is located AFTER the two tests
-     * "if (abs(checkpdt2) <= l2) {", "if (abs(checkpdt3) > l3) {"
-     * the boxes are properly detected,
-     * when the line is located before (right after "t1 = ..."),
-     * the boxes are not detected at all...
-    */
-
     if (abspdt1 > 0.0000001) {
         // Determination of t1
-        t1 = pmun1 / pdt1 - l1 / abspdt1;
-
+        const double t1 = pmun1 / pdt1 - l1 / abspdt1;
         // Check that t1 gives a point inside the face
-        const double checkpdt2 = pmun2 - t1 * pdt2;
-        if (abs(checkpdt2) <= l2) {
-            const double checkpdt3 = pmun3 - t1 * pdt3;
-            if (abs(checkpdt3) > l3) {
-                t1 = infinity;
+        if (abs(pmun2 - t1 * pdt2) <= l2 && abs(pmun3 - t1 * pdt3) <= l3) {
+            if (t1 >= 0) {
+                return t1;
+            }
+            else {
+                return infinity;
             }
         }
-        else {
-            t1 = infinity;
-        }
-
-        if (t1 < 0) { return infinity; }
     }
 
-    double t2 = infinity;
     const double abspdt2 = abs(pdt2);
-
     if (abspdt2 > 0.0000001) {
-        t2 = pmun2 / pdt2 - l2 / abspdt2;
-    
-        const double checkpdt1 = pmun1 - t2 * pdt1;
-        if (abs(checkpdt1) <= l1) {
-            const double checkpdt3 = pmun3 - t2 * pdt3;
-            if (abs(checkpdt3) > l3) {
-                t2 = infinity;
+        const double t2 = pmun2 / pdt2 - l2 / abspdt2;
+        if (abs(pmun1 - t2 * pdt1) <= l1 && abs(pmun3 - t2 * pdt3) <= l3) {
+            if (t2 >= 0) {
+                return t2;
+            }
+            else {
+                return infinity;
             }
         }
-        else {
-            t2 = infinity;
-        }
-
-        if (t2 < 0) {return infinity; }
     }
 
-    double t3 = infinity;
     const double abspdt3 = abs(pdt3);
-
     if (abspdt3 > 0.0000001) {
-        t3 = pmun3 / pdt3 - l3 / abspdt3;
-        
-        const double checkpdt1 = pmun1 - t3 * pdt1;
-        if (abs(checkpdt1) <= l1) {
-            const double checkpdt2 = pmun2 - t3 * pdt2;
-            if (abs(checkpdt2) > l2) {
-                t3 = infinity;
-            }
+        const double t3 = pmun3 / pdt3 - l3 / abspdt3;
+        if (t3 >= 0 && abs(pmun1 - t3 * pdt1) <= l1 && abs(pmun2 - t3 * pdt2) <= l2) {
+            return t3;
         }
-        else {
-            t3 = infinity;
-        }
-
-        if (t3 < 0) { return infinity; }
     }
 
-    return std::min(t1, std::min(t2, t3));
+    return infinity;
 
     /** Original version */
     /*
@@ -258,10 +225,6 @@ hit box::compute_intersection(const ray& r, const double t) const {
 }
 
 bool box::does_hit(const ray& r) const {
-
-    // Fall-back option: temporary, waiting for the bug in does_hit to be solved
-    return (measure_distance(r) != infinity);
-    
     
     const rt::vector& dir = r.get_direction();
 
@@ -282,47 +245,27 @@ bool box::does_hit(const ray& r) const {
     const double pdt3 = (dir | n3);
 
     const double abspdt1 = abs(pdt1);
-
     if (abspdt1 > 0.0000001) {
         // Determination of t1
         const double t1 = pmun1 / pdt1 - l1 / abspdt1;
-
         // Check that t1 gives a point inside the face
-        const double checkpdt2 = pmun2 - t1 * pdt2;
-        if (abs(checkpdt2) <= l2) {
-            const double checkpdt3 = pmun3 - t1 * pdt3;
-            if (abs(checkpdt3) <= l3) { return true; }
+        if (abs(pmun2 - t1 * pdt2) <= l2 && abs(pmun3 - t1 * pdt3) <= l3) {
+            return (t1 >= 0);
         }
-
-        //if (t1 < 0) { return false; }
     }
 
     const double abspdt2 = abs(pdt2);
-
     if (abspdt2 > 0.0000001) {
         const double t2 = pmun2 / pdt2 - l2 / abspdt2;
-    
-        const double checkpdt1 = pmun1 - t2 * pdt1;
-        if (abs(checkpdt1) <= l1) {
-            const double checkpdt3 = pmun3 - t2 * pdt3;
-            if (abs(checkpdt3) <= l3) { return true; }
+        if (abs(pmun1 - t2 * pdt1) <= l1 && abs(pmun3 - t2 * pdt3) <= l3) {
+            return (t2 >= 0);
         }
-
-        //if (t2 < 0) { return false; }
     }
 
     const double abspdt3 = abs(pdt3);
-
     if (abspdt3 > 0.0000001) {
         const double t3 = pmun3 / pdt3 - l3 / abspdt3;
-        
-        const double checkpdt1 = pmun1 - t3 * pdt1;
-        if (abs(checkpdt1) <= l1) {
-            const double checkpdt2 = pmun2 - t3 * pdt2;
-            if (abs(checkpdt2) <= l2) { return true; }
-        }
-
-        //if (t3 < 0) { return false; }
+        return (t3 >= 0 && abs(pmun1 - t3 * pdt1) <= l1 && abs(pmun2 - t3 * pdt2) <= l2);
     }
 
     return false;

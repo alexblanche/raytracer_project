@@ -37,8 +37,8 @@ using namespace std;
 void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const unsigned int number_of_bounces) {
     
     mutex m;
-    // float cpt = 0;
-    // float x = 100.0 / (((double) scene.width) * ((double) scene.height));
+    float cpt = 0;
+    float x = 100.0 / (((double) scene.width) * ((double) scene.height));
 
     PARALLEL_FOR_BEGIN(scene.width) {
 
@@ -51,7 +51,7 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const
             
             const rt::color& current_color = matrix.at(i).at(j);
             const rt::color new_color = current_color + pixel_col;
-            // cpt += 1;
+            cpt += 1;
 
             // Updating the color matrix
             m.lock();
@@ -59,9 +59,9 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const
             m.unlock();
         }
 
-        // m.lock();
-        // printf("%f / 100\n", cpt * x);
-        // m.unlock();
+        m.lock();
+        printf("%f / 100\n", cpt * x);
+        m.unlock();
         
     } PARALLEL_FOR_END();
 }
@@ -96,10 +96,10 @@ int main(int argc, char *argv[]) {
     */
 
     /* Creation of the triangles */
-    const unsigned int triangles_per_terminal = 10;
-    const unsigned int number_of_triangles = 10 * 4;
-    //const unsigned int triangles_per_terminal = 100;
-    //const unsigned int number_of_triangles = 100 * 16384;
+    // const unsigned int triangles_per_terminal = 80;
+    // const unsigned int number_of_triangles = 10 * 512;
+    const unsigned int triangles_per_terminal = 100;
+    const unsigned int number_of_triangles = 100 * 16384;
 
     /* Time test:
         10 tpt, 5120 tr -> 34"
@@ -108,8 +108,8 @@ int main(int argc, char *argv[]) {
         tr * 320, time * 180... :(
         Not good considering the algorithm is supposed to be logarithmic...
 
-        New optimization (method does_hit instead of measure_distance)
-        
+        New optimization (method does_hit instead of measure_distance):
+        SLOWER, now 2 hours! (7143"!)
     */
 
 
@@ -155,6 +155,7 @@ int main(int argc, char *argv[]) {
     const bounding c(indices);
     const bounding* bd = bounding_queue.front();
     bounding::set = {bd, &c};
+
     
     /*
     // Temporary: pushing all objects to the bounding set
