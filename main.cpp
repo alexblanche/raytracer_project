@@ -37,8 +37,8 @@ using namespace std;
 void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const unsigned int number_of_bounces) {
     
     mutex m;
-    float cpt = 0;
-    float x = 100.0 / (((double) scene.width) * ((double) scene.height));
+    // float cpt = 0;
+    // float x = 100.0 / (((double) scene.width) * ((double) scene.height));
 
     PARALLEL_FOR_BEGIN(scene.width) {
 
@@ -51,7 +51,7 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const
             
             const rt::color& current_color = matrix.at(i).at(j);
             const rt::color new_color = current_color + pixel_col;
-            cpt += 1;
+            // cpt += 1;
 
             // Updating the color matrix
             m.lock();
@@ -98,8 +98,8 @@ int main(int argc, char *argv[]) {
     /* Creation of the triangles */
     // const unsigned int triangles_per_terminal = 80;
     // const unsigned int number_of_triangles = 10 * 512;
-    const unsigned int triangles_per_terminal = 64;
-    const unsigned int number_of_triangles = 4096;//100 * 16384;
+    // const unsigned int triangles_per_terminal = 64;
+    // const unsigned int number_of_triangles = 4096;//100 * 16384;
 
     /* Time test:
         100 tpt, 400 tr -> 7"
@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
         Improvement by a factor 14.76
     */
 
-    
+    /*
     const double shift = (2 * 620) / (((double) number_of_triangles) - 1);
 
     const unsigned int nb_obj = object::set.size();
@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
     const bounding c(indices);
     const bounding* bd = bounding_queue.front();
     bounding::set = {bd, &c};
-    
+    */
     
     /*
     // Temporary: pushing all objects to the bounding set

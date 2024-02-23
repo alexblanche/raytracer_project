@@ -9,7 +9,7 @@
 class scene {
     public:
         // Color of the background
-        const rt::color background;
+        rt::color background;
 
         // Screen parameters
         int width;

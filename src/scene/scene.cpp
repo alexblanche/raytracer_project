@@ -79,7 +79,7 @@ scene::scene(const char* file_name)
     double g = 0;
     double b = 0;
     fscanf(file, "background %lf %lf %lf\n", &r, &g, &b);
-    rt::color background(r, g, b);
+    background = rt::color(r, g, b);
 
     fscanf(file, "triangles_per_bounding %u\n", &triangles_per_bounding);
     

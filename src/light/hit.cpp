@@ -38,7 +38,7 @@ unsigned int hit::get_obj_index() const {
     return obj_index;
 }
 
-bool hit::is_hit() const {
+bool hit::object_hit() const {
     return is_hit_bool;
 }
 
@@ -50,7 +50,7 @@ ray hit::get_reflected_ray() const {
     /* ray::direction and hit::normal are supposed to be unit vectors
        u is directed toward the surface, so the cos is computed with (-u),
        and so is the reflected ray: (2*cos*normal - (-u)) */
-    const rt::vector u = gen.get_direction();
+    const rt::vector& u = gen.get_direction();
     const double cos = (-1) * (u | normal);
 
     return ray(point, (2*cos)*normal + u);
@@ -58,10 +58,10 @@ ray hit::get_reflected_ray() const {
 
 /* Returns the interpolated direction between the normal and the reflected direction */
 rt::vector hit::get_central_direction(const double reflectivity) const {
-    const rt::vector u = gen.get_direction();
+    const rt::vector& u = gen.get_direction();
     const double cos = (-1) * (u | normal);
-    // return reflectivity * reflected_dir + (1 - reflectivity) * normal
     return (reflectivity * ((2*cos - 1)*normal + u) + normal).unit();
+    // = (reflectivity * reflected_dir + (1 - reflectivity) * normal).unit()
 }
 
 

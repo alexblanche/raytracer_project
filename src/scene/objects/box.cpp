@@ -8,6 +8,7 @@
 numeric_limits<double> realbx;
 const double infinity = realbx.infinity();
 
+
 box::box() : object(), n1(rt::vector(1,0,0)), n2(rt::vector(0,1,0)), n3(rt::vector(0,0,1)), l1(100), l2(100), l3(100) {}
         
 /* The vector n3 is taken as the cross product of n1 and n2 */
@@ -42,7 +43,7 @@ double box::get_l3() const {
 
 double box::measure_distance(const ray& r) const {
     /* For the face orthogonal to n1, we search for a t1 that satisfies:
-       ((pos + l1.n1) - (u + t.dir) | n1) = 0 (if (dir | n1) < 0, and otherwise pos - l1.n1 instead of pos + l1.n1)
+       ((pos + a.l1.n1) - (u + t.dir) | n1) = 0 (if outside the box, a = -sign(dir|n1), if inside: a = sign(dir|n1))
        where u is the origin of the ray, and dir its direction,
        So t1 = ((pos + l1.n1 - u) | n1) / (dir | n1)
        We then check whether |((pos + l1.n1 - (u + t1.dir)) | n2)| <= l2 and |(((pos + l1.n1 - (u + t1.dir)) | n3)| <= l3,
@@ -60,14 +61,16 @@ double box::measure_distance(const ray& r) const {
      * 
      * const vector pmu = position - u;
      * t1 = ((c1 - u) | n1) / pdt1
-     *      = ((position - (l1 * pdt1 / abs(pdt1)) * n1 - u) | n1) / pdt1;
-     *      = ((pmu | n1) - l1 * pdt1 / abs(pdt1)) / pdt1;
-     *      = ((pmu | n1) / pdt1 - l1 / abs(pdt1));
+     *      = ((position - (l1 * pdt1 / abs(pdt1)) * n1 - u) | n1) / pdt1
+     *      = ((pmu | n1) - l1 * pdt1 / abs(pdt1)) / pdt1
+     *      = ((pmu | n1) / pdt1 - l1 / abs(pdt1))
+     *      = pmun1 / pdt1 - l1 / abspdt1
      * 
      * (p | n2)
      *      = ((c1 - u - (t1*dir)) | n2)
      *      = ((position - (...)*n1 - u - t1*dir) | n2)
      *      = (pmu | n2) - t1 * pdt2
+     *      = pmnu2 - t1 * pdt2
      * **/
 
     const rt::vector pmu = position - r.get_origin();
@@ -75,11 +78,10 @@ double box::measure_distance(const ray& r) const {
     const double pmun2 = (pmu | n2);
     const double pmun3 = (pmu | n3);
 
-    // TODO: delete this condition and adapt the code to work inside the box
-    if (abs(pmun1) <= l1 && abs(pmun2) <= l2 && abs(pmun3) <= l3) {
-        // u is inside the box
-        return 0;
-    }
+    // Factor that depends on whether u is outside or inside the box
+    const double a = (abs(pmun1) <= l1 && abs(pmun2) <= l2 && abs(pmun3) <= l3) ?
+        /* inside */ 1 :
+        /* outside */ -1;
 
     const double pdt1 = (dir | n1);
     const double pdt2 = (dir | n2);
@@ -88,7 +90,7 @@ double box::measure_distance(const ray& r) const {
     const double abspdt1 = abs(pdt1);
     if (abspdt1 > 0.0000001) {
         // Determination of t1
-        const double t1 = pmun1 / pdt1 - l1 / abspdt1;
+        const double t1 = pmun1 / pdt1 + a * l1 / abspdt1;
         // Check that t1 gives a point inside the face
         if (abs(pmun2 - t1 * pdt2) <= l2 && abs(pmun3 - t1 * pdt3) <= l3) {
             if (t1 >= 0) {
@@ -102,7 +104,7 @@ double box::measure_distance(const ray& r) const {
 
     const double abspdt2 = abs(pdt2);
     if (abspdt2 > 0.0000001) {
-        const double t2 = pmun2 / pdt2 - l2 / abspdt2;
+        const double t2 = pmun2 / pdt2 + a * l2 / abspdt2;
         if (abs(pmun1 - t2 * pdt1) <= l1 && abs(pmun3 - t2 * pdt3) <= l3) {
             if (t2 >= 0) {
                 return t2;
@@ -115,7 +117,7 @@ double box::measure_distance(const ray& r) const {
 
     const double abspdt3 = abs(pdt3);
     if (abspdt3 > 0.0000001) {
-        const double t3 = pmun3 / pdt3 - l3 / abspdt3;
+        const double t3 = pmun3 / pdt3 + a * l3 / abspdt3;
         if (t3 >= 0 && abs(pmun1 - t3 * pdt1) <= l1 && abs(pmun2 - t3 * pdt2) <= l2) {
             return t3;
         }
@@ -190,34 +192,44 @@ double box::measure_distance(const ray& r) const {
         
 hit box::compute_intersection(const ray& r, const double t) const {
     // Intersection point
-    const rt::vector p = r.get_origin() + t * r.get_direction();
+    const rt::vector& u = r.get_origin();
+    const rt::vector p = u + t * r.get_direction();
+
+    // Determination of whether the ray originates from inside or outside the box
+    const rt::vector pmu = position - u;
+
+    // Boolean indicating if the origin of the ray is inside the box
+    const bool outside = (abs((pmu | n1)) > l1 || abs((pmu | n2)) > l2 || abs((pmu | n3)) > l3);
 
     // Re-computing the face of intersection
     // (not great, but the alternative is to return a hit object (with distance t) for every intersection check)
 
+    // Shifting the position a little bit, to avoid the ray hitting the object itself again
     const rt::vector v = p - position;
+    const rt::vector new_pos = outside ? p + ((0.001 / v.normsq()) * v) : p - ((0.001 / v.normsq()) * v);
+
     const double pdt1 = (v | n1);
     if (abs(pdt1 - l1) < 0.0000001) {
-        return hit(r, p, n1, get_index());
+        return hit(r, new_pos, (outside? n1 : ((-1)*n1)), get_index());
     }
     else if (abs(pdt1 + l1) < 0.0000001) {
-        return hit(r, p, (-1)*n1, get_index());
+        return hit(r, new_pos, (outside? ((-1)*n1) : n1), get_index());
     }
     else {
         const double pdt2 = (v | n2);
         if (abs(pdt2 - l2) < 0.0000001) {
-            return hit(r, p, n2, get_index());
+            return hit(r, new_pos, (outside? n2 : ((-1)*n2)), get_index());
         }
         else if (abs(pdt2 + l2) < 0.0000001) {
-            return hit(r, p, (-1)*n2, get_index());
+            return hit(r, new_pos, (outside? ((-1)*n2) : n2), get_index());
         }
         else {
             const double pdt3 = (v | n3);
             if (abs(pdt3 - l3) < 0.0000001) {
-                return hit(r, p, n3, get_index());
+                return hit(r, new_pos, (outside? n3 : ((-1)*n3)), get_index());
             }
             else {
-                return hit(r, p, (-1)*n3, get_index());
+                return hit(r, new_pos, (outside? ((-1)*n3) : n3), get_index());
             } 
         }   
     }   

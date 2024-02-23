@@ -36,7 +36,7 @@ class hit {
 
         unsigned int get_obj_index() const;
 
-        bool is_hit() const;
+        bool object_hit() const;
 
         /* Reflection */
 

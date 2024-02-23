@@ -62,22 +62,19 @@ hit object::find_closest_object(const ray& r) {
     
     double closest = infinity;
     unsigned int closest_index = -1;
-    const unsigned int origin_obj_index = r.get_origin_index();
 
     // Looking for the closest object
     for (unsigned int i = 0; i < object::counter; i++) {
         
         // We do not test the intersection with the object the rays is cast from
-        if (i != origin_obj_index) {
-            const double d = object::set.at(i)->measure_distance(r);
+        const double d = object::set.at(i)->measure_distance(r);
                 
-            /* d is the distance between the origin of the ray and the
-               intersection point with the object */
+        /* d is the distance between the origin of the ray and the
+           intersection point with the object */
 
-            if (d < closest) {
-                closest = d;
-                closest_index = i;
-            }
+        if (d < closest && d > 0.000001) {
+            closest = d;
+            closest_index = i;
         }
     }
     if (closest_index == ((unsigned int) -1)) {

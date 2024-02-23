@@ -29,25 +29,19 @@
 rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
 
     rt::color color_materials = rt::color::WHITE;
-    rt::color emitted_colors = rt::color::BLACK;    
+    rt::color emitted_colors = rt::color::BLACK;
+
+    const bool bounding_method = scene.triangles_per_bounding != 0; 
 
     for (unsigned int i = 0; i < bounce; i++) {
         
-        hit h;
-        if (scene.triangles_per_bounding != 0) {
-            // Tree search through the bounding boxes
-            h = bounding::find_closest_object(r);
-        }
-        else {
-            // Linear search through object::set
-            h = object::find_closest_object(r);
-        }
+        const hit h = bounding_method ? bounding::find_closest_object(r) : object::find_closest_object(r);
         
-        r.set_origin_index(h.get_obj_index());
+        // r.set_origin_index(h.get_obj_index());
 
-        if (h.is_hit()) {
+        if (h.object_hit()) {
             const material& m = object::set.at(h.get_obj_index())->get_material();
-            const double reflectivity = m.get_reflectivity();
+            const double& reflectivity = m.get_reflectivity();
 
             if (m.get_emission_intensity() >= 1) {
                 // Light source touched
@@ -83,7 +77,6 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                         // Reflections have the original color (like a tomato)
                         color_materials = color_materials;
                     }
-                    
                 }
                 else {
                     /* Diffuse bounce */
@@ -97,8 +90,6 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                     emitted_colors = emitted_colors + (color_materials * emitted_light);
                     color_materials = color_materials * m.get_color();
                 }
-
-                
             }
         }
         else {
