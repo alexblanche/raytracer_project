@@ -3,7 +3,7 @@ height 768
 distance 400
 position 0 0 0
 background 190 235 255
-triangles_per_bounding 80
+triangles_per_bounding 4
 
 plane normal:(0,-1,0) position:(0,160,0) material:(color:(10,10,10) emitted_color:(0,0,0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false)
 plane normal:(0,0,-1) position:(0,0,1200) material:(color:(255,255,255) emitted_color:(0,0,0) reflectivity:0 emission:0 specular_p:0 reflects_color:false)

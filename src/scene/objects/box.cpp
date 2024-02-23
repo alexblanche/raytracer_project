@@ -55,7 +55,6 @@ double box::measure_distance(const ray& r) const {
     */
 
     const rt::vector& dir = r.get_direction();
-    const rt::vector& u = r.get_origin();
 
     /** This whole function to be optimized (it will then become incomprehensible)
      * 
@@ -71,7 +70,7 @@ double box::measure_distance(const ray& r) const {
      *      = (pmu | n2) - t1 * pdt2
      * **/
 
-    const rt::vector pmu = position - u;
+    const rt::vector pmu = position - r.get_origin();
     const double pmun1 = (pmu | n1);
     const double pmun2 = (pmu | n2);
     const double pmun3 = (pmu | n3);

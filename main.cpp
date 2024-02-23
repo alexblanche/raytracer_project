@@ -59,9 +59,9 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const
             m.unlock();
         }
 
-        m.lock();
-        printf("%f / 100\n", cpt * x);
-        m.unlock();
+        // m.lock();
+        // printf("%f / 100\n", cpt * x);
+        // m.unlock();
         
     } PARALLEL_FOR_END();
 }
@@ -98,21 +98,35 @@ int main(int argc, char *argv[]) {
     /* Creation of the triangles */
     // const unsigned int triangles_per_terminal = 80;
     // const unsigned int number_of_triangles = 10 * 512;
-    const unsigned int triangles_per_terminal = 100;
-    const unsigned int number_of_triangles = 100 * 16384;
+    const unsigned int triangles_per_terminal = 64;
+    const unsigned int number_of_triangles = 4096;//100 * 16384;
 
     /* Time test:
-        10 tpt, 5120 tr -> 34"
-        80 tpt, 5120 tr -> 26"
-        100 tpt, 1'638'400 tr -> estimated 78.5min = 4700" :'(
-        tr * 320, time * 180... :(
-        Not good considering the algorithm is supposed to be logarithmic...
+        100 tpt, 400 tr -> 7"
+        100 tpt, 1600 tr -> 12"
+        100 tpt, 3200 tr -> 18"
+        100 tpt, 6400 tr -> 30"
+        100 tpt, 12800 tr -> 55"
+        100 tpt, 102400 tr -> 8'35"
+        
+        100 tpt,  1638400 tr -> 7142" = 119'
+        1600 tpt, 1638400 tr -> 6833" = 114'
+        6400 tpt, 1638400 tr -> 6687" = 111'
+        no bounding, 1638400 tr -> 129251" = 35.9 hours
 
-        New optimization (method does_hit instead of measure_distance):
-        SLOWER, now 2 hours! (7143"!)
+        Time (only) divided by 19.3... disappointing
+
+        4096 tr:
+        no bounding -> 310" = 5'10"
+        4 tpt       -> 34"
+        16 tpt      -> 23"
+        64 tpt      -> 21"
+        128 tpt     -> 22"
+        512 tpt     -> 30"
+        Improvement by a factor 14.76
     */
 
-
+    
     const double shift = (2 * 620) / (((double) number_of_triangles) - 1);
 
     const unsigned int nb_obj = object::set.size();
@@ -124,6 +138,7 @@ int main(int argc, char *argv[]) {
             rt::vector(-620 + 80  + shift * ((double) i), -200, 700),
             light_material(rt::color(10, 180, 255), 0));
     }
+    
     
     // Automatic bounding boxes definition
     queue<const bounding*> bounding_queue;
@@ -155,7 +170,7 @@ int main(int argc, char *argv[]) {
     const bounding c(indices);
     const bounding* bd = bounding_queue.front();
     bounding::set = {bd, &c};
-
+    
     
     /*
     // Temporary: pushing all objects to the bounding set
@@ -165,18 +180,6 @@ int main(int argc, char *argv[]) {
     }
     const bounding c(indices);
     bounding::set = {&c};
-    */
-
-    /* Test of usefulness of bounding boxes:
-    5120 triangles, 5 bounces, 1 ray:
-    with the object method: 6'10"
-    with the bounding method:
-    1 box:   3'50" (or slightly more)
-    2 boxes: 2'37"
-    4 boxes: 1'43"
-    automatic boxing, 10 tr per box, total 1023 boxes: 46"
-    -> optimization of the search (without obj_stack): 33"
-    -> 80 tr per box, total 127 boxes:                 25"
     */
 
     /* ********************************************************** */
