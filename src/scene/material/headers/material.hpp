@@ -24,13 +24,21 @@ class material {
         /* True if the material color is reflected in specular bounces, false if it is white */
         bool reflects_color;
 
-        // texture
-        // transparency
+        /* Transparency: real between 0 and 1 */
+        double transparency;
+
+        /* Indice of refraction: air = 1, water = 1.3, glass = 1.5, diamond = 1.8 */
+        double refraction_index;
+
+        // Todo: texture
+
 
     public:
 
         /* Mirror surface */
         static const material MIRROR;
+        static const material GLASS;
+        // static const material WATER;
 
 
         /* Constructors */
@@ -43,7 +51,8 @@ class material {
         /* Main constructor */
         material(const rt::color& color, const rt::color& emitted_color,
             const double reflectivity, const double emission_intensity,
-            const double specular_probability, const bool reflects_color);
+            const double specular_probability, const bool reflects_color,
+            const double transparency, const double refraction_index);
 
 
 
