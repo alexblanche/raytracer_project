@@ -8,6 +8,8 @@ using namespace std;
  * the point of origin, the direction vector and the color.
 */
 
+// vector<unsigned int> ray::obj_comp_cpt = {0, 0, 0, 0, 0};
+
 /* Constructors */
 
 ray::ray(const rt::vector& o, const rt::vector& d)

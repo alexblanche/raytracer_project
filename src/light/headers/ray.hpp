@@ -17,7 +17,11 @@ class ray {
         rt::vector direction;
         //unsigned int origin_index;
 
+        
+
     public :
+        // static vector<unsigned int> obj_comp_cpt;
+
         /* Constructors */
         
         ray (const rt::vector& o, const rt::vector& d);

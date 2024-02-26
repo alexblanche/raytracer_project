@@ -77,6 +77,7 @@ hit object::find_closest_object(const ray& r) {
             closest_index = i;
         }
     }
+
     if (closest_index == ((unsigned int) -1)) {
         return hit();
     }

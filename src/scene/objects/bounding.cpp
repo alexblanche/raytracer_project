@@ -100,11 +100,49 @@ hit bounding::find_closest_object(const ray& r) {
         bounding::set.at(i)->check_box(r, closest, closest_index, bounding_stack);
     }
 
+    /* In order to avoid pushing and then immediately popping an element from bounding_stack,
+       we store the last element of bd->children in next_bounding.
+       The boolean bd_stored indicates whether we should pop an element, or if one is currently
+       stored.
+     */
+    const bounding* next_bounding;
+    bool bd_stored = false;
+
     /* Apply the same to the bounding box stack */
-    while (not bounding_stack.empty()) {
-        const bounding* bd = bounding_stack.top();
-        bounding_stack.pop();
-        bd->check_box(r, closest, closest_index, bounding_stack);
+    while (bd_stored || (not bounding_stack.empty())) {
+
+        const bounding* bd = bd_stored ? next_bounding : bounding_stack.top();
+        if (not bd_stored) {
+            bounding_stack.pop();
+        }
+        
+        if (bd->is_terminal) {
+            if (bd->b == NULL || bd->b->does_hit(r)) {
+                for (unsigned int i = 0; i < bd->content.size(); i++) {
+                    const unsigned int obj_i = bd->content.at(i);
+                    const double d = object::set.at(obj_i)->measure_distance(r);
+                    if (d < closest && d > 0.000001) {
+                        closest = d;
+                        closest_index = obj_i;
+                    }
+                }
+            }
+            bd_stored = false;
+        }
+        else {
+            if (bd->b->does_hit(r)) {
+                const unsigned int last_index = bd->children.size() - 1;
+                for (unsigned int i = 0; i < last_index; i++) {
+                    bounding_stack.push(bd->children.at(i));
+                }
+                // Last element of children
+                next_bounding = bd->children.at(last_index);
+                bd_stored = true;
+            }
+            else {
+                bd_stored = false;
+            }
+        }
     }
 
     /* Finally, return the hit corresponding to the closest object intersected by the ray */
