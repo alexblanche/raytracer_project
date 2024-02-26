@@ -17,7 +17,13 @@ class ray {
         rt::vector direction;
         //unsigned int origin_index;
 
-        
+        /* Pre-computed values */
+
+        // Inverse of the direction
+        rt::vector inv_dir;
+        // Absolute values of each component
+        rt::vector abs_inv_dir;
+
 
     public :
         // static vector<unsigned int> obj_comp_cpt;
@@ -32,6 +38,10 @@ class ray {
         rt::vector get_origin() const;
         
         rt::vector get_direction() const;
+
+        rt::vector get_inv_dir() const;
+
+        rt::vector get_abs_inv_dir() const;
 
         //unsigned int get_origin_index() const;
 

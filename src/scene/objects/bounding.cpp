@@ -63,7 +63,7 @@ void bounding::check_box(const ray& r,
     std::stack<const bounding*>& bounding_stack) const {
 
     if (is_terminal) {
-        if (b == NULL || b->does_hit(r)) {
+        if (b == NULL || b->is_hit_by(r)) {
             for (unsigned int i = 0; i < content.size(); i++) {
                 const unsigned int obj_i = content.at(i);
                 const double d = object::set.at(obj_i)->measure_distance(r);
@@ -75,7 +75,7 @@ void bounding::check_box(const ray& r,
         }
     }
     else {
-        if (b->does_hit(r)) {
+        if (b->is_hit_by(r)) {
             for (unsigned int i = 0; i < children.size(); i++) {
                 bounding_stack.push(children.at(i));
             }
@@ -117,7 +117,7 @@ hit bounding::find_closest_object(const ray& r) {
         }
         
         if (bd->is_terminal) {
-            if (bd->b == NULL || bd->b->does_hit(r)) {
+            if (bd->b == NULL || bd->b->is_hit_by(r)) {
                 for (unsigned int i = 0; i < bd->content.size(); i++) {
                     const unsigned int obj_i = bd->content.at(i);
                     const double d = object::set.at(obj_i)->measure_distance(r);
@@ -130,7 +130,7 @@ hit bounding::find_closest_object(const ray& r) {
             bd_stored = false;
         }
         else {
-            if (bd->b->does_hit(r)) {
+            if (bd->b->is_hit_by(r)) {
                 const unsigned int last_index = bd->children.size() - 1;
                 for (unsigned int i = 0; i < last_index; i++) {
                     bounding_stack.push(bd->children.at(i));

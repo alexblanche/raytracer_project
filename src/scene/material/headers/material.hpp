@@ -30,6 +30,9 @@ class material {
         /* Indice of refraction: air = 1, water = 1.3, glass = 1.5, diamond = 1.8 */
         double refraction_index;
 
+        /* Scattering of the refracted rays (similar to glossiness for reflected rays) */
+        //double refraction_scattering;
+
         // Todo: texture
 
 

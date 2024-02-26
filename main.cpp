@@ -39,8 +39,8 @@ using namespace std;
 void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const unsigned int number_of_bounces) {
     
     mutex m;
-    // float cpt = 0;
-    // float x = 100.0 / (((double) scene.width) * ((double) scene.height));
+    float cpt = 0;
+    float x = 100.0 / (((double) scene.width) * ((double) scene.height));
     time_t t_init=time(NULL);
 
     PARALLEL_FOR_BEGIN(scene.width) {
@@ -54,7 +54,7 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const
             
             const rt::color& current_color = matrix.at(i).at(j);
             const rt::color new_color = current_color + pixel_col;
-            // cpt += 1;
+            cpt += 1;
 
             // Updating the color matrix
             m.lock();
@@ -62,27 +62,27 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const
             m.unlock();
         }
 
-        // m.lock();
-        // const long int curr_time = time(NULL);
-        // const long int elapsed = curr_time - t_init;
-        // const double estimated_time = ((double) elapsed) * 100.0 / (cpt * x);
-        // printf("%f / 100, ", cpt * x);
-        // printf("Time elapsed: %ld seconds, Estimated total time: %d seconds = %d minutes\n",
-        //     elapsed, (int) estimated_time, (int) (estimated_time / 60.0));
+        m.lock();
+        const long int curr_time = time(NULL);
+        const long int elapsed = curr_time - t_init;
+        const double estimated_time = ((double) elapsed) * 100.0 / (cpt * x);
+        printf("%f / 100, ", cpt * x);
+        printf("Time elapsed: %ld seconds, Estimated total time: %d seconds = %d minutes\n",
+            elapsed, (int) estimated_time, (int) (estimated_time / 60.0));
 
         // printf("\nObject tested at each bounce:\n");
         // for (unsigned int i = 0; i < 5; i++) {
         //     printf("%u: %u (%f per ray), ", i, ray::obj_comp_cpt.at(i), ((double) ray::obj_comp_cpt.at(i)) / ((double) cpt));
         // }
         // printf("\n");
-        // m.unlock();
+        m.unlock();
         
     } PARALLEL_FOR_END();
 
     const long int curr_time = time(NULL);
     const long int elapsed = curr_time - t_init;
     printf("Time elapsed: %ld seconds = %ld minutes\n\n",
-    elapsed, elapsed / 60);
+        elapsed, elapsed / 60);
 
     // printf("\nObject tested at each bounce:\n");
     // for (unsigned int i = 0; i < 5; i++) {
@@ -123,10 +123,10 @@ int main(int argc, char *argv[]) {
     /* Creation of the triangles */
     // const unsigned int triangles_per_terminal = 80;
     // const unsigned int number_of_triangles = 10 * 512;
-    const unsigned int triangles_per_terminal = 64;
-    const unsigned int number_of_triangles = 4096;
-    // const unsigned int triangles_per_terminal = 6400;
-    // const unsigned int number_of_triangles = 1638400;
+    // const unsigned int triangles_per_terminal = 64;
+    // const unsigned int number_of_triangles = 4096;
+    const unsigned int triangles_per_terminal = 6400;
+    const unsigned int number_of_triangles = 1638400;
     // const unsigned int number_of_triangles = 70000;
 
     /* Time test:
@@ -174,6 +174,10 @@ int main(int argc, char *argv[]) {
        80000 triangles -> 7973" = 132' (at 2.3%)
        70000 triangles -> 6631" = 110' (at 1.83%)
        (6400 tpt, 1638400 tr -> 6702" = 111' (at 2.68%))
+
+       New optimization (is_hit_by specialized for standard boxes):
+       6400 tpt, 1638400 tr -> 6674" = 111' (at 2.86%)
+       Insignificant. (weird)
     */
     
     

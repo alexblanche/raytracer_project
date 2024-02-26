@@ -93,12 +93,7 @@ double box::measure_distance(const ray& r) const {
         const double t1 = pmun1 / pdt1 + a * l1 / abspdt1;
         // Check that t1 gives a point inside the face
         if (abs(pmun2 - t1 * pdt2) <= l2 && abs(pmun3 - t1 * pdt3) <= l3) {
-            if (t1 >= 0) {
-                return t1;
-            }
-            else {
-                return infinity;
-            }
+            return t1 >= 0 ? t1 : infinity;
         }
     }
 
@@ -106,12 +101,7 @@ double box::measure_distance(const ray& r) const {
     if (abspdt2 > 0.0000001) {
         const double t2 = pmun2 / pdt2 + a * l2 / abspdt2;
         if (abs(pmun1 - t2 * pdt1) <= l1 && abs(pmun3 - t2 * pdt3) <= l3) {
-            if (t2 >= 0) {
-                return t2;
-            }
-            else {
-                return infinity;
-            }
+            return t2 >= 0 ? t2 : infinity;
         }
     }
 
@@ -235,48 +225,45 @@ hit box::compute_intersection(const ray& r, const double t) const {
     }   
 }
 
-bool box::does_hit(const ray& r) const {
+/* Specific to (standard) boxes: returns true if the ray r hits the box
+   The box is assumed to be standard (axes are n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1)) */
+bool box::is_hit_by(const ray& r) const {
     
     const rt::vector& dir = r.get_direction();
+    const rt::vector& inv_dir = r.get_inv_dir();
+    const rt::vector& abs_inv_dir = r.get_abs_inv_dir();
 
     // See measure_distance
 
-    const rt::vector pmu = position - r.get_origin();
-    const double pmun1 = (pmu | n1);
-    const double pmun2 = (pmu | n2);
-    const double pmun3 = (pmu | n3);
+    const rt::vector& u = r.get_origin();
+    const double pmux = position.x - u.x;
+    const double pmuy = position.y - u.y;
+    const double pmuz = position.z - u.z;
     
-    if (abs(pmun1) <= l1 && abs(pmun2) <= l2 && abs(pmun3) <= l3) {
+    if (abs(pmux) <= l1 && abs(pmuy) <= l2 && abs(pmuz) <= l3) {
         // u is inside the box
         return true;
     }
 
-    const double pdt1 = (dir | n1);
-    const double pdt2 = (dir | n2);
-    const double pdt3 = (dir | n3);
-
-    const double abspdt1 = abs(pdt1);
-    if (abspdt1 > 0.0000001) {
+    if (dir.x != 0) {
         // Determination of t1
-        const double t1 = pmun1 / pdt1 - l1 / abspdt1;
+        const double t1 = pmux * inv_dir.x - l1 * abs_inv_dir.x;
         // Check that t1 gives a point inside the face
-        if (abs(pmun2 - t1 * pdt2) <= l2 && abs(pmun3 - t1 * pdt3) <= l3) {
+        if (abs(pmuy - t1 * dir.y) <= l2 && abs(pmuz - t1 * dir.z) <= l3) {
             return (t1 >= 0);
         }
     }
 
-    const double abspdt2 = abs(pdt2);
-    if (abspdt2 > 0.0000001) {
-        const double t2 = pmun2 / pdt2 - l2 / abspdt2;
-        if (abs(pmun1 - t2 * pdt1) <= l1 && abs(pmun3 - t2 * pdt3) <= l3) {
+    if (dir.y != 0) {
+        const double t2 = pmuy * inv_dir.y - l2 * abs_inv_dir.y;
+        if (abs(pmux - t2 * dir.x) <= l1 && abs(pmuz - t2 * dir.z) <= l3) {
             return (t2 >= 0);
         }
     }
 
-    const double abspdt3 = abs(pdt3);
-    if (abspdt3 > 0.0000001) {
-        const double t3 = pmun3 / pdt3 - l3 / abspdt3;
-        return (t3 >= 0 && abs(pmun1 - t3 * pdt1) <= l1 && abs(pmun2 - t3 * pdt2) <= l2);
+    if (dir.z != 0) {
+        const double t3 = pmuz * inv_dir.z - l3 * abs_inv_dir.z;
+        return (t3 >= 0 && abs(pmux - t3 * dir.x) <= l1 && abs(pmuy - t3 * dir.y) <= l2);
     }
 
     return false;
