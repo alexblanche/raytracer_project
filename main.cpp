@@ -84,8 +84,14 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const
 
     const long int curr_time = time(NULL);
     const long int elapsed = curr_time - t_init;
-    printf("\nTime elapsed: %ld seconds = %ld minutes\n",
-        elapsed, elapsed / 60);
+    if (elapsed < 60) {
+        printf("\nTime elapsed: %ld seconds\n", elapsed);
+    }
+    else {
+        printf("\nTime elapsed: %ld seconds = %f minutes\n",
+            elapsed, ((float) elapsed) / 60.0);
+    }
+    
 
     // printf("\nObject tested at each bounce:\n");
     // for (unsigned int i = 0; i < 5; i++) {
