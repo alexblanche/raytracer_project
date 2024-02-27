@@ -15,6 +15,7 @@ all:
 		src/scene/objects/quad.cpp \
 		src/scene/objects/box.cpp \
 		src/scene/objects/bounding.cpp \
+		src/scene/objects/cylinder.cpp \
 		src/auxiliary/tracing.cpp \
 		src/scene/scene.cpp \
 		main.cpp -lmingw32 -lSDL2main -lSDL2

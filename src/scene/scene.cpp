@@ -5,6 +5,8 @@
 #include "objects/headers/box.hpp"
 #include "objects/headers/triangle.hpp"
 #include "objects/headers/quad.hpp"
+#include "objects/headers/cylinder.hpp"
+
 #include "../screen/headers/color.hpp"
 #include "../auxiliary/headers/randomgen.hpp"
 
@@ -104,7 +106,9 @@ scene::scene(const char* file_name)
 
     quad (-620,-100,600) (-520,100,600) (-540,-200,600) (-500,-250,600) [material]
 
-    For boxes, the axes do not need to be unit vectors, they will be normalized when the objects are defined.
+    cylinder origin:(0,0,0) direction:(1,-1,1) radius:100 length:300 [material]
+
+    For boxes and cylinders, the axes do not need to be unit vectors, they will be normalized when the objects are defined.
     */
 
     /* Objects are automatically stored in object::set */
@@ -161,6 +165,14 @@ scene::scene(const char* file_name)
                 &x3, &y3, &z3);
             material m = parse_materials(file);
             new quad(rt::vector(x0, y0, z0), rt::vector(x1, y1, z1), rt::vector(x2, y2, z2), rt::vector(x3, y3, z3), m);
+        }
+        else if (strcmp(s, "cylinder") == 0) {
+            /* origin:(0,0,0) direction:(1,-1,1) radius:100 length:300 [material] */
+            double x0, y0, z0, dx, dy, dz, r, l;
+            fscanf(file, "origin:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) radius:%lf length:%lf ",
+                &x0, &y0, &z0, &dx, &dy, &dz, &r, &l);
+            material m = parse_materials(file);
+            new cylinder(rt::vector(x0, y0, z0), rt::vector(dx, dy, dz), r, l, m);
         }
         else {
             printf("Parsing error: %s\n", s);
