@@ -31,13 +31,12 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
     rt::color color_materials = rt::color::WHITE;
     rt::color emitted_colors = rt::color::BLACK;
 
-    const bool bounding_method = scene.triangles_per_bounding != 0; 
+    const bool bounding_method = scene.triangles_per_bounding != 0;
+    const double PI = 3.14159265358979323846;
 
     for (unsigned int i = 0; i < bounce; i++) {
         
         const hit h = bounding_method ? bounding::find_closest_object(r) : object::find_closest_object(r);
-        
-        // r.set_origin_index(h.get_obj_index());
 
         if (h.object_hit()) {
             const material& m = object::set.at(h.get_obj_index())->get_material();
@@ -56,12 +55,12 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                     const rt::vector central_dir = h.get_central_direction(reflectivity);
                     
                     // Direction according to Lambert's cosine law
-                    if (reflectivity > 0.99999) {
+                    if (reflectivity >= 1) {
                         r.set_direction(central_dir);
                     }
                     else {
-                        const rt::vector& bouncing_dir = (central_dir +
-                            ((1 - reflectivity) * h.random_reflect_single(scene.rg, central_dir, 3.14159265358979323846))).unit();
+                        const rt::vector bouncing_dir = (central_dir +
+                            ((1 - reflectivity) * h.random_reflect_single(scene.rg, central_dir, PI))).unit();
                         r.set_direction(bouncing_dir);
                     }
                     
@@ -73,15 +72,12 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                         // Reflections have the material color (like a christmas tree ball)
                         color_materials = color_materials * m.get_color();
                     }
-                    else {
-                        // Reflections have the original color (like a tomato)
-                        color_materials = color_materials;
-                    }
+                    // Otherwise, reflections have the original color (like a tomato)
                 }
                 else {
                     /* Diffuse bounce */
                     
-                    const rt::vector bouncing_dir = (h.get_normal() + h.random_reflect_single(scene.rg, h.get_normal(), 3.14159265358979323846)).unit();
+                    const rt::vector bouncing_dir = (h.get_normal() + h.random_reflect_single(scene.rg, h.get_normal(), PI)).unit();
                     r.set_direction(bouncing_dir);
                     
                     const rt::color emitted_light = m.get_emitted_color() * m.get_emission_intensity();

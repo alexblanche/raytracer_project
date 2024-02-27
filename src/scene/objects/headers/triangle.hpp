@@ -66,4 +66,8 @@ class triangle : public object {
         rt::vector get_interpolated_normal(const double& l1, const double& l2) const;
 
         hit compute_intersection(const ray& r, const double t) const;
+
+        /* Minimum and maximum coordinates */
+        void min_max_coord(double& min_x, double& max_x,
+            double& min_y, double& max_y, double& min_z, double& max_z) const;
 };

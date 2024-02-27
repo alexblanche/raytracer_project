@@ -211,6 +211,34 @@ hit box::compute_intersection(const ray& r, const double t) const {
     }   
 }
 
+/* Minimum and maximum coordinates */
+void box::min_max_coord(double& min_x, double& max_x,
+    double& min_y, double& max_y, double& min_z, double& max_z) const {
+
+    // (n1 * a1x) has a positive .x, (n1 * (-a1x)) has a negative one
+    const double a1x = n1.x >= 0 ? 1 : (-1);
+    const double a2x = n2.x >= 0 ? 1 : (-1);
+    const double a3x = n3.x >= 0 ? 1 : (-1);
+
+    max_x = (position + (a1x * n1) + (a2x * n2) + (a3x * n3)).x;
+    min_x = (position + ((- a1x) * n1) + ((- a2x) * n2) + ((- a3x) * n3)).x;
+
+    const double a1y = n1.y >= 0 ? 1 : (-1);
+    const double a2y = n2.y >= 0 ? 1 : (-1);
+    const double a3y = n3.y >= 0 ? 1 : (-1);
+
+    max_y = (position + (a1y * n1) + (a2y * n2) + (a3y * n3)).y;
+    min_y = (position + ((- a1y) * n1) + ((- a2y) * n2) + ((- a3y) * n3)).y;
+
+    const double a1z = n1.z >= 0 ? 1 : (-1);
+    const double a2z = n2.z >= 0 ? 1 : (-1);
+    const double a3z = n3.z >= 0 ? 1 : (-1);
+
+    max_z = (position + (a1z * n1) + (a2z * n2) + (a3z * n3)).z;
+    min_z = (position + ((- a1z) * n1) + ((- a2z) * n2) + ((- a3z) * n3)).z;
+}
+
+
 /* Specific to (standard) boxes: returns true if the ray r hits the box
    The box is assumed to be standard (axes are n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1)) */
 bool box::is_hit_by(const ray& r) const {

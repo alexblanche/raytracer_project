@@ -36,4 +36,8 @@ class sphere : public object {
         double measure_distance(const ray& r) const;
 
         hit compute_intersection(const ray& r, const double t) const;
+
+        /* Minimum and maximum coordinates */
+        void min_max_coord(double& min_x, double& max_x,
+            double& min_y, double& max_y, double& min_z, double& max_z) const;
 };

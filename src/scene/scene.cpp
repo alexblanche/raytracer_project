@@ -29,18 +29,18 @@ scene::scene(const rt::color background,
 /* Auxiliary function that returns a material from a description file */
 material parse_materials(FILE* file) {
     /* material:(color:(120,120,120) emitted_color:(0,0,0) reflectivity:1 emission:0 specular_p:1.0 reflects_color:false) */
-    double r, g, b, er, eg, eb, refl, em_int, spec_p, transp, refr;
+    double r, g, b, er, eg, eb, refl, em_int, spec_p, transp, scattering, refr_i;
     bool refl_color = false;
     char refl_c[4];
 
-    fscanf(file, "material:(color:(%lf,%lf,%lf) emitted_color:(%lf,%lf,%lf) reflectivity:%lf emission:%lf specular_p:%lf reflects_color:%s transparency:%lf refraction_index:%lf)\n", 
-        &r, &g, &b, &er, &eg, &eb, &refl, &em_int, &spec_p, refl_c, &transp, &refr);
+    fscanf(file, "material:(color:(%lf,%lf,%lf) emitted_color:(%lf,%lf,%lf) reflectivity:%lf emission:%lf specular_p:%lf reflects_color:%s transparency:%lf scattering:%lf refraction_index:%lf)\n", 
+        &r, &g, &b, &er, &eg, &eb, &refl, &em_int, &spec_p, refl_c, &transp, &scattering, &refr_i);
 
     if (strcmp(refl_c, "true") == 0) {
         refl_color = true;
     }
 
-    return material(rt::color(r, g, b), rt::color(er, eg, eb), refl, em_int, spec_p, refl_color, transp, refr);
+    return material(rt::color(r, g, b), rt::color(er, eg, eb), refl, em_int, spec_p, refl_color, transp, scattering, refr_i);
 }
 
 scene::scene(const char* file_name)

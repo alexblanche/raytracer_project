@@ -26,12 +26,12 @@ class material {
 
         /* Transparency: real between 0 and 1 */
         double transparency;
+        
+        /* Scattering of the refracted rays (similar to glossiness for reflected rays) */
+        double refraction_scattering;
 
         /* Indice of refraction: air = 1, water = 1.3, glass = 1.5, diamond = 1.8 */
         double refraction_index;
-
-        /* Scattering of the refracted rays (similar to glossiness for reflected rays) */
-        //double refraction_scattering;
 
         // Todo: texture
 
@@ -53,9 +53,11 @@ class material {
 
         /* Main constructor */
         material(const rt::color& color, const rt::color& emitted_color,
-            const double reflectivity, const double emission_intensity,
-            const double specular_probability, const bool reflects_color,
-            const double transparency, const double refraction_index);
+            const double& reflectivity, const double& emission_intensity,
+            const double& specular_probability, const bool reflects_color,
+            const double& transparency, const double& refraction_scattering,
+            const double& refraction_index_in
+            );
 
 
 

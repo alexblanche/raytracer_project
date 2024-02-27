@@ -64,8 +64,12 @@ class quad : public object {
            p = position + l1 * v3 + l2 * v2 otherwise
         */
         bool get_barycentric(const rt::vector& p, double& l1, double& l2) const;
-            
+        
         rt::vector get_interpolated_normal(const double& l1, const double& l2, const bool triangle) const;
 
         hit compute_intersection(const ray& r, const double t) const;
+
+        /* Minimum and maximum coordinates */
+        void min_max_coord(double& min_x, double& max_x,
+            double& min_y, double& max_y, double& min_z, double& max_z) const;
 };

@@ -26,9 +26,10 @@ object::object(const rt::vector& position, const material& m)
 }
 
 
-/* Intersection determination */
 
-/* Default versions: these two functions are overridden by derived classes */
+/* Default versions: these three functions are overridden by derived classes */
+
+/* Intersection determination */
 
 double object::measure_distance(const ray& r) const {
     return (r.get_origin() - position).norm();
@@ -38,6 +39,13 @@ hit object::compute_intersection(const ray& r, const double t) const {
     rt::vector p = r.get_origin() + t * r.get_direction().unit();
     rt::vector n = (-1)*(r.get_direction().unit());
     return hit(r, p, n, index);
+}
+
+/* Writes the minimum and maximum coordinates of the object on the three axes */
+void object::min_max_coord(double& min_x, double& max_x,
+    double& min_y, double& max_y, double& min_z, double& max_z) const {
+
+    return;
 }
 
 

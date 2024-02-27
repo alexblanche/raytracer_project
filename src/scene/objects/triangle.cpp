@@ -78,16 +78,12 @@ double triangle::measure_distance(const ray& r) const {
     const rt::vector c = u + (t * dir) - position;
     const double detxy = v1.x * v2.y - v1.y * v2.x;
 
-    if (abs(detxy) > 0.00001) {
+    if (detxy != 0) {
         const double l1 = (c.x * v2.y - c.y * v2.x) / detxy;
         if (l1 >= 0 && l1 <= 1) {
             const double l2 = (v1.x * c.y - v1.y * c.x) / detxy;
-            if (l2 >= 0 && l1 + l2 <= 1) {
-                return t;
-            }
-            else {
-                return infinity;
-            }
+            return (l2 >= 0 && l1 + l2 <= 1) ?
+                t : infinity;
         }
         else {
             return infinity;
@@ -97,16 +93,12 @@ double triangle::measure_distance(const ray& r) const {
         // The vectors v1, v2 are colinear when projected on the plane z = 0
         // Another attempt with rows x, z
         const double detxz = v1.x * v2.z - v1.z * v2.x;
-        if (abs(detxz) > 0.00001) {
+        if (detxz != 0) {
             const double l1xz = (c.x * v2.z - c.z * v2.x) / detxz;
             if (l1xz >= 0 && l1xz <= 1) {
                 const double l2xz = (v1.x * c.z - v1.z * c.x) / detxz;
-                if (l2xz >= 0 && l1xz + l2xz <= 1) {
-                    return t;
-                }
-                else {
-                    return infinity;
-                }
+                return (l2xz >= 0 && l1xz + l2xz <= 1) ?
+                    t : infinity;
             }
             else {
                 return infinity;
@@ -117,16 +109,12 @@ double triangle::measure_distance(const ray& r) const {
             // (e.g. the triangle lies in the plane x = constant)
             // Last attempt with rows y, z
             const double detyz = v1.y * v2.z - v1.z * v2.y;
-            if (abs(detyz) > 0.00001) {
+            if (detyz != 0) {
                 const double l1yz = (c.y * v2.z - c.z * v2.y) / detyz;
                 if (l1yz >= 0 && l1yz <= 1) {
                     const double l2yz = (v1.y * c.z - v1.z * c.y) / detyz;
-                    if (l2yz >= 0 && l1yz + l2yz <= 1) {
-                        return t;
-                    }
-                    else {
-                        return infinity;
-                    }
+                    return (l2yz >= 0 && l1yz + l2yz <= 1) ?
+                        t : infinity;
                 }
                 else {
                     return infinity;
@@ -147,13 +135,13 @@ void triangle::get_barycentric(const rt::vector& p, double& l1, double& l2) cons
 
     const rt::vector c = p - position;
     const double detxy = v1.x * v2.y - v1.y * v2.x;
-    if (abs(detxy) > 0.00001) {
+    if (detxy != 0) {
         l1 = (c.x * v2.y - c.y * v2.x) / detxy;
         l2 = (v1.x * c.y - v1.y * c.x) / detxy;
     }
     else {
         const double detxz = v1.x * v2.z - v1.z * v2.x;
-        if (abs(detxz) > 0.00001) {
+        if (detxz != 0) {
             l1 = (c.x * v2.z - c.z * v2.x) / detxz;
             l2 = (v1.x * c.z - v1.z * c.x) / detxz;
         }
@@ -178,4 +166,22 @@ hit triangle::compute_intersection(const ray& r, const double t) const {
     // Also used to get the texture info (to be implemented here later)
 
     return hit(r, p, get_interpolated_normal(l1, l2), get_index());
+}
+
+
+/* Minimum and maximum coordinates */
+void triangle::min_max_coord(double& min_x, double& max_x,
+    double& min_y, double& max_y, double& min_z, double& max_z) const {
+
+    const rt::vector p1 = position + v1;
+    const rt::vector p2 = position + v2;
+
+    min_x = std::min(position.x, std::min(p1.x, p2.x));
+    max_x = std::max(position.x, std::max(p1.x, p2.x));
+
+    min_y = std::min(position.y, std::min(p1.y, p2.y));
+    max_y = std::max(position.y, std::max(p1.y, p2.y));
+    
+    min_z = std::min(position.z, std::min(p1.z, p2.z));
+    max_z = std::max(position.z, std::max(p1.z, p2.z));
 }

@@ -43,12 +43,17 @@ class object {
             return mat;
         }
 
-        /* Intersection determination */
-        // These two functions are overridden by derived classes
+        
+        // These three functions are overridden by derived classes
 
+        /* Intersection determination */
         virtual double measure_distance(const ray& r) const;
 
         virtual hit compute_intersection(const ray& r, const double t) const;
+
+        /* Writes the minimum and maximum coordinates of the object on the three axes */
+        virtual void min_max_coord(double& min_x, double& max_x,
+            double& min_y, double& max_y, double& min_z, double& max_z) const;
 
         static hit find_closest_object(const ray& r);
 };

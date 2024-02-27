@@ -175,7 +175,7 @@ bounding* containing_bounding(const bounding& bd0, const bounding& bd1) {
 }
 
 /* Returns a non-terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
-   containing the triangles whose indices are in the obj vector */
+   containing the (finite) objects whose indices are in the obj vector */
 bounding* containing_objects(const std::vector<unsigned int>& obj) {
 
     double min_x = infinity;
@@ -185,19 +185,10 @@ bounding* containing_objects(const std::vector<unsigned int>& obj) {
     double min_z = infinity;
     double max_z = -infinity;
 
-    /* Computation of the dimensions of the triangle set */
+    /* Computation of the dimensions of the object set */
     for(unsigned int i = 0; i < obj.size(); i++) {
-        const rt::vector& p0 = object::set.at(obj.at(i))->get_position();
-        // To do: adapt to also handle quads
-        const rt::vector p1 = p0 + ((triangle*) object::set.at(obj.at(i)))->get_v1();
-        const rt::vector p2 = p0 + ((triangle*) object::set.at(obj.at(i)))->get_v2();
-
-        const double x_max = std::max(p0.x, std::max(p1.x, p2.x));
-        const double x_min = std::min(p0.x, std::min(p1.x, p2.x));
-        const double y_max = std::max(p0.y, std::max(p1.y, p2.y));
-        const double y_min = std::min(p0.y, std::min(p1.y, p2.y));
-        const double z_max = std::max(p0.z, std::max(p1.z, p2.z));
-        const double z_min = std::min(p0.z, std::min(p1.z, p2.z));
+        double x_min, x_max, y_min, y_max, z_min, z_max;
+        object::set.at(obj.at(i))->min_max_coord(x_min, x_max, y_min, y_max, z_min, z_max);
 
         if (x_max > max_x) {max_x = x_max;}
         if (x_min < min_x) {min_x = x_min;}
