@@ -47,23 +47,6 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
     d = - (normal | p0);
 }
 
-/* Accessors */
-
-rt::vector quad::get_normal() const {
-    return normal;
-}
-
-rt::vector quad::get_v1() const {
-    return v1;
-}
-
-rt::vector quad::get_v2() const {
-    return v2;
-}
-
-rt::vector quad::get_v3() const {
-    return v3;
-}
 
 
 /* Intersection determination */

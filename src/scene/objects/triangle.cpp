@@ -43,19 +43,6 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     d = - (normal | p0);
 }
 
-/* Accessors */
-
-rt::vector triangle::get_normal() const {
-    return normal;
-}
-
-rt::vector triangle::get_v1() const {
-    return v1;
-}
-
-rt::vector triangle::get_v2() const {
-    return v2;
-}
 
 
 /* Intersection determination */

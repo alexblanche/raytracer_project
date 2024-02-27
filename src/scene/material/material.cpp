@@ -44,30 +44,3 @@ material diffuse_material(const rt::color& color) {
 material light_material(const rt::color& color, const double emission_intensity) {
     return material(color, color, 0, emission_intensity, 0, false, 0, 1);
 }
-
-
-/* Accessors */
-
-rt::color material::get_color() const {
-    return color;
-}
-
-rt::color material::get_emitted_color() const {
-    return emitted_color;
-}
-
-double material::get_reflectivity() const {
-    return reflectivity;
-}
-
-double material::get_emission_intensity() const {
-    return emission_intensity;
-}
-
-double material::get_specular_proba() const {
-    return specular_probability;
-}
-
-bool material::does_reflect_color() const {
-    return reflects_color;
-}

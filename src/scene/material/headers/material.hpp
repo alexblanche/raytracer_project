@@ -61,17 +61,29 @@ class material {
 
         /* Accessors */
 
-        rt::color get_color() const;
+        rt::color get_color() const {
+            return color;
+        }
 
-        rt::color get_emitted_color() const;
+        rt::color get_emitted_color() const {
+            return emitted_color;
+        }
 
-        double get_reflectivity() const;
+        double get_reflectivity() const {
+            return reflectivity;
+        }
 
-        double get_emission_intensity() const;
+        double get_emission_intensity() const {
+            return emission_intensity;
+        }
 
-        double get_specular_proba() const;
+        double get_specular_proba() const {
+            return specular_probability;
+        }
 
-        bool does_reflect_color() const;
+        bool does_reflect_color() const {
+            return reflects_color;
+        }
 };
 
 /* Specific constructors */

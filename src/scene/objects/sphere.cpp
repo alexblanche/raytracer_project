@@ -19,16 +19,6 @@ sphere::sphere(const rt::vector& center, const double radius, const material& ma
 
 
 
-/* Accessors */
-
-rt::vector sphere::get_center() const {
-    return position;
-}
-
-double sphere::get_radius() const {
-    return radius;
-}
-
 
 /* Intersection determination */
 

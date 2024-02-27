@@ -24,34 +24,6 @@ ray::ray()
       inv_dir(rt::vector()) {}
 
 
-/* Accessors */
-
-rt::vector ray::get_origin() const {
-    return origin;
-}
-
-rt::vector ray::get_direction() const {
-    return direction;
-}
-
-rt::vector ray::get_inv_dir() const {
-    return inv_dir;
-}
-
-rt::vector ray::get_abs_inv_dir() const {
-    return abs_inv_dir;
-}
-
-// unsigned int ray::get_origin_index() const {
-//     return origin_index;
-// }
-
-/* Mutators */
-
-void ray::set_origin(const rt::vector& o) {
-    origin = o;
-}
-
 void ray::set_direction(const rt::vector& d) {
     direction = d;
     inv_dir = rt::vector(1/d.x, 1/d.y, 1/d.z);

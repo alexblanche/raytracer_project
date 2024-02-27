@@ -40,20 +40,6 @@ bounding::bounding(const box* b, const std::vector<const bounding*>& children)
     : is_terminal(false), b(b), children(children) {}
 
 
-/* Accessors */
-
-const box* bounding::get_b() const {
-    return b;
-}
-
-const std::vector<unsigned int>& bounding::get_content() const {
-    return content;
-}
-
-const std::vector<const bounding*>& bounding::get_children() const {
-    return children;
-}
-
 
 /* Tree-search version of the closest object to the ray r */
 
@@ -62,14 +48,17 @@ void bounding::check_box(const ray& r,
     double& closest, unsigned int& closest_index,
     std::stack<const bounding*>& bounding_stack) const {
 
+    double cl = closest;
+    unsigned int cl_i = closest_index;
+
     if (is_terminal) {
         if (b == NULL || b->is_hit_by(r)) {
             for (unsigned int i = 0; i < content.size(); i++) {
                 const unsigned int obj_i = content.at(i);
                 const double d = object::set.at(obj_i)->measure_distance(r);
-                if (d < closest && d > 0.000001) {
-                    closest = d;
-                    closest_index = obj_i;
+                if (d < cl && d > 0.000001) {
+                    cl = d;
+                    cl_i = obj_i;
                 }
             }
         }
@@ -81,6 +70,9 @@ void bounding::check_box(const ray& r,
             }
         }
     }
+
+    closest = cl;
+    closest_index = cl_i;
 }
 
 hit bounding::find_closest_object(const ray& r) {

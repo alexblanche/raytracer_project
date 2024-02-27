@@ -62,10 +62,6 @@ rt::vector plane::get_normal() const {
     return rt::vector(a, b, c);
 }
 
-double plane::get_d() const {
-    return d;
-}
-
 
 /* Intersection determination */
 

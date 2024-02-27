@@ -54,11 +54,17 @@ class bounding {
 
         /* Accessors */
 
-        const box* get_b() const;
+        const box* get_b() const {
+            return b;
+        }
 
-        const std::vector<unsigned int>& get_content() const;
+        const std::vector<unsigned int>& get_content() const {
+            return content;
+        }
 
-        const std::vector<const bounding*>& get_children() const;
+        const std::vector<const bounding*>& get_children() const {
+            return children;
+        }
         
 
         void check_box(const ray& r,

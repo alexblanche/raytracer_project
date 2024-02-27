@@ -20,27 +20,6 @@ hit::hit(const ray& g, const rt::vector& p, const rt::vector& n, const unsigned 
 /* Default constructor */
 hit::hit() : is_hit_bool(false) {}
 
-/* Accessors */
-
-ray hit::get_ray() const {
-    return gen;
-}
-
-rt::vector hit::get_point() const {
-    return point;
-}
-
-rt::vector hit::get_normal() const {
-    return normal;
-}
-
-unsigned int hit::get_obj_index() const {
-    return obj_index;
-}
-
-bool hit::object_hit() const {
-    return is_hit_bool;
-}
 
 /* Reflection */
 

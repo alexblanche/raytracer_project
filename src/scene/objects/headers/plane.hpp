@@ -31,7 +31,9 @@ class plane : public object {
 
         rt::vector get_normal() const;
 
-        double get_d() const;
+        double get_d() const {
+            return d;
+        }
 
 
         /* Intersection determination */

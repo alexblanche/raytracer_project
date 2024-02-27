@@ -35,14 +35,14 @@ namespace rt {
 	 * Addition: (a,b,c) + (d,e,f) = (a+d,b+e,c+f)
 	 */
 	vector vector::operator+(const vector& other) const {
-		return vector(x+other.x,y+other.y,z+other.z);
+		return vector(x+other.x, y+other.y, z+other.z);
 	}
 
 	/**
 	 * Substraction (a,b,c) - (d,e,f) = (a-d,b-e,c-f)
 	 */
 	vector vector::operator-(const vector& other) const {
-		return vector(x-other.x,y-other.y,z-other.z);
+		return vector(x-other.x, y-other.y, z-other.z);
 	}
 
 	/**
@@ -92,7 +92,7 @@ namespace rt {
 	 * x * (a,b,c) = (xa,xb,xc)
 	 */
 	vector operator*(const double& a, const vector& v) {
-		return vector(a*v.x,a*v.y,a*v.z);
+		return vector(a*v.x, a*v.y, a*v.z);
 	}
 
 	/**
@@ -100,7 +100,7 @@ namespace rt {
 	 * (a,b,c) * x = (ax,bx,cx)
 	 */
 	vector operator*(const vector& v, const double& a) {
-		return vector(a*v.x,a*v.y,a*v.z);
+		return vector(a*v.x, a*v.y, a*v.z);
 	}
 
 	/**

@@ -32,9 +32,15 @@ class box : public object {
         
         /* Accessors */
 
-        double get_l1() const;
-        double get_l2() const;
-        double get_l3() const;
+        double get_l1() const {
+            return l1;
+        }
+        double get_l2() const {
+            return l2;
+        }
+        double get_l3() const {
+            return l3;
+        }
 
         /* Intersection determination */
 

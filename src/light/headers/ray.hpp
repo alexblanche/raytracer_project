@@ -35,18 +35,28 @@ class ray {
         ray ();
         
         /* Accessors */
-        rt::vector get_origin() const;
+        rt::vector get_origin() const {
+            return origin;
+        }
         
-        rt::vector get_direction() const;
+        rt::vector get_direction() const {
+            return direction;
+        }
 
-        rt::vector get_inv_dir() const;
+        rt::vector get_inv_dir() const {
+            return inv_dir;
+        }
 
-        rt::vector get_abs_inv_dir() const;
+        rt::vector get_abs_inv_dir() const {
+            return abs_inv_dir;
+        }
 
         //unsigned int get_origin_index() const;
 
         /* Mutators */
-        void set_origin(const rt::vector& origin);
+        void set_origin(const rt::vector& o) {
+            origin = o;
+        }
 
         void set_direction(const rt::vector& direction);
 

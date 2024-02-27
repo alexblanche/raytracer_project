@@ -22,9 +22,13 @@ class sphere : public object {
 
         /* Accessors */
 
-        rt::vector get_center() const;
+        rt::vector get_center() const {
+            return position;
+        }
 
-        double get_radius() const;
+        double get_radius() const {
+            return radius;
+        }
 
         
         /* Intersection determination */

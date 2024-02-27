@@ -31,11 +31,17 @@ class object {
 
         /* Accessors */
 
-        rt::vector get_position() const;
+        rt::vector get_position() const {
+            return position;
+        }
 
-        unsigned int get_index() const;
+        unsigned int get_index() const {
+            return index;
+        }
 
-        material get_material() const;
+        material get_material() const {
+            return mat;
+        }
 
         /* Intersection determination */
         // These two functions are overridden by derived classes

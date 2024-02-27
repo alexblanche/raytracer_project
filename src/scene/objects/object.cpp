@@ -26,21 +26,6 @@ object::object(const rt::vector& position, const material& m)
 }
 
 
-
-/* Accessors */
-
-rt::vector object::get_position() const {
-    return position;
-}
-
-unsigned int object::get_index() const {
-    return index;
-}
-
-material object::get_material() const {
-    return mat;
-}
-
 /* Intersection determination */
 
 /* Default versions: these two functions are overridden by derived classes */
