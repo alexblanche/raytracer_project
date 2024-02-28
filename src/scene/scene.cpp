@@ -172,7 +172,7 @@ scene::scene(const char* file_name)
             fscanf(file, "origin:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) radius:%lf length:%lf ",
                 &x0, &y0, &z0, &dx, &dy, &dz, &r, &l);
             material m = parse_materials(file);
-            new cylinder(rt::vector(x0, y0, z0), rt::vector(dx, dy, dz), r, l, m);
+            new cylinder(rt::vector(x0, y0, z0), rt::vector(dx, dy, dz).unit(), r, l, m);
         }
         else {
             printf("Parsing error: %s\n", s);

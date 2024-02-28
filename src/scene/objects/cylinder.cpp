@@ -17,7 +17,7 @@ cylinder::cylinder(const rt::vector& origin, const rt::vector& direction,
     const double radius, const double length, const material& material)
 
     : object(origin, material),
-        direction(direction.unit()), radius(radius), length(length) {}
+        direction(direction), radius(radius), length(length) {}
 
 
 
@@ -26,7 +26,7 @@ cylinder::cylinder(const rt::vector& origin, const rt::vector& direction,
 
 /* Calculates and returns the intersection value t */
 double cylinder::measure_distance(const ray& r) const {
-    
+
     /* We denote the origin, direction and radius of the cylinder o, d and r,
        and the origin and direction of the ray u and dir. */
 
@@ -44,6 +44,7 @@ double cylinder::measure_distance(const ray& r) const {
        so ((u - o - (u-o|d)d) + t (dir - (dir|d)d)).normsq() - r^2 = 0,
        If we write A = (u - o - (u-o|d)d) = (Ax, Ay, Az) and B = (dir - (dir|d)d) = (Bx, By, Bz),
        we can rewrite the expression as:
+       (A + t B).normsq() - r^2 = 0
        (Ax + t Bx)^2 + (Ay + t By)^2 + (Az + t Bz)^2 - r^2 = 0,
        Ax^2 + 2tAxBx + t^2 Bx^2 + ...(y)... + ...(z)... - r^2 = 0,
        t^2(Bx^2 + By^2 + Bz^2) + 2t(AxBx + AyBy + AzBz) + (Ax^2 + Ay^2 + Az^2 - r^2) = 0,
@@ -54,8 +55,7 @@ double cylinder::measure_distance(const ray& r) const {
        t is a solution if (1) t >= 0, (2) 0 <= s <= length, i.e.
        0 <= (u - o | d) + t (dir | d) <= length
 
-       (we are inside the (infinite) cylinder if t1 = -b-sqrt(delta)/2a <= 0 and t2 = -b+sqrt(delta)/2a >= 0,
-       and outside if t1 t1 >= 0)
+       The case analysis is detailed below.
     */
 
     const rt::vector ump = u - position;
@@ -74,38 +74,76 @@ double cylinder::measure_distance(const ray& r) const {
         // The ray does not intersect the infinite cylinder
         return infinity;
     }
+
+    const double sqrtdelta = sqrt(delta);
     
-    double t = - ab - sqrt(delta) / bb;
+    const double t1 = (- ab - sqrtdelta) / bb;
     bool outside = true;
     
-    if (t >= 0) {
-        const double s1 = umpdirec + t * dirdirec;
-        if (s1 >= 0 && s1 <= length) {
-            return t;
+    if (t1 >= 0) {
+        const double s1 = umpdirec + t1 * dirdirec;
+        if (s1 >= 0) {
+            if (s1 <= length) {
+                return t1;
+            }
+            else {
+                const double t2 = (- ab + sqrtdelta) / bb;
+                const double s2 = umpdirec + t2 * dirdirec;
+                if (s2 > length) { return infinity; }
+                // else: the ray goes through one or both edge disks
+            }
         }
-        /* t1 is below (resp. above) the cylinder,
-           If the second potential solution t2 is within the cylinder,
-           then the ray intersects an edge disk,
-           otherwise the ray misses the cylinder
-        */
-        t = - ab + sqrt(delta) / bb;
-        const double s2 = umpdirec + t * dirdirec;
-        if (s2 < 0 || s2 > length) {
-            return infinity;
+        else {
+            const double t2 = (- ab + sqrtdelta) / bb;
+            const double s2 = umpdirec + t2 * dirdirec;
+            if (s2 < 0) { return infinity; }
+            // else: the ray goes through one or both edge disks
         }
-        // else: the ray intersects an edge disk
-        //outside = true;
     }
     else {
-        t = - ab + sqrt(delta) / bb;
-        if (t >= 0) {
-            // The origin of the ray is inside the infinite cylinder
-            const double s = umpdirec + t * dirdirec;
-            if (s >= 0 && s <= length) {
-                return t;
+        const double t2 = (- ab + sqrtdelta) / bb;
+        if (t2 >= 0) {
+            /* Case analysis:
+               We compute s1 (associated with t1), s2 and whether we are outside the cylinder.
+               "s ok" means that 0 <= s <= length, i.e. the projection on the line is within the cylinder.
+
+               * if (s1 not ok) && (s2 not ok) ->
+                    if (s1 < 0 && s2 < 0 || s1 > length && s2 > length): return infinity (the ray misses the cylinder)
+                    else: continue (if outside, the ray goes through both edge disks, otherwise only one edge disk)
+               * if (s1 ok) && (s2 ok) -> return t2 (u is inside the cylinder)
+               * if (s1 not ok) && (s2 ok) ->
+                    if outside: continue (the edge disk is between u and the intersection at t2)
+                    else: return t2 (u is inside, so the intersection is at t2)
+               * if (s1 ok) && (s2 not ok) ->
+                    if outside: return infinity (u is outside and the cylinder is behind it)
+                    else: continue (the edge disk is between u and the intersection with the infinite cylinder at t2) 
+            */
+
+            const double s1 = umpdirec + t1 * dirdirec;
+            const double s2 = umpdirec + t2 * dirdirec;
+            const bool s1ok = s1 >= 0 && s1 <= length;
+            const bool s2ok = s2 >= 0 && s2 <= length;
+            outside = umpdirec < 0 || umpdirec > length;
+            if (s2ok) {
+                if (s1ok || (not outside)) { return t2; }
+                // else: the edge disk is between u and the intersection at t2
             }
-            // else: the ray intersects an edge disk
-            outside = false;
+            else {
+                // if ((s1ok && outside) || (s1 < 0 && s2 < 0) || (s1 > length && s2 > length)) {
+                //     return infinity;
+                // }
+                if (s1 < 0) {
+                    if (s2 < 0) { return infinity; }
+                }
+                else {
+                    if (s1 <= length) {
+                        if (outside) { return infinity; }
+                    }
+                    else {
+                        if (s2 > length) { return infinity; }
+                    }
+                }
+            }
         }
         else {
             // The cylinder is behind the ray
@@ -128,7 +166,7 @@ double cylinder::measure_distance(const ray& r) const {
        (u + t dir - v | d) = 0,
        t = (v - u | d) / (dir | d)
        (if (dir|d) != 0, which we may assume, since otherwise we would have concluded at step 1)
-       t is a solution if t >= 0 and (u + t dir - v).normsq() <= r^2
+       t is a solution if t >= 0 and (u + t dir - v).normsq() <= r^2, which we may also assume.
     */
 
     // We may assume that (dir | direction) != 0, since otherwise we would have concluded at step 1
@@ -136,17 +174,13 @@ double cylinder::measure_distance(const ray& r) const {
     if (outside == (dirdirec >= 0)) {
         // v = position
         // t = ((v - u) | direction) / (dir | direction)
-        t = - umpdirec / dirdirec;
-        return (t >= 0 && (ump + (t*dir)).normsq() <= rr) ?
-            t : infinity;
+        return - umpdirec / dirdirec;
     }
     else {
         // v = position + length * direction
         // t = ((v - u) | direction) / (dir | direction) 
         //   = (-umpdirec + length (direction | direction)) / dirdirec
-        t = (- umpdirec + length) / dirdirec;
-        return (t >= 0 && (ump - (length * direction) + (t * dir)).normsq() <= rr) ?
-            t : infinity;
+        return (- umpdirec + length) / dirdirec;
     }
 }
 
@@ -162,10 +196,11 @@ hit cylinder::compute_intersection(const ray& r, const double t) const {
 
     const double not_on_bottom_disk = pmpos.normsq() >= rr;
     const bool hits_side = not_on_bottom_disk
-        && /* Not on top disk */ ((pmpos + (length * direction)).normsq() >= rr);
+        && /* Not on top disk */
+        ((pmpos - (length * direction)).normsq() >= rr);
     
     if (hits_side) {
-        // We compute the s value (such that ((u + t.dir) - (o + s.d) | d) = 0)
+        // We compute the s value (such that (p - (o + s.d) | d) = 0)
         // const double s = (pmpos | direction);
         // const rt::vector n = (p - (position + s * d)) / radius
         return hit(r, p, (pmpos - ((pmpos | direction) * direction)) / radius, get_index());

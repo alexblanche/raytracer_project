@@ -33,7 +33,7 @@ double sphere::measure_distance(const ray& r) const {
       Delta = 4 * ((dir|v)^2 - 4 * ||dir||^2 * (||v||^2 - radius^2))
 
     */
-    rt::vector v = get_center() - r.get_origin();
+    rt::vector v = position - r.get_origin();
     rt::vector dir = r.get_direction(); // the direction is assumed to be a unit vector
 
     double nv2 = v.normsq();
@@ -49,18 +49,14 @@ double sphere::measure_distance(const ray& r) const {
            If t1 < 0 and t2 >= 0, this means the ray originates from inside the sphere,
            and t2 is returned.
            Otherwise, t1 < 0 and t2 < 0 means the sphere is behind the ray and is not hit. */
-        const double t1 = dv - sqrt(a);
+        const double sqrta = sqrt(a);
+        const double t1 = dv - sqrta;
         if (t1 >= 0) {
             return t1;
         }
         else {
-            const double t2 = dv + sqrt(a);
-            if (t2 >= 0) {
-                return t2;
-            }
-            else {
-                return infinity;
-            }
+            const double t2 = dv + sqrta;
+            return (t2 >= 0) ? t2 : infinity;
         }
     }
     else {
