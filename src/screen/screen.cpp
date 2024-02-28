@@ -24,7 +24,10 @@ namespace rt {
 	/**
 	 * Main constructor, uses width and height.
 	 */
-	screen::screen(int width, int height) : image(width, height) {
+	screen::screen(int width, int height)
+		
+		: image(width, height) {
+
 		if(initialized == 0) {
 			if(SDL_Init( SDL_INIT_VIDEO ) == -1) {
 				std::cerr << "Cannot initialize SDL : "

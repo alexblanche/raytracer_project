@@ -1,8 +1,6 @@
-width 1366
-height 768
-distance 400
-position 0 0 0
-background 136 210 235
+resolution width:1366 height:768
+camera position:(-500,0,600) direction:(1,-1,0) rightdir:(0,0,-1) fov_width:1366 distance:400
+background_color 190 235 255
 triangles_per_bounding 0
 
 plane normal:(0,-1,0) position:(0,160,0) material:(color:(10,10,10) emitted_color:(0,0,0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)

@@ -22,6 +22,7 @@
 #include "src/auxiliary/headers/randomgen.hpp"
 #include "src/auxiliary/headers/tracing.hpp"
 #include "src/scene/headers/scene.hpp"
+#include "src/scene/headers/camera.hpp"
 
 #include "src/scene/objects/headers/bounding.hpp"
 
@@ -36,7 +37,8 @@ using namespace std;
 
 /* ********** Render loop ********** */
 
-void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const unsigned int number_of_bounces) {
+void render_loop_parallel(vector<vector<rt::color>>& matrix,
+    scene& scene, const unsigned int number_of_bounces) {
     
     mutex m;
     // float cpt = 0;
@@ -47,10 +49,11 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix, scene& scene, const
 
         for (int j = 0; j < scene.height; j++) {
             
-            const rt::vector& direct = (rt::vector(i, j, scene.distance) - scene.screen_center).unit();
-            ray r = ray(scene.position, direct);
-            const rt::color& pixel_col = //pathtrace_mult(r, scene, -1, 1, number_of_bounces);
-                pathtrace(r, scene, number_of_bounces);
+            // const rt::vector& direct = (rt::vector(i, j, scene.distance) - scene.screen_center).unit();
+            // ray r = ray(scene.position, direct);
+            ray r = scene.cam.gen_ray(i, j);
+
+            const rt::color& pixel_col = pathtrace(r, scene, number_of_bounces);
             
             const rt::color& current_color = matrix.at(i).at(j);
             const rt::color new_color = current_color + pixel_col;

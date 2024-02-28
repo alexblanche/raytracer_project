@@ -1,4 +1,5 @@
 #include "headers/scene.hpp"
+#include "headers/camera.hpp"
 #include "objects/headers/object.hpp"
 #include "objects/headers/sphere.hpp"
 #include "objects/headers/plane.hpp"
@@ -16,17 +17,11 @@
 scene::scene(const rt::color background,
     const int width,
     const int height,
-    const double distance,
-    const rt::vector position,
-    //const rt::vector direction,
-    // -> to be replaced by an object from a new class "camera"
-    const rt::vector screen_center,
+    const camera& cam,
     const unsigned int triangles_per_bounding)
 
     : background(background), width(width), height(height),
-    distance(distance), position(position), //direction(direction),
-    screen_center(screen_center), rg(randomgen()),
-    triangles_per_bounding(triangles_per_bounding) {}
+    cam(cam), rg(randomgen()), triangles_per_bounding(triangles_per_bounding) {}
 
 /* Auxiliary function that returns a material from a description file */
 material parse_materials(FILE* file) {
@@ -58,34 +53,30 @@ scene::scene(const char* file_name)
     /* Parameters definition
 
     Example:
-    width 1366
-    height 768
-    distance 400
-    position 0 0 0
-    background 190 235 255
-    triangles_per_bounding 10
-    (specifying 0 will deactivate the bounding generation)
+
+    resolution width:1366 height:768
+    camera position:(0,0,0) direction:(0,0,1) rightdir:(1,0,0) fov_width:1000 distance:400
+    background_color 190 235 255
+    triangles_per_bounding 10 //specifying 0 will deactivate the bounding generation
+
+    fov_height is generated automatically (for width/height aspect ratio)
     */
+    double posx, posy, posz, dx, dy, dz, rdx, rdy, rdz, fovw, dist;
 
-    fscanf(file, "width %d\n", &width);
-    fscanf(file, "height %d\n", &height);
-    fscanf(file, "distance %lf\n", &distance);
+    fscanf(file, "resolution width:%d height:%d\n", &width, &height);
+    fscanf(file, "camera position:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) rightdir:(%lf,%lf,%lf) fov_width:%lf distance:%lf\n",
+        &posx, &posy, &posz, &dx, &dy, &dz, &rdx, &rdy, &rdz, &fovw, &dist);
 
-    double posx = 0;
-    double posy = 0;
-    double posz = 0;
-    fscanf(file, "position %lf %lf %lf\n", &posx, &posy, &posz);
-    position = rt::vector(posx, posy, posz);
+    double fovh = fovw * ((double) height) / ((double) width);
+    cam = camera(rt::vector(posx, posy, posz), rt::vector(dx, dy, dz), rt::vector(rdx, rdy, rdz), fovw, fovh, dist, width, height);
 
     double r = 0;
     double g = 0;
     double b = 0;
-    fscanf(file, "background %lf %lf %lf\n", &r, &g, &b);
+    fscanf(file, "background_color %lf %lf %lf\n", &r, &g, &b);
     background = rt::color(r, g, b);
 
     fscanf(file, "triangles_per_bounding %u\n", &triangles_per_bounding);
-    
-    screen_center = rt::vector(width/2, height/2, 0);
     
     /* Object definition */
     /*
