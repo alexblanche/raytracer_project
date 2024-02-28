@@ -29,8 +29,7 @@ class scene {
 
         /* Main constructor */
         scene(const rt::color background,
-            const int width,
-            const int height,
+            const int width, const int height,
             const camera& cam,
             const unsigned int triangles_per_bounding);
 

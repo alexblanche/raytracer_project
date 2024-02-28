@@ -15,8 +15,7 @@
 #include <string.h>
 
 scene::scene(const rt::color background,
-    const int width,
-    const int height,
+    const int width, const int height,
     const camera& cam,
     const unsigned int triangles_per_bounding)
 
@@ -70,9 +69,7 @@ scene::scene(const char* file_name)
     double fovh = fovw * ((double) height) / ((double) width);
     cam = camera(rt::vector(posx, posy, posz), rt::vector(dx, dy, dz), rt::vector(rdx, rdy, rdz), fovw, fovh, dist, width, height);
 
-    double r = 0;
-    double g = 0;
-    double b = 0;
+    double r, g, b;
     fscanf(file, "background_color %lf %lf %lf\n", &r, &g, &b);
     background = rt::color(r, g, b);
 
