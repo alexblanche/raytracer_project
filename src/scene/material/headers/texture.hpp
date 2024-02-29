@@ -13,19 +13,25 @@
 class texture {
 
     private:
-        const int width, height;
+        int width, height;
         std::vector<std::vector<rt::color>> data;
 
     public:
 
         /* Texture set containing all the textures from a scene */
-        static std::vector<texture*> set;
+        static std::vector<const texture*> set;
+        
+
+        /* Constructors */
 
         /* Default constructor */
         texture(const int width, const int height, const std::vector<std::vector<rt::color>>& data);
 
         /* Constructor from a .bmp file */
-        // texture::texture(const char* file_name);
+        texture::texture(const char* file_name);
+
+
+        /* Accessor */
 
         /* Returns the color stored in data at coordinates x, y between 0 and 1 times width, height */
         rt::color get_color(const double& x, const double& y) const;

@@ -7,7 +7,7 @@
 /* Extracts the data from the given .bmp file: stores the width and height in the provided
    references, and returns a matrix of width rows and height columns containing colors  */
 std::vector<std::vector<rt::color>> read_bmp(const char* file_name, int& width, int& height) {
-    FILE* file = fopen(file_name, "r");
+    FILE* file = fopen(file_name, "rb");
 
     /* 18 bytes ignored:
        Type (2), Size (4), Reserved 1 (2), Reserved 2 (2), Offset (4), Size (4)
@@ -41,24 +41,16 @@ std::vector<std::vector<rt::color>> read_bmp(const char* file_name, int& width, 
         p = 4 - p;
     }
 
+    /* Matrix in which we will store the data */
     std::vector<std::vector<rt::color>> data(bmpwidth, std::vector<rt::color>(bmpheight));
-
-    printf("width:%d, height:%d, bmpwidth:%u, bmpheight:%u\n", width, height, bmpwidth, bmpheight);
 
     /* Color data */
     for (unsigned int j = 0; j < bmpheight; j++) {
         for (unsigned int i = 0; i < bmpwidth; i++) {
-            // char r, g, b;
-            // fscanf(file, "%c%c%c", &b, &g, &r); /* in this order */
-            // const unsigned char b = fgetc(file);
-            // const unsigned char g = fgetc(file);
-            // const unsigned char r = fgetc(file);
-            unsigned char r, g, b;
-            fread((void*) &b, 1, 1, file);
-            fread((void*) &g, 1, 1, file);
-            fread((void*) &r, 1, 1, file);
-            printf("(%d,%d,%d) ", r, g, b);
-            data.at(i).at(j) = rt::color((double) r, (double) g, (double) b);
+            const unsigned char b = fgetc(file);
+            const unsigned char g = fgetc(file);
+            const unsigned char r = fgetc(file);
+            data.at(i).at(bmpheight - j - 1) = rt::color(r, g, b);
         }
         /* Skipping p bytes of padding */
         if (padding) {
@@ -67,10 +59,7 @@ std::vector<std::vector<rt::color>> read_bmp(const char* file_name, int& width, 
         }
     }
 
-    printf("Done.\n");
-
     fclose(file);
-
     return data;
 }
 
@@ -79,5 +68,5 @@ std::vector<std::vector<rt::color>> read_bmp(const char* file_name, int& width, 
 void write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data,
     const int width, const int height) {
 
-    }
- */
+}
+*/

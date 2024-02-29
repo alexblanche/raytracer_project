@@ -251,6 +251,7 @@ int main(int argc, char *argv[]) {
 
     /* Test of bmp parsing */
 
+    /*
     int width, height;
     vector<vector<rt::color>> bmpdata = read_bmp("Mandelbrot_bmp.bmp", width, height);
 
@@ -261,9 +262,9 @@ int main(int argc, char *argv[]) {
     delete(bmpscr);
 
     return 0;
+    */
 
-
-
+    /* ********************************************************** */
 
 
     /* Definition of the matrix in which we will write the image */
