@@ -34,6 +34,20 @@ material::material(const rt::color& color, const rt::color& emitted_color,
         transparency(transparency), refraction_scattering(refraction_scattering),
         refraction_index(refraction_index) {}
 
+material::material(const rt::color& color, const rt::color& emitted_color,
+    const double& reflectivity, const double& emission_intensity,
+    const double& specular_probability, const bool reflects_color,
+    const double& transparency, const double& refraction_scattering,
+    const double& refraction_index,
+    const unsigned int texture_index, const std::vector<double>& uv_coordinates)
+
+    : color(color), emitted_color(emitted_color),
+        reflectivity(reflectivity), emission_intensity(emission_intensity),
+        specular_probability(specular_probability), reflects_color(reflects_color),
+        transparency(transparency), refraction_scattering(refraction_scattering),
+        refraction_index(refraction_index),
+        texture_index(texture_index), uv_coordinates(uv_coordinates) {}
+
 
 /* Specific constructors */
 

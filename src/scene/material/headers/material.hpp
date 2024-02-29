@@ -5,24 +5,32 @@
 class material {
     
     private:
+
+        /*** Reflectivity ***/
     
         /* Color of the material */
         rt::color color;
 
-        /* Color emitted by the material */
-        rt::color emitted_color;
-
         /* Real between 0 and 1: 0 is a pure diffuse surface, 1 is a pure mirror */
         double reflectivity;
 
+        /* Color emitted by the material */
+        rt::color emitted_color;
+
         /* Real between 0 and 1: 0 does not emit light, 1 is maximum intensity */
         double emission_intensity;
+
+
+        /*** Specular bounce ***/
 
         /* Probability of a specular bounce */
         double specular_probability;
 
         /* True if the material color is reflected in specular bounces, false if it is white */
         bool reflects_color;
+
+
+        /*** Transparency ***/
 
         /* Transparency: real between 0 and 1 */
         double transparency;
@@ -33,7 +41,19 @@ class material {
         /* Indice of refraction: air = 1, water = 1.3, glass = 1.5, diamond = 1.8 */
         double refraction_index;
 
-        // Todo: texture
+
+        /*** Texture (optional) ***/
+        
+        /* Boolean indicating whether a texture is specified */
+        bool is_textured;
+
+        /* Texture index in texture::set */
+        unsigned int texture_index;
+
+        /* Vector of UV coordinates (between 0 and 1)
+           6 for a triangle (u0,v0,u1,v1,u2,v2) and 8 for a quad */
+        std::vector<double> uv_coordinates;
+
 
 
     public:
@@ -56,8 +76,15 @@ class material {
             const double& reflectivity, const double& emission_intensity,
             const double& specular_probability, const bool reflects_color,
             const double& transparency, const double& refraction_scattering,
-            const double& refraction_index_in
-            );
+            const double& refraction_index_in);
+
+        /* Main constructor with added texture */
+        material(const rt::color& color, const rt::color& emitted_color,
+            const double& reflectivity, const double& emission_intensity,
+            const double& specular_probability, const bool reflects_color,
+            const double& transparency, const double& refraction_scattering,
+            const double& refraction_index_in,
+            const unsigned int texture_index, const std::vector<double>& uv_coordinates);
 
 
 

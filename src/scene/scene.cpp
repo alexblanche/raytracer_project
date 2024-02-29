@@ -11,6 +11,9 @@
 #include "../screen/headers/color.hpp"
 #include "../auxiliary/headers/randomgen.hpp"
 
+#include "material/headers/material.hpp"
+#include "material/headers/texture.hpp"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -44,7 +47,7 @@ material parse_materials(FILE* file) {
     return material(rt::color(r, g, b), rt::color(er, eg, eb), refl, em_int, spec_p, refl_color, transp, scattering, refr_i);
 }
 
-material get_material(FILE* file, std::vector<char*>& vnames, std::vector<material>& mats) {
+material get_material(FILE* file, std::vector<char*>& mat_names, std::vector<material>& mat_content) {
     long int position = ftell(file);
 
     const char firstchar = fgetc(file);
@@ -57,22 +60,22 @@ material get_material(FILE* file, std::vector<char*>& vnames, std::vector<materi
         fseek(file, position, SEEK_SET);
 
         // material variable name
-        char vn[64];
-        fscanf(file, "%s\n", vn);
+        char vname[64];
+        fscanf(file, "%s\n", vname);
 
         unsigned int vindex = -1;
-        for (unsigned int i = 0; i < vnames.size(); i++) {
-            if (strcmp(vnames.at(i), vn) == 0) {
+        for (unsigned int i = 0; i < mat_names.size(); i++) {
+            if (strcmp(mat_names.at(i), vname) == 0) {
                 vindex = i;
                 break;
             }
         }
         if (vindex == ((unsigned) -1)) {
-            printf("Error, material %s not found.\n", vn);
+            printf("Error, material %s not found.\n", vname);
             return material();
         }
         else {
-            return mats.at(vindex);
+            return mat_content.at(vindex);
         }
     }
 }
@@ -148,9 +151,9 @@ scene::scene(const char* file_name)
     load_texture t1 "file_name.bmp"
 
     Then when a material is declared, we can add the following fields:
-    material:() texture:(t1, (0.2, 0.8), (0.5, 0.15), (0.7, 0.65)) (3 points for a triangle, 4 for a quad)
+    material:(...) texture:(t1, (0.2, 0.8), (0.5, 0.15), (0.7, 0.65)) (3 points for a triangle, 4 for a quad)
     or
-    m1 texture:(...)
+    material:m1 texture:(...)
 
     */
     /* Objects are automatically stored in object::set */
@@ -159,28 +162,49 @@ scene::scene(const char* file_name)
     /* Material storage */
 
     /* Vector that stores the material variable names */
-    std::vector<char*> vnames = {(char*) "mirror", (char*) "glass"};
+    std::vector<char*> mat_names = {(char*) "mirror", (char*) "glass"};
 
     /* Vector that stores the materials:
        if vname is stored at index i of vnames, the associated material is stored at index i in mats */
-    std::vector<material> mats = {material::MIRROR, material::GLASS};
+    std::vector<material> mat_content = {material::MIRROR, material::GLASS};
+
+
+    /* Texture storage */
+    /* The name of the texture is pushed to texture_names at index i, which corresponds to the index of
+       the texture content automatically pushed to the static texture::set */
+    std::vector<char*> texture_names;
 
 
     /* Parsing loop */
 
     while (not feof(file)) {
 
-        char s[9];
+        // longest item is load_texture
+        char s[13];
         if (fscanf(file, "%s ", s) != 1) {
             break;
         }
 
-        if (strcmp(s, "sphere") == 0) {
+        if (strcmp(s, "material") == 0) {
+            char* m_name = new char[64];
+            fscanf(file, " %s (", m_name);
+            material m = parse_materials(file);
+            mat_names.push_back(m_name);
+            mat_content.push_back(m);
+        }
+        else if (strcmp(s, "load_texture") == 0) {
+            char* t_name = new char[64];
+            char tfile_name[64];
+            fscanf(file, " %s \"%s\"", t_name, tfile_name);
+            texture_names.push_back(t_name);
+            new texture(tfile_name);
+        }
+        else if (strcmp(s, "sphere") == 0) {
             /* center:(-500, 0, 600) radius:120 [material] */
             double x, y, z, r;
             fscanf(file, "center:(%lf,%lf,%lf) radius:%lf material:",
                 &x, &y, &z, &r);
-            material m = get_material(file, vnames, mats);
+            material m = get_material(file, mat_names, mat_content);
             new sphere(rt::vector(x, y, z), r, m);
         }
         else if (strcmp(s, "plane") == 0) {
@@ -189,7 +213,7 @@ scene::scene(const char* file_name)
             fscanf(file, "normal:(%lf,%lf,%lf) position:(%lf,%lf,%lf) material:",
                 &nx, &ny, &nz,
                 &px, &py, &pz);
-            material m = get_material(file, vnames, mats);
+            material m = get_material(file, mat_names, mat_content);
             new plane(nx, ny, nz, rt::vector(px, py, pz), m);
         }
         else if (strcmp(s, "box") == 0) {
@@ -200,7 +224,7 @@ scene::scene(const char* file_name)
                 &n1x, &n1y, &n1z,
                 &n2x, &n2y, &n2z,
                 &l1, &l2, &l3);
-            material m = get_material(file, vnames, mats);
+            material m = get_material(file, mat_names, mat_content);
             new box(rt::vector(cx, cy, cz), rt::vector(n1x, n1y, n1z).unit(), rt::vector(n2x, n2y, n2z).unit(),
                 l1, l2, l3, m);
         }
@@ -211,7 +235,7 @@ scene::scene(const char* file_name)
                 &x0, &y0, &z0,
                 &x1, &y1, &z1,
                 &x2, &y2, &z2);
-            material m = get_material(file, vnames, mats);
+            material m = get_material(file, mat_names, mat_content);
             new triangle(rt::vector(x0, y0, z0), rt::vector(x1, y1, z1), rt::vector(x2, y2, z2), m);
         }
         else if (strcmp(s, "quad") == 0) {
@@ -222,7 +246,7 @@ scene::scene(const char* file_name)
                 &x1, &y1, &z1,
                 &x2, &y2, &z2,
                 &x3, &y3, &z3);
-            material m = get_material(file, vnames, mats);
+            material m = get_material(file, mat_names, mat_content);
             new quad(rt::vector(x0, y0, z0), rt::vector(x1, y1, z1), rt::vector(x2, y2, z2), rt::vector(x3, y3, z3), m);
         }
         else if (strcmp(s, "cylinder") == 0) {
@@ -232,15 +256,8 @@ scene::scene(const char* file_name)
                 &x0, &y0, &z0,
                 &dx, &dy, &dz,
                 &r, &l);
-            material m = get_material(file, vnames, mats);
+            material m = get_material(file, mat_names, mat_content);
             new cylinder(rt::vector(x0, y0, z0), rt::vector(dx, dy, dz).unit(), r, l, m);
-        }
-        else if (strcmp(s, "material") == 0) {
-            char* vname = new char[64];
-            fscanf(file, " %s (", vname);
-            material m = parse_materials(file);
-            vnames.push_back(vname);
-            mats.push_back(m);
         }
         else {
             printf("Parsing error: %s\n", s);
@@ -249,8 +266,8 @@ scene::scene(const char* file_name)
     }
 
     /* Deleting the stored names */
-    for (unsigned int i = 0; i < vnames.size(); i++) {
-        delete(vnames.at(i));
+    for (unsigned int i = 0; i < mat_names.size(); i++) {
+        delete(mat_names.at(i));
     }
     
     fclose(file);
