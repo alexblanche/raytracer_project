@@ -52,7 +52,7 @@ namespace rt {
 			 * Builds a color from its red, green and blue components.
 			 * Alpha is set to 255.
 			 */
-			color(double r, double g, double b);
+			color(const double& r, const double& g, const double& b);
 
 			/**
 			 * Builds a color from its red, green, blue and alpha components.

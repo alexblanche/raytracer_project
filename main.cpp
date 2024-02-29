@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <queue>
+#include <ctime>
 
 #include "src/screen/headers/color.hpp"
 #include "src/scene/material/headers/material.hpp"
@@ -10,23 +11,19 @@
 #include "src/light/headers/ray.hpp"
 
 #include "src/scene/objects/headers/object.hpp"
-#include "src/scene/objects/headers/sphere.hpp"
-#include "src/scene/objects/headers/plane.hpp"
 #include "src/scene/objects/headers/triangle.hpp"
-#include "src/scene/objects/headers/box.hpp"
+#include "src/scene/objects/headers/bounding.hpp"
 
 #include "parallel/parallel.h"
 #include "mingw.mutex.h"
 
-#include "src/light/headers/hit.hpp"
-#include "src/auxiliary/headers/randomgen.hpp"
-#include "src/auxiliary/headers/tracing.hpp"
 #include "src/scene/headers/scene.hpp"
 #include "src/scene/headers/camera.hpp"
+#include "src/auxiliary/headers/tracing.hpp"
 
-#include "src/scene/objects/headers/bounding.hpp"
-
-#include <ctime>
+/******************* Temporary *******************/
+#include "src/file_readers/headers/bmp_reader.hpp"
+/*************************************************/
 
 using namespace std;
 
@@ -124,13 +121,15 @@ int main(int argc, char *argv[]) {
     /* *************************** */
     /* Scene description */
     
+    /* Orientation of the space:
+       negative x to the left, positive x to the right
+       negative y to the top,  positive y to the bottom (/!\)
+       negative z toward the camera, positive x forward
+    */
+    
     scene scene("scene.txt");
     
-    /* Orientation of the space:
-    negative x on the left, positive on the right
-    negative y at the top,  positive at the bottom (Be careful!!!)
-    negative z behind the camera, positive in front of it
-    */
+    
 
     /* Creation of the triangles */
     // const unsigned int triangles_per_terminal = 80;
@@ -249,6 +248,23 @@ int main(int argc, char *argv[]) {
     */
 
     /* ********************************************************** */
+
+    /* Test of bmp parsing */
+
+    int width, height;
+    vector<vector<rt::color>> bmpdata = read_bmp("Mandelbrot_bmp.bmp", width, height);
+
+    const rt::screen* bmpscr = new rt::screen(width, height);
+    bmpscr->copy(bmpdata, width, height, 1);
+    bmpscr->update();
+    bmpscr->wait_quit_event();
+    delete(bmpscr);
+
+    return 0;
+
+
+
+
 
     /* Definition of the matrix in which we will write the image */
     vector<vector<rt::color>> matrix(scene.width, vector<rt::color>(scene.height));

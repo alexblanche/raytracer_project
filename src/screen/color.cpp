@@ -34,7 +34,7 @@ namespace rt {
 	 * Builds a color from its red, green and blue components.
 	 * Alpha is set to 255.
 	 */
-	color::color(const double r, const double g, const double b)
+	color::color(const double& r, const double& g, const double& b)
 		: red(r), green(g), blue(b) /*, alpha(255)*/ {}
 
 

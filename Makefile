@@ -17,6 +17,7 @@ all:
 		src/scene/objects/bounding.cpp \
 		src/scene/objects/cylinder.cpp \
 		src/auxiliary/tracing.cpp \
-		src/scene/scene.cpp \
 		src/scene/camera.cpp \
+		src/scene/scene.cpp \
+		src/file_readers/bmp_reader.cpp \
 		main.cpp -lmingw32 -lSDL2main -lSDL2

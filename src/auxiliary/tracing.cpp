@@ -1,10 +1,6 @@
-#include "../light/headers/ray.hpp"
 #include <cmath>
-// #include <limits>
-// std::numeric_limits<double> real;
-// const double infinity = real.infinity();
+#include "../light/headers/ray.hpp"
 #include "../screen/headers/color.hpp"
-//#include "../scene/sources/headers/source.hpp"
 #include "../scene/objects/headers/object.hpp"
 #include "../scene/headers/scene.hpp"
 #include "../scene/objects/headers/bounding.hpp"

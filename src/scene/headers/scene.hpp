@@ -2,7 +2,6 @@
 
 #include <vector>
 #include "../objects/headers/object.hpp"
-//#include "../sources/headers/source.hpp"
 #include "../../screen/headers/color.hpp"
 #include "../../auxiliary/headers/randomgen.hpp"
 #include "camera.hpp"
