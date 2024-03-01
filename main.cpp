@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
     /* Specification of the parameters through console arguments:
     
        ./main.exe [number of bounces] [time]
-       
+
        The first argument is the maximum number of bounces wanted (2 by default).
        If the string "time" is provided as a second argument, the time taken for each render
        (one ray per pixel) complete will be measured and displayed.

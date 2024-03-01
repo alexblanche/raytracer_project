@@ -21,5 +21,5 @@ ray camera::gen_ray(const int i, const int j) const {
     rt::vector dir = (mhalf_fovw + ((double) i) * di) * to_the_right
         + (mhalf_fovh + ((double) j) * dj) * to_the_bottom
         + distance * direction;
-    return ray(origin, dir);
+    return ray(origin, dir.unit());
 }
