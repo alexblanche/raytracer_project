@@ -25,7 +25,11 @@ scene::scene(const rt::color background,
     : background(background), width(width), height(height),
     cam(cam), rg(randomgen()), triangles_per_bounding(triangles_per_bounding) {}
 
-/* Auxiliary function that returns a material from a description file */
+
+
+/*** Scene description parsing ***/
+
+/* Auxiliary function: returns a material from a description file */
 material parse_materials(FILE* file) {
     /* color:(120, 120, 120) emitted_color:(0, 0, 0) reflectivity:1 emission:0
         specular_p:1.0 reflects_color:false transparency:0.5 scattering:0 refraction_index:1.2)
@@ -35,9 +39,9 @@ material parse_materials(FILE* file) {
 
     double r, g, b, er, eg, eb, refl, em_int, spec_p, transp, scattering, refr_i;
     bool refl_color = false;
-    char refl_c[4];
+    char refl_c[6];
 
-    fscanf(file, "color:(%lf,%lf,%lf) emitted_color:(%lf,%lf,%lf) reflectivity:%lf emission:%lf specular_p:%lf reflects_color:%s transparency:%lf scattering:%lf refraction_index:%lf)\n", 
+    fscanf(file, "color:(%lf,%lf,%lf) emitted_color:(%lf,%lf,%lf) reflectivity:%lf emission:%lf specular_p:%lf reflects_color:%5s transparency:%lf scattering:%lf refraction_index:%lf)", 
         &r, &g, &b, &er, &eg, &eb, &refl, &em_int, &spec_p, refl_c, &transp, &scattering, &refr_i);
 
     if (strcmp(refl_c, "true") == 0) {
@@ -47,8 +51,10 @@ material parse_materials(FILE* file) {
     return material(rt::color(r, g, b), rt::color(er, eg, eb), refl, em_int, spec_p, refl_color, transp, scattering, refr_i);
 }
 
-material get_material(FILE* file, std::vector<char*>& mat_names, std::vector<material>& mat_content) {
-    long int position = ftell(file);
+/* Auxiliary function: parses the name of a material and returns the material associated with it,
+   or parses and returns a new material */
+material get_material(FILE* file, const std::vector<char*>& mat_names, const std::vector<material>& mat_content) {
+    const long int position = ftell(file);
 
     const char firstchar = fgetc(file);
     if (firstchar == '(') {
@@ -61,7 +67,7 @@ material get_material(FILE* file, std::vector<char*>& mat_names, std::vector<mat
 
         // material variable name
         char vname[64];
-        fscanf(file, "%s\n", vname);
+        fscanf(file, "%64s\n", vname);
 
         unsigned int vindex = -1;
         for (unsigned int i = 0; i < mat_names.size(); i++) {
@@ -80,14 +86,59 @@ material get_material(FILE* file, std::vector<char*>& mat_names, std::vector<mat
     }
 }
 
+/* Auxiliary function: parses the texture information after a material, and if there is one,
+   set up the material m with said info
+   is_triangle is true if the object is a triangle (in this case, 3 uv points are parsed),
+   and false if it is a quad (4 uv points are parsed) */
+void parse_texture_info(FILE* file, const std::vector<char*>& texture_names, material& m, bool is_triangle) {
+    const long int position = ftell(file);
+    char keyword[8];
+    fscanf(file, "%7s", keyword);
+    if (strcmp(keyword, "texture") == 0) {
+        char t_name[65];
+        double u0, v0, u1, v1, u2, v2, u3, v3;
+        fscanf(file, ":(%64s", t_name);
+
+        unsigned int vindex = -1;
+        for (unsigned int i = 0; i < texture_names.size(); i++) {
+            if (strcmp(texture_names.at(i), t_name) == 0) {
+                vindex = i;
+                break;
+            }
+        }
+        if (vindex == ((unsigned) -1)) {
+            printf("Error, texture %s not found.\n", t_name);
+            return;
+        }
+
+        if (is_triangle) {
+            fscanf(file, " (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
+                &u0, &v0, &u1, &v1, &u2, &v2);
+            m.set_texture(vindex, {u0, v0, u1, v1, u2, v2});
+        }
+        else {
+            fscanf(file, " (%lf,%lf) (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
+                &u0, &v0, &u1, &v1, &u2, &v2, &u3, &v3);
+
+            m.set_texture(vindex, {u0, v0, u1, v1, u2, v2, u3, v3});
+        }
+    }
+    else {
+        // No texture info, setting the position back before the keyword
+        fseek(file, position, SEEK_SET);
+    }
+}
+
+
+/** Scene description parser **/
 
 scene::scene(const char* file_name)
     : rg(randomgen()) {
 
     FILE* file = fopen(file_name, "r");
 
-    if (file == NULL) {
-        printf("Error, file %s does not exist\n", file_name);
+    if (file == 0) {
+        printf("Error, file %s not found\n", file_name);
         return;
     }
 
@@ -148,10 +199,10 @@ scene::scene(const char* file_name)
 
     - We can specify textures to triangles and quads (for the moment).
     The texture must be loaded from a bmp file, and given a name:
-    load_texture t1 "file_name.bmp"
+    load_texture t1 file_name.bmp
 
     Then when a material is declared, we can add the following fields:
-    material:(...) texture:(t1, (0.2, 0.8), (0.5, 0.15), (0.7, 0.65)) (3 points for a triangle, 4 for a quad)
+    material:(...) texture:(t1 (0.2, 0.8) (0.5, 0.15) (0.7, 0.65)) (3 points for a triangle, 4 for a quad)
     or
     material:m1 texture:(...)
 
@@ -180,24 +231,25 @@ scene::scene(const char* file_name)
     while (not feof(file)) {
 
         // longest item is load_texture
-        char s[13];
-        if (fscanf(file, "%s ", s) != 1) {
+        char s[14];
+        if (fscanf(file, "%13s ", s) != 1) {
             break;
         }
 
         if (strcmp(s, "material") == 0) {
-            char* m_name = new char[64];
-            fscanf(file, " %s (", m_name);
+            char* m_name = new char[65];
+            fscanf(file, " %64s (", m_name);
             material m = parse_materials(file);
             mat_names.push_back(m_name);
             mat_content.push_back(m);
         }
         else if (strcmp(s, "load_texture") == 0) {
-            char* t_name = new char[64];
-            char tfile_name[64];
-            fscanf(file, " %s \"%s\"", t_name, tfile_name);
+            char* t_name = new char[65];
+            char tfile_name[65];
+            fscanf(file, " %64s %64s", t_name, tfile_name);
             texture_names.push_back(t_name);
             new texture(tfile_name);
+            printf("%s texture loaded\n", tfile_name);
         }
         else if (strcmp(s, "sphere") == 0) {
             /* center:(-500, 0, 600) radius:120 [material] */
@@ -236,6 +288,7 @@ scene::scene(const char* file_name)
                 &x1, &y1, &z1,
                 &x2, &y2, &z2);
             material m = get_material(file, mat_names, mat_content);
+            parse_texture_info(file, texture_names, m, true);
             new triangle(rt::vector(x0, y0, z0), rt::vector(x1, y1, z1), rt::vector(x2, y2, z2), m);
         }
         else if (strcmp(s, "quad") == 0) {
@@ -247,6 +300,7 @@ scene::scene(const char* file_name)
                 &x2, &y2, &z2,
                 &x3, &y3, &z3);
             material m = get_material(file, mat_names, mat_content);
+            parse_texture_info(file, texture_names, m, false);
             new quad(rt::vector(x0, y0, z0), rt::vector(x1, y1, z1), rt::vector(x2, y2, z2), rt::vector(x3, y3, z3), m);
         }
         else if (strcmp(s, "cylinder") == 0) {
@@ -268,6 +322,9 @@ scene::scene(const char* file_name)
     /* Deleting the stored names */
     for (unsigned int i = 0; i < mat_names.size(); i++) {
         delete(mat_names.at(i));
+    }
+    for (unsigned int i = 0; i < texture_names.size(); i++) {
+        delete(texture_names.at(i));
     }
     
     fclose(file);

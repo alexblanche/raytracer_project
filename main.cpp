@@ -22,7 +22,7 @@
 #include "src/auxiliary/headers/tracing.hpp"
 
 /******************* Temporary *******************/
-#include "src/file_readers/headers/bmp_reader.hpp"
+// #include "src/file_readers/headers/bmp_reader.hpp"
 /*************************************************/
 
 using namespace std;
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
     }
 
     printf("Number of bounces: %u\n", number_of_bounces);
-    printf("Initialization...");
+    // printf("Initialization...");
 
     /* *************************** */
     /* Scene description */
@@ -128,6 +128,8 @@ int main(int argc, char *argv[]) {
     */
     
     scene scene("scene.txt");
+
+    printf("Number of objects: %u\n", object::set.size());
     
     
 
@@ -264,7 +266,10 @@ int main(int argc, char *argv[]) {
     return 0;
     */
 
+
     /* ********************************************************** */
+
+
 
 
     /* Definition of the matrix in which we will write the image */

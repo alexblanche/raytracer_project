@@ -131,7 +131,7 @@ double triangle::measure_distance(const ray& r) const {
    p = position + l1 * v1 + l2 * v2
    (0 <= l1, l2 <= 1)
 */
-void triangle::get_barycentric(const rt::vector& p, double& l1, double& l2) const {
+bool triangle::get_barycentric(const rt::vector& p, double& l1, double& l2) const {
 
     const rt::vector c = p - position;
     const double detxy = v1.x * v2.y - v1.y * v2.x;
@@ -151,6 +151,8 @@ void triangle::get_barycentric(const rt::vector& p, double& l1, double& l2) cons
             l2 = (v1.y * c.z - v1.z * c.y) / detyz;
         }
     }
+
+    return true;
 }
 
 rt::vector triangle::get_interpolated_normal(const double& l1, const double& l2) const {

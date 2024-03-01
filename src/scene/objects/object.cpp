@@ -27,7 +27,7 @@ object::object(const rt::vector& position, const material& m)
 
 
 
-/* Default versions: these three functions are overridden by derived classes */
+/* Default versions: these four functions are overridden by derived classes */
 
 /* Intersection determination */
 
@@ -39,6 +39,12 @@ hit object::compute_intersection(const ray& r, const double t) const {
     rt::vector p = r.get_origin() + t * r.get_direction().unit();
     rt::vector n = (-1)*(r.get_direction().unit());
     return hit(r, p, n, index);
+}
+
+/* Writes the barycentric coordinates in variables l1, l2
+   The boolean return value is used for determining the three points considered in quads */
+bool object::get_barycentric(const rt::vector& p, double& l1, double& l2) const {
+    return true;
 }
 
 /* Writes the minimum and maximum coordinates of the object on the three axes */

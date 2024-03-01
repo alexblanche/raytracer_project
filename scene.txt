@@ -1,5 +1,5 @@
 resolution width:1366 height:768
-camera position:(-500, -100, 600) direction:(1, 0.2, 0) rightdir:(0, 0, -1) fov_width:1366 distance:400
+camera position:(0, 0, 300) direction:(-2, 0, 1) rightdir:(1, 0, 2) fov_width:1366 distance:400
 background_color 190 235 255
 triangles_per_bounding 0
 
@@ -7,18 +7,13 @@ triangles_per_bounding 0
 plane normal:(0, -1, 0) position:(0, 160, 0) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 plane normal:(0, 0, -1) position:(0, 0, 1200) material:(color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-load_texture mandelbrot "Mandelbrot_bmp.bmp"
+load_texture mandelbrot ../../raytracer_project/texture_assets/baby.bmp
 
-quad (-1000,-600,1200) (-1000,-600,0) (-1000,160,0) (-1000,160,1200) material:(color:(255, 80, 80) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(mandelbrot, (1, 0) (0, 0) (0, 1) (1, 1))
+quad (-1000,-600,1200) (-1000,-600,0) (-1000,160,0) (-1000,160,1200) material:(color:(255, 80, 80) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(mandelbrot (1, 0) (0, 0) (0, 1) (1, 1))
 
 plane normal:(-1, 0, 0) position:(1000, 0, 0) material:(color:(80, 255, 80) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-plane normal:(0, 0, 1) position:(0, 0, 0) material:(color:(10, 180, 255) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-plane normal:(0, 1, 0) position:(0, -600, 0) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.8 emission:0 specular_p:0.5 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+plane normal:(0, 0, 1) position:(0, 0, 0) material:(color:(255, 10, 10) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:1.5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-quad (-400, -599, 800) (-400, -599, 400) (400, -599, 400) (400, -599, 800) material:white_light
-
-material blue_mirror (color:(10, 180, 255) emitted_color:(10, 180, 255) reflectivity:1 emission:0 specular_p:1 reflects_color:true transparency:0 scattering:0 refraction_index:1)
-
-cylinder origin:(0, 0, 600) direction:(1, -1, 1) radius:100 length:300 material:mirror
+plane normal:(0, 1, 0) position:(0, -600, 0) material:white_light

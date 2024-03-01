@@ -167,9 +167,9 @@ double quad::measure_distance(const ray& r) const {
     }
 }
 
-/* Writes the barycentric coordinates in variables l1, l2, and returns the boolean triangle:
+/* Writes the barycentric coordinates in variables l1, l2, and returns the boolean lower_triangle:
    (0 <= l1, l2 <= 1)
-   p = position + l1 * v1 + l2 * v2 if triangle == true,
+   p = position + l1 * v1 + l2 * v2 if lower_triangle == true,
    or
    p = position + l1 * v3 + l2 * v2 otherwise
 */
@@ -177,7 +177,7 @@ bool quad::get_barycentric(const rt::vector& p, double& l1, double& l2) const {
 
     const rt::vector c = p - position;
     const double det12xy = v1.x * v2.y - v1.y * v2.x;
-    if (abs(det12xy) > 0.00001) {
+    if (det12xy != 0) {
         const double detv2cxy = c.x * v2.y - c.y * v2.x;
         l1 = detv2cxy / det12xy;
         l2 = (v1.x * c.y - v1.y * c.x) / det12xy;
@@ -193,7 +193,7 @@ bool quad::get_barycentric(const rt::vector& p, double& l1, double& l2) const {
     }
     else {
         const double det12xz = v1.x * v2.z - v1.z * v2.x;
-        if (abs(det12xz) > 0.00001) {
+        if (det12xz != 0) {
             const double detv2cxz = c.x * v2.z - c.z * v2.x;
             l1 = detv2cxz / det12xz;
             l2 = (v1.x * c.z - v1.z * c.x) / det12xz;

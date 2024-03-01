@@ -60,12 +60,14 @@ class triangle : public object {
         /* Writes the barycentric coordinates in variables l1, l2:
            p = position + l1 * v1 + l2 * v2
            (0 <= l1, l2 <= 1)
+           The boolean return value is unused for triangles (only for quads).
         */
-        void get_barycentric(const rt::vector& p, double& l1, double& l2) const;
+        bool get_barycentric(const rt::vector& p, double& l1, double& l2) const;
 
         rt::vector get_interpolated_normal(const double& l1, const double& l2) const;
 
         hit compute_intersection(const ray& r, const double t) const;
+
 
         /* Minimum and maximum coordinates */
         void min_max_coord(double& min_x, double& max_x,

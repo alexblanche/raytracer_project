@@ -3,6 +3,8 @@
 
 #include <cmath>
 
+#include <iostream>
+
 std::vector<const texture*> texture::set;
 
 
@@ -17,14 +19,21 @@ texture::texture(const int width, const int height, const std::vector<std::vecto
 
 /* Constructor from a .bmp file */
 texture::texture(const char* file_name) {
-    data = read_bmp(file_name, width, height);
+    read_bmp_size(file_name, width, height);
+    data = std::vector<std::vector<rt::color>>(width, std::vector<rt::color>(height));
+    read_bmp(file_name, data);
     set.push_back(this);
 }
 
 
 /* Accessor */
 
-/* Returns the color stored in data at coordinates x, y between 0 and 1 times width, height */
-rt::color texture::get_color(const double& x, const double& y) const {
-    data.at((int) x * width).at((int) y * height);
+/* Returns the color stored in data at UV-coordinates u, v between 0 and 1 times width, height */
+rt::color texture::get_color(const double& u, const double& v) const {
+    // printf("u = %lf, v = %lf, width = %d, height = %d, u * width = %f, v * height = %f data dimensions = %u %u\n",
+    //     u, v, width, height, u * width, v * height, data.size(), data.at(0).size());
+    rt::color c = data.at((int) (u * width)).at((int) (v * height));
+    // printf("Color ready to be returned\n");
+    return c;
 }
+

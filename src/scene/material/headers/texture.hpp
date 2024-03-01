@@ -28,11 +28,11 @@ class texture {
         texture(const int width, const int height, const std::vector<std::vector<rt::color>>& data);
 
         /* Constructor from a .bmp file */
-        texture::texture(const char* file_name);
+        texture(const char* file_name);
 
 
         /* Accessor */
 
-        /* Returns the color stored in data at coordinates x, y between 0 and 1 times width, height */
-        rt::color get_color(const double& x, const double& y) const;
+        /* Returns the color stored in data at UV-coordinates u, v between 0 and 1 times width, height */
+        rt::color get_color(const double& u, const double& v) const;
 };

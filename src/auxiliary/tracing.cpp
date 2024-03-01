@@ -4,6 +4,7 @@
 #include "../scene/objects/headers/object.hpp"
 #include "../scene/headers/scene.hpp"
 #include "../scene/objects/headers/bounding.hpp"
+#include "../scene/material/headers/texture.hpp"
 
 // #include "headers/application.hpp"
 
@@ -43,9 +44,40 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                 return (color_materials * (m.get_emitted_color() * m.get_emission_intensity())) + emitted_colors;
             }
             else {
-                r.set_origin(h.get_point());
-                
+                /* To do: */
+                rt::vector hit_point = h.get_point();
+                r.set_origin(hit_point);
+                /* if (random_double(scene.rg, 1) <= m.get_transparency()) {
+                    // transmission
+                    const double inward = (dir | normal) <= 0;
+                    r.set_origin(hit_point + (inward ? (-0.001)*normal : (0.001)*normal))));
+                    // r.set_direction(...);
+                    refr_index = inward ? m.get_refr_i : 1;
+                    // updating the accumulators
+                }
+                else {
+                    // reflection
+                    r.set_origin(hit_point + bias_outward);
+
+                    // Then what's below
+                } */
+                /**********/
+
+                /* Determining the color of the point hit */
+                rt::color mat_color;
+                if (m.is_textured()) {
+                    // Only triangles and quads can be textured (for now)
+                    double l1, l2;
+                    const bool lower_triangle = object::set.at(h.get_obj_index())->get_barycentric(hit_point, l1, l2);
+
+                    mat_color = m.get_texture_color(l1, l2, lower_triangle);
+                }
+                else {
+                    mat_color = m.get_color();
+                }
+
                 if (random_double(scene.rg, 1) <= m.get_specular_proba()) {
+                    
                     /* Specular bounce */
 
                     const rt::vector central_dir = h.get_central_direction(reflectivity);
@@ -62,13 +94,16 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                     
                     const rt::color emitted_light = m.get_emitted_color() * m.get_emission_intensity();
 
-                    // Updating the accumulators
+
+                    /* Updating the accumulators */
+
                     emitted_colors = emitted_colors + (color_materials * emitted_light);
                     if (m.does_reflect_color()) {
                         // Reflections have the material color (like a christmas tree ball)
-                        color_materials = color_materials * m.get_color();
+                        color_materials = color_materials * mat_color;
                     }
                     // Otherwise, reflections have the original color (like a tomato)
+
                 }
                 else {
                     /* Diffuse bounce */
@@ -78,9 +113,10 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                     
                     const rt::color emitted_light = m.get_emitted_color() * m.get_emission_intensity();
 
-                    // Updating the accumulators
+                    /* Updating the accumulators */
+
                     emitted_colors = emitted_colors + (color_materials * emitted_light);
-                    color_materials = color_materials * m.get_color();
+                    color_materials = color_materials * mat_color;
                 }
             }
         }

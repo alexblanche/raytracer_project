@@ -44,12 +44,16 @@ class object {
         }
 
         
-        // These three functions are overridden by derived classes
+        // These four functions are overridden by derived classes
 
         /* Intersection determination */
         virtual double measure_distance(const ray& r) const;
 
         virtual hit compute_intersection(const ray& r, const double t) const;
+
+        /* Writes the barycentric coordinates in variables l1, l2
+           The boolean return value is used for determining the three points considered in quads */
+        virtual bool get_barycentric(const rt::vector& p, double& l1, double& l2) const;
 
         /* Writes the minimum and maximum coordinates of the object on the three axes */
         virtual void min_max_coord(double& min_x, double& max_x,

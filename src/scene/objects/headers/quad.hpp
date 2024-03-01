@@ -57,9 +57,9 @@ class quad : public object {
 
         double measure_distance(const ray& r) const;
 
-        /* Writes the barycentric coordinates in variables l1, l2, and returns the boolean triangle:
+        /* Writes the barycentric coordinates in variables l1, l2, and returns the boolean lower_triangle:
            (0 <= l1, l2 <= 1)
-           p = position + l1 * v1 + l2 * v2 if triangle == true,
+           p = position + l1 * v1 + l2 * v2 if lower_triangle == true,
            or
            p = position + l1 * v3 + l2 * v2 otherwise
         */

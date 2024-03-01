@@ -1,6 +1,7 @@
 all:
 	g++ -std=c++17 -Wall -I sdl/include -L sdl/lib -o main.exe \
 		src/screen/color.cpp \
+		src/scene/material/texture.cpp \
 		src/scene/material/material.cpp \
 		src/screen/image.cpp \
 		src/screen/screen.cpp \
