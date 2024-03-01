@@ -35,7 +35,7 @@ using namespace std;
 /* ********** Render loop ********** */
 
 void render_loop_parallel(vector<vector<rt::color>>& matrix,
-    scene& scene, const unsigned int number_of_bounces) {
+    scene& scene, const unsigned int number_of_bounces, const bool time_enabled) {
     
     mutex m;
     // float cpt = 0;
@@ -82,16 +82,17 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix,
         
     } PARALLEL_FOR_END();
 
-    const long int curr_time = time(NULL);
-    const long int elapsed = curr_time - t_init;
-    if (elapsed < 60) {
-        printf("\nTime elapsed: %ld seconds\n", elapsed);
+    if (time_enabled) {
+        const long int curr_time = time(NULL);
+        const long int elapsed = curr_time - t_init;
+        if (elapsed < 60) {
+            printf("\nTime elapsed: %ld seconds\n", elapsed);
+        }
+        else {
+            printf("\nTime elapsed: %ld seconds = %f minutes\n",
+                elapsed, ((float) elapsed) / 60.0);
+        }
     }
-    else {
-        printf("\nTime elapsed: %ld seconds = %f minutes\n",
-            elapsed, ((float) elapsed) / 60.0);
-    }
-    
 
     // printf("\nObject tested at each bounce:\n");
     // for (unsigned int i = 0; i < 5; i++) {
@@ -109,13 +110,33 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix,
 
 int main(int argc, char *argv[]) {
 
-    /* Specification of the parameters through console arguments */
+
+    /* Specification of the parameters through console arguments:
+    
+       ./main.exe [number of bounces] [time]
+       
+       The first argument is the maximum number of bounces wanted (2 by default).
+       If the string "time" is provided as a second argument, the time taken for each render
+       (one ray per pixel) complete will be measured and displayed.
+     */
     unsigned int number_of_bounces = 2;
-    if (argc > 1) {
+    bool time_enabled = false;
+
+    if (argc == 0) {
+        printf("Number of bounces: %u (default)\n", number_of_bounces);
+    }
+    else {
         number_of_bounces = atoi(argv[1]);
+        printf("Number of bounces: %u\n", number_of_bounces);
     }
 
-    printf("Number of bounces: %u\n", number_of_bounces);
+    if (argc > 2) {
+        if (strcmp(argv[2], "time") == 0) {
+            time_enabled = true;
+        }
+    }
+
+    
     // printf("Initialization...");
 
     /* *************************** */
@@ -277,7 +298,7 @@ int main(int argc, char *argv[]) {
 
     printf("\rInitialization complete, computing the first ray...");
 
-    render_loop_parallel(matrix, scene, number_of_bounces);
+    render_loop_parallel(matrix, scene, number_of_bounces, time_enabled);
     
     const rt::screen* scr = new rt::screen(scene.width, scene.height);
     scr->copy(matrix, scene.width, scene.height, 1);
@@ -295,7 +316,7 @@ int main(int argc, char *argv[]) {
     while (not stop) {
         number_of_rays ++;
 
-        render_loop_parallel(matrix, scene, number_of_bounces);
+        render_loop_parallel(matrix, scene, number_of_bounces, time_enabled);
 
         printf("\rNumber of rays per pixel: %u", number_of_rays);
         if (number_of_rays % 10 == 0) {
