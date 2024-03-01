@@ -190,7 +190,7 @@ scene::scene(const char* file_name)
     cylinder origin:(0, 0, 0) direction:(1, -1, 1) radius:100 length:300 [material]
 
     For boxes and cylinders, the axes do not need to be unit vectors, they will be normalized when the objects are defined.
-
+    Objects are automatically stored in object::set.
 
     - We can declare a material as a variable (before the objects are declared):
     material m1:(...)
@@ -206,8 +206,10 @@ scene::scene(const char* file_name)
     or
     material:m1 texture:(...)
 
+    - A line can be commented by adding a "#" and a space at the beginning of the line:
+    # sphere [...]
+
     */
-    /* Objects are automatically stored in object::set */
 
 
     /* Material storage */
@@ -236,13 +238,24 @@ scene::scene(const char* file_name)
             break;
         }
 
-        if (strcmp(s, "material") == 0) {
+        /* Commented line */
+        if (strcmp(s, "#") == 0) {
+            char c;
+            do {
+                c = fgetc(file);
+            }
+            while (c != '\n' && c != EOF);
+            ungetc(c, file);
+        }
+        /* Material declaration */
+        else if (strcmp(s, "material") == 0) {
             char* m_name = new char[65];
             fscanf(file, " %64s (", m_name);
             material m = parse_materials(file);
             mat_names.push_back(m_name);
             mat_content.push_back(m);
         }
+        /* BMP file loading */
         else if (strcmp(s, "load_texture") == 0) {
             char* t_name = new char[65];
             char tfile_name[65];
@@ -251,6 +264,9 @@ scene::scene(const char* file_name)
             new texture(tfile_name);
             printf("%s texture loaded\n", tfile_name);
         }
+
+        /* Objects declaration */
+        
         else if (strcmp(s, "sphere") == 0) {
             /* center:(-500, 0, 600) radius:120 [material] */
             double x, y, z, r;
@@ -313,6 +329,9 @@ scene::scene(const char* file_name)
             material m = get_material(file, mat_names, mat_content);
             new cylinder(rt::vector(x0, y0, z0), rt::vector(dx, dy, dz).unit(), r, l, m);
         }
+
+        /* Parsing error */
+
         else {
             printf("Parsing error: %s\n", s);
             break;
