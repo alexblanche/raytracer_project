@@ -31,14 +31,13 @@ object::object(const rt::vector& position, const material& m)
 
 /* Intersection determination */
 
+
 double object::measure_distance(const ray& r) const {
-    return (r.get_origin() - position).norm();
+    return 0;
 }
 
 hit object::compute_intersection(const ray& r, const double t) const {
-    rt::vector p = r.get_origin() + t * r.get_direction().unit();
-    rt::vector n = (-1)*(r.get_direction().unit());
-    return hit(r, p, n, index);
+    return hit();
 }
 
 /* Writes the barycentric coordinates in variables l1, l2

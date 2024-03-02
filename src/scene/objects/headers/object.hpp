@@ -23,6 +23,10 @@ class object {
            to be executed instead of the base (object) one */
         static std::vector<const object*> set;
 
+        /* Destructor */
+        
+        virtual ~object() {}
+
         /* Constructors */
 
         object();

@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
     
     scene scene("scene.txt");
 
-    printf("Number of objects: %u\n", object::set.size());
+    printf("Number of objects: %lu\n", object::set.size());
     
     
 

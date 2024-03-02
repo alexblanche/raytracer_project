@@ -215,6 +215,7 @@ scene::scene(const char* file_name)
     /* Material storage */
 
     /* Vector that stores the material variable names */
+
     std::vector<char*> mat_names = {(char*) "mirror", (char*) "glass"};
 
     /* Vector that stores the materials:
@@ -339,7 +340,7 @@ scene::scene(const char* file_name)
     }
 
     /* Deleting the stored names */
-    for (unsigned int i = 0; i < mat_names.size(); i++) {
+    for (unsigned int i = 2; i < mat_names.size(); i++) {
         delete(mat_names.at(i));
     }
     for (unsigned int i = 0; i < texture_names.size(); i++) {

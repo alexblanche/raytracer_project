@@ -28,23 +28,23 @@ class hit {
         hit();
 
         /* Accessors */
-        ray get_ray() const {
+        inline ray get_ray() const {
             return gen;
         }
 
-        rt::vector get_point() const {
+        inline rt::vector get_point() const {
             return point;
         }
         
-        rt::vector get_normal() const {
+        inline rt::vector get_normal() const {
             return normal;
         }
 
-        unsigned int get_obj_index() const {
+        inline unsigned int get_obj_index() const {
             return obj_index;
         }
 
-        bool object_hit() const {
+        inline bool object_hit() const {
             return is_hit_bool;
         }
 

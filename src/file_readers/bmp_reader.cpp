@@ -65,12 +65,13 @@ void read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
     fread((void*) buffer28, 28, 1, file);
 
     /* Padding at the end of each row in the file */
-    unsigned int p = (3*bmpwidth) % 4;
     bool padding = false;
-    if (p != 0) {
+    unsigned int vp = (3*bmpwidth) % 4;
+    if (vp != 0) {
         padding = true;
-        p = 4 - p;
+        vp = 4 - vp;
     }
+    const unsigned int p = vp;
 
     /* Color data */
     for (unsigned int j = 0; j < bmpheight; j++) {
