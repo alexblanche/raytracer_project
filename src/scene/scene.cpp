@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <string>
 
 scene::scene(const rt::color background,
     const int width, const int height,
@@ -53,7 +54,7 @@ material parse_materials(FILE* file) {
 
 /* Auxiliary function: parses the name of a material and returns the material associated with it,
    or parses and returns a new material */
-material get_material(FILE* file, const std::vector<char*>& mat_names, const std::vector<material>& mat_content) {
+material get_material(FILE* file, const std::vector<string>& mat_names, const std::vector<material>& mat_content) {
     const long int position = ftell(file);
 
     const char firstchar = fgetc(file);
@@ -71,7 +72,7 @@ material get_material(FILE* file, const std::vector<char*>& mat_names, const std
 
         unsigned int vindex = -1;
         for (unsigned int i = 0; i < mat_names.size(); i++) {
-            if (strcmp(mat_names.at(i), vname) == 0) {
+            if (mat_names.at(i).compare(vname) == 0) {
                 vindex = i;
                 break;
             }
@@ -90,7 +91,7 @@ material get_material(FILE* file, const std::vector<char*>& mat_names, const std
    set up the material m with said info
    is_triangle is true if the object is a triangle (in this case, 3 uv points are parsed),
    and false if it is a quad (4 uv points are parsed) */
-void parse_texture_info(FILE* file, const std::vector<char*>& texture_names, material& m, bool is_triangle) {
+void parse_texture_info(FILE* file, const std::vector<string>& texture_names, material& m, bool is_triangle) {
     const long int position = ftell(file);
     char keyword[8];
     fscanf(file, "%7s", keyword);
@@ -101,13 +102,13 @@ void parse_texture_info(FILE* file, const std::vector<char*>& texture_names, mat
 
         unsigned int vindex = -1;
         for (unsigned int i = 0; i < texture_names.size(); i++) {
-            if (strcmp(texture_names.at(i), t_name) == 0) {
+            if (texture_names.at(i).compare(t_name) == 0) {
                 vindex = i;
                 break;
             }
         }
         if (vindex == ((unsigned) -1)) {
-            printf("Error, texture %s not found.\n", t_name);
+            printf("Error, texture %s not found\n", t_name);
             return;
         }
 
@@ -193,7 +194,7 @@ scene::scene(const char* file_name)
     Objects are automatically stored in object::set.
 
     - We can declare a material as a variable (before the objects are declared):
-    material m1:(...)
+    material m1 (...)
     It can then be used like:
     triangle (...) (...) (...) material:m1
 
@@ -216,7 +217,7 @@ scene::scene(const char* file_name)
 
     /* Vector that stores the material variable names */
 
-    std::vector<char*> mat_names = {(char*) "mirror", (char*) "glass"};
+    std::vector<string> mat_names = {"mirror", "glass"};
 
     /* Vector that stores the materials:
        if vname is stored at index i of vnames, the associated material is stored at index i in mats */
@@ -226,7 +227,7 @@ scene::scene(const char* file_name)
     /* Texture storage */
     /* The name of the texture is pushed to texture_names at index i, which corresponds to the index of
        the texture content automatically pushed to the static texture::set */
-    std::vector<char*> texture_names;
+    std::vector<string> texture_names;
 
 
     /* Parsing loop */
@@ -250,17 +251,22 @@ scene::scene(const char* file_name)
         }
         /* Material declaration */
         else if (strcmp(s, "material") == 0) {
-            char* m_name = new char[65];
-            fscanf(file, " %64s (", m_name);
+            std::string m_name(65, '\0');
+            fscanf(file, " %64s (", (char*) m_name.data());
+            m_name.resize(strlen(m_name.data()));
+
             material m = parse_materials(file);
+
             mat_names.push_back(m_name);
             mat_content.push_back(m);
         }
         /* BMP file loading */
         else if (strcmp(s, "load_texture") == 0) {
-            char* t_name = new char[65];
+            std::string t_name(65, '\0');
             char tfile_name[65];
-            fscanf(file, " %64s %64s", t_name, tfile_name);
+            fscanf(file, " %64s %64s", (char*) t_name.data(), tfile_name);
+            t_name.resize(strlen(t_name.data()));
+            
             texture_names.push_back(t_name);
             new texture(tfile_name);
             printf("%s texture loaded\n", tfile_name);
@@ -337,14 +343,6 @@ scene::scene(const char* file_name)
             printf("Parsing error: %s\n", s);
             break;
         }
-    }
-
-    /* Deleting the stored names */
-    for (unsigned int i = 2; i < mat_names.size(); i++) {
-        delete(mat_names.at(i));
-    }
-    for (unsigned int i = 0; i < texture_names.size(); i++) {
-        delete(texture_names.at(i));
     }
     
     fclose(file);

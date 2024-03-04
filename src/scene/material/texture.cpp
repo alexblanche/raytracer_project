@@ -11,7 +11,8 @@ std::vector<const texture*> texture::set;
 
 /* Default constructor */
 texture::texture(const int width, const int height, const std::vector<std::vector<rt::color>>& data)
-    : width(width), height(height), data(data) {
+    : width(width), height(height), data(data),
+        width_minus_one((double) (width - 1)), height_minus_one((double) height_minus_one) {
 
     set.push_back(this);
 }
@@ -22,6 +23,8 @@ texture::texture(const char* file_name) {
     data = std::vector<std::vector<rt::color>>(width, std::vector<rt::color>(height));
     read_bmp(file_name, data);
     set.push_back(this);
+    width_minus_one = (double) (width - 1);
+    height_minus_one = (double) (height - 1);
 }
 
 
@@ -29,10 +32,6 @@ texture::texture(const char* file_name) {
 
 /* Returns the color stored in data at UV-coordinates u, v between 0 and 1 times width, height */
 rt::color texture::get_color(const double& u, const double& v) const {
-    // printf("u = %lf, v = %lf, width = %d, height = %d, u * width = %f, v * height = %f data dimensions = %u %u\n",
-    //     u, v, width, height, u * width, v * height, data.size(), data.at(0).size());
-    rt::color c = data.at((int) (u * width)).at((int) (v * height));
-    // printf("Color ready to be returned\n");
-    return c;
+    return data.at((int) (u * width_minus_one)).at((int) (v * height_minus_one));
 }
 
