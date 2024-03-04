@@ -2,11 +2,12 @@
 #include <fstream>
 #include <stdlib.h>
 #include <vector>
-#include "../../light/headers/hit.hpp"
-#include "headers/source.hpp"
-#include "../objects/headers/sphere.hpp"
-#include "../objects/headers/plane.hpp"
-#include "../../screen/headers/color.hpp"
+
+#include "light/hit.hpp"
+#include "scene/sources/source.hpp"
+#include "scene/objects/sphere.hpp"
+#include "scene/objects/plane.hpp"
+#include "screen/color.hpp"
 
 using namespace std;
 

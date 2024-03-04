@@ -1,9 +1,9 @@
 #pragma once
 
 #include <vector>
-#include "../objects/headers/object.hpp"
-#include "../../screen/headers/color.hpp"
-#include "../../auxiliary/headers/randomgen.hpp"
+#include "objects/object.hpp"
+#include "screen/color.hpp"
+#include "auxiliary/randomgen.hpp"
 #include "camera.hpp"
 
 class scene {

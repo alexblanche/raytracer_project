@@ -2,30 +2,27 @@
 
 #include "object.hpp"
 
-#include "../../../light/headers/vector.hpp"
-#include "../../../light/headers/hit.hpp"
-#include "../../material/headers/material.hpp"
+#include "light/vector.hpp"
+#include "light/hit.hpp"
+#include "scene/material/material.hpp"
 
-class cylinder : public object {
+class sphere : public object {
     
     private:
 
-        rt::vector direction;
-        double radius, length;
+        double radius;
 
     public:
 
         /* Constructors */
         
-        cylinder();
+        sphere();
 
-        cylinder(const rt::vector& origin, const rt::vector& direction,
-            const double radius, const double length,
-            const material& material);
+        sphere(const rt::vector& center, const double radius, const material& material);
 
         /* Accessors */
 
-        rt::vector get_origin() const {
+        rt::vector get_center() const {
             return position;
         }
 
@@ -33,9 +30,6 @@ class cylinder : public object {
             return radius;
         }
 
-        double get_length() const {
-            return length;
-        }
         
         /* Intersection determination */
 

@@ -14,7 +14,7 @@
  */
 
 #include <cmath>
-#include "headers/vector.hpp"
+#include "light/vector.hpp"
 
 namespace rt {
 

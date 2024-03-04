@@ -1,7 +1,7 @@
-#include "../light/headers/vector.hpp"
-#include "../light/headers/ray.hpp"
+#include "light/vector.hpp"
+#include "light/ray.hpp"
 
-#include "headers/camera.hpp"
+#include "scene/camera.hpp"
 
 camera::camera() {}
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../screen/headers/color.hpp"
+#include "screen/color.hpp"
 
 /* Blurring algorithm */
 

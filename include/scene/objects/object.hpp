@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../../../light/headers/vector.hpp"
-#include "../../../light/headers/hit.hpp"
-#include "../../../light/headers/ray.hpp"
-#include "../../material/headers/material.hpp"
+#include "light/vector.hpp"
+#include "light/hit.hpp"
+#include "light/ray.hpp"
+#include "scene/material/material.hpp"
 
 class object {
     

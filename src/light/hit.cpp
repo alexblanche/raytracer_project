@@ -1,7 +1,7 @@
-#include "headers/hit.hpp"
-#include "../screen/headers/color.hpp"
-#include "headers/vector.hpp"
-#include "../auxiliary/headers/randomgen.hpp"
+#include "light/hit.hpp"
+#include "light/vector.hpp"
+#include "screen/color.hpp"
+#include "auxiliary/randomgen.hpp"
 #include <cmath>
 
 /** The hit class contains the information

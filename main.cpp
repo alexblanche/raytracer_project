@@ -5,24 +5,24 @@
 #include <queue>
 #include <ctime>
 
-#include "src/screen/headers/color.hpp"
-#include "src/scene/material/headers/material.hpp"
-#include "src/screen/headers/screen.hpp"
-#include "src/light/headers/ray.hpp"
+#include "screen/color.hpp"
+#include "scene/material/material.hpp"
+#include "screen/screen.hpp"
+#include "light/ray.hpp"
 
-#include "src/scene/objects/headers/object.hpp"
-#include "src/scene/objects/headers/triangle.hpp"
-#include "src/scene/objects/headers/bounding.hpp"
+#include "scene/objects/object.hpp"
+#include "scene/objects/triangle.hpp"
+#include "scene/objects/bounding.hpp"
 
 #include "parallel/parallel.h"
 #include "mingw.mutex.h"
 
-#include "src/scene/headers/scene.hpp"
-#include "src/scene/headers/camera.hpp"
-#include "src/auxiliary/headers/tracing.hpp"
+#include "scene/scene.hpp"
+#include "scene/camera.hpp"
+#include "auxiliary/tracing.hpp"
 
 /******************* Temporary *******************/
-// #include "src/file_readers/headers/bmp_reader.hpp"
+// #include "src/file_readers/bmp_reader.hpp"
 /*************************************************/
 
 using namespace std;
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
     unsigned int number_of_bounces = 2;
     bool time_enabled = false;
 
-    if (argc == 0) {
+    if (argc == 1) {
         printf("Number of bounces: %u (default)\n", number_of_bounces);
     }
     else {
@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
     
     scene scene("scene.txt");
 
-    printf("Number of objects: %lu\n", object::set.size());
+    printf("Number of objects: %u\n", object::set.size());
     
     
 
@@ -286,7 +286,6 @@ int main(int argc, char *argv[]) {
 
     return 0;
     */
-
 
     /* ********************************************************** */
 

@@ -1,6 +1,6 @@
-#include "headers/material.hpp"
-#include "headers/texture.hpp"
-#include "../../screen/headers/color.hpp"
+#include "scene/material/material.hpp"
+#include "scene/material/texture.hpp"
+#include "screen/color.hpp"
 
 
 #include <iostream>

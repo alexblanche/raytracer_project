@@ -1,18 +1,18 @@
-#include "headers/scene.hpp"
-#include "headers/camera.hpp"
-#include "objects/headers/object.hpp"
-#include "objects/headers/sphere.hpp"
-#include "objects/headers/plane.hpp"
-#include "objects/headers/box.hpp"
-#include "objects/headers/triangle.hpp"
-#include "objects/headers/quad.hpp"
-#include "objects/headers/cylinder.hpp"
+#include "scene/scene.hpp"
+#include "scene/camera.hpp"
+#include "scene/objects/object.hpp"
+#include "scene/objects/sphere.hpp"
+#include "scene/objects/plane.hpp"
+#include "scene/objects/box.hpp"
+#include "scene/objects/triangle.hpp"
+#include "scene/objects/quad.hpp"
+#include "scene/objects/cylinder.hpp"
 
-#include "../screen/headers/color.hpp"
-#include "../auxiliary/headers/randomgen.hpp"
+#include "screen/color.hpp"
+#include "auxiliary/randomgen.hpp"
 
-#include "material/headers/material.hpp"
-#include "material/headers/texture.hpp"
+#include "scene/material/material.hpp"
+#include "scene/material/texture.hpp"
 
 #include <stdio.h>
 #include <string.h>

@@ -2,9 +2,9 @@
 
 #include "object.hpp"
 
-#include "../../../light/headers/vector.hpp"
-#include "../../../light/headers/hit.hpp"
-#include "../../material/headers/material.hpp"
+#include "light/vector.hpp"
+#include "light/hit.hpp"
+#include "scene/material/material.hpp"
 
 class box : public object {
     

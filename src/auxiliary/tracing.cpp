@@ -1,10 +1,10 @@
 #include <cmath>
-#include "../light/headers/ray.hpp"
-#include "../screen/headers/color.hpp"
-#include "../scene/objects/headers/object.hpp"
-#include "../scene/headers/scene.hpp"
-#include "../scene/objects/headers/bounding.hpp"
-#include "../scene/material/headers/texture.hpp"
+#include "light/ray.hpp"
+#include "screen/color.hpp"
+#include "scene/objects/object.hpp"
+#include "scene/scene.hpp"
+#include "scene/objects/bounding.hpp"
+#include "scene/material/texture.hpp"
 
 // #include "headers/application.hpp"
 

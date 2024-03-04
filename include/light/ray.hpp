@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vector.hpp"
-#include "../../screen/headers/color.hpp"
+#include "screen/color.hpp"
 
 using namespace std;
 

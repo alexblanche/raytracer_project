@@ -1,5 +1,5 @@
-#include "headers/bmp_reader.hpp"
-#include "../screen/headers/color.hpp"
+#include "file_readers/bmp_reader.hpp"
+#include "screen/color.hpp"
 
 #include <stdio.h>
 #include <string.h>

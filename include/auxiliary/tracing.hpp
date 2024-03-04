@@ -1,8 +1,7 @@
-#include "../../light/headers/ray.hpp"
-#include "../../screen/headers/color.hpp"
-// #include "../../scene/sources/headers/source.hpp"
-#include "../../scene/objects/headers/object.hpp"
-#include "../../scene/headers/scene.hpp"
+#include "light/ray.hpp"
+#include "screen/color.hpp"
+#include "scene/objects/object.hpp"
+#include "scene/scene.hpp"
 
 #include "application.hpp"
 

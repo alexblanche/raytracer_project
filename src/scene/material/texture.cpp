@@ -1,8 +1,7 @@
-#include "headers/texture.hpp"
-#include "../../file_readers/headers/bmp_reader.hpp"
+#include "scene/material/texture.hpp"
+#include "file_readers/bmp_reader.hpp"
 
 #include <cmath>
-
 #include <iostream>
 
 std::vector<const texture*> texture::set;

@@ -1,5 +1,8 @@
 all:
-	g++ -std=c++17 -Wall -O3 -I sdl/include -L sdl/lib -o main.exe \
+	g++ -std=c++17 -o main.exe \
+		-Wall -Wextra -Werror -fdiagnostics-color \
+		-O3 -march=native -ffast-math \
+		-I sdl/include -I include -L sdl/lib \
 		src/screen/color.cpp \
 		src/scene/material/texture.cpp \
 		src/scene/material/material.cpp \

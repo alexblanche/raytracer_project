@@ -1,8 +1,8 @@
-#include "headers/plane.hpp"
+#include "scene/objects/plane.hpp"
 
-#include "../../light/headers/vector.hpp"
-#include "../../light/headers/hit.hpp"
-#include "../material/headers/material.hpp"
+#include "light/vector.hpp"
+#include "light/hit.hpp"
+#include "scene/material/material.hpp"
 
 #include<limits>
 numeric_limits<double> realpln;

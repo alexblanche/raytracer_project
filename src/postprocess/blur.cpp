@@ -1,5 +1,5 @@
-#include "../screen/headers/color.hpp"
-#include "headers/blur.hpp"
+#include "screen/color.hpp"
+#include "postprocess/blur.hpp"
 #include <iostream>
 
 /* Blurring algorithm */

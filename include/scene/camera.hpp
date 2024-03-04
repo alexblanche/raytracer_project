@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../light/headers/vector.hpp"
-#include "../../light/headers/ray.hpp"
+#include "light/vector.hpp"
+#include "light/ray.hpp"
 
 class camera {
     

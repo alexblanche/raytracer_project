@@ -4,7 +4,7 @@
 #include <SDL2/SDL.h>
 #include <cmath>
 
-#include "headers/screen.hpp"
+#include "screen/screen.hpp"
 
 namespace rt {
 

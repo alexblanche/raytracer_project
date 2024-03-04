@@ -1,5 +1,5 @@
-#include "headers/rect.hpp"
-#include "headers/image.hpp"
+#include "screen/rect.hpp"
+#include "screen/image.hpp"
 
 #include <iostream>
 

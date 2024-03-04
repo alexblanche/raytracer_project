@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "../../../screen/headers/color.hpp"
+#include "screen/color.hpp"
 
 /* Class representing texture data
 

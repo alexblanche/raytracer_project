@@ -1,5 +1,5 @@
-#include "headers/ray.hpp"
-#include "../screen/headers/color.hpp"
+#include "light/ray.hpp"
+#include "screen/color.hpp"
 #include <cmath>
 
 using namespace std;

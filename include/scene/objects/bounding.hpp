@@ -3,9 +3,9 @@
 #include "object.hpp"
 #include "box.hpp"
 
-#include "../../../light/headers/vector.hpp"
-#include "../../../light/headers/hit.hpp"
-#include "../../material/headers/material.hpp"
+#include "light/vector.hpp"
+#include "light/hit.hpp"
+#include "scene/material/material.hpp"
 
 #include <stack>
 #include <vector>

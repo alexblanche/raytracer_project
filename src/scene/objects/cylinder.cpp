@@ -1,6 +1,6 @@
-#include "headers/cylinder.hpp"
-#include "../../light/headers/vector.hpp"
-#include "../material/headers/material.hpp"
+#include "scene/objects/cylinder.hpp"
+#include "light/vector.hpp"
+#include "scene/material/material.hpp"
 #include <math.h>
 
 #include<limits>

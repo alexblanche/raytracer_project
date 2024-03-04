@@ -2,7 +2,7 @@
 #include <chrono>
 #include <random>
 
-#include "headers/randomgen.hpp"
+#include "auxiliary/randomgen.hpp"
 
 randomgen::randomgen() {
     seed = std::chrono::system_clock::now().time_since_epoch().count();

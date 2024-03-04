@@ -1,6 +1,6 @@
-#include "headers/sphere.hpp"
-#include "../../light/headers/vector.hpp"
-#include "../material/headers/material.hpp"
+#include "scene/objects/sphere.hpp"
+#include "light/vector.hpp"
+#include "scene/material/material.hpp"
 #include <math.h>
 
 #include<limits>

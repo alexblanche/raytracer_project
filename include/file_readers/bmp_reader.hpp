@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "../../screen/headers/color.hpp"
+#include "screen/color.hpp"
 
 /* Writes in the variables the width and height of the .bmp image contained in file_name */
 void read_bmp_size(const char* file_name, int& width, int& height);
