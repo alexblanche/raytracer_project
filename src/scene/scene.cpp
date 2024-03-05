@@ -161,13 +161,16 @@ void parse_texture_info(FILE* file, const std::vector<string>& texture_names, ma
 
 /** Scene description parser **/
 
-scene::scene(const char* file_name)
+scene::scene(const char* file_name, bool& creation_successful)
     : rg(randomgen()) {
+
+    creation_successful = true;
 
     FILE* file = fopen(file_name, "r");
 
     if (file == 0) {
         printf("Error, file %s not found\n", file_name);
+        creation_successful = false;
         return;
     }
 
@@ -189,6 +192,7 @@ scene::scene(const char* file_name)
     ret = fscanf(file, "resolution width:%d height:%d\n", &width, &height);
     if (ret != 2) {
         printf("Parsing error in scene constructor (resolution)\n");
+        creation_successful = false;
         return;
     }
     
@@ -196,6 +200,7 @@ scene::scene(const char* file_name)
         &posx, &posy, &posz, &dx, &dy, &dz, &rdx, &rdy, &rdz, &fovw, &dist);
     if (ret != 11) {
         printf("Parsing error in scene constructor (camera)\n");
+        creation_successful = false;
         return;
     }
 
@@ -206,6 +211,7 @@ scene::scene(const char* file_name)
     ret = fscanf(file, "background_color %lf %lf %lf\n", &r, &g, &b);
     if (ret != 3) {
         printf("Parsing error in scene constructor (background)\n");
+        creation_successful = false;
         return;
     }
 
@@ -214,6 +220,7 @@ scene::scene(const char* file_name)
     ret = fscanf(file, "triangles_per_bounding %u\n", &triangles_per_bounding);
     if (ret != 1) {
         printf("Parsing error in scene constructor (triangles per bounding)\n");
+        creation_successful = false;
         return;
     }
     
@@ -303,7 +310,8 @@ scene::scene(const char* file_name)
             ret = fscanf(file, " %64s (", (char*) m_name.data());
             if (ret != 1) {
                 printf("Parsing error in scene constructor (material declaration)\n");
-                return;
+                creation_successful = false;
+                break;
             }
             m_name.resize(strlen(m_name.data()));
 
@@ -319,7 +327,8 @@ scene::scene(const char* file_name)
             ret = fscanf(file, " %64s %64s", (char*) t_name.data(), tfile_name);
             if (ret != 2) {
                 printf("Parsing error in scene constructor (texture loading)\n");
-                return;
+                creation_successful = false;
+                break;
             }
             t_name.resize(strlen(t_name.data()));
             
@@ -331,6 +340,8 @@ scene::scene(const char* file_name)
             }
             else {
                 printf("%s texture reading failed\n", tfile_name);
+                creation_successful = false;
+                break;
             }
         }
 
@@ -343,7 +354,8 @@ scene::scene(const char* file_name)
                 &x, &y, &z, &r);
             if (ret != 4) {
                 printf("Parsing error in scene constructor (sphere declaration)\n");
-                return;
+                creation_successful = false;
+                break;
             }
             material m = get_material(file, mat_names, mat_content);
             new sphere(rt::vector(x, y, z), r, m);
@@ -356,7 +368,8 @@ scene::scene(const char* file_name)
                 &px, &py, &pz);
             if (ret != 6) {
                 printf("Parsing error in scene constructor (plane declaration)\n");
-                return;
+                creation_successful = false;
+                break;
             }
             material m = get_material(file, mat_names, mat_content);
             new plane(nx, ny, nz, rt::vector(px, py, pz), m);
@@ -371,7 +384,8 @@ scene::scene(const char* file_name)
                 &l1, &l2, &l3);
             if (ret != 12) {
                 printf("Parsing error in scene constructor (box declaration)\n");
-                return;
+                creation_successful = false;
+                break;
             }
             material m = get_material(file, mat_names, mat_content);
             new box(rt::vector(cx, cy, cz), rt::vector(n1x, n1y, n1z).unit(), rt::vector(n2x, n2y, n2z).unit(),
@@ -386,7 +400,8 @@ scene::scene(const char* file_name)
                 &x2, &y2, &z2);
             if (ret != 9) {
                 printf("Parsing error in scene constructor (triangle declaration)\n");
-                return;
+                creation_successful = false;
+                break;
             }
             material m = get_material(file, mat_names, mat_content);
             parse_texture_info(file, texture_names, m, true);
@@ -402,7 +417,8 @@ scene::scene(const char* file_name)
                 &x3, &y3, &z3);
             if (ret != 12) {
                 printf("Parsing error in scene constructor (quad declaration)\n");
-                return;
+                creation_successful = false;
+                break;
             }
             material m = get_material(file, mat_names, mat_content);
             parse_texture_info(file, texture_names, m, false);
@@ -417,7 +433,8 @@ scene::scene(const char* file_name)
                 &r, &l);
             if (ret != 8) {
                 printf("Parsing error in scene constructor (cylinder declaration)\n");
-                return;
+                creation_successful = false;
+                break;
             }
             material m = get_material(file, mat_names, mat_content);
             new cylinder(rt::vector(x0, y0, z0), rt::vector(dx, dy, dz).unit(), r, l, m);
@@ -427,6 +444,7 @@ scene::scene(const char* file_name)
 
         else {
             printf("Parsing error: %s\n", s);
+            creation_successful = false;
             break;
         }
     }

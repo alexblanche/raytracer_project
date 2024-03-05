@@ -33,5 +33,5 @@ class scene {
             const unsigned int triangles_per_bounding);
 
         /* Constructor from an external file */
-        scene(const char* file_name);
+        scene(const char* file_name, bool& creation_successful);
 };

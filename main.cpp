@@ -137,7 +137,13 @@ int main(int argc, char *argv[]) {
        negative z toward the camera, positive x forward
     */
     
-    scene scene("../scene.txt");
+    bool parsing_successful;
+    scene scene("../scene.txt", parsing_successful);
+
+    if (not parsing_successful) {
+        printf("Scene creation failed\n");
+        return EXIT_FAILURE;
+    }
 
     printf("Number of objects: %u\n", (unsigned int) object::set.size());
     
@@ -285,6 +291,7 @@ int main(int argc, char *argv[]) {
     vector<vector<rt::color>> matrix(scene.width, vector<rt::color>(scene.height));
 
     printf("\rInitialization complete, computing the first ray...");
+    fflush(stdout);
 
     render_loop_parallel(matrix, scene, number_of_bounces, time_enabled);
     
@@ -294,6 +301,7 @@ int main(int argc, char *argv[]) {
 
     printf("\r                                                   ");
     printf("\rNumber of rays per pixel: 1");
+    fflush(stdout);
 
     scr->wait_quit_event();
     delete(scr);
@@ -307,6 +315,7 @@ int main(int argc, char *argv[]) {
         render_loop_parallel(matrix, scene, number_of_bounces, time_enabled);
 
         printf("\rNumber of rays per pixel: %u", number_of_rays);
+        fflush(stdout);
         if (number_of_rays % 10 == 0) {
             const rt::screen* scr = new rt::screen(scene.width, scene.height);
             scr->copy(matrix, scene.width, scene.height, number_of_rays);
