@@ -1,7 +1,12 @@
 /* Program found at https://stackoverflow.com/a/49188371 */
 
 #include <algorithm>
+#ifdef __unix__
+#include <thread>
+#else
 #include "mingw.thread.h"
+#endif
+
 #include <functional>
 #include <vector>
 

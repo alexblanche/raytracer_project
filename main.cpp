@@ -15,15 +15,18 @@
 #include "scene/objects/bounding.hpp"
 
 #include "parallel/parallel.h"
+
+#ifdef __unix__
+#include <mutex>
+#else
 #include "mingw.mutex.h"
+#endif
 
 #include "scene/scene.hpp"
 #include "scene/camera.hpp"
 #include "auxiliary/tracing.hpp"
 
-/******************* Temporary *******************/
 // #include "src/file_readers/bmp_reader.hpp"
-/*************************************************/
 
 using namespace std;
 
@@ -70,13 +73,6 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix,
         printf("%f / 100, ", cpt * x);
         printf("Time elapsed: %ld seconds, Estimated total time: %d seconds = %d minutes\n",
             elapsed, (int) estimated_time, (int) (estimated_time / 60.0));
-        
-
-        // printf("\nObject tested at each bounce:\n");
-        // for (unsigned int i = 0; i < 5; i++) {
-        //     printf("%u: %u (%f per ray), ", i, ray::obj_comp_cpt.at(i), ((double) ray::obj_comp_cpt.at(i)) / ((double) cpt));
-        // }
-        // printf("\n");
         m.unlock();
         */
         
@@ -93,12 +89,6 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix,
                 elapsed, ((float) elapsed) / 60.0);
         }
     }
-
-    // printf("\nObject tested at each bounce:\n");
-    // for (unsigned int i = 0; i < 5; i++) {
-    //     printf("%u: %u (%f per ray), ", i, ray::obj_comp_cpt.at(i), ((double) ray::obj_comp_cpt.at(i)) / (1366 * 768));
-    // }
-    // printf("\n\n");
 }
 
 
@@ -109,6 +99,8 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix,
 
 
 int main(int argc, char *argv[]) {
+
+    printf("Starting.\n");
 
 
     /* Specification of the parameters through console arguments:
@@ -148,7 +140,7 @@ int main(int argc, char *argv[]) {
        negative z toward the camera, positive x forward
     */
     
-    scene scene("scene.txt");
+    scene scene("../scene.txt");
 
     printf("Number of objects: %u\n", object::set.size());
     

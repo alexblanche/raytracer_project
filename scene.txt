@@ -8,7 +8,7 @@ plane normal:(0, -1, 0) position:(0, 160, 0) material:(color:(10, 10, 10) emitte
 plane normal:(0, 0, -1) position:(0, 0, 1200) material:(color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
 # load_texture cod ../../raytracer_project/texture_assets/cod.bmp
-load_texture mandelbrot ../../raytracer_project/texture_assets/Mandelbrot_bmp.bmp
+load_texture mandelbrot D:/raytracer_project/texture_assets/Mandelbrot_bmp.bmp
 
 # plane normal:(1, 0, 0) position:(-1000, 0, 0) material:(color:(255, 80, 80) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 quad (-1000, -600, 1200) (-1000, -600, 0) (-1000, 160, 0) (-1000, 160, 1200) material:(color:(255, 80, 80) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(mandelbrot (1, 0) (0, 0) (0, 1) (1, 1))
