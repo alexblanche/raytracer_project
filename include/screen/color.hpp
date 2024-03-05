@@ -60,6 +60,11 @@ namespace rt {
 			//color(unsigned int r, unsigned int g, unsigned int b, unsigned int a);
 
 			/**
+			 * Assignment by copy
+			 */
+			virtual void operator=(const color& c);
+
+			/**
 			 * Sets the red component.
 			 */
 			virtual inline void set_red(double r) {

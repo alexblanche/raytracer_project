@@ -24,10 +24,10 @@ namespace rt {
 	 * Copy constructor.
 	 */
 	color::color(const color& c) {
-		red   = c.get_red();
-		green = c.get_green();
-		blue  = c.get_blue();
-		//alpha = c.get_alpha();
+	 	red   = c.get_red();
+	 	green = c.get_green();
+	 	blue  = c.get_blue();
+	// 	//alpha = c.get_alpha();
 	}
 
 	/**
@@ -43,6 +43,15 @@ namespace rt {
 	 */
 	// color::color(const double r, const double g, const double b, const double a)
 	// 	: red(r), green(g), blue(b), alpha(a) {}
+	
+	/**
+	 * Assignment by copy
+	 */
+	void color::operator=(const color& c) {
+		red = c.get_red();
+		green = c.get_green();
+		blue = c.get_blue();
+	}
 
 	/**
 	 * Comparison operator.

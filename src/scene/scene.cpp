@@ -31,7 +31,7 @@ scene::scene(const rt::color background,
 /*** Scene description parsing ***/
 
 /* Auxiliary function: returns a material from a description file */
-material parse_materials(FILE* file) {
+material parse_material(FILE* file) {
     /* color:(120, 120, 120) emitted_color:(0, 0, 0) reflectivity:1 emission:0
         specular_p:1.0 reflects_color:false transparency:0.5 scattering:0 refraction_index:1.2)
 
@@ -42,8 +42,13 @@ material parse_materials(FILE* file) {
     bool refl_color = false;
     char refl_c[6];
 
-    fscanf(file, "color:(%lf,%lf,%lf) emitted_color:(%lf,%lf,%lf) reflectivity:%lf emission:%lf specular_p:%lf reflects_color:%5s transparency:%lf scattering:%lf refraction_index:%lf)", 
+    const int ret = fscanf(file, "color:(%lf,%lf,%lf) emitted_color:(%lf,%lf,%lf) reflectivity:%lf emission:%lf specular_p:%lf reflects_color:%5s transparency:%lf scattering:%lf refraction_index:%lf)", 
         &r, &g, &b, &er, &eg, &eb, &refl, &em_int, &spec_p, refl_c, &transp, &scattering, &refr_i);
+
+    if (ret != 13) {
+        printf("Parsing error in parse_material\n");
+        return material();
+    }
 
     if (strcmp(refl_c, "true") == 0) {
         refl_color = true;
@@ -60,7 +65,7 @@ material get_material(FILE* file, const std::vector<string>& mat_names, const st
     const char firstchar = fgetc(file);
     if (firstchar == '(') {
         // material declaration
-        return parse_materials(file);
+        return parse_material(file);
     }
     else {
         // Moving back the pointer back by one position
@@ -68,7 +73,12 @@ material get_material(FILE* file, const std::vector<string>& mat_names, const st
 
         // material variable name
         char vname[64];
-        fscanf(file, "%64s\n", vname);
+        const int ret = fscanf(file, "%64s\n", vname);
+        
+        if (ret != 1) {
+            printf("Parsing error in get_material\n");
+            return material();
+        }
 
         unsigned int vindex = -1;
         for (unsigned int i = 0; i < mat_names.size(); i++) {
@@ -94,11 +104,20 @@ material get_material(FILE* file, const std::vector<string>& mat_names, const st
 void parse_texture_info(FILE* file, const std::vector<string>& texture_names, material& m, bool is_triangle) {
     const long int position = ftell(file);
     char keyword[8];
-    fscanf(file, "%7s", keyword);
+    const int ret = fscanf(file, "%7s", keyword);
+    if (ret != 1) {
+        printf("Parsing error in parse_texture_info (keyword texture)\n");
+        return;
+    }
+
     if (strcmp(keyword, "texture") == 0) {
         char t_name[65];
         double u0, v0, u1, v1, u2, v2, u3, v3;
-        fscanf(file, ":(%64s", t_name);
+        const int ret2 = fscanf(file, ":(%64s", t_name);
+        if (ret2 != 1) {
+            printf("Parsing error in parse_texture_info (texture name)\n");
+            return;
+        }
 
         unsigned int vindex = -1;
         for (unsigned int i = 0; i < texture_names.size(); i++) {
@@ -113,13 +132,22 @@ void parse_texture_info(FILE* file, const std::vector<string>& texture_names, ma
         }
 
         if (is_triangle) {
-            fscanf(file, " (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
+            const int ret3 = fscanf(file, " (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
                 &u0, &v0, &u1, &v1, &u2, &v2);
+            if (ret3 != 6) {
+                printf("Parsing error in parse_texture_info (triangle UV-coordinates)\n");
+                return;
+            }
+
             m.set_texture(vindex, {u0, v0, u1, v1, u2, v2});
         }
         else {
-            fscanf(file, " (%lf,%lf) (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
+            const int ret3 = fscanf(file, " (%lf,%lf) (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
                 &u0, &v0, &u1, &v1, &u2, &v2, &u3, &v3);
+            if (ret3 != 8) {
+                printf("Parsing error in parse_texture_info (quad UV-coordinates)\n");
+                return;
+            }
 
             m.set_texture(vindex, {u0, v0, u1, v1, u2, v2, u3, v3});
         }
@@ -156,18 +184,38 @@ scene::scene(const char* file_name)
     */
     double posx, posy, posz, dx, dy, dz, rdx, rdy, rdz, fovw, dist;
 
-    fscanf(file, "resolution width:%d height:%d\n", &width, &height);
-    fscanf(file, "camera position:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) rightdir:(%lf,%lf,%lf) fov_width:%lf distance:%lf\n",
+    int ret;
+
+    ret = fscanf(file, "resolution width:%d height:%d\n", &width, &height);
+    if (ret != 2) {
+        printf("Parsing error in scene constructor (resolution)\n");
+        return;
+    }
+    
+    ret = fscanf(file, "camera position:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) rightdir:(%lf,%lf,%lf) fov_width:%lf distance:%lf\n",
         &posx, &posy, &posz, &dx, &dy, &dz, &rdx, &rdy, &rdz, &fovw, &dist);
+    if (ret != 11) {
+        printf("Parsing error in scene constructor (camera)\n");
+        return;
+    }
 
     double fovh = fovw * ((double) height) / ((double) width);
     cam = camera(rt::vector(posx, posy, posz), rt::vector(dx, dy, dz), rt::vector(rdx, rdy, rdz), fovw, fovh, dist, width, height);
 
     double r, g, b;
-    fscanf(file, "background_color %lf %lf %lf\n", &r, &g, &b);
+    ret = fscanf(file, "background_color %lf %lf %lf\n", &r, &g, &b);
+    if (ret != 3) {
+        printf("Parsing error in scene constructor (background)\n");
+        return;
+    }
+
     background = rt::color(r, g, b);
 
-    fscanf(file, "triangles_per_bounding %u\n", &triangles_per_bounding);
+    ret = fscanf(file, "triangles_per_bounding %u\n", &triangles_per_bounding);
+    if (ret != 1) {
+        printf("Parsing error in scene constructor (triangles per bounding)\n");
+        return;
+    }
     
     /* Object definition */
     /*
@@ -252,10 +300,14 @@ scene::scene(const char* file_name)
         /* Material declaration */
         else if (strcmp(s, "material") == 0) {
             std::string m_name(65, '\0');
-            fscanf(file, " %64s (", (char*) m_name.data());
+            ret = fscanf(file, " %64s (", (char*) m_name.data());
+            if (ret != 1) {
+                printf("Parsing error in scene constructor (material declaration)\n");
+                return;
+            }
             m_name.resize(strlen(m_name.data()));
 
-            material m = parse_materials(file);
+            material m = parse_material(file);
 
             mat_names.push_back(m_name);
             mat_content.push_back(m);
@@ -264,12 +316,22 @@ scene::scene(const char* file_name)
         else if (strcmp(s, "load_texture") == 0) {
             std::string t_name(65, '\0');
             char tfile_name[65];
-            fscanf(file, " %64s %64s", (char*) t_name.data(), tfile_name);
+            ret = fscanf(file, " %64s %64s", (char*) t_name.data(), tfile_name);
+            if (ret != 2) {
+                printf("Parsing error in scene constructor (texture loading)\n");
+                return;
+            }
             t_name.resize(strlen(t_name.data()));
             
             texture_names.push_back(t_name);
-            new texture(tfile_name);
-            printf("%s texture loaded\n", tfile_name);
+            bool parsing_successful = true;
+            new texture(tfile_name, parsing_successful);
+            if (parsing_successful) {
+                printf("%s texture loaded\n", tfile_name);
+            }
+            else {
+                printf("%s texture reading failed\n", tfile_name);
+            }
         }
 
         /* Objects declaration */
@@ -277,28 +339,40 @@ scene::scene(const char* file_name)
         else if (strcmp(s, "sphere") == 0) {
             /* center:(-500, 0, 600) radius:120 [material] */
             double x, y, z, r;
-            fscanf(file, "center:(%lf,%lf,%lf) radius:%lf material:",
+            ret = fscanf(file, "center:(%lf,%lf,%lf) radius:%lf material:",
                 &x, &y, &z, &r);
+            if (ret != 4) {
+                printf("Parsing error in scene constructor (sphere declaration)\n");
+                return;
+            }
             material m = get_material(file, mat_names, mat_content);
             new sphere(rt::vector(x, y, z), r, m);
         }
         else if (strcmp(s, "plane") == 0) {
             /* normal:(0, -1, 0) position:(0, 160, 0) [material] */
             double nx, ny, nz, px, py, pz;
-            fscanf(file, "normal:(%lf,%lf,%lf) position:(%lf,%lf,%lf) material:",
+            ret = fscanf(file, "normal:(%lf,%lf,%lf) position:(%lf,%lf,%lf) material:",
                 &nx, &ny, &nz,
                 &px, &py, &pz);
+            if (ret != 6) {
+                printf("Parsing error in scene constructor (plane declaration)\n");
+                return;
+            }
             material m = get_material(file, mat_names, mat_content);
             new plane(nx, ny, nz, rt::vector(px, py, pz), m);
         }
         else if (strcmp(s, "box") == 0) {
             /* center:(166, -200, 600) x_axis:(100, 100, -100) y_axis:(-200, 100, -100) 300 200 300 */
             double cx, cy, cz, n1x, n1y, n1z, n2x, n2y, n2z, l1, l2, l3;
-            fscanf(file, "center:(%lf,%lf,%lf) x_axis:(%lf,%lf,%lf) y_axis:(%lf,%lf,%lf) %lf %lf %lf material:",
+            ret = fscanf(file, "center:(%lf,%lf,%lf) x_axis:(%lf,%lf,%lf) y_axis:(%lf,%lf,%lf) %lf %lf %lf material:",
                 &cx, &cy, &cz,
                 &n1x, &n1y, &n1z,
                 &n2x, &n2y, &n2z,
                 &l1, &l2, &l3);
+            if (ret != 12) {
+                printf("Parsing error in scene constructor (box declaration)\n");
+                return;
+            }
             material m = get_material(file, mat_names, mat_content);
             new box(rt::vector(cx, cy, cz), rt::vector(n1x, n1y, n1z).unit(), rt::vector(n2x, n2y, n2z).unit(),
                 l1, l2, l3, m);
@@ -306,10 +380,14 @@ scene::scene(const char* file_name)
         else if (strcmp(s, "triangle") == 0) {
             /* (-620, -100, 600) (-520, 100, 500) (-540, -200, 700) [material] */
             double x0, y0, z0, x1, y1, z1, x2, y2, z2;
-            fscanf(file, "(%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) material:",
+            ret = fscanf(file, "(%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) material:",
                 &x0, &y0, &z0,
                 &x1, &y1, &z1,
                 &x2, &y2, &z2);
+            if (ret != 9) {
+                printf("Parsing error in scene constructor (triangle declaration)\n");
+                return;
+            }
             material m = get_material(file, mat_names, mat_content);
             parse_texture_info(file, texture_names, m, true);
             new triangle(rt::vector(x0, y0, z0), rt::vector(x1, y1, z1), rt::vector(x2, y2, z2), m);
@@ -317,11 +395,15 @@ scene::scene(const char* file_name)
         else if (strcmp(s, "quad") == 0) {
             /* (-620, -100, 600) (-520, 100, 600) (-540, -200, 600) (-500, -250, 600) [material] */
             double x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3;
-            fscanf(file, "(%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) material:",
+            ret = fscanf(file, "(%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) material:",
                 &x0, &y0, &z0,
                 &x1, &y1, &z1,
                 &x2, &y2, &z2,
                 &x3, &y3, &z3);
+            if (ret != 12) {
+                printf("Parsing error in scene constructor (quad declaration)\n");
+                return;
+            }
             material m = get_material(file, mat_names, mat_content);
             parse_texture_info(file, texture_names, m, false);
             new quad(rt::vector(x0, y0, z0), rt::vector(x1, y1, z1), rt::vector(x2, y2, z2), rt::vector(x3, y3, z3), m);
@@ -329,10 +411,14 @@ scene::scene(const char* file_name)
         else if (strcmp(s, "cylinder") == 0) {
             /* origin:(0, 0, 0) direction:(1, -1, 1) radius:100 length:300 [material] */
             double x0, y0, z0, dx, dy, dz, r, l;
-            fscanf(file, "origin:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) radius:%lf length:%lf material:",
+            ret = fscanf(file, "origin:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) radius:%lf length:%lf material:",
                 &x0, &y0, &z0,
                 &dx, &dy, &dz,
                 &r, &l);
+            if (ret != 8) {
+                printf("Parsing error in scene constructor (cylinder declaration)\n");
+                return;
+            }
             material m = get_material(file, mat_names, mat_content);
             new cylinder(rt::vector(x0, y0, z0), rt::vector(dx, dy, dz).unit(), r, l, m);
         }

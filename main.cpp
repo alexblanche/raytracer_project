@@ -100,9 +100,6 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix,
 
 int main(int argc, char *argv[]) {
 
-    printf("Starting.\n");
-
-
     /* Specification of the parameters through console arguments:
     
        ./main.exe [number of bounces] [time]
@@ -142,7 +139,7 @@ int main(int argc, char *argv[]) {
     
     scene scene("../scene.txt");
 
-    printf("Number of objects: %u\n", object::set.size());
+    printf("Number of objects: %u\n", (unsigned int) object::set.size());
     
     
 

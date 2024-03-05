@@ -28,8 +28,9 @@ class texture {
         /* Default constructor */
         texture(const int width, const int height, const std::vector<std::vector<rt::color>>& data);
 
-        /* Constructor from a .bmp file */
-        texture(const char* file_name);
+        /* Constructor from a .bmp file
+           Writes true in parsing_successful if the operation was successful */
+        texture(const char* file_name, bool& parsing_successful);
 
 
         /* Accessor */

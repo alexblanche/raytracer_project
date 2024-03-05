@@ -5,56 +5,85 @@
 #include <string.h>
 
 /* Writes in the variables the width and height of the .bmp image contained in file_name */
-void read_bmp_size(const char* file_name, int& width, int& height) {
+bool read_bmp_size(const char* file_name, int& width, int& height) {
     FILE* file = fopen(file_name, "rb");
 
     if (file == 0) {
         printf("Error, file %s not found\n", file_name);
-        return;
+        return false;
     }
+    
+    int ret;
 
     /* 18 bytes ignored:
        Type (2), Size (4), Reserved 1 (2), Reserved 2 (2), Offset (4), Size (4)
     */
     char buffer18[18];
-    fread((void*) buffer18, 18, 1, file);
+    ret = fread((void*) buffer18, 18, 1, file);
+    if (ret != 1) {
+        printf("Reading error in read_bmp_size (18 first bytes)\n");
+        return false;
+    }
 
     /* Width: 4 bytes */
     unsigned int bmpwidth;
-    fread((void*) &bmpwidth, sizeof(int), 1, file);
+    ret = fread((void*) &bmpwidth, sizeof(int), 1, file);
+    if (ret != 1) {
+        printf("Reading error in read_bmp_size (width)\n");
+        return false;
+    }
     width = (int) bmpwidth;
 
     /* Height: 4 bytes */
     unsigned int bmpheight;
-    fread((void*) &bmpheight, sizeof(int), 1, file);
+    ret = fread((void*) &bmpheight, sizeof(int), 1, file);
+    if (ret != 1) {
+        printf("Reading error in read_bmp_size (height)\n");
+        return false;
+    }
     height = (int) bmpheight;
 
     fclose(file);
+    return true;
 }
 
 /* Extracts the data from the given .bmp file: stores the width and height in the provided
    references, and returns a matrix of width rows and height columns containing colors  */
-void read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) {
+bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) {
     FILE* file = fopen(file_name, "rb");
 
     if (file == 0) {
         printf("Error, file %s not found\n", file_name);
-        return;
+        return false;
     }
+
+    int ret;
 
     /* 18 bytes ignored:
        Type (2), Size (4), Reserved 1 (2), Reserved 2 (2), Offset (4), Size (4)
     */
     char buffer18[18];
-    fread((void*) buffer18, 18, 1, file);
+    ret = fread((void*) buffer18, 18, 1, file);
+    if (ret != 1) {
+        printf("Reading error in read_bmp (18 first bytes)\n");
+        return false;
+    }
 
     /* Width: 4 bytes */
     unsigned int bmpwidth;
-    fread((void*) &bmpwidth, sizeof(int), 1, file);
+    ret = fread((void*) &bmpwidth, sizeof(int), 1, file);
+    if (ret != 1) {
+        printf("Reading error in read_bmp (width)\n");
+        return false;
+    }
 
     /* Height: 4 bytes */
     unsigned int bmpheight;
-    fread((void*) &bmpheight, sizeof(int), 1, file);
+    ret = fread((void*) &bmpheight, sizeof(int), 1, file);
+    if (ret != 1) {
+        printf("Reading error in read_bmp (height)\n");
+        return false;
+    }
 
     /* 28 bytes ignored:
        Number of color planes (2), Number of bits per pixel (2), Compression method used (4),
@@ -62,7 +91,11 @@ void read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
        Number of colors used (4), Number of important colors used (4)
     */
     char buffer28[28];
-    fread((void*) buffer28, 28, 1, file);
+    ret = fread((void*) buffer28, 28, 1, file);
+    if (ret != 1) {
+        printf("Reading error in read_bmp_size (28 bytes after height)\n");
+        return false;
+    }
 
     /* Padding at the end of each row in the file */
     bool padding = false;
@@ -84,11 +117,16 @@ void read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
         /* Skipping p bytes of padding */
         if (padding) {
             char buffer[p];
-            fread((void*) buffer, p, 1, file);
+            ret = fread((void*) buffer, p, 1, file);
+            if (ret != 1) {
+                printf("Reading error in read_bmp (padding bytes at line %u)\n", j);
+                return false;
+            }
         }
     }
 
     fclose(file);
+    return true;
 }
 
 /* Writes the data into a .bmp file with the given name */
