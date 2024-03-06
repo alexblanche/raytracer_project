@@ -52,7 +52,7 @@ class bounding {
 
         /* Accessors */
 
-        const box* const get_b() const {
+        const box* get_b() const {
             return b;
         }
 
@@ -64,9 +64,22 @@ class bounding {
             return children;
         }
 
+        /* Auxiliary function to scene::find_closest_object_bounding :
+           Places the children of the bounding on the bounding_stack if the box is hit,
+           or determines the closest to the objects from the content if the bounding is terminal
+           (if it is closest than the current closest_object, at a distance distance_to_closest,
+           in which case the two variables are overwritten)
+        */
         void check_box(const ray& r,
             double& distance_to_closest, const object*& closest_object,
             std::stack<const bounding*>& bounding_stack) const;
+
+        /* Same as check_box, but the last child is stored in a pointer to avoid pushing and
+           immediately popping on the stack */
+        void check_box_next(const ray& r,
+            double& distance_to_closest, const object*& closest_object,
+            std::stack<const bounding*>& bounding_stack,
+            bool& bd_stored, const bounding*& next_bounding) const;
 };
 
 /* Returns a bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))

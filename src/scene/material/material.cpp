@@ -2,7 +2,7 @@
 #include "scene/material/texture.hpp"
 #include "screen/color.hpp"
 
-
+#include <vector>
 #include <iostream>
 
 /* Static element */
@@ -89,11 +89,14 @@ void material::get_barycenter(const double& l1, const double& l2, const bool low
     }
 }
 
+
 /* Returns the color of the pixel associated with UV-coordinates u, v */
-rt::color material::get_texture_color(const double& l1, const double& l2, const bool lower_triangle) const {
+rt::color material::get_texture_color(const double& l1, const double& l2, const bool lower_triangle,
+    const std::vector<const texture*>& texture_set) const {
+    
     double u, v;
     get_barycenter(l1, l2, lower_triangle, u, v);
-    return texture::set.at(texture_index)->get_color(u, v);
+    return texture_set.at(texture_index)->get_color(u, v);
 
     /* HERE: we can introduce texture filtering, with a factor by adding a
        random number between 0 and something like 0.2 to u, v, in order to

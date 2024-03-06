@@ -2,10 +2,12 @@
 
 #include <vector>
 #include "objects/object.hpp"
+#include "objects/bounding.hpp"
+#include "material/texture.hpp"
 #include "screen/color.hpp"
 #include "auxiliary/randomgen.hpp"
 #include "camera.hpp"
-#include "material/texture.hpp"
+
 
 class scene {
     public:

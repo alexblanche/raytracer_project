@@ -28,7 +28,6 @@ class texture {
            Writes true in parsing_successful if the operation was successful */
         texture(const char* file_name, bool& parsing_successful);
 
-
         /* Accessor */
 
         /* Returns the color stored in data at UV-coordinates u, v between 0 and 1 times width, height */

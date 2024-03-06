@@ -4,18 +4,13 @@
 #include <cmath>
 #include <iostream>
 
-std::vector<const texture*> texture::set;
-
 
 /* Constructors */
 
 /* Default constructor */
 texture::texture(const int width, const int height, const std::vector<std::vector<rt::color>>& data)
     : width(width), height(height), data(data),
-        width_minus_one((double) (width - 1)), height_minus_one((double) height_minus_one) {
-
-    set.push_back(this);
-}
+        width_minus_one((double) (width - 1)), height_minus_one((double) height_minus_one) {}
 
 /* Constructor from a .bmp file
    Writes true in parsing_successful if the operation was successful */
@@ -23,7 +18,6 @@ texture::texture(const char* file_name, bool& parsing_successful) {
     const bool read_size_success = read_bmp_size(file_name, width, height);
     data = std::vector<std::vector<rt::color>>(width, std::vector<rt::color>(height));
     const bool read_bmp_success = read_bmp(file_name, data);
-    set.push_back(this);
     width_minus_one = (double) (width - 1);
     height_minus_one = (double) (height - 1);
     parsing_successful = read_size_success && read_bmp_success;

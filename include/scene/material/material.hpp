@@ -1,6 +1,8 @@
 #pragma once
 
+#include <vector>
 #include "screen/color.hpp"
+#include "texture.hpp"
 
 class material {
     
@@ -137,7 +139,8 @@ class material {
             double& u, double& v) const;
 
         /* Returns the color of the pixel associated with UV-coordinates u, v */
-        rt::color get_texture_color(const double& l1, const double& l2, const bool lower_triangle) const;
+        rt::color get_texture_color(const double& l1, const double& l2, const bool lower_triangle,
+            const std::vector<const texture*>& texture_set) const;
 };
 
 /* Specific constructors */

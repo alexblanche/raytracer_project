@@ -33,10 +33,10 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
 
     for (unsigned int i = 0; i < bounce; i++) {
         
-        const hit h = bounding_method ? bounding::find_closest_object(r) : object::find_closest_object(r);
+        const hit h = bounding_method ? scene.find_closest_object_bounding(r) : scene.find_closest_object(r);
 
         if (h.object_hit()) {
-            const material& m = object::set.at(h.get_obj_index())->get_material();
+            const material& m = scene.object_set.at(h.get_obj_index())->get_material();
             const double& reflectivity = m.get_reflectivity();
 
             if (m.get_emission_intensity() >= 1) {
@@ -44,9 +44,9 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                 return (color_materials * (m.get_emitted_color() * m.get_emission_intensity())) + emitted_colors;
             }
             else {
-                /* To do: */
                 rt::vector hit_point = h.get_point();
                 r.set_origin(hit_point);
+                /* To do: */
                 /* if (random_double(scene.rg, 1) <= m.get_transparency()) {
                     // transmission
                     const double inward = (dir | normal) <= 0;
@@ -68,9 +68,9 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                 if (m.is_textured()) {
                     // Only triangles and quads can be textured (for now)
                     double l1, l2;
-                    const bool lower_triangle = object::set.at(h.get_obj_index())->get_barycentric(hit_point, l1, l2);
+                    const bool lower_triangle = scene.object_set.at(h.get_obj_index())->get_barycentric(hit_point, l1, l2);
 
-                    mat_color = m.get_texture_color(l1, l2, lower_triangle);
+                    mat_color = m.get_texture_color(l1, l2, lower_triangle, scene.texture_set);
                 }
                 else {
                     mat_color = m.get_color();

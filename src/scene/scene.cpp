@@ -476,29 +476,29 @@ scene::scene(const char* file_name, bool& creation_successful)
 /* Linear search through the objects of the scene */
 hit scene::find_closest_object(const ray& r) const {
     
-    double closest = infinity;
-    unsigned int closest_index = -1;
+    double distance_to_closest = infinity;
+    unsigned int closest_obj_index = -1;
 
     // Looking for the closest object
     for (unsigned int i = 0; i < object_set.size(); i++) {
         
         // We do not test the intersection with the object the rays is cast from
         const double d = object_set.at(i)->measure_distance(r);
-                
+        
         /* d is the distance between the origin of the ray and the
            intersection point with the object */
 
-        if (d < closest && d > 0.000001) {
-            closest = d;
-            closest_index = i;
+        if (d < distance_to_closest && d > 0.000001) {
+            distance_to_closest = d;
+            closest_obj_index = i;
         }
     }
 
-    if (closest_index == ((unsigned int) -1)) {
+    if (closest_obj_index == ((unsigned int) -1)) {
         return hit();
     }
     else {
-        return object_set.at(closest_index)->compute_intersection(r, closest);
+        return object_set.at(closest_obj_index)->compute_intersection(r, distance_to_closest);
     }
 }
 
@@ -511,13 +511,13 @@ hit scene::find_closest_object_bounding(const ray& r) const {
        Finally, compute the hit associated with the object of minimum distance.
      */
 
-    double closest = infinity;
-    unsigned int closest_index = -1;
+    double distance_to_closest = infinity;
+    const object* closest_obj;
     std::stack<const bounding*> bounding_stack;
 
     /* Pass through the set of first-level bounding boxes */
     for (unsigned int i = 0; i < bounding_set.size(); i++) {
-        bounding_set.at(i)->check_box(r, closest, closest_index, bounding_stack);
+        bounding_set.at(i)->check_box(r, distance_to_closest, closest_obj, bounding_stack);
     }
 
     /* In order to avoid pushing and then immediately popping an element from bounding_stack,
@@ -536,38 +536,13 @@ hit scene::find_closest_object_bounding(const ray& r) const {
             bounding_stack.pop();
         }
         
-        if (bd->is_terminal) {
-            if (bd->b == NULL || bd->b->is_hit_by(r)) {
-                for (unsigned int i = 0; i < bd->content.size(); i++) {
-                    const unsigned int obj_i = bd->content.at(i);
-                    const double d = object_set.at(obj_i)->measure_distance(r);
-                    if (d < closest && d > 0.000001) {
-                        closest = d;
-                        closest_index = obj_i;
-                    }
-                }
-            }
-            bd_stored = false;
-        }
-        else {
-            if (bd->b->is_hit_by(r)) {
-                const unsigned int last_index = bd->children.size() - 1;
-                for (unsigned int i = 0; i < last_index; i++) {
-                    bounding_stack.push(bd->children.at(i));
-                }
-                // Last element of children
-                next_bounding = bd->children.at(last_index);
-                bd_stored = true;
-            }
-            else {
-                bd_stored = false;
-            }
-        }
+        bd->check_box_next(r, distance_to_closest, closest_obj, bounding_stack,
+            bd_stored, next_bounding);
     }
 
     /* Finally, return the hit corresponding to the closest object intersected by the ray */
-    if (closest_index != (unsigned int) -1) {
-        return object_set.at(closest_index)->compute_intersection(r, closest);
+    if (closest_obj != NULL) {
+        return closest_obj->compute_intersection(r, distance_to_closest);
     }
     else {
         return hit();
