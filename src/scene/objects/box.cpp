@@ -13,15 +13,16 @@ box::box() : object(), n1(rt::vector(1,0,0)), n2(rt::vector(0,1,0)), n3(rt::vect
         
 /* The vector n3 is taken as the cross product of n1 and n2 */
 box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
-            const double l1, const double l2, const double l3, const material& material)
+            const double l1, const double l2, const double l3, const material& material,
+            const unsigned int index)
     
-    : object(center, material), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1/2), l2(l2/2), l3(l3/2) {}
+    : object(center, material, index), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1/2), l2(l2/2), l3(l3/2) {}
 
 /* The vector n3 is taken as the cross product of n1 and n2 */
 box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
             const double l1, const double l2, const double l3)
     
-    : object(center, material()), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1/2), l2(l2/2), l3(l3/2) {}
+    : object(center, material(), -1), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1/2), l2(l2/2), l3(l3/2) {}
 
 
 

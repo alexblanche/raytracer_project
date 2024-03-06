@@ -31,12 +31,12 @@ class triangle : public object {
         
         // Constructor from three points
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, 
-            const material& material);
+            const material& material, const unsigned int index);
 
         // Constructor from three points with vertex normals
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
             const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
-            const material& material);
+            const material& material, const unsigned int index);
 
 
         /* Accessors */

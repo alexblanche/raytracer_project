@@ -14,8 +14,10 @@ sphere::sphere() {
     radius = 0;
 }
 
-sphere::sphere(const rt::vector& center, const double radius, const material& material)
-    : object(center, material), radius(radius) {}
+sphere::sphere(const rt::vector& center, const double radius, const material& material,
+    const unsigned int index)
+
+    : object(center, material, index), radius(radius) {}
 
 
 

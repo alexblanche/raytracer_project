@@ -17,11 +17,7 @@ class texture {
         std::vector<std::vector<rt::color>> data;
         double width_minus_one, height_minus_one;
 
-    public:
-
-        /* Texture set containing all the textures from a scene */
-        static std::vector<const texture*> set;
-        
+    public:      
 
         /* Constructors */
 

@@ -1,6 +1,7 @@
 #include "scene/scene.hpp"
 #include "scene/camera.hpp"
 #include "scene/objects/object.hpp"
+#include "scene/objects/bounding.hpp"
 #include "scene/objects/sphere.hpp"
 #include "scene/objects/plane.hpp"
 #include "scene/objects/box.hpp"
@@ -18,12 +19,21 @@
 #include <string.h>
 #include <string>
 
-scene::scene(const rt::color background,
+#include <limits>
+std::numeric_limits<double> real;
+const double infinity = real.infinity();
+
+
+scene::scene(const std::vector<const object*>& object_set,
+    const std::vector<const bounding*>& bounding_set,
+    const std::vector<const texture*>& texture_set,
+    const rt::color& background,
     const int width, const int height,
     const camera& cam,
     const unsigned int triangles_per_bounding)
 
-    : background(background), width(width), height(height),
+    : object_set(object_set), bounding_set(bounding_set), texture_set(texture_set),
+    background(background), width(width), height(height),
     cam(cam), rg(randomgen()), triangles_per_bounding(triangles_per_bounding) {}
 
 
@@ -267,21 +277,17 @@ scene::scene(const char* file_name, bool& creation_successful)
 
     */
 
+    /* Object counter */
+    unsigned int obj_counter = 0;
 
     /* Material storage */
-
-    /* Vector that stores the material variable names */
-
+    /* The name of the material is stored at index i of mat_names, and the associated material at index i of mat_content */
     std::vector<string> mat_names = {"mirror", "glass"};
-
-    /* Vector that stores the materials:
-       if vname is stored at index i of vnames, the associated material is stored at index i in mats */
     std::vector<material> mat_content = {material::MIRROR, material::GLASS};
 
 
     /* Texture storage */
-    /* The name of the texture is pushed to texture_names at index i, which corresponds to the index of
-       the texture content automatically pushed to the static texture::set */
+    /* The name of the texture is stored at index i of texture_names, and the associated texture at index i of texture_set */
     std::vector<string> texture_names;
 
 
@@ -334,7 +340,7 @@ scene::scene(const char* file_name, bool& creation_successful)
             
             texture_names.push_back(t_name);
             bool parsing_successful = true;
-            new texture(tfile_name, parsing_successful);
+            texture_set.push_back(new texture(tfile_name, parsing_successful));
             if (parsing_successful) {
                 printf("%s texture loaded\n", tfile_name);
             }
@@ -358,7 +364,7 @@ scene::scene(const char* file_name, bool& creation_successful)
                 break;
             }
             material m = get_material(file, mat_names, mat_content);
-            new sphere(rt::vector(x, y, z), r, m);
+            object_set.push_back(new sphere(rt::vector(x, y, z), r, m, obj_counter++));
         }
         else if (strcmp(s, "plane") == 0) {
             /* normal:(0, -1, 0) position:(0, 160, 0) [material] */
@@ -372,7 +378,7 @@ scene::scene(const char* file_name, bool& creation_successful)
                 break;
             }
             material m = get_material(file, mat_names, mat_content);
-            new plane(nx, ny, nz, rt::vector(px, py, pz), m);
+            object_set.push_back(new plane(nx, ny, nz, rt::vector(px, py, pz), m, obj_counter++));
         }
         else if (strcmp(s, "box") == 0) {
             /* center:(166, -200, 600) x_axis:(100, 100, -100) y_axis:(-200, 100, -100) 300 200 300 */
@@ -388,8 +394,11 @@ scene::scene(const char* file_name, bool& creation_successful)
                 break;
             }
             material m = get_material(file, mat_names, mat_content);
-            new box(rt::vector(cx, cy, cz), rt::vector(n1x, n1y, n1z).unit(), rt::vector(n2x, n2y, n2z).unit(),
-                l1, l2, l3, m);
+            object_set.push_back(new box(rt::vector(cx, cy, cz),
+                rt::vector(n1x, n1y, n1z).unit(),
+                rt::vector(n2x, n2y, n2z).unit(),
+                l1, l2, l3, m,
+                obj_counter++));
         }
         else if (strcmp(s, "triangle") == 0) {
             /* (-620, -100, 600) (-520, 100, 500) (-540, -200, 700) [material] */
@@ -405,7 +414,10 @@ scene::scene(const char* file_name, bool& creation_successful)
             }
             material m = get_material(file, mat_names, mat_content);
             parse_texture_info(file, texture_names, m, true);
-            new triangle(rt::vector(x0, y0, z0), rt::vector(x1, y1, z1), rt::vector(x2, y2, z2), m);
+            object_set.push_back(new triangle(rt::vector(x0, y0, z0),
+                rt::vector(x1, y1, z1),
+                rt::vector(x2, y2, z2),
+                m, obj_counter++));
         }
         else if (strcmp(s, "quad") == 0) {
             /* (-620, -100, 600) (-520, 100, 600) (-540, -200, 600) (-500, -250, 600) [material] */
@@ -422,7 +434,11 @@ scene::scene(const char* file_name, bool& creation_successful)
             }
             material m = get_material(file, mat_names, mat_content);
             parse_texture_info(file, texture_names, m, false);
-            new quad(rt::vector(x0, y0, z0), rt::vector(x1, y1, z1), rt::vector(x2, y2, z2), rt::vector(x3, y3, z3), m);
+            object_set.push_back(new quad(rt::vector(x0, y0, z0),
+                rt::vector(x1, y1, z1),
+                rt::vector(x2, y2, z2),
+                rt::vector(x3, y3, z3),
+                m, obj_counter++));
         }
         else if (strcmp(s, "cylinder") == 0) {
             /* origin:(0, 0, 0) direction:(1, -1, 1) radius:100 length:300 [material] */
@@ -437,7 +453,8 @@ scene::scene(const char* file_name, bool& creation_successful)
                 break;
             }
             material m = get_material(file, mat_names, mat_content);
-            new cylinder(rt::vector(x0, y0, z0), rt::vector(dx, dy, dz).unit(), r, l, m);
+            object_set.push_back(new cylinder(rt::vector(x0, y0, z0), rt::vector(dx, dy, dz).unit(),
+                r, l, m, obj_counter++));
         }
 
         /* Parsing error */
@@ -450,4 +467,109 @@ scene::scene(const char* file_name, bool& creation_successful)
     }
     
     fclose(file);
+}
+
+/*********************************************************************/
+
+/*** Ray-scene intersection ***/
+
+/* Linear search through the objects of the scene */
+hit scene::find_closest_object(const ray& r) const {
+    
+    double closest = infinity;
+    unsigned int closest_index = -1;
+
+    // Looking for the closest object
+    for (unsigned int i = 0; i < object_set.size(); i++) {
+        
+        // We do not test the intersection with the object the rays is cast from
+        const double d = object_set.at(i)->measure_distance(r);
+                
+        /* d is the distance between the origin of the ray and the
+           intersection point with the object */
+
+        if (d < closest && d > 0.000001) {
+            closest = d;
+            closest_index = i;
+        }
+    }
+
+    if (closest_index == ((unsigned int) -1)) {
+        return hit();
+    }
+    else {
+        return object_set.at(closest_index)->compute_intersection(r, closest);
+    }
+}
+
+/* Tree-search through the bounding boxes */
+hit scene::find_closest_object_bounding(const ray& r) const {
+    /* For all the bounding boxes in bounding::set, we do the following:
+       If the bounding box is terminal, look for the object of minimum distance.
+       If it is internal, if the ray intersects the box, add its children to the bounding stack.
+       Then apply the same algorithm to the bounding stack, until it is empty.
+       Finally, compute the hit associated with the object of minimum distance.
+     */
+
+    double closest = infinity;
+    unsigned int closest_index = -1;
+    std::stack<const bounding*> bounding_stack;
+
+    /* Pass through the set of first-level bounding boxes */
+    for (unsigned int i = 0; i < bounding_set.size(); i++) {
+        bounding_set.at(i)->check_box(r, closest, closest_index, bounding_stack);
+    }
+
+    /* In order to avoid pushing and then immediately popping an element from bounding_stack,
+       we store the last element of bd->children in next_bounding.
+       The boolean bd_stored indicates whether we should pop an element, or if one is currently
+       stored.
+     */
+    const bounding* next_bounding;
+    bool bd_stored = false;
+
+    /* Apply the same to the bounding box stack */
+    while (bd_stored || (not bounding_stack.empty())) {
+
+        const bounding* bd = bd_stored ? next_bounding : bounding_stack.top();
+        if (not bd_stored) {
+            bounding_stack.pop();
+        }
+        
+        if (bd->is_terminal) {
+            if (bd->b == NULL || bd->b->is_hit_by(r)) {
+                for (unsigned int i = 0; i < bd->content.size(); i++) {
+                    const unsigned int obj_i = bd->content.at(i);
+                    const double d = object_set.at(obj_i)->measure_distance(r);
+                    if (d < closest && d > 0.000001) {
+                        closest = d;
+                        closest_index = obj_i;
+                    }
+                }
+            }
+            bd_stored = false;
+        }
+        else {
+            if (bd->b->is_hit_by(r)) {
+                const unsigned int last_index = bd->children.size() - 1;
+                for (unsigned int i = 0; i < last_index; i++) {
+                    bounding_stack.push(bd->children.at(i));
+                }
+                // Last element of children
+                next_bounding = bd->children.at(last_index);
+                bd_stored = true;
+            }
+            else {
+                bd_stored = false;
+            }
+        }
+    }
+
+    /* Finally, return the hit corresponding to the closest object intersected by the ray */
+    if (closest_index != (unsigned int) -1) {
+        return object_set.at(closest_index)->compute_intersection(r, closest);
+    }
+    else {
+        return hit();
+    }
 }

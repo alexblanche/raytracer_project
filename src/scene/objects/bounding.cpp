@@ -13,24 +13,22 @@ const double infinity = realbd.infinity();
 #include <stack>
 #include <vector>
 
-std::vector<const bounding*> bounding::set;
-
 bounding::bounding()
     : is_terminal(true) {}
 
 /* The vector n3 is taken as the cross product of n1 and n2 */
-bounding::bounding(const bool is_terminal, const box* b, const std::vector<unsigned int>& content,
+bounding::bounding(const bool is_terminal, const box* b, const std::vector<const object*>& content,
     const std::vector<const bounding*>& children)
 
     : is_terminal(is_terminal), b(b), content(content), children(children) {}
 
 /* Container node constructor (only for first-level non-triangle objects) */
-bounding::bounding(const std::vector<unsigned int>& content)
+bounding::bounding(const std::vector<const object*>& content)
 
     : is_terminal(true), b(NULL), content(content) {}
 
 /* Terminal node constructor (with a bounding box, containing triangles) */
-bounding::bounding(const std::vector<unsigned int>& content, const box* b)
+bounding::bounding(const std::vector<const object*>& content, const box* b)
 
     : is_terminal(true), b(b), content(content) {}
 
@@ -45,20 +43,20 @@ bounding::bounding(const box* b, const std::vector<const bounding*>& children)
 
 /* Auxiliary function */
 void bounding::check_box(const ray& r,
-    double& closest, unsigned int& closest_index,
+    double& distance_to_closest, const object*& closest_object,
     std::stack<const bounding*>& bounding_stack) const {
 
-    double cl = closest;
-    unsigned int cl_i = closest_index;
+    double d_cl = distance_to_closest;
+    const object* cl_obj = closest_object;
 
     if (is_terminal) {
         if (b == NULL || b->is_hit_by(r)) {
             for (unsigned int i = 0; i < content.size(); i++) {
-                const unsigned int obj_i = content.at(i);
-                const double d = object::set.at(obj_i)->measure_distance(r);
-                if (d < cl && d > 0.000001) {
-                    cl = d;
-                    cl_i = obj_i;
+                const object* obj_i = content.at(i);
+                const double d = obj_i->measure_distance(r);
+                if (d < d_cl && d > 0.000001) {
+                    d_cl = d;
+                    cl_obj = obj_i;
                 }
             }
         }
@@ -71,80 +69,11 @@ void bounding::check_box(const ray& r,
         }
     }
 
-    closest = cl;
-    closest_index = cl_i;
+    distance_to_closest = d_cl;
+    closest_object = cl_obj;
 }
 
-hit bounding::find_closest_object(const ray& r) {
-    /* For all the bounding boxes in bounding::set, we do the following:
-       If the bounding box is terminal, look for the object of minimum distance.
-       If it is internal, if the ray intersects the box, add its children to the bounding stack.
-       Then apply the same algorithm to the bounding stack, until it is empty.
-       Finally, compute the hit associated with the object of minimum distance.
-     */
 
-    double closest = infinity;
-    unsigned int closest_index = -1;
-    std::stack<const bounding*> bounding_stack;
-
-    /* Pass through the set of first-level bounding boxes */
-    for (unsigned int i = 0; i < bounding::set.size(); i++) {
-        bounding::set.at(i)->check_box(r, closest, closest_index, bounding_stack);
-    }
-
-    /* In order to avoid pushing and then immediately popping an element from bounding_stack,
-       we store the last element of bd->children in next_bounding.
-       The boolean bd_stored indicates whether we should pop an element, or if one is currently
-       stored.
-     */
-    const bounding* next_bounding;
-    bool bd_stored = false;
-
-    /* Apply the same to the bounding box stack */
-    while (bd_stored || (not bounding_stack.empty())) {
-
-        const bounding* bd = bd_stored ? next_bounding : bounding_stack.top();
-        if (not bd_stored) {
-            bounding_stack.pop();
-        }
-        
-        if (bd->is_terminal) {
-            if (bd->b == NULL || bd->b->is_hit_by(r)) {
-                for (unsigned int i = 0; i < bd->content.size(); i++) {
-                    const unsigned int obj_i = bd->content.at(i);
-                    const double d = object::set.at(obj_i)->measure_distance(r);
-                    if (d < closest && d > 0.000001) {
-                        closest = d;
-                        closest_index = obj_i;
-                    }
-                }
-            }
-            bd_stored = false;
-        }
-        else {
-            if (bd->b->is_hit_by(r)) {
-                const unsigned int last_index = bd->children.size() - 1;
-                for (unsigned int i = 0; i < last_index; i++) {
-                    bounding_stack.push(bd->children.at(i));
-                }
-                // Last element of children
-                next_bounding = bd->children.at(last_index);
-                bd_stored = true;
-            }
-            else {
-                bd_stored = false;
-            }
-        }
-    }
-
-    /* Finally, return the hit corresponding to the closest object intersected by the ray */
-    if (closest_index != (unsigned int) -1) {
-        return object::set.at(closest_index)->compute_intersection(r, closest);
-    }
-    else {
-        return hit();
-    }
-}
 
 /* Returns a non-terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the standard non-terminal bounding boxes bd0 and bd1 */

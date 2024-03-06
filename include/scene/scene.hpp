@@ -5,9 +5,21 @@
 #include "screen/color.hpp"
 #include "auxiliary/randomgen.hpp"
 #include "camera.hpp"
+#include "material/texture.hpp"
 
 class scene {
     public:
+        /* Set of all the objects in the scene */
+        /* Storing pointers allow the overridden methods send and intersect (from sphere, plane, triangle...)
+           to be executed instead of the base (object) one */
+        std::vector<const object*> object_set;
+
+        /* Set of the first-level bounding boxes */
+        std::vector<const bounding*> bounding_set;
+
+        /* Set containing all the textures from the scene */
+        std::vector<const texture*> texture_set;
+
         // Color of the background
         rt::color background;
 
@@ -27,11 +39,21 @@ class scene {
         /* Constructor */
 
         /* Main constructor */
-        scene(const rt::color background,
+        scene(const std::vector<const object*>& object_set,
+            const std::vector<const bounding*>& bounding_set,
+            const std::vector<const texture*>& texture_set,
+            const rt::color& background,
             const int width, const int height,
             const camera& cam,
             const unsigned int triangles_per_bounding);
 
         /* Constructor from an external file */
         scene(const char* file_name, bool& creation_successful);
+
+        /* Ray-scene intersection */
+        /* Linear search through the objects of the scene */
+        hit find_closest_object(const ray& r) const;
+
+        /* Tree-search through the bounding boxes */
+        hit find_closest_object_bounding(const ray& r) const;
 };

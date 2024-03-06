@@ -24,9 +24,12 @@ class box : public object {
 
         box();
         
+        /* Main constructor */
         box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
-            const double l1, const double l2, const double l3, const material& material);
+            const double l1, const double l2, const double l3, const material& material,
+            const unsigned int index);
 
+        /* Constructor used for bounding boxes: no material and no index */
         box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
             const double l1, const double l2, const double l3);
         

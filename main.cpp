@@ -311,11 +311,12 @@ int main(int argc, char *argv[]) {
 
     while (not stop) {
         number_of_rays ++;
-
+        
         render_loop_parallel(matrix, scene, number_of_bounces, time_enabled);
 
         printf("\rNumber of rays per pixel: %u", number_of_rays);
         fflush(stdout);
+
         if (number_of_rays % 10 == 0) {
             const rt::screen* scr = new rt::screen(scene.width, scene.height);
             scr->copy(matrix, scene.width, scene.height, number_of_rays);
