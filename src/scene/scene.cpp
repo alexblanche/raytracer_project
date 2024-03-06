@@ -178,7 +178,7 @@ scene::scene(const char* file_name, bool& creation_successful)
 
     FILE* file = fopen(file_name, "r");
 
-    if (file == 0) {
+    if (file == NULL) {
         printf("Error, file %s not found\n", file_name);
         creation_successful = false;
         return;

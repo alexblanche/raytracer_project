@@ -26,7 +26,9 @@
 #include "scene/camera.hpp"
 #include "auxiliary/tracing.hpp"
 
-// #include "src/file_readers/bmp_reader.hpp"
+#include "file_readers/raw_data.hpp"
+
+// #include "file_readers/bmp_reader.hpp"
 
 using namespace std;
 
@@ -100,6 +102,17 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix,
 
 int main(int argc, char *argv[]) {
 
+    bool success;
+    vector<vector<rt::color>>& matrixx = read_raw("image.rtdata", success);
+    const unsigned int width = matrixx.size();
+    const unsigned int height = matrixx.at(0).size();
+    const rt::screen* scrr = new rt::screen(width, height);
+    scrr->copy(matrixx, width, height, 10);
+    scrr->update();
+    scrr->wait_quit_event();
+    delete(scrr);
+
+
     /* Specification of the parameters through console arguments:
     
        ./main.exe [number of bounces] [time]
@@ -124,9 +137,8 @@ int main(int argc, char *argv[]) {
             time_enabled = true;
         }
     }
-
     
-    // printf("Initialization...");
+    printf("Initialization...\n");
 
     /* *************************** */
     /* Scene description */
@@ -146,34 +158,12 @@ int main(int argc, char *argv[]) {
     }
 
     printf("Number of objects: %u\n", (unsigned int) scene.object_set.size());
-    
-
-    /* ********************************************************** */
-
-    /* Test of bmp parsing */
-
-    /*
-    int width, height;
-    vector<vector<rt::color>> bmpdata = read_bmp("Mandelbrot_bmp.bmp", width, height);
-
-    const rt::screen* bmpscr = new rt::screen(width, height);
-    bmpscr->copy(bmpdata, width, height, 1);
-    bmpscr->update();
-    bmpscr->wait_quit_event();
-    delete(bmpscr);
-
-    return 0;
-    */
-
-    /* ********************************************************** */
-
-
 
 
     /* Definition of the matrix in which we will write the image */
     vector<vector<rt::color>> matrix(scene.width, vector<rt::color>(scene.height));
 
-    printf("\rInitialization complete, computing the first ray...");
+    printf("Initialization complete, computing the first ray...");
     fflush(stdout);
 
     render_loop_parallel(matrix, scene, number_of_bounces, time_enabled);
@@ -201,6 +191,13 @@ int main(int argc, char *argv[]) {
         fflush(stdout);
 
         if (number_of_rays % 10 == 0) {
+            
+            const bool success = export_raw("image.rtdata", number_of_rays, matrix);
+            if (not success) {
+                printf("\nExport failed\n");
+                return EXIT_FAILURE;
+            }
+
             const rt::screen* scr = new rt::screen(scene.width, scene.height);
             scr->copy(matrix, scene.width, scene.height, number_of_rays);
             scr->update();

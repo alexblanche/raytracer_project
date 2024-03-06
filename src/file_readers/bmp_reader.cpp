@@ -8,7 +8,7 @@
 bool read_bmp_size(const char* file_name, int& width, int& height) {
     FILE* file = fopen(file_name, "rb");
 
-    if (file == 0) {
+    if (file == NULL) {
         printf("Error, file %s not found\n", file_name);
         return false;
     }
@@ -22,6 +22,7 @@ bool read_bmp_size(const char* file_name, int& width, int& height) {
     ret = fread((void*) buffer18, 18, 1, file);
     if (ret != 1) {
         printf("Reading error in read_bmp_size (18 first bytes)\n");
+        fclose(file);
         return false;
     }
 
@@ -30,6 +31,7 @@ bool read_bmp_size(const char* file_name, int& width, int& height) {
     ret = fread((void*) &bmpwidth, sizeof(int), 1, file);
     if (ret != 1) {
         printf("Reading error in read_bmp_size (width)\n");
+        fclose(file);
         return false;
     }
     width = (int) bmpwidth;
@@ -39,6 +41,7 @@ bool read_bmp_size(const char* file_name, int& width, int& height) {
     ret = fread((void*) &bmpheight, sizeof(int), 1, file);
     if (ret != 1) {
         printf("Reading error in read_bmp_size (height)\n");
+        fclose(file);
         return false;
     }
     height = (int) bmpheight;
@@ -52,7 +55,7 @@ bool read_bmp_size(const char* file_name, int& width, int& height) {
 bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) {
     FILE* file = fopen(file_name, "rb");
 
-    if (file == 0) {
+    if (file == NULL) {
         printf("Error, file %s not found\n", file_name);
         return false;
     }
@@ -66,6 +69,7 @@ bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
     ret = fread((void*) buffer18, 18, 1, file);
     if (ret != 1) {
         printf("Reading error in read_bmp (18 first bytes)\n");
+        fclose(file);
         return false;
     }
 
@@ -74,6 +78,7 @@ bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
     ret = fread((void*) &bmpwidth, sizeof(int), 1, file);
     if (ret != 1) {
         printf("Reading error in read_bmp (width)\n");
+        fclose(file);
         return false;
     }
 
@@ -82,6 +87,7 @@ bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
     ret = fread((void*) &bmpheight, sizeof(int), 1, file);
     if (ret != 1) {
         printf("Reading error in read_bmp (height)\n");
+        fclose(file);
         return false;
     }
 
@@ -94,6 +100,7 @@ bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
     ret = fread((void*) buffer28, 28, 1, file);
     if (ret != 1) {
         printf("Reading error in read_bmp_size (28 bytes after height)\n");
+        fclose(file);
         return false;
     }
 
@@ -120,6 +127,7 @@ bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
             ret = fread((void*) buffer, p, 1, file);
             if (ret != 1) {
                 printf("Reading error in read_bmp (padding bytes at line %u)\n", j);
+                fclose(file);
                 return false;
             }
         }

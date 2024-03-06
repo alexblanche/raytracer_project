@@ -42,6 +42,7 @@ add_library(${libname} SHARED
 	src/scene/camera.cpp
 	src/scene/scene.cpp
 	src/file_readers/bmp_reader.cpp
+	src/file_readers/raw_data.cpp
 )
 
 target_link_libraries(${libname}
