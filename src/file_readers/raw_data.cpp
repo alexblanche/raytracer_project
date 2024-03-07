@@ -1,4 +1,5 @@
 #include "file_readers/raw_data.hpp"
+#include "file_readers/bmp_reader.hpp"
 #include "screen/screen.hpp"
 #include <stdio.h>
 
@@ -71,7 +72,7 @@ std::vector<std::vector<rt::color>>& read_raw(const char* file_name, bool& succe
         &width, &height, &number_of_rays);
 
     if (ret0 < 0) {
-        printf("Reading error at first line of %s\n", file_name);
+        printf("Reading error at first line of file %s\n", file_name);
         success = false;
         fclose(file);
         std::vector<std::vector<rt::color>>* fail_matrix = new std::vector<std::vector<rt::color>>(1, std::vector<rt::color>(1));
@@ -85,7 +86,7 @@ std::vector<std::vector<rt::color>>& read_raw(const char* file_name, bool& succe
             double r, g, b;
             const int ret = fscanf(file, "%lf %lf %lf\n", &r, &g, &b);
             if (ret < 0) {
-                printf("Reading error at color line %u of %s\n", width*j + i, file_name);
+                printf("Reading error at color line %u of file %s\n", width*j + i, file_name);
                 fclose(file);
                 success = false;
                 return *matrix;
@@ -98,4 +99,89 @@ std::vector<std::vector<rt::color>>& read_raw(const char* file_name, bool& succe
 
     success = true;
     return *matrix;
+}
+
+/* Combines the n files whose names are in the array source_file_names into one bmp file dest_file_name
+   Returns true if the operation was successful */
+bool combine_raw(const char* dest_file_name, const int n, const char* source_file_names[]) {
+    if (n < 0) {
+        printf("Error, not enough files provided\n");
+        return false;
+    }
+
+    FILE* file0 = fopen(source_file_names[0], "r");
+
+    if (file0 == NULL) {
+        printf("Error, first file (%s) not found\n", source_file_names[0]);
+        fclose(file0);
+        return false;
+    }
+
+    /* Determination of the size of the matrix */
+    unsigned int width, height;
+    const int ret0 = fscanf(file0, "width:%u height:%u",
+        &width, &height);
+
+    if (ret0 < 0) {
+        printf("Reading error at first line of file %s\n", source_file_names[0]);
+        fclose(file0);
+        return false;
+    }
+
+    std::vector<std::vector<rt::color>> matrix(width, std::vector<rt::color>(height));
+
+    unsigned int total_number_of_rays = 0;
+
+    /* Adding the value of each file to matrix */
+    for (unsigned int k = 0; k < (unsigned int) n; k++) {
+        FILE* file = fopen(source_file_names[k], "r");
+        if (file == NULL) {
+            printf("Error, file (%s) not found\n", source_file_names[k]);
+            fclose(file);
+            return false;
+        }
+
+        unsigned int width_k, height_k, number_of_rays_k;
+        const int retk0 = fscanf(file, "width:%u height:%u number_of_rays:%u\n",
+            &width_k, &height_k, &number_of_rays_k);
+
+        if (retk0 < 0) {
+            printf("Reading error at first line of file %s\n", source_file_names[k]);
+            fclose(file);
+            return false;
+        }
+
+        if (width_k != width || height_k != height) {
+            printf("Error, incorrect width or height in file %s\n", source_file_names[k]);
+            fclose(file);
+            return false;
+        }
+
+        total_number_of_rays += number_of_rays_k;
+
+        for(unsigned int j = 0; j < height; j++) {
+            for(unsigned int i = 0; i < width; i++) {
+                double r, g, b;
+                const int ret = fscanf(file, "%lf %lf %lf\n", &r, &g, &b);
+                if (ret < 0) {
+                    printf("Reading error at color line %u of file %s\n", width*j + i, source_file_names[k]);
+                    fclose(file);
+                    return false;
+                }
+                matrix.at(i).at(j) = matrix.at(i).at(j) + rt::color(r, g, b);
+            }    
+        }
+        fclose(file);
+    }
+
+    /* Exporting the matrix as a bmp file */
+    const bool success = write_bmp(dest_file_name, matrix, total_number_of_rays);
+
+    if (success) {
+        return true;
+    }
+    else {
+        printf("Error in generating the bmp file %s\n", dest_file_name);
+        return false;
+    }
 }

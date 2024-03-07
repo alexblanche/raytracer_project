@@ -309,7 +309,7 @@ bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data,
         /* Writing p bytes '0' of padding */
         if (padding) {
             ret = fwrite((void*) padding_zeroes, p, 1, file);
-            if (ret < (int) p) {fclose(file); printf("Writing error in file %s\n", file_name); return false;}
+            if (ret != 1) {fclose(file); printf("Writing error in file %s\n", file_name); return false;}
         }
     }
 

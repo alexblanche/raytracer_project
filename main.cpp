@@ -101,13 +101,61 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix,
 
 int main(int argc, char *argv[]) {
 
-    int width, height;
-    read_bmp_size("D:/raytracer_project/texture_assets/Mandelbrot_bmp.bmp", width, height);
-    vector<vector<rt::color>> m(width, vector<rt::color>(height));
-    read_bmp("D:/raytracer_project/texture_assets/Mandelbrot_bmp.bmp", m);
-    write_bmp("mandelbrot_perso.bmp", m, 1);
-    return EXIT_SUCCESS;
 
+    /*************/
+    
+    /*
+    const char* sources[5] = {"image01", "image02", "image03", "image04", "image05"};
+    const bool success = combine_raw("image_combined.bmp", 5, sources);
+    if (not success) {
+        printf("Export failed\n");
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+    */
+
+    /*
+    const char* sources1[1] = {"image01"};
+    const bool success1 = combine_raw("image01.bmp", 1, sources1);
+    if (not success1) {
+        printf("Export failed\n");
+        return EXIT_FAILURE;
+    }
+
+    const char* sources2[1] = {"image02"};
+    const bool success2 = combine_raw("image02.bmp", 1, sources2);
+    if (not success2) {
+        printf("Export failed\n");
+        return EXIT_FAILURE;
+    }
+
+    const char* sources3[1] = {"image03"};
+    const bool success3 = combine_raw("image03.bmp", 1, sources3);
+    if (not success3) {
+        printf("Export failed\n");
+        return EXIT_FAILURE;
+    }
+
+    const char* sources4[1] = {"image04"};
+    const bool success4 = combine_raw("image04.bmp", 1, sources4);
+    if (not success4) {
+        printf("Export failed\n");
+        return EXIT_FAILURE;
+    }
+
+    const char* sources5[1] = {"image05"};
+    const bool success5 = combine_raw("image05.bmp", 1, sources5);
+    if (not success5) {
+        printf("Export failed\n");
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+    */
+    
+
+    /*************/
 
     /* Specification of the parameters through console arguments:
     
@@ -164,6 +212,7 @@ int main(int argc, char *argv[]) {
 
     render_loop_parallel(matrix, scene, number_of_bounces, time_enabled);
     
+    /*
     const rt::screen* scr = new rt::screen(scene.width, scene.height);
     scr->copy(matrix, scene.width, scene.height, 1);
     scr->update();
@@ -174,13 +223,14 @@ int main(int argc, char *argv[]) {
 
     scr->wait_quit_event();
     delete(scr);
+    */
 
-    unsigned int number_of_rays = 1;
-    bool stop = false;
+    printf("\r                                                   ");
+    printf("\rNumber of rays per pixel: 1");
+    fflush(stdout);
 
-    while (not stop) {
-        number_of_rays ++;
-        
+    for (unsigned int number_of_rays = 2; number_of_rays <= 1000; number_of_rays++) {
+
         render_loop_parallel(matrix, scene, number_of_bounces, time_enabled);
 
         printf("\rNumber of rays per pixel: %u", number_of_rays);
@@ -188,17 +238,28 @@ int main(int argc, char *argv[]) {
 
         if (number_of_rays % 10 == 0) {
             
-            const bool success = export_raw("image.rtdata", number_of_rays, matrix);
-            if (not success) {
+            string file_name = "image00";
+            file_name[5] = '0' + (char) ((number_of_rays / 100) % 10);
+            file_name[6] = '0' + (char) ((number_of_rays / 10) % 10);
+            const bool success = export_raw(file_name.data(), number_of_rays, matrix);
+            if (success) {
+                printf(" (Saved after %u rays as %s)", number_of_rays, file_name.data());
+            }
+            else {
                 printf("\nExport failed\n");
                 return EXIT_FAILURE;
-            }
+            }           
 
+            /*
             const rt::screen* scr = new rt::screen(scene.width, scene.height);
             scr->copy(matrix, scene.width, scene.height, number_of_rays);
             scr->update();
-            stop = scr->wait_quit_event();
+            const bool stop = scr->wait_quit_event();
             delete(scr);
+            if (stop) {
+                return EXIT_SUCCESS;
+            }
+            */
         }
     }
 
