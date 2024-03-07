@@ -27,8 +27,7 @@
 #include "auxiliary/tracing.hpp"
 
 #include "file_readers/raw_data.hpp"
-
-// #include "file_readers/bmp_reader.hpp"
+#include "file_readers/bmp_reader.hpp"
 
 using namespace std;
 
@@ -102,15 +101,12 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix,
 
 int main(int argc, char *argv[]) {
 
-    bool success;
-    vector<vector<rt::color>>& matrixx = read_raw("image.rtdata", success);
-    const unsigned int width = matrixx.size();
-    const unsigned int height = matrixx.at(0).size();
-    const rt::screen* scrr = new rt::screen(width, height);
-    scrr->copy(matrixx, width, height, 10);
-    scrr->update();
-    scrr->wait_quit_event();
-    delete(scrr);
+    int width, height;
+    read_bmp_size("D:/raytracer_project/texture_assets/Mandelbrot_bmp.bmp", width, height);
+    vector<vector<rt::color>> m(width, vector<rt::color>(height));
+    read_bmp("D:/raytracer_project/texture_assets/Mandelbrot_bmp.bmp", m);
+    write_bmp("mandelbrot_perso.bmp", m, 1);
+    return EXIT_SUCCESS;
 
 
     /* Specification of the parameters through console arguments:
