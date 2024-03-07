@@ -1,6 +1,5 @@
 #include "file_readers/raw_data.hpp"
 #include "file_readers/bmp_reader.hpp"
-#include "screen/screen.hpp"
 #include <stdio.h>
 
 /* Creates a file file_name, and writes in it the resolution of the image, the number of rays used to generate it,
@@ -103,7 +102,7 @@ std::vector<std::vector<rt::color>>& read_raw(const char* file_name, bool& succe
 
 /* Combines the n files whose names are in the array source_file_names into one bmp file dest_file_name
    Returns true if the operation was successful */
-bool combine_raw(const char* dest_file_name, const int n, const char* source_file_names[]) {
+bool combine_raw(const char* dest_file_name, const int n, const char* const source_file_names[]) {
     if (n < 0) {
         printf("Error, not enough files provided\n");
         return false;

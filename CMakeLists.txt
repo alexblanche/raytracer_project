@@ -7,16 +7,14 @@ add_compile_options(-fdiagnostics-color)
 add_compile_options(-march=native)
 add_compile_options(-ffast-math)
 
+# -I include/
+include_directories(include/)
+
+# Necessary to have the console be the stdout channel
 set(SDL2_NO_MWINDOWS 1)
 
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
-# message("- SDL2 found: ${SDL2_FOUND}")
-# message("- SDL2_INCLUDE_DIRS: ${SDL2_INCLUDE_DIRS}")
-# message("- SDL2_LIBRARIES: ${SDL2_LIBRARIES}")
-
-# -I include/
-include_directories(include/)
 
 # libmyraytracer.so
 set (libname myraytracer)
@@ -54,10 +52,21 @@ target_include_directories(${libname}
 		${SDL2_INCLUDE_DIRS}
 )
 
+# Main executable
 set(main_name main)
 add_executable(${main_name}
 	main.cpp
 )
 target_link_libraries(${main_name}
 	${libname}
+)
+
+
+#Executable that combines an array of raw data files into a bmp file
+set(merger merge)
+add_executable(${merger}
+	src/screen/color.cpp
+	src/file_readers/raw_data.cpp
+	src/file_readers/bmp_reader.cpp
+	src/file_readers/merger.cpp
 )
