@@ -10,6 +10,32 @@
 /* ******************************************************************** */
 /* *************************** Path tracing *************************** */
 
+/* Auxiliary function that updates the color accumulators */
+void update_accumulators(const material& m, const object*& obj, const rt::vector& hit_point,
+    std::vector<const texture*>& texture_set,
+    rt::color& emitted_colors, rt::color& color_materials,
+    const bool update_color_materials) {
+
+    const rt::color emitted_light = m.get_emitted_color() * m.get_emission_intensity();
+
+    /* Updating the accumulators */
+    emitted_colors = emitted_colors + (color_materials * emitted_light);
+    
+    if (update_color_materials) {
+        if (m.is_textured()) {
+            // Only triangles and quads can be textured (for now)
+            double l1, l2;
+            const bool lower_triangle = obj->get_barycentric(hit_point, l1, l2);
+
+            color_materials = color_materials * m.get_texture_color(l1, l2, lower_triangle, texture_set);
+        }
+        else {
+            color_materials = color_materials * m.get_color();
+        }
+    }
+}
+
+
 
 /* Path tracing function */
 
@@ -25,6 +51,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
 
     rt::color color_materials = rt::color::WHITE;
     rt::color emitted_colors = rt::color::BLACK;
+    double refr_index = 1;
 
     const bool bounding_method = scene.triangles_per_bounding != 0;
     const double PI = 3.14159265358979323846;
@@ -34,89 +61,74 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
         const hit h = bounding_method ? scene.find_closest_object_bounding(r) : scene.find_closest_object(r);
 
         if (h.object_hit()) {
-            const material m = h.get_object()->get_material();
-            const double reflectivity = m.get_reflectivity();
+            const object* obj = h.get_object();
+            const material m = obj->get_material();
 
+            /* Full-intensity light source reached */
             if (m.get_emission_intensity() >= 1) {
-                // Light source touched
                 return (color_materials * (m.get_emitted_color() * m.get_emission_intensity())) + emitted_colors;
             }
+
+            /* The ray can either be transmitted (and refracted) through the surface,
+               or reflected in two ways: specularly or diffusely */
+            const rt::vector hit_point = h.get_point();
+            const rt::vector normal = h.get_normal();
+            const double inward = (r.get_direction() | normal) <= 0;
+
+            /* Testing whether the ray is transmitted or reflected on the surface */
+            if (random_double(scene.rg, 1) <= m.get_transparency()) {
+
+                /* Transmission */
+
+                /* Setting the position with a bias inward the surface */
+                r.set_origin(hit_point + (inward ? (-0.001)*normal : 0.001*normal));
+
+                /* Setting the refracted direction */
+                r.set_direction(h.get_random_refracted_direction(
+                    scene.rg,
+                    refr_index, m.get_refraction_index(),
+                    m.get_refraction_scattering()));
+
+                /* Updating the refraction index */
+                refr_index = inward ? m.get_refraction_index() : 1;
+                
+                update_accumulators(m, obj, hit_point, scene.texture_set, emitted_colors, color_materials, true);
+
+            }
             else {
-                rt::vector hit_point = h.get_point();
-                r.set_origin(hit_point);
-                /* To do: */
-                /* if (random_double(scene.rg, 1) <= m.get_transparency()) {
-                    // transmission
-                    const double inward = (dir | normal) <= 0;
-                    r.set_origin(hit_point + (inward ? (-0.001)*normal : (0.001)*normal))));
-                    // r.set_direction(...);
-                    refr_index = inward ? m.get_refr_i : 1;
-                    // updating the accumulators
-                }
-                else {
-                    // reflection
-                    r.set_origin(hit_point + bias_outward);
 
-                    // Then what's below
-                } */
-                /**********/
+                /* Reflection */
 
-                /* Determining the color of the point hit */
-                rt::color mat_color;
-                if (m.is_textured()) {
-                    // Only triangles and quads can be textured (for now)
-                    double l1, l2;
-                    const bool lower_triangle = h.get_object()->get_barycentric(hit_point, l1, l2);
+                /* Setting the position with a bias outward the surface */
+                r.set_origin(hit_point + (inward ? 0.001*normal : (-0.001)*normal));
 
-                    mat_color = m.get_texture_color(l1, l2, lower_triangle, scene.texture_set);
-                }
-                else {
-                    mat_color = m.get_color();
-                }
-
+                /* Testing whether the ray is reflected specularly or diffusely */
                 if (random_double(scene.rg, 1) <= m.get_specular_proba()) {
                     
                     /* Specular bounce */
 
-                    const rt::vector central_dir = h.get_central_direction(reflectivity);
+                    const double reflectivity = m.get_reflectivity();
+                    const rt::vector central_dir = h.get_central_reflected_direction(reflectivity, inward);
                     
                     // Direction according to Lambert's cosine law
                     if (reflectivity >= 1) {
                         r.set_direction(central_dir);
                     }
                     else {
-                        const rt::vector bouncing_dir = (central_dir +
-                            ((1 - reflectivity) * h.random_reflect_single(scene.rg, central_dir, PI))).unit();
-                        r.set_direction(bouncing_dir);
+                        r.set_direction((central_dir +
+                            ((1 - reflectivity) * h.random_direction(scene.rg, central_dir, PI))).unit());
                     }
-                    
-                    const rt::color emitted_light = m.get_emitted_color() * m.get_emission_intensity();
 
-
-                    /* Updating the accumulators */
-
-                    emitted_colors = emitted_colors + (color_materials * emitted_light);
-                    if (m.does_reflect_color()) {
-                        // Reflections have the material color (like a christmas tree ball)
-                        color_materials = color_materials * mat_color;
-                    }
-                    // Otherwise, reflections have the original color (like a tomato)
-
+                    /* We update color_materials only if the material reflects colors (like a christmas tree ball),
+                       otherwise the reflection has the original color (like a tomato) */
+                    update_accumulators(m, obj, hit_point, scene.texture_set, emitted_colors, color_materials, m.does_reflect_color());
                 }
                 else {
                     /* Diffuse bounce */
-                    
-                    const rt::vector normal = h.get_normal();
-                    const rt::vector bouncing_dir = (normal + h.random_reflect_single(scene.rg, normal, PI)).unit();
-                    r.set_direction(bouncing_dir);
-                    
-                    const rt::color emitted_light = m.get_emitted_color() * m.get_emission_intensity();
-
-                    /* Updating the accumulators */
-
-                    emitted_colors = emitted_colors + (color_materials * emitted_light);
-                    color_materials = color_materials * mat_color;
+                    r.set_direction(((inward ? normal : (-1) * normal) + h.random_direction(scene.rg, normal, PI)).unit());
+                    update_accumulators(m, obj, hit_point, scene.texture_set, emitted_colors, color_materials, true);
                 }
+
             }
         }
         else {

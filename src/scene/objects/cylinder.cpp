@@ -188,8 +188,8 @@ double cylinder::measure_distance(const ray& r) const {
 hit cylinder::compute_intersection(const ray& r, const double t) const {
 
     // Intersection point
-    const rt::vector& u = r.get_origin();
-    const rt::vector& dir = r.get_direction();
+    const rt::vector u = r.get_origin();
+    const rt::vector dir = r.get_direction();
     const rt::vector p = u + t * dir;
     const double rr = radius * radius;
     const rt::vector pmpos = p - position;

@@ -120,6 +120,18 @@ class material {
             return textured;
         }
 
+        inline double get_transparency() const {
+            return transparency;
+        }
+        
+        inline double get_refraction_scattering() const {
+            return refraction_scattering;
+        }
+
+        inline double get_refraction_index() const {
+            return refraction_index;
+        }
+
 
         /* Mutators */
 

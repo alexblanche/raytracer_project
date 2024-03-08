@@ -52,8 +52,8 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
 /* Intersection determination */
 
 double quad::measure_distance(const ray& r) const {
-    const rt::vector& u = r.get_origin();
-    const rt::vector& dir = r.get_direction();
+    const rt::vector u = r.get_origin();
+    const rt::vector dir = r.get_direction();
 
     // Intersection between the ray and the triangle plane
     const double pdt = (normal | dir); // ax + by + cz

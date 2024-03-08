@@ -41,7 +41,7 @@ double box::measure_distance(const ray& r) const {
        Only one of t1, t2, t3 can be finite at the end, so we return one as soon as we find it.
     */
 
-    const rt::vector& dir = r.get_direction();
+    const rt::vector dir = r.get_direction();
 
     /** This whole function to be optimized (it will then become incomprehensible)
      * 
