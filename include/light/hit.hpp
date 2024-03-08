@@ -17,7 +17,7 @@ class object;
 
 class hit {
     private:
-        ray generator;
+        ray* generator;
         rt::vector point;
         rt::vector normal;
         const object* hit_object;
@@ -25,15 +25,11 @@ class hit {
 
     public:
         /* Main constructor */
-        hit(const ray& generator, const rt::vector& point, const rt::vector& normal, const object*& hit_object);
+        hit(ray*& generator, const rt::vector& point, const rt::vector& normal, const object*& hit_object);
 
         hit();
 
         /* Accessors */
-        inline ray get_ray() const {
-            return generator;
-        }
-
         inline rt::vector get_point() const {
             return point;
         }

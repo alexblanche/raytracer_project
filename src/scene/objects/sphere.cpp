@@ -68,15 +68,17 @@ double sphere::measure_distance(const ray& r) const {
 }
 
 /* Returns the hit corresponding with the given intersection value t */
-hit sphere::compute_intersection(const ray& r, const double t) const {
+hit sphere::compute_intersection(ray& r, const double t) const {
 
     // Intersection point
     const rt::vector u = r.get_origin();
     const rt::vector p = u + t * r.get_direction();
     
     const rt::vector n = (p - position) / radius;
-    const object* pt = this;
-    return hit(r, p, n, pt);
+    
+    const object* pt_obj = this;
+    ray* pt_ray = &r;
+    return hit(pt_ray, p, n, pt_obj);
 }
 
 

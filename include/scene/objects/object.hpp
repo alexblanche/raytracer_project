@@ -37,7 +37,7 @@ class object {
         /* Intersection determination */
         virtual double measure_distance(const ray& r) const;
 
-        virtual hit compute_intersection(const ray& r, const double t) const;
+        virtual hit compute_intersection(ray& r, const double t) const;
 
         /* Writes the barycentric coordinates in variables l1, l2
            The boolean return value is used for determining the three points considered in quads */

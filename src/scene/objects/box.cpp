@@ -166,7 +166,7 @@ double box::measure_distance(const ray& r) const {
     */
 }
         
-hit box::compute_intersection(const ray& r, const double t) const {
+hit box::compute_intersection(ray& r, const double t) const {
     // Intersection point
     const rt::vector& u = r.get_origin();
     const rt::vector p = u + t * r.get_direction();
@@ -176,30 +176,31 @@ hit box::compute_intersection(const ray& r, const double t) const {
 
     // Shifting the position a little bit, to avoid the ray hitting the object itself again
     const rt::vector v = p - position;
-    const object* pt = this;
+    const object* pt_obj = this;
+    ray* pt_ray = &r;
 
     const double pdt1 = (v | n1);
     if (abs(pdt1 - l1) < 0.0000001) {
-        return hit(r, p, n1, pt);
+        return hit(pt_ray, p, n1, pt_obj);
     }
     else if (abs(pdt1 + l1) < 0.0000001) {
-        return hit(r, p, (-1)*n1, pt);
+        return hit(pt_ray, p, (-1)*n1, pt_obj);
     }
     else {
         const double pdt2 = (v | n2);
         if (abs(pdt2 - l2) < 0.0000001) {
-            return hit(r, p, n2, pt);
+            return hit(pt_ray, p, n2, pt_obj);
         }
         else if (abs(pdt2 + l2) < 0.0000001) {
-            return hit(r, p,(-1)*n2, pt);
+            return hit(pt_ray, p,(-1)*n2, pt_obj);
         }
         else {
             const double pdt3 = (v | n3);
             if (abs(pdt3 - l3) < 0.0000001) {
-                return hit(r, p, n3, pt);
+                return hit(pt_ray, p, n3, pt_obj);
             }
             else {
-                return hit(r, p, (-1)*n3, pt);
+                return hit(pt_ray, p, (-1)*n3, pt_obj);
             } 
         }   
     }

@@ -235,7 +235,7 @@ rt::vector quad::get_interpolated_normal(const double& l1, const double& l2, con
     
 }
 
-hit quad::compute_intersection(const ray& r, const double t) const {
+hit quad::compute_intersection(ray& r, const double t) const {
     const rt::vector p = r.get_origin() + t * r.get_direction();
 
     // Computation of the interpolated normal vector
@@ -243,8 +243,9 @@ hit quad::compute_intersection(const ray& r, const double t) const {
     bool triangle = get_barycentric(p, l1, l2);
     // Also used to get the texture info (to be implemented here later)
 
-    const object* pt = this;
-    return hit(r, p, get_interpolated_normal(l1, l2, triangle), pt);
+    const object* pt_obj = this;
+    ray* pt_ray = &r;
+    return hit(pt_ray, p, get_interpolated_normal(l1, l2, triangle), pt_obj);
 }
 
 /* Minimum and maximum coordinates */

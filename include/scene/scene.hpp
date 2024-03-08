@@ -54,8 +54,8 @@ class scene {
 
         /* Ray-scene intersection */
         /* Linear search through the objects of the scene */
-        hit find_closest_object(const ray& r) const;
+        hit find_closest_object(ray& r) const;
 
         /* Tree-search through the bounding boxes */
-        hit find_closest_object_bounding(const ray& r) const;
+        hit find_closest_object_bounding(ray& r) const;
 };

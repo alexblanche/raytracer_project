@@ -470,7 +470,7 @@ scene::scene(const char* file_name, bool& creation_successful)
 /*** Ray-scene intersection ***/
 
 /* Linear search through the objects of the scene */
-hit scene::find_closest_object(const ray& r) const {
+hit scene::find_closest_object(ray& r) const {
     
     double distance_to_closest = infinity;
     unsigned int closest_obj_index = -1;
@@ -499,7 +499,7 @@ hit scene::find_closest_object(const ray& r) const {
 }
 
 /* Tree-search through the bounding boxes */
-hit scene::find_closest_object_bounding(const ray& r) const {
+hit scene::find_closest_object_bounding(ray& r) const {
     /* For all the bounding boxes in bounding::set, we do the following:
        If the bounding box is terminal, look for the object of minimum distance.
        If it is internal, if the ray intersects the box, add its children to the bounding stack.

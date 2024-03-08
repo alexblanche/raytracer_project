@@ -13,7 +13,7 @@
 /* Constructors */
 
 /* Main constructor */
-hit::hit(const ray& generator, const rt::vector& point, const rt::vector& normal, const object*& hit_object)
+hit::hit(ray*& generator, const rt::vector& point, const rt::vector& normal, const object*& hit_object)
     : generator(generator), point(point), normal(normal), hit_object(hit_object), is_hit_bool(true) {}
 
 
@@ -41,7 +41,7 @@ ray hit::get_reflected_ray() const {
 /* Returns the interpolated direction between the normal and the reflected direction */
 /* inward = ((direction | normal) <= 0) */
 rt::vector hit::get_central_reflected_direction(const double reflectivity, const bool inward) const {
-    const rt::vector u = generator.get_direction();
+    const rt::vector u = generator->get_direction();
     /* Optimization: the reflected direction is correct even if the ray is outward */
     const double cos = (-1) * (u | normal);
     return (reflectivity * ((2*cos - 1)*normal + u) + (inward ? 1 : -1) * normal).unit();
@@ -164,7 +164,7 @@ rt::vector hit::random_direction(randomgen& rg, const rt::vector& central_dir, c
 
 /* Returns the refracted direction */
 rt::vector hit::get_refracted_direction(const double current_refr_i, const double surface_refr_i) const {
-    const rt::vector dir = generator.get_direction();
+    const rt::vector dir = generator->get_direction();
     /* Factor to apply to normal to obtain the normal outward the surface of contact,
        so that (dir | a * normal) <= 0 */
     const double a = ((dir | normal) <= 0) ? 1 : (-1);

@@ -185,7 +185,7 @@ double cylinder::measure_distance(const ray& r) const {
 }
 
 /* Returns the hit corresponding with the given intersection value t */
-hit cylinder::compute_intersection(const ray& r, const double t) const {
+hit cylinder::compute_intersection(ray& r, const double t) const {
 
     // Intersection point
     const rt::vector u = r.get_origin();
@@ -199,15 +199,17 @@ hit cylinder::compute_intersection(const ray& r, const double t) const {
         && /* Not on top disk */
         ((pmpos - (length * direction)).normsq() >= rr);
     
-    const object* pt = this;
+    const object* pt_obj = this;
+    ray* pt_ray = &r;
+
     if (hits_side) {
         // We compute the s value (such that (p - (o + s.d) | d) = 0)
         // const double s = (pmpos | direction);
         // const rt::vector n = (p - (position + s * d)) / radius
-        return hit(r, p, (pmpos - ((pmpos | direction) * direction)) / radius, pt);
+        return hit(pt_ray, p, (pmpos - ((pmpos | direction) * direction)) / radius, pt_obj);
     }
     else {
-        return hit(r, p, not_on_bottom_disk ? direction : ((-1) * direction), pt);
+        return hit(pt_ray, p, not_on_bottom_disk ? direction : ((-1) * direction), pt_obj);
     }
 
     
