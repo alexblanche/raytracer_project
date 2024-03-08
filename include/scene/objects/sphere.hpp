@@ -20,16 +20,6 @@ class sphere : public object {
 
         sphere(const rt::vector& center, const double radius, const material& material);
 
-        /* Accessors */
-
-        rt::vector get_center() const {
-            return position;
-        }
-
-        double get_radius() const {
-            return radius;
-        }
-
         
         /* Intersection determination */
 

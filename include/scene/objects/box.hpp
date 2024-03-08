@@ -34,13 +34,13 @@ class box : public object {
         
         /* Accessors */
 
-        double get_l1() const {
+        inline double get_l1() const {
             return l1;
         }
-        double get_l2() const {
+        inline double get_l2() const {
             return l2;
         }
-        double get_l3() const {
+        inline double get_l3() const {
             return l3;
         }
 

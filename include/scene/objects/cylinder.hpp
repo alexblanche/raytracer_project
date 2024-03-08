@@ -25,15 +25,15 @@ class cylinder : public object {
 
         /* Accessors */
 
-        rt::vector get_origin() const {
+        inline rt::vector get_origin() const {
             return position;
         }
 
-        double get_radius() const {
+        inline double get_radius() const {
             return radius;
         }
 
-        double get_length() const {
+        inline double get_length() const {
             return length;
         }
         

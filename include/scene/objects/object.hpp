@@ -23,11 +23,11 @@ class object {
 
         /* Accessors */
 
-        rt::vector get_position() const {
+        inline rt::vector get_position() const {
             return position;
         }
 
-        material get_material() const {
+        inline material get_material() const {
             return mat;
         }
 

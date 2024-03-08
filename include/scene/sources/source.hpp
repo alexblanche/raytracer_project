@@ -32,9 +32,13 @@ class source {
       
         /* Accessors */
 
-        rt::vector get_position() const;
+        inline rt::vector get_position() const {
+            return position;
+        }
       
-        rt::color get_color() const;
+        inline rt::color get_color() const {
+            return color;
+        }
 
 
         /* Application of light on surfaces */

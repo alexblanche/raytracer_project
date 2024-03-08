@@ -58,14 +58,6 @@ plane::plane(const double pa, const double pb, const double pc, const rt::vector
 }
 
 
-/* Accessors */
-
-/* The normal is assumed to be a unit vector, ensured at construction */
-rt::vector plane::get_normal() const {
-    return rt::vector(a, b, c);
-}
-
-
 /* Intersection determination */
 
 double plane::measure_distance(const ray& r) const {

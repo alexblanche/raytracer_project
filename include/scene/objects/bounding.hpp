@@ -52,15 +52,15 @@ class bounding {
 
         /* Accessors */
 
-        const box* get_b() const {
+        inline const box* get_b() const {
             return b;
         }
 
-        const std::vector<const object*>& get_content() const {
+        inline const std::vector<const object*>& get_content() const {
             return content;
         }
 
-        const std::vector<const bounding*>& get_children() const {
+        inline const std::vector<const bounding*>& get_children() const {
             return children;
         }
 

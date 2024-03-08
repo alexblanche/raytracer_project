@@ -36,22 +36,6 @@ class quad : public object {
             const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
             const material& material);
 
-        /* Accessors */
-
-        rt::vector get_normal() const {
-            return normal;
-        }
-
-        rt::vector get_v1() const {
-            return v1;
-        }
-        rt::vector get_v2() const {
-            return v2;
-        }
-        rt::vector get_v3() const {
-            return v3;
-        }
-
 
         /* Intersection determination */
 

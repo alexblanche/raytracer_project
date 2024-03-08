@@ -39,20 +39,6 @@ class triangle : public object {
             const material& material);
 
 
-        /* Accessors */
-
-        rt::vector get_normal() const {
-            return normal;
-        }
-
-        rt::vector get_v1() const {
-            return v1;
-        }
-        rt::vector get_v2() const {
-            return v2;
-        }
-
-
         /* Intersection determination */
 
         double measure_distance(const ray& r) const;

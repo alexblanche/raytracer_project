@@ -92,31 +92,31 @@ class material {
 
         /* Accessors */
 
-        rt::color get_color() const {
+        inline rt::color get_color() const {
             return color;
         }
 
-        rt::color get_emitted_color() const {
+        inline rt::color get_emitted_color() const {
             return emitted_color;
         }
 
-        double get_reflectivity() const {
+        inline double get_reflectivity() const {
             return reflectivity;
         }
 
-        double get_emission_intensity() const {
+        inline double get_emission_intensity() const {
             return emission_intensity;
         }
 
-        double get_specular_proba() const {
+        inline double get_specular_proba() const {
             return specular_probability;
         }
 
-        bool does_reflect_color() const {
+        inline bool does_reflect_color() const {
             return reflects_color;
         }
 
-        bool is_textured() const {
+        inline bool is_textured() const {
             return textured;
         }
 

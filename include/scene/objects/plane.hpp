@@ -29,10 +29,8 @@ class plane : public object {
 
         /* Accessors */
 
-        rt::vector get_normal() const;
-
-        double get_d() const {
-            return d;
+        inline rt::vector get_normal() const {
+            return rt::vector(a, b, c);
         }
 
 

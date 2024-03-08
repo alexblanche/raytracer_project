@@ -15,7 +15,6 @@
 
 #pragma once
 #include <SDL2/SDL.h>
-#include "rect.hpp"
 #include "color.hpp"
 
 
@@ -81,35 +80,9 @@ namespace rt {
 			}
 
 			/**
-			 * Returns a hard copy of the image.
-			
-			virtual image copy() const;
-			 */
-
-			/**
-			 * Returns the color of a pixel.
-			
-			virtual color get_pixel(int x, int y) const;
-			 */
-
-			/**
 			 * Sets a pixel to a given color.
 			 */
 			virtual void set_pixel(int x, int y, const color& c) const;
-
-			/**
-			 * Copy/Paste the image's source rectangle to a given destination
-			 * at given coordinates.
-			
-			virtual void blit(image& dst, const rect& srcrect, int dstx, int dsty) const;
-			 */
-
-			/**
-			 * Copy/Paste time entire image to a given destination
-			 * at given coordinates.
-			
-			virtual void blit(image& dst, int dstx, int dsty) const;
-			 */
 
 			/**
 			 * Draws a line from (x1,y1) to (x2,y2) of a given color.

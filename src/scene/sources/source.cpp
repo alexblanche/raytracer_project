@@ -26,17 +26,6 @@ source::source() {
 }
 
 
-/* Accessors */
-
-rt::vector source::get_position() const {
-    return position;
-}
-
-rt::color source::get_color() const {
-    return color;
-}
-
-
 /* Application of light on surfaces */
 
 
@@ -65,7 +54,7 @@ rt::color source::apply_obj(const hit& h, const vector<const object*>& obj_set) 
     }
     //printf("\n");
 
-    const rt::color hit_color = obj_set.at(h.get_obj_index())->get_material().get_color();
+    const rt::color hit_color = h.get_object()->get_material().get_color();
 
     /* normal is oriented outward the object, and position - h.get_point() is oriented toward the light source,
        so cos_hit < 0 means the object is on the far side, cos_hit > 0 means the light hits the object.
