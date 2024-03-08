@@ -1,6 +1,6 @@
 #include "light/hit.hpp"
 #include "light/vector.hpp"
-#include "screen/color.hpp"
+#include "scene/objects/object.hpp"
 #include "auxiliary/randomgen.hpp"
 #include <cmath>
 
@@ -13,8 +13,8 @@
 /* Constructors */
 
 /* Main constructor */
-hit::hit(const ray& g, const rt::vector& p, const rt::vector& n, const unsigned int i)
-    : gen(g), point(p), normal(n), obj_index(i), is_hit_bool(true) {}
+hit::hit(const ray& generator, const rt::vector& point, const rt::vector& normal, const object*& hit_object)
+    : generator(generator), point(point), normal(normal), hit_object(hit_object), is_hit_bool(true) {}
 
 
 /* Default constructor */
@@ -29,7 +29,7 @@ ray hit::get_reflected_ray() const {
     /* ray::direction and hit::normal are supposed to be unit vectors
        u is directed toward the surface, so the cos is computed with (-u),
        and so is the reflected ray: (2*cos*normal - (-u)) */
-    const rt::vector& u = gen.get_direction();
+    const rt::vector& u = generator.get_direction();
     const double cos = (-1) * (u | normal);
 
     return ray(point, (2*cos)*normal + u);
@@ -37,7 +37,7 @@ ray hit::get_reflected_ray() const {
 
 /* Returns the interpolated direction between the normal and the reflected direction */
 rt::vector hit::get_central_direction(const double reflectivity) const {
-    const rt::vector& u = gen.get_direction();
+    const rt::vector& u = generator.get_direction();
     const double cos = (-1) * (u | normal);
     return (reflectivity * ((2*cos - 1)*normal + u) + normal).unit();
     // = (reflectivity * reflected_dir + (1 - reflectivity) * normal).unit()

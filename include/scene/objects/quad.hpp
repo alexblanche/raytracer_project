@@ -29,12 +29,12 @@ class quad : public object {
         
         // Constructor from four points
         quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
-            const material& material, const unsigned int index);
+            const material& material);
 
         // Constructor from four points with vertex normals
         quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
             const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
-            const material& material, const unsigned int index);
+            const material& material);
 
         /* Accessors */
 

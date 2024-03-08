@@ -16,9 +16,9 @@ quad::quad() : normal(rt::vector()), v1(rt::vector()), v2(rt::vector()), v3(rt::
 // Constructor from four points
 // We do not check whether the four points are coplanar
 quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3, 
-    const material& material, const unsigned int index)
+    const material& material)
 
-    : object(p0, material, index) {
+    : object(p0, material) {
 
     v1 = p1 - p0;
     v2 = p2 - p0;
@@ -35,9 +35,9 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
 // Constructor from four points with vertex normals
 quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
     const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
-    const material& material, const unsigned int index)
+    const material& material)
 
-    : object(p0, material, index), vn0(vn0.unit()), vn1(vn1.unit()), vn2(vn2.unit()), vn3(vn3.unit()) {
+    : object(p0, material), vn0(vn0.unit()), vn1(vn1.unit()), vn2(vn2.unit()), vn3(vn3.unit()) {
     
     v1 = p1 - p0;
     v2 = p2 - p0;
@@ -243,7 +243,8 @@ hit quad::compute_intersection(const ray& r, const double t) const {
     bool triangle = get_barycentric(p, l1, l2);
     // Also used to get the texture info (to be implemented here later)
 
-    return hit(r, p, get_interpolated_normal(l1, l2, triangle), get_index());
+    const object* pt = this;
+    return hit(r, p, get_interpolated_normal(l1, l2, triangle), pt);
 }
 
 /* Minimum and maximum coordinates */

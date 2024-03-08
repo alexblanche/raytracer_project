@@ -13,16 +13,15 @@ box::box() : object(), n1(rt::vector(1,0,0)), n2(rt::vector(0,1,0)), n3(rt::vect
         
 /* The vector n3 is taken as the cross product of n1 and n2 */
 box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
-            const double l1, const double l2, const double l3, const material& material,
-            const unsigned int index)
+            const double l1, const double l2, const double l3, const material& material)
     
-    : object(center, material, index), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1/2), l2(l2/2), l3(l3/2) {}
+    : object(center, material), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1/2), l2(l2/2), l3(l3/2) {}
 
 /* The vector n3 is taken as the cross product of n1 and n2 */
 box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
             const double l1, const double l2, const double l3)
     
-    : object(center, material(), -1), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1/2), l2(l2/2), l3(l3/2) {}
+    : object(center, material()), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1/2), l2(l2/2), l3(l3/2) {}
 
 
 
@@ -177,66 +176,30 @@ hit box::compute_intersection(const ray& r, const double t) const {
 
     // Shifting the position a little bit, to avoid the ray hitting the object itself again
     const rt::vector v = p - position;
-    
-    /*
-    Obsolete version (to be deleted)
-
-    // Determination of whether the ray originates from inside or outside the box
-    const rt::vector pmu = position - u;
-
-    // Boolean indicating if the origin of the ray is inside the box
-    const bool outside = (abs((pmu | n1)) > l1 || abs((pmu | n2)) > l2 || abs((pmu | n3)) > l3);
-
-    const rt::vector new_pos = outside ? p + ((0.001 / v.normsq()) * v) : p - ((0.001 / v.normsq()) * v);
+    const object* pt = this;
 
     const double pdt1 = (v | n1);
     if (abs(pdt1 - l1) < 0.0000001) {
-        return hit(r, new_pos, (outside? n1 : ((-1)*n1)), get_index());
+        return hit(r, p, n1, pt);
     }
     else if (abs(pdt1 + l1) < 0.0000001) {
-        return hit(r, new_pos, (outside? ((-1)*n1) : n1), get_index());
+        return hit(r, p, (-1)*n1, pt);
     }
     else {
         const double pdt2 = (v | n2);
         if (abs(pdt2 - l2) < 0.0000001) {
-            return hit(r, new_pos, (outside? n2 : ((-1)*n2)), get_index());
+            return hit(r, p, n2, pt);
         }
         else if (abs(pdt2 + l2) < 0.0000001) {
-            return hit(r, new_pos, (outside? ((-1)*n2) : n2), get_index());
+            return hit(r, p,(-1)*n2, pt);
         }
         else {
             const double pdt3 = (v | n3);
             if (abs(pdt3 - l3) < 0.0000001) {
-                return hit(r, new_pos, (outside? n3 : ((-1)*n3)), get_index());
+                return hit(r, p, n3, pt);
             }
             else {
-                return hit(r, new_pos, (outside? ((-1)*n3) : n3), get_index());
-            } 
-        }   
-    }
-    */
-    const double pdt1 = (v | n1);
-    if (abs(pdt1 - l1) < 0.0000001) {
-        return hit(r, p, n1, get_index());
-    }
-    else if (abs(pdt1 + l1) < 0.0000001) {
-        return hit(r, p, (-1)*n1, get_index());
-    }
-    else {
-        const double pdt2 = (v | n2);
-        if (abs(pdt2 - l2) < 0.0000001) {
-            return hit(r, p, n2, get_index());
-        }
-        else if (abs(pdt2 + l2) < 0.0000001) {
-            return hit(r, p,(-1)*n2, get_index());
-        }
-        else {
-            const double pdt3 = (v | n3);
-            if (abs(pdt3 - l3) < 0.0000001) {
-                return hit(r, p, n3, get_index());
-            }
-            else {
-                return hit(r, p, (-1)*n3, get_index());
+                return hit(r, p, (-1)*n3, pt);
             } 
         }   
     }

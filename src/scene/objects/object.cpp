@@ -4,10 +4,10 @@
 /* Constructors */
 
 object::object()
-    : position(rt::vector()), index(-1), mat(material()) {}
+    : position(rt::vector()), mat(material()) {}
 
-object::object(const rt::vector& position, const material& m, const unsigned int index)
-    : position(position), index(index), mat(m) {}
+object::object(const rt::vector& position, const material& m)
+    : position(position), mat(m) {}
 
 
 

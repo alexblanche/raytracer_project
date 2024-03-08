@@ -18,8 +18,7 @@ class sphere : public object {
         
         sphere();
 
-        sphere(const rt::vector& center, const double radius, const material& material,
-            const unsigned int index);
+        sphere(const rt::vector& center, const double radius, const material& material);
 
         /* Accessors */
 

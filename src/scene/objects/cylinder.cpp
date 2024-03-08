@@ -14,10 +14,9 @@ cylinder::cylinder()
     : radius(0), length(0) {}
 
 cylinder::cylinder(const rt::vector& origin, const rt::vector& direction,
-    const double radius, const double length, const material& material,
-    const unsigned int index)
+    const double radius, const double length, const material& material)
 
-    : object(origin, material, index),
+    : object(origin, material),
         direction(direction), radius(radius), length(length) {}
 
 
@@ -200,14 +199,15 @@ hit cylinder::compute_intersection(const ray& r, const double t) const {
         && /* Not on top disk */
         ((pmpos - (length * direction)).normsq() >= rr);
     
+    const object* pt = this;
     if (hits_side) {
         // We compute the s value (such that (p - (o + s.d) | d) = 0)
         // const double s = (pmpos | direction);
         // const rt::vector n = (p - (position + s * d)) / radius
-        return hit(r, p, (pmpos - ((pmpos | direction) * direction)) / radius, get_index());
+        return hit(r, p, (pmpos - ((pmpos | direction) * direction)) / radius, pt);
     }
     else {
-        return hit(r, p, not_on_bottom_disk ? direction : ((-1) * direction), get_index());
+        return hit(r, p, not_on_bottom_disk ? direction : ((-1) * direction), pt);
     }
 
     

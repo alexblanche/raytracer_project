@@ -18,8 +18,9 @@ plane::plane() : a(0), b(0), c(0), d(0) {}
  defined by 4 doubles a,b,c,d */
 /* The normal vector (a, b, c) is a unit vector */
 plane::plane(const double pa, const double pb, const double pc, const double pd,
-    const material& material, const unsigned int index)
-    : object(rt::vector(), material, index) {
+    const material& material)
+    
+    : object(rt::vector(), material) {
 
     /* Normalization of the normal vector */
     const rt::vector n = rt::vector(pa, pb, pc).unit();
@@ -44,8 +45,10 @@ plane::plane(const double pa, const double pb, const double pc, const double pd,
 
 /* Constructor of a plane of normal vector (a,b,c) and touching the point v */
 plane::plane(const double pa, const double pb, const double pc, const rt::vector& position,
-    const material& material, const unsigned int index)
-    : object(position, material, index) {
+    const material& material)
+
+    : object(position, material) {
+
     const rt::vector n = rt::vector(pa, pb, pc).unit();
     a = n.x;
     b = n.y;
@@ -98,5 +101,6 @@ hit plane::compute_intersection(const ray& r, const double t) const {
 
     // The normal vector (a, b, c) is assumed to be a unit vector
 
-    return hit(r, p, get_normal(), get_index());
+    const object* pt = this;
+    return hit(r, p, get_normal(), pt);
 }

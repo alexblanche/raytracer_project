@@ -14,10 +14,9 @@ sphere::sphere() {
     radius = 0;
 }
 
-sphere::sphere(const rt::vector& center, const double radius, const material& material,
-    const unsigned int index)
+sphere::sphere(const rt::vector& center, const double radius, const material& material)
 
-    : object(center, material, index), radius(radius) {}
+    : object(center, material), radius(radius) {}
 
 
 
@@ -76,7 +75,8 @@ hit sphere::compute_intersection(const ray& r, const double t) const {
     const rt::vector p = u + t * r.get_direction();
     
     const rt::vector n = (p - position) / radius;
-    return hit(r, p, n, get_index());
+    const object* pt = this;
+    return hit(r, p, n, pt);
 }
 
 

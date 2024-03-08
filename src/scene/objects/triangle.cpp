@@ -15,9 +15,9 @@ triangle::triangle() : normal(rt::vector()), v1(rt::vector()), v2(rt::vector()),
         
 // Constructor from three points
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, 
-    const material& material, const unsigned int index)
+    const material& material)
 
-    : object(p0, material, index) {
+    : object(p0, material) {
 
     v1 = p1 - p0;
     v2 = p2 - p0;
@@ -32,9 +32,9 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
 // Constructor from three points with vertex normals
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
     const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
-    const material& material, const unsigned int index)
+    const material& material)
 
-    : object(p0, material, index), vn0(vn0.unit()), vn1(vn1.unit()), vn2(vn2.unit()) {
+    : object(p0, material), vn0(vn0.unit()), vn1(vn1.unit()), vn2(vn2.unit()) {
     
     v1 = p1 - p0;
     v2 = p2 - p0;
@@ -167,7 +167,8 @@ hit triangle::compute_intersection(const ray& r, const double t) const {
     get_barycentric(p, l1, l2);
     // Also used to get the texture info (to be implemented here later)
 
-    return hit(r, p, get_interpolated_normal(l1, l2), get_index());
+    const object* pt = this;
+    return hit(r, p, get_interpolated_normal(l1, l2), pt);
 }
 
 

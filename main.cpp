@@ -25,7 +25,7 @@
 
 #include "scene/scene.hpp"
 #include "scene/camera.hpp"
-#include "auxiliary/tracing.hpp"
+#include "tracing/tracing.hpp"
 
 #include "file_readers/raw_data.hpp"
 #include "file_readers/bmp_reader.hpp"

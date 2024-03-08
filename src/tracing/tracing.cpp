@@ -6,8 +6,6 @@
 #include "scene/objects/bounding.hpp"
 #include "scene/material/texture.hpp"
 
-// #include "headers/application.hpp"
-
 
 /* ******************************************************************** */
 /* *************************** Path tracing *************************** */
@@ -36,8 +34,8 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
         const hit h = bounding_method ? scene.find_closest_object_bounding(r) : scene.find_closest_object(r);
 
         if (h.object_hit()) {
-            const material& m = scene.object_set.at(h.get_obj_index())->get_material();
-            const double& reflectivity = m.get_reflectivity();
+            const material m = h.get_object()->get_material();
+            const double reflectivity = m.get_reflectivity();
 
             if (m.get_emission_intensity() >= 1) {
                 // Light source touched
@@ -68,7 +66,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                 if (m.is_textured()) {
                     // Only triangles and quads can be textured (for now)
                     double l1, l2;
-                    const bool lower_triangle = scene.object_set.at(h.get_obj_index())->get_barycentric(hit_point, l1, l2);
+                    const bool lower_triangle = h.get_object()->get_barycentric(hit_point, l1, l2);
 
                     mat_color = m.get_texture_color(l1, l2, lower_triangle, scene.texture_set);
                 }
@@ -108,7 +106,8 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                 else {
                     /* Diffuse bounce */
                     
-                    const rt::vector bouncing_dir = (h.get_normal() + h.random_reflect_single(scene.rg, h.get_normal(), PI)).unit();
+                    const rt::vector normal = h.get_normal();
+                    const rt::vector bouncing_dir = (normal + h.random_reflect_single(scene.rg, normal, PI)).unit();
                     r.set_direction(bouncing_dir);
                     
                     const rt::color emitted_light = m.get_emitted_color() * m.get_emission_intensity();

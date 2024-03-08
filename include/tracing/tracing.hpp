@@ -3,7 +3,7 @@
 #include "scene/objects/object.hpp"
 #include "scene/scene.hpp"
 
-#include "application.hpp"
+// #include "auxiliary/application.hpp"
 
 /* Tracing the ray */
 

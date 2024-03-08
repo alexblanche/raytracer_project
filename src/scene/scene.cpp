@@ -277,9 +277,6 @@ scene::scene(const char* file_name, bool& creation_successful)
 
     */
 
-    /* Object counter */
-    unsigned int obj_counter = 0;
-
     /* Material storage */
     /* The name of the material is stored at index i of mat_names, and the associated material at index i of mat_content */
     std::vector<string> mat_names = {"mirror", "glass"};
@@ -364,7 +361,7 @@ scene::scene(const char* file_name, bool& creation_successful)
                 break;
             }
             material m = get_material(file, mat_names, mat_content);
-            object_set.push_back(new sphere(rt::vector(x, y, z), r, m, obj_counter++));
+            object_set.push_back(new sphere(rt::vector(x, y, z), r, m));
         }
         else if (strcmp(s, "plane") == 0) {
             /* normal:(0, -1, 0) position:(0, 160, 0) [material] */
@@ -378,7 +375,7 @@ scene::scene(const char* file_name, bool& creation_successful)
                 break;
             }
             material m = get_material(file, mat_names, mat_content);
-            object_set.push_back(new plane(nx, ny, nz, rt::vector(px, py, pz), m, obj_counter++));
+            object_set.push_back(new plane(nx, ny, nz, rt::vector(px, py, pz), m));
         }
         else if (strcmp(s, "box") == 0) {
             /* center:(166, -200, 600) x_axis:(100, 100, -100) y_axis:(-200, 100, -100) 300 200 300 */
@@ -397,8 +394,7 @@ scene::scene(const char* file_name, bool& creation_successful)
             object_set.push_back(new box(rt::vector(cx, cy, cz),
                 rt::vector(n1x, n1y, n1z).unit(),
                 rt::vector(n2x, n2y, n2z).unit(),
-                l1, l2, l3, m,
-                obj_counter++));
+                l1, l2, l3, m));
         }
         else if (strcmp(s, "triangle") == 0) {
             /* (-620, -100, 600) (-520, 100, 500) (-540, -200, 700) [material] */
@@ -417,7 +413,7 @@ scene::scene(const char* file_name, bool& creation_successful)
             object_set.push_back(new triangle(rt::vector(x0, y0, z0),
                 rt::vector(x1, y1, z1),
                 rt::vector(x2, y2, z2),
-                m, obj_counter++));
+                m));
         }
         else if (strcmp(s, "quad") == 0) {
             /* (-620, -100, 600) (-520, 100, 600) (-540, -200, 600) (-500, -250, 600) [material] */
@@ -438,7 +434,7 @@ scene::scene(const char* file_name, bool& creation_successful)
                 rt::vector(x1, y1, z1),
                 rt::vector(x2, y2, z2),
                 rt::vector(x3, y3, z3),
-                m, obj_counter++));
+                m));
         }
         else if (strcmp(s, "cylinder") == 0) {
             /* origin:(0, 0, 0) direction:(1, -1, 1) radius:100 length:300 [material] */
@@ -454,7 +450,7 @@ scene::scene(const char* file_name, bool& creation_successful)
             }
             material m = get_material(file, mat_names, mat_content);
             object_set.push_back(new cylinder(rt::vector(x0, y0, z0), rt::vector(dx, dy, dz).unit(),
-                r, l, m, obj_counter++));
+                r, l, m));
         }
 
         /* Parsing error */
