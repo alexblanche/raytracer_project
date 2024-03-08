@@ -10,7 +10,7 @@
 /* Default constructor */
 texture::texture(const int width, const int height, const std::vector<std::vector<rt::color>>& data)
     : width(width), height(height), data(data),
-        width_minus_one((double) (width - 1)), height_minus_one((double) height_minus_one) {}
+        width_minus_one((double) (width - 1)), height_minus_one((double) (height - 1)) {}
 
 /* Constructor from a .bmp file
    Writes true in parsing_successful if the operation was successful */

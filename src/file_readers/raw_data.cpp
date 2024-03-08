@@ -61,7 +61,6 @@ std::vector<std::vector<rt::color>>& read_raw(const char* file_name, bool& succe
     if (file == NULL) {
         printf("Error, file %s not found\n", file_name);
         success = false;
-        fclose(file);
         std::vector<std::vector<rt::color>>* fail_matrix = new std::vector<std::vector<rt::color>>(1, std::vector<rt::color>(1));
         return *fail_matrix;
     }
@@ -112,7 +111,6 @@ bool combine_raw(const char* dest_file_name, const int n, const char* const sour
 
     if (file0 == NULL) {
         printf("Error, first file (%s) not found\n", source_file_names[0]);
-        fclose(file0);
         return false;
     }
 
@@ -136,7 +134,6 @@ bool combine_raw(const char* dest_file_name, const int n, const char* const sour
         FILE* file = fopen(source_file_names[k], "r");
         if (file == NULL) {
             printf("Error, file (%s) not found\n", source_file_names[k]);
-            fclose(file);
             return false;
         }
 

@@ -49,6 +49,9 @@ namespace rt {
 			 */
 			virtual void update() const;
 
+			/****************************************************************************************************/
+			/** Event processing **/
+
 			/**
 			 * @brief Wait indefinitely for the next quit event
 			 * @return true if we get a quit event, or false if there was an error while waiting for the quit event
@@ -60,6 +63,19 @@ namespace rt {
 			 * @return true if we get a quit event, false if we get a keydown event
 			 */
 			bool is_quit_event() const;
+
+			/**
+			 * @brief Wait indefinitely for the next keyboard or quit event
+			 * @return
+			 * 		1: quit event (Esc or X clicked)
+			 * 		2: Space or Enter key
+			 * 		3: 'B' key
+			 * 		4: 'R' key
+			 * 		0: Anything else
+			 */
+			int wait_keyboard_event() const;
+
+			/****************************************************************************************************/
 
 			/**
 			 * Copies the rt::color matrix onto the screen, by averaging the number_of_rays colors per pixel

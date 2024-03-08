@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
 #include <stdlib.h>
 #include <vector>
 #include <queue>
@@ -34,6 +35,8 @@ using namespace std;
 // Parallel for-loop macros
 #define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](int start, int end){ for(int i = start; i < end; ++i)
 #define PARALLEL_FOR_END()})
+
+#define MAX_RAYS 1000
 
 
 /* ********** Render loop ********** */
@@ -98,6 +101,12 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix,
 
 /* ********* MAIN FUNCTION ********* */
 
+/** Loop keys:
+ * Space/Enter: Continue
+ * B key:       Save as image.bmp
+ * R key:       Save raw data as image.rtdata
+ * Esc:         Exit
+ */
 
 int main(int argc, char *argv[]) {
 
@@ -156,24 +165,15 @@ int main(int argc, char *argv[]) {
 
     render_loop_parallel(matrix, scene, number_of_bounces, time_enabled);
     
-    /*
-    const rt::screen* scr = new rt::screen(scene.width, scene.height);
-    scr->copy(matrix, scene.width, scene.height, 1);
-    scr->update();
+    // rt::screen* scr = new rt::screen(scene.width, scene.height);
+    // scr->copy(matrix, scene.width, scene.height, 1);
+    // scr->update();
 
     printf("\r                                                   ");
     printf("\rNumber of rays per pixel: 1");
     fflush(stdout);
 
-    scr->wait_quit_event();
-    delete(scr);
-    */
-
-    printf("\r                                                   ");
-    printf("\rNumber of rays per pixel: 1");
-    fflush(stdout);
-
-    for (unsigned int number_of_rays = 2; number_of_rays <= 1000; number_of_rays++) {
+    for (unsigned int number_of_rays = 2; number_of_rays <= MAX_RAYS; number_of_rays++) {
 
         render_loop_parallel(matrix, scene, number_of_bounces, time_enabled);
 
@@ -181,11 +181,12 @@ int main(int argc, char *argv[]) {
         fflush(stdout);
 
         if (number_of_rays % 10 == 0) {
-            
+
+            /*
             string file_name = "image00";
             file_name[5] = '0' + (char) ((number_of_rays / 100) % 10);
             file_name[6] = '0' + (char) ((number_of_rays / 10) % 10);
-            const bool success = export_raw(file_name.data(), number_of_rays /*10*/, matrix);
+            const bool success = export_raw(file_name.data(), number_of_rays, matrix);
             if (success) {
                 printf(" (Saved after %u rays as %s)", number_of_rays, file_name.data());
             }
@@ -193,29 +194,65 @@ int main(int argc, char *argv[]) {
                 printf("\nExport failed\n");
                 return EXIT_FAILURE;
             }
-
-            /* Testing: erasing the content of the matrix after each export */
-            /*for (int i = 0; i < scene.width; i++) {
-                for (int j = 0; j < scene.height; j++) {
-                    matrix.at(i).at(j) = rt::color(0, 0, 0);
-                }
-            }
             */
             
-
-            /*
             const rt::screen* scr = new rt::screen(scene.width, scene.height);
             scr->copy(matrix, scene.width, scene.height, number_of_rays);
             scr->update();
-            const bool stop = scr->wait_quit_event();
-            delete(scr);
-            if (stop) {
-                return EXIT_SUCCESS;
+            int key;
+            do {
+                key = scr->wait_keyboard_event();
             }
-            */
+            while (key == 0);
+            delete(scr);
+            switch (key) {
+                case 1:
+                    /* Esc or X clicked */
+                    return EXIT_SUCCESS;
+                case 2:
+                    /* Space or Enter */
+                    break;
+                case 3:
+                    /* B */
+                    /* Export as BMP */
+                    {
+                        const bool success_bmp = write_bmp("image.bmp", matrix, number_of_rays);
+                        if (success_bmp) {
+                            printf(" Saved as image.bmp\n");
+                        }
+                        else {
+                            printf("Save failed\n");
+                            return EXIT_FAILURE;
+                        }
+                        break;
+                    }
+                case 4:
+                    /* R */
+                    /* Export raw data */
+                    {
+                        const bool success_raw = export_raw("image.rtdata", number_of_rays, matrix);
+                        if (success_raw) {
+                            printf(" Saved as image.rtdata\n");
+                        }
+                        else {
+                            printf("Save failed\n");
+                            return EXIT_FAILURE;
+                        }
+                        break;
+                    }
+                default:
+                    break;
+            }
         }
     }
 
-    printf("\n");
-    return EXIT_SUCCESS;
+    const bool success = write_bmp("image_final.bmp", matrix, MAX_RAYS);
+    if (success) {
+        printf("\nSaved as image_final.bmp\n");
+        return EXIT_SUCCESS;
+    }
+    else {
+        printf("\nSave failed\n");
+        return EXIT_FAILURE;
+    }
 }

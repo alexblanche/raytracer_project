@@ -53,6 +53,10 @@ namespace rt {
 		SDL_RenderPresent(renderer);
 	}
 
+
+	/****************************************************************************************************/
+	/** Event processing **/
+
 	/**
 	 * @brief Wait indefinitely for the next quit event
 	 * @return true if we get a quit event, false if we get a keydown event
@@ -90,6 +94,44 @@ namespace rt {
 		}
 		return false;
 	}
+
+	/**
+	 * @brief Wait indefinitely for the next keyboard or quit event
+	 * @return
+	 * 		1: quit event (Esc or X clicked)
+	 * 		2: Space or Enter key
+	 * 		3: 'B' key
+	 * 		4: 'R' key
+	 * 		0: Anything else
+	 */
+	int screen::wait_keyboard_event() const {
+		SDL_Event event;
+		while(SDL_WaitEvent(&event)) {
+			switch(event.type) {
+				case SDL_QUIT:
+					return 1;
+				case SDL_KEYDOWN:
+					switch(event.key.keysym.scancode) {
+						case SDL_SCANCODE_ESCAPE:
+							return 1;
+						case SDL_SCANCODE_SPACE:
+						case SDL_SCANCODE_RETURN:
+						case SDL_SCANCODE_KP_ENTER:
+							return 2;
+						case SDL_SCANCODE_B:
+							return 3;
+						case SDL_SCANCODE_R:
+							return 4;
+						default:
+							break;
+					}
+					break;
+			}
+		}
+		return 0;
+	}
+
+	/****************************************************************************************************/
 
 	/**
 	 * Copies the rt::color matrix onto the screen, by averaging the number_of_rays colors per pixel
