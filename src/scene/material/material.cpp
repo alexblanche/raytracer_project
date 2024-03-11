@@ -8,7 +8,7 @@
 /* Static element */
 
 const material material::MIRROR = material(rt::color(255,255,255), 1);
-const material material::GLASS = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 1, 0, 1.3);
+const material material::GLASS = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 0.8, 0, 1.3);
 // const material material::WATER = material();
 
 
@@ -20,7 +20,7 @@ material::material() : color(rt::color::WHITE), reflectivity(0),
     transparency(0), refraction_index(1),
     textured(false) {}
 
-material::material(const rt::color& color, const double reflectivity)
+material::material(const rt::color& color, const double& reflectivity)
 
     : color(color), reflectivity(reflectivity),
         emission_intensity(0),
@@ -64,7 +64,7 @@ material diffuse_material(const rt::color& color) {
 }
 
 /* Returns a light of given color and intensity */
-material light_material(const rt::color& color, const double emission_intensity) {
+material light_material(const rt::color& color, const double& emission_intensity) {
     return material(color, color, 0, emission_intensity, 0, false, 0, 0, 1);
 }
 

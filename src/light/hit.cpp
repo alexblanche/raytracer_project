@@ -40,7 +40,7 @@ ray hit::get_reflected_ray() const {
 
 /* Returns the interpolated direction between the normal and the reflected direction */
 /* inward = ((direction | normal) <= 0) */
-rt::vector hit::get_central_reflected_direction(const double reflectivity, const bool inward) const {
+rt::vector hit::get_central_reflected_direction(const double& reflectivity, const bool inward) const {
     const rt::vector u = generator->get_direction();
     /* Optimization: the reflected direction is correct even if the ray is outward */
     const double cos = (-1) * (u | normal);
@@ -61,7 +61,7 @@ rt::vector hit::get_central_reflected_direction(const double reflectivity, const
 */
 
 std::vector<ray> hit::random_reflect(const unsigned int n, randomgen& rg,
-    const rt::vector& central_dir, const double theta_max) const {
+    const rt::vector& central_dir, const double& theta_max) const {
 
     const double twopi = 2 * 3.14159265358979323846;
 
@@ -113,8 +113,8 @@ std::vector<ray> hit::random_reflect(const unsigned int n, randomgen& rg,
     return rays;
 }
 
-/* Returns a random direction in the cone of center central_dir, within solid angle theta_max */
-rt::vector hit::random_direction(randomgen& rg, const rt::vector& central_dir, const double theta_max) const {
+/* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
+rt::vector hit::random_direction(randomgen& rg, const rt::vector& central_dir, const double& theta_max) const {
 
     const double twopi = 2 * 3.14159265358979323846;
 
@@ -162,19 +162,32 @@ rt::vector hit::random_direction(randomgen& rg, const rt::vector& central_dir, c
 
 /* Refraction */
 
-/* Returns the refracted direction */
-rt::vector hit::get_refracted_direction(const double current_refr_i, const double surface_refr_i) const {
+/* Returns sin(theta_2), where theta_2 is the refracted angle
+   Is precomputed to determine whether the ray is refracted or internally reflected */
+rt::vector hit::get_sin_refracted(const double& current_refr_i, const double& surface_refr_i,
+    double& sin_theta_2_sq) const {
+
+    /* See get_refracted_direction below */
+    /* Notice that a*a = 1 */
     const rt::vector dir = generator->get_direction();
+    const rt::vector vx = (current_refr_i / surface_refr_i) * (((-1)*(dir | normal)) * normal + dir);
+    sin_theta_2_sq = vx.normsq();
+    return vx;
+}
+
+/* Returns the refracted direction */
+rt::vector hit::get_refracted_direction(const rt::vector& vx, const double& sin_theta_2_sq, const bool inward) const {
+    
     /* Factor to apply to normal to obtain the normal outward the surface of contact,
        so that (dir | a * normal) <= 0 */
-    const double a = ((dir | normal) <= 0) ? 1 : (-1);
+    // const double a = inward ? 1 : (-1);
 
     /* Snell-Descartes law */
     /* If the angle between (-dir) and a*normal is theta_1,
        the angle between the refracted direction v and (-a*normal) is theta_2,
        then current_refr_i * sin(theta_1) = surface_refr_i * sin(theta_2)
 
-       sin(theta_1) = |(dir | (a * normal)) * (a*normal) - dir|
+       sin(theta_1) = |(-dir | (a * normal)) * (a*normal) - (-dir)|
        So sin(theta_2) = (current_refr_i / surface_refr_i) * |(dir | (a * normal)) * (a*normal) - dir|
 
        The refracted direction v can be decomposed into v = vx + vy,
@@ -184,15 +197,13 @@ rt::vector hit::get_refracted_direction(const double current_refr_i, const doubl
        so that v is a unit vector
     */
 
-    /* Notice that a*a = 1 */
-    const rt::vector vx = (current_refr_i / surface_refr_i) * ((dir | normal) * normal - dir);
-    return vx + sqrt(1 - vx.normsq()) * ((-a) * normal);
+    return vx + sqrt(1 - sin_theta_2_sq) * (inward ? (-1) * normal : normal);
 }
 
-/* Returns a random direction in the cone whose center is the refracted direction, within solid angle refraction_scattering * pi */
-rt::vector hit::get_random_refracted_direction(randomgen& rg,
-    const double current_refr_i, const double surface_refr_i, const double refraction_scattering) const {
+/* Returns a random unit direction in the cone whose center is the refracted direction, within solid angle refraction_scattering * pi */
+rt::vector hit::get_random_refracted_direction(randomgen& rg, const double& refraction_scattering,
+    const rt::vector& vx, const double& sin_theta_2_sq, const bool inward) const {
 
-    rt::vector refr_dir = get_refracted_direction(current_refr_i, surface_refr_i);
+    rt::vector refr_dir = get_refracted_direction(vx, sin_theta_2_sq, inward);
     return random_direction(rg, refr_dir, refraction_scattering * 3.14159265358979323846);
 }

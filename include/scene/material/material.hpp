@@ -71,7 +71,7 @@ class material {
         material();
 
         /* Constructs a material with no emitted light, with specular probability 1 */
-        material(const rt::color& color, const double reflectivity);
+        material(const rt::color& color, const double& reflectivity);
 
         /* Main constructor */
         material(const rt::color& color, const rt::color& emitted_color,
@@ -161,4 +161,4 @@ class material {
 material diffuse_material(const rt::color& color);
 
 /* Returns a light of given color and intensity */
-material light_material(const rt::color& color, const double emission_intensity);
+material light_material(const rt::color& color, const double& emission_intensity);

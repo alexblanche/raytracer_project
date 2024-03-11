@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
         }
     }
     
-    printf("Initialization...\n");
+    // printf("Initialization...\n");
 
     /* *************************** */
     /* Scene description */

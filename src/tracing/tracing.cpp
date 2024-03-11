@@ -70,7 +70,9 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
             }
 
             /* The ray can either be transmitted (and refracted) through the surface,
-               or reflected in two ways: specularly or diffusely */
+               or reflected in three ways: specularly, diffusely, or in the case of total internal reflection,
+               when the ray hits a surface of lower refraction index at an angle greater than the critical angle.
+            */
             const rt::vector hit_point = h.get_point();
             const rt::vector normal = h.get_normal();
             const double inward = (r.get_direction() | normal) <= 0;
@@ -78,21 +80,54 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
             /* Testing whether the ray is transmitted or reflected on the surface */
             if (random_double(scene.rg, 1) <= m.get_transparency()) {
 
-                /* Transmission */
+                double sin_theta_2_sq;
+                const rt::vector vx = h.get_sin_refracted(refr_index, m.get_refraction_index(), sin_theta_2_sq);
 
-                /* Setting the position with a bias inward the surface */
-                r.set_origin(hit_point + (inward ? (-0.001)*normal : 0.001*normal));
+                /* Transmission or total internal reflection */
+                if (sin_theta_2_sq >= 1) {
+                    /* Total internal reflection */
 
-                /* Setting the refracted direction */
-                r.set_direction(h.get_random_refracted_direction(
-                    scene.rg,
-                    refr_index, m.get_refraction_index(),
-                    m.get_refraction_scattering()));
+                    /* Setting the position with a bias inward the surface */
+                    r.set_origin(hit_point + (inward ? 0.001*normal : (-0.001)*normal));
 
-                /* Updating the refraction index */
-                refr_index = inward ? m.get_refraction_index() : 1;
-                
-                update_accumulators(m, obj, hit_point, scene.texture_set, emitted_colors, color_materials, true);
+                    /* Setting the reflected direction */
+                    const double reflectivity = m.get_reflectivity();
+                    const rt::vector central_dir = h.get_central_reflected_direction(reflectivity, inward);
+                    
+                    // Direction according to Lambert's cosine law
+                    if (reflectivity >= 1) {
+                        r.set_direction(central_dir);
+                    }
+                    else {
+                        r.set_direction(
+                            (central_dir +
+                                ((1 - reflectivity) * h.random_direction(scene.rg, central_dir, PI))
+                            ).unit()
+                        );
+                    }
+
+                    update_accumulators(m, obj, hit_point, scene.texture_set, emitted_colors, color_materials, false);
+                }
+                else {
+                    /* Transmission */
+
+                    /* Setting the position with a bias outward the surface */
+                    r.set_origin(hit_point + (inward ? (-0.001)*normal : 0.001*normal));
+
+                    /* Setting the refracted direction */
+                    r.set_direction(
+                        h.get_random_refracted_direction(
+                            scene.rg,
+                            m.get_refraction_scattering(),
+                            vx, sin_theta_2_sq, inward
+                        )
+                    );
+
+                    /* Updating the refraction index */
+                    refr_index = inward ? m.get_refraction_index() : 1;
+                    
+                    update_accumulators(m, obj, hit_point, scene.texture_set, emitted_colors, color_materials, true);
+                }
 
             }
             else {
@@ -115,8 +150,11 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                         r.set_direction(central_dir);
                     }
                     else {
-                        r.set_direction((central_dir +
-                            ((1 - reflectivity) * h.random_direction(scene.rg, central_dir, PI))).unit());
+                        r.set_direction(
+                            (central_dir +
+                                ((1 - reflectivity) * h.random_direction(scene.rg, central_dir, PI))
+                            ).unit()
+                        );
                     }
 
                     /* We update color_materials only if the material reflects colors (like a christmas tree ball),
