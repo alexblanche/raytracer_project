@@ -59,7 +59,7 @@ void bounding::check_box(const ray& r,
             for (unsigned int i = 0; i < content.size(); i++) {
                 const object* obj_i = content.at(i);
                 const double d = obj_i->measure_distance(r);
-                if (d < d_cl && d > 0.000001) {
+                if (d < d_cl) {
                     d_cl = d;
                     cl_obj = obj_i;
                 }
@@ -90,7 +90,7 @@ void bounding::check_box_next(const ray& r,
             for (unsigned int i = 0; i < content.size(); i++) {
                 const object* obj_i = content.at(i);
                 const double d = obj_i->measure_distance(r);
-                if (d < distance_to_closest && d > 0.000001) {
+                if (d < distance_to_closest) {
                     distance_to_closest = d;
                     closest_object = obj_i;
                 }

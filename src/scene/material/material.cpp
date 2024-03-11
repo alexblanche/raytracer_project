@@ -8,7 +8,7 @@
 /* Static element */
 
 const material material::MIRROR = material(rt::color(255,255,255), 1);
-const material material::GLASS = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 0.8, 0, 1.3);
+const material material::GLASS = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 0.9, 0, 1.3);
 // const material material::WATER = material();
 
 

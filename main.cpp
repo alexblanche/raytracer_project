@@ -216,9 +216,9 @@ int main(int argc, char *argv[]) {
                     /* B */
                     /* Export as BMP */
                     {
-                        const bool success_bmp = write_bmp("image.bmp", matrix, number_of_rays);
+                        const bool success_bmp = write_bmp("pictures/image.bmp", matrix, number_of_rays);
                         if (success_bmp) {
-                            printf(" Saved as image.bmp\n");
+                            printf(" Saved as pictures/image.bmp\n");
                         }
                         else {
                             printf("Save failed\n");
@@ -230,9 +230,9 @@ int main(int argc, char *argv[]) {
                     /* R */
                     /* Export raw data */
                     {
-                        const bool success_raw = export_raw("image.rtdata", number_of_rays, matrix);
+                        const bool success_raw = export_raw("pictures/image.rtdata", number_of_rays, matrix);
                         if (success_raw) {
-                            printf(" Saved as image.rtdata\n");
+                            printf(" Saved as pictures/image.rtdata\n");
                         }
                         else {
                             printf("Save failed\n");

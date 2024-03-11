@@ -484,7 +484,7 @@ hit scene::find_closest_object(ray& r) const {
         /* d is the distance between the origin of the ray and the
            intersection point with the object */
 
-        if (d < distance_to_closest && d > 0.000001) {
+        if (d < distance_to_closest) {
             distance_to_closest = d;
             closest_obj_index = i;
         }

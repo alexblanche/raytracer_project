@@ -42,10 +42,17 @@ ray hit::get_reflected_ray() const {
 /* inward = ((direction | normal) <= 0) */
 rt::vector hit::get_central_reflected_direction(const double& reflectivity, const bool inward) const {
     const rt::vector u = generator->get_direction();
-    /* Optimization: the reflected direction is correct even if the ray is outward */
-    const double cos = (-1) * (u | normal);
-    return (reflectivity * ((2*cos - 1)*normal + u) + (inward ? 1 : -1) * normal).unit();
-    // = (reflectivity * reflected_dir + (1 - reflectivity) * normal).unit()
+    /*
+    inward = (u | normal) <= 0;
+    right_normal = inward ? normal : (-1)*normal;
+    cos = -(u | normal)
+    reflected_dir = (2*cos) * right_normal + u
+    reflectivity * reflected_dir + (1 - reflectivity) * right_normal
+        = (r * (2 * cos - 1) + 1) * right_normal + r * u
+    */
+    const rt::vector right_normal = inward ? normal : (-1) * normal;
+    const double cos = (-1) * (u | right_normal);
+    return (reflectivity * (2 * cos - 1) + 1) * right_normal + reflectivity * u;
 }
 
 
@@ -165,12 +172,13 @@ rt::vector hit::random_direction(randomgen& rg, const rt::vector& central_dir, c
 /* Returns sin(theta_2), where theta_2 is the refracted angle
    Is precomputed to determine whether the ray is refracted or internally reflected */
 rt::vector hit::get_sin_refracted(const double& current_refr_i, const double& surface_refr_i,
-    double& sin_theta_2_sq) const {
+    const bool inward, double& sin_theta_2_sq) const {
 
     /* See get_refracted_direction below */
     /* Notice that a*a = 1 */
     const rt::vector dir = generator->get_direction();
-    const rt::vector vx = (current_refr_i / surface_refr_i) * (((-1)*(dir | normal)) * normal + dir);
+    const rt::vector right_normal = inward ? normal : (-1) * normal;
+    const rt::vector vx = (current_refr_i / surface_refr_i) * ((((-1)*(dir | right_normal)) * right_normal) + dir);
     sin_theta_2_sq = vx.normsq();
     return vx;
 }
