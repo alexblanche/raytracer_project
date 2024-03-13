@@ -6,14 +6,14 @@ The goal of this project is to code a bidirectional path-tracer, that handles al
 
 ### State of the project
 
-The project currently handles spheres, infinite planes and triangles, made up of materials of various reflectivity (from diffuse to glossy, to mirror), and specular probability (to simulate realistic reflections on non-metallic materials).
+The project currently handles multiple shapes (triangles, quads, spheres, planes, boxes and cylinders), made up of materials of various reflectivity (from diffuse to glossy, to mirror), specular probability (to simulate realistic reflections on non-metallic materials) and refractive index (for water, glass). Triangles and quads can be textured with textures read from bmp files. Scenes are defined in a file ```scene.txt``` at the root (see syntax in ```src/scene/scene.cpp```). The rendered images can be exported as raw data (that can then be combined into a bmp) or as a bmp file.
 
-Current state:
+Old state (new pictures to come):
 
 ![Screen](pictures/pathtracer11_1000rpp.jpg)
 
 Next steps:
-Quads, cubes (boxes), texturing, refraction, variable reflectivity (at angle ~pi/2 of the normal, a diffuse plane becomes reflective), triangle and quad meshes (and parsing of models), bounding boxes (to accelerate the intersection computation), photon mapping (to accelerate the rendering of dark scenes).
+Variable reflectivity, triangle and quad meshes (parsed from .obj files), bounding boxes (tree search already implemented, automatic determination of optimal bounding boxes next), bidirectional path-tracing (to accelerate the rendering of dark scenes).
 
 
 ## How to run the code
