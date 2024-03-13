@@ -77,4 +77,7 @@ class hit {
         /* Returns a random unit direction in the cone whose center is the refracted direction, within solid angle refraction_scattering * pi */
         rt::vector get_random_refracted_direction(randomgen& rg, const double& refraction_scattering,
             const rt::vector& vx, const double& sin_theta_2_sq, const bool inward) const;
+
+        /* Computes the Fresnel coefficient Kr */
+        double get_fresnel(const double& sin_theta_2_sq, const double& refr_1, const double& refr_2) const;
 };

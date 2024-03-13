@@ -6,9 +6,13 @@
 #include "scene/objects/bounding.hpp"
 #include "scene/material/texture.hpp"
 
+#define PI 3.14159265358979323846
+
 
 /* ******************************************************************** */
 /* *************************** Path tracing *************************** */
+
+/** Auxiliary functions **/
 
 /* Auxiliary function that updates the color accumulators */
 void update_accumulators(const material& m, const object*& obj, const rt::vector& hit_point,
@@ -35,6 +39,76 @@ void update_accumulators(const material& m, const object*& obj, const rt::vector
     }
 }
 
+/* Auxiliary function that applies a bias of 0.001 times the normal to the ray position,
+   outward the surface contact point if outward_bias is true (so in the direction of the normal),
+   inward otherwise (in the opposite direction to the normal) */
+void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& normal,
+    const bool inward, const bool outward_bias) {
+
+    if (outward_bias) {
+        r.set_origin(hit_point + (inward ? 0.001*normal : (-0.001)*normal));
+    }
+    else {
+        r.set_origin(hit_point + (inward ? (-0.001)*normal : 0.001*normal));
+    }
+}
+
+
+/* Auxiliary function that handles the specular reflective case */
+void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const double& reflectivity, const bool inward) {
+
+    const rt::vector central_dir = h.get_central_reflected_direction(reflectivity, inward);
+                    
+    // Direction according to Lambert's cosine law
+    if (reflectivity >= 1) {
+        r.set_direction(central_dir);
+    }
+    else {
+        r.set_direction(
+            (central_dir +
+                ((1 - reflectivity) * h.random_direction(rg, central_dir, PI))
+            ).unit()
+        );
+    }
+
+    /* Apply the bias outward the surface */
+    apply_bias(r, h.get_point(), h.get_normal(), inward, true);
+}
+
+
+/* Auxiliary function that handles the diffuse reflective case */
+void diffuse_case(ray& r, const hit& h, randomgen& rg, const bool inward) {
+
+    const rt::vector normal = h.get_normal();
+    r.set_direction(((inward ? normal : (-1) * normal) + h.random_direction(rg, normal, PI)).unit());
+
+    /* Apply the bias outward the surface */
+    apply_bias(r, h.get_point(), normal, inward, true);
+}
+
+
+/* Auxiliary function that handles the refractive case */
+void refractive_case(ray& r, const hit& h, randomgen& rg, const double& scattering,
+    const rt::vector& vx, const double& sin_theta_2_sq, const bool inward,
+    double& refr_index, const double& next_refr_i) {
+
+    /* Setting the refracted direction */
+    r.set_direction(
+        h.get_random_refracted_direction(
+            rg,
+            scattering,
+            vx, sin_theta_2_sq, inward
+        )
+    );
+
+    /* Updating the refraction index */
+    refr_index = next_refr_i;
+
+    /* Apply the bias inward the surface */
+    apply_bias(r, h.get_point(), h.get_normal(), inward, false);
+}
+
+#define UPDATE_ACC(reflects_colors) update_accumulators(m, obj, h.get_point(), scene.texture_set, emitted_colors, color_materials, reflects_colors)
 
 
 /* Path tracing function */
@@ -54,7 +128,6 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
     double refr_index = 1;
 
     const bool bounding_method = scene.triangles_per_bounding != 0;
-    const double PI = 3.14159265358979323846;
 
     for (unsigned int i = 0; i < bounce; i++) {
         
@@ -73,102 +146,70 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                or reflected in three ways: specularly, diffusely, or in the case of total internal reflection,
                when the ray hits a surface of lower refraction index at an angle greater than the critical angle.
             */
-            const rt::vector hit_point = h.get_point();
-            const rt::vector normal = h.get_normal();
-            const double inward = (r.get_direction() | normal) <= 0;
-            const double next_refr_i = inward ? m.get_refraction_index() : 1;
+            const double inward = (r.get_direction() | h.get_normal()) <= 0;
 
-            /* Testing whether the ray is transmitted or reflected on the surface */
-            if ((not inward) || random_double(scene.rg, 1) <= m.get_transparency()) {
-                /* Transmission or internal reflection */
-                
-                /* Determination of whether the ray is transmitted (refracted) or in total interal reflection */
-                double sin_theta_2_sq;
-                const rt::vector vx = h.get_sin_refracted(refr_index, next_refr_i, sin_theta_2_sq);
-
-                if (sin_theta_2_sq >= 1) {
-                    /* Total internal reflection */
-
-                    /* Setting the position with a bias inward the surface */
-                    r.set_origin(hit_point + (inward ? 0.001*normal : (-0.001)*normal));
-
-                    /* Setting the reflected direction */
-                    const double reflectivity = m.get_reflectivity();
-                    const rt::vector central_dir = h.get_central_reflected_direction(reflectivity, inward);
-                    
-                    // Direction according to Lambert's cosine law
-                    if (reflectivity >= 1) {
-                        r.set_direction(central_dir);
-                    }
-                    else {
-                        r.set_direction(
-                            (central_dir +
-                                ((1 - reflectivity) * h.random_direction(scene.rg, central_dir, PI))
-                            ).unit()
-                        );
-                    }
-
-                    update_accumulators(m, obj, hit_point, scene.texture_set, emitted_colors, color_materials, false);
-                }
-                else {
-                    /* Transmission */
-
-                    /* Setting the position with a bias outward the surface */
-                    r.set_origin(hit_point + (inward ? (-0.001)*normal : 0.001*normal));
-
-                    /* Setting the refracted direction */
-                    r.set_direction(
-                        h.get_random_refracted_direction(
-                            scene.rg,
-                            m.get_refraction_scattering(),
-                            vx, sin_theta_2_sq, inward
-                        )
-                    );
-
-                    /* Updating the refraction index */
-                    refr_index = next_refr_i;
-                    
-                    update_accumulators(m, obj, hit_point, scene.texture_set, emitted_colors, color_materials, true);
-                }
-
-            }
-            else {
-
-                /* Reflection */
-
-                /* Setting the position with a bias outward the surface */
-                r.set_origin(hit_point + (inward ? 0.001*normal : (-0.001)*normal));
+            if (m.get_transparency() == 0) {
+                /* Diffuse or specular reflection */
 
                 /* Testing whether the ray is reflected specularly or diffusely */
                 if (random_double(scene.rg, 1) <= m.get_specular_proba()) {
                     
                     /* Specular bounce */
 
-                    const double reflectivity = m.get_reflectivity();
-                    const rt::vector central_dir = h.get_central_reflected_direction(reflectivity, inward);
-                    
-                    // Direction according to Lambert's cosine law
-                    if (reflectivity >= 1) {
-                        r.set_direction(central_dir);
-                    }
-                    else {
-                        r.set_direction(
-                            (central_dir +
-                                ((1 - reflectivity) * h.random_direction(scene.rg, central_dir, PI))
-                            ).unit()
-                        );
-                    }
+                    specular_reflective_case(r, h, scene.rg, m.get_reflectivity(), inward);
 
                     /* We update color_materials only if the material reflects colors (like a christmas tree ball),
                        otherwise the reflection has the original color (like a tomato) */
-                    update_accumulators(m, obj, hit_point, scene.texture_set, emitted_colors, color_materials, m.does_reflect_color());
+                    UPDATE_ACC(m.does_reflect_color());
                 }
                 else {
-                    /* Diffuse bounce */
-                    r.set_direction(((inward ? normal : (-1) * normal) + h.random_direction(scene.rg, normal, PI)).unit());
-                    update_accumulators(m, obj, hit_point, scene.texture_set, emitted_colors, color_materials, true);
-                }
 
+                    /* Diffuse bounce */
+
+                    diffuse_case(r, h, scene.rg, inward);
+                    UPDATE_ACC(true);
+                }
+            }
+            else {
+                /* Transmission or reflection, depending on the Fresnel coefficients Kr, Kt
+	               Kr is the probability that the ray is reflected, Kt the probability that the ray is transmitted */
+
+                /* Pre-computation of the refracted direction */
+                const double next_refr_i = inward ? m.get_refraction_index() : 1;
+                double sin_theta_2_sq;
+                const rt::vector vx = h.get_sin_refracted(refr_index, next_refr_i, sin_theta_2_sq);
+
+                /* Computation of the Fresnel coefficient */
+                const double kr = (not inward) ? h.get_fresnel(sin_theta_2_sq, refr_index, next_refr_i) : 0;
+	
+                if (inward && random_double(scene.rg, 1) <= kr * m.get_transparency()) {
+                
+                    /* The ray is reflected */
+                    
+                    /* Is it a pure specular or a mix of specular and diffuse just like in the previous case? */
+                    specular_reflective_case(r, h, scene.rg, m.get_reflectivity(), inward);
+                    UPDATE_ACC(false);
+                }
+                else {
+                    
+                    /* The ray is transmitted */
+
+                    /* Determination of whether the ray is transmitted (refracted) or in total interal reflection */
+                    if (sin_theta_2_sq >= 1) {
+                        /* Total internal reflection */
+
+                        specular_reflective_case(r, h, scene.rg, m.get_reflectivity(), inward);
+                        UPDATE_ACC(false);
+                    }
+                    else {
+                        /* Transmission */
+
+                        refractive_case(r, h, scene.rg, m.get_refraction_scattering(),
+                            vx, sin_theta_2_sq, inward, refr_index, next_refr_i);
+                        UPDATE_ACC(true);
+                    }
+
+                }
             }
         }
         else {
