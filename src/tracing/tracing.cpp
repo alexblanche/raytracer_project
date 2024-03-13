@@ -76,13 +76,15 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
             const rt::vector hit_point = h.get_point();
             const rt::vector normal = h.get_normal();
             const double inward = (r.get_direction() | normal) <= 0;
+            const double next_refr_i = inward ? m.get_refraction_index() : 1;
 
             /* Testing whether the ray is transmitted or reflected on the surface */
             if ((not inward) || random_double(scene.rg, 1) <= m.get_transparency()) {
-
+                /* Transmission or internal reflection */
+                
                 /* Determination of whether the ray is transmitted (refracted) or in total interal reflection */
                 double sin_theta_2_sq;
-                const rt::vector vx = h.get_sin_refracted(refr_index, m.get_refraction_index(), inward, sin_theta_2_sq);
+                const rt::vector vx = h.get_sin_refracted(refr_index, next_refr_i, sin_theta_2_sq);
 
                 if (sin_theta_2_sq >= 1) {
                     /* Total internal reflection */
@@ -124,7 +126,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                     );
 
                     /* Updating the refraction index */
-                    refr_index = inward ? m.get_refraction_index() : 1;
+                    refr_index = next_refr_i;
                     
                     update_accumulators(m, obj, hit_point, scene.texture_set, emitted_colors, color_materials, true);
                 }

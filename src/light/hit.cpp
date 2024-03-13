@@ -172,13 +172,14 @@ rt::vector hit::random_direction(randomgen& rg, const rt::vector& central_dir, c
 /* Returns sin(theta_2), where theta_2 is the refracted angle
    Is precomputed to determine whether the ray is refracted or internally reflected */
 rt::vector hit::get_sin_refracted(const double& current_refr_i, const double& surface_refr_i,
-    const bool inward, double& sin_theta_2_sq) const {
+    double& sin_theta_2_sq) const {
 
     /* See get_refracted_direction below */
-    /* Notice that a*a = 1 */
     const rt::vector dir = generator->get_direction();
-    const rt::vector right_normal = inward ? normal : (-1) * normal;
-    const rt::vector vx = (current_refr_i / surface_refr_i) * ((((-1)*(dir | right_normal)) * right_normal) + dir);
+    /* It should be (current_refr_i / surface_refr_i) * ((((-1)*(dir | right_normal)) * right_normal) + dir)
+       where right_normal = inward ? normal : (-1) * normal,
+       but the next line is equivalent */
+    const rt::vector vx = (current_refr_i / surface_refr_i) * ((((-1)*(dir | normal)) * normal) + dir);
     sin_theta_2_sq = vx.normsq();
     return vx;
 }

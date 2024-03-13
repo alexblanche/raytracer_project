@@ -69,7 +69,7 @@ class hit {
         /* Returns sin(theta_2), where theta_2 is the refracted angle
            Is precomputed to determine whether the ray is refracted or internally reflected */
         rt::vector get_sin_refracted(const double& current_refr_i, const double& surface_refr_i,
-            const bool inward, double& sin_theta_2) const;
+            double& sin_theta_2) const;
 
         /* Returns the refracted direction */
         rt::vector get_refracted_direction(const rt::vector& vx, const double& sin_theta_2, const bool inward) const;
