@@ -80,4 +80,7 @@ class hit {
 
         /* Computes the Fresnel coefficient Kr */
         double get_fresnel(const double& sin_theta_2_sq, const double& refr_1, const double& refr_2) const;
+
+        /* Compute Schlick's approximation of Fresnel coefficient Kr */
+        double get_schlick(const double& refr_1, const double& refr_2) const;
 };

@@ -180,9 +180,10 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                 const rt::vector vx = h.get_sin_refracted(refr_index, next_refr_i, sin_theta_2_sq);
 
                 /* Computation of the Fresnel coefficient */
-                const double kr = (not inward) ? h.get_fresnel(sin_theta_2_sq, refr_index, next_refr_i) : 0;
+                // const double kr = inward ? h.get_fresnel(sin_theta_2_sq, refr_index, next_refr_i) : 0;
+                const double kr = inward ? h.get_schlick(refr_index, next_refr_i) : 0;
 	
-                if (inward && random_double(scene.rg, 1) <= kr * m.get_transparency()) {
+                if (inward && random_double(scene.rg, 1) <= kr) {
                 
                     /* The ray is reflected */
                     

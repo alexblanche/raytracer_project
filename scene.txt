@@ -1,32 +1,26 @@
 resolution width:1366 height:768
-camera position:(0, -280, 0) direction:(0, 0.2, 1) rightdir:(1, 0, 0) fov_width:1366 distance:400
+camera position:(0, -21000, 0) direction:(0, 0.2, 1) rightdir:(1, 0, 0) fov_width:1366 distance:400
 background_color 190 235 255
 triangles_per_bounding 0
 
-# Lights
-material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:2 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-material red_light (color:(255, 255, 255) emitted_color:(255, 10, 10) reflectivity:0 emission:2 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-quad (-800, -850, 800) (-800, -850, 0) (-800, 0, 0) (-800, 0, 800) material:white_light
-quad (800, -850, 800) (800, -850, 0) (800, 0, 0) (800, 0, 800) material:red_light
 
-# Set
-load_texture stripes ../../../raytracer_project/texture_assets/stripes.bmp
-quad (-600,-700,800) (-600,100,800) (600,100,800) (600,-700,800) material:(color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(stripes (0.5,0) (0,0.5) (0.5,1) (1,0.5))
-quad (-600,100,800) (-600,100,400) (600,100,400) (600,100,800) material:(color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(stripes (0.5,0) (0,0.5) (0.5,1) (1,0.5))
+# plane normal:(0, -1, 0) position:(0, 150, 0) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-# Glasses of water
-material myglass (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:1 emission:0 specular_p:1 reflects_color:false transparency:0.9 scattering:0 refraction_index:1.3)
-material mywater (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:1 emission:0 specular_p:1 reflects_color:false transparency:1 scattering:0 refraction_index:1.5)
+# plane normal:(0, 1, 0) position:(0, -600, 0) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.8 emission:0 specular_p:0.5 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-# Glass
-cylinder origin:(-350, 100.1, 600) direction:(0, -1, 0) radius:80 length:300 material:myglass
-cylinder origin:(-350, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:mywater
+load_texture landscape ../../../raytracer_project/texture_assets/landscape.bmp
+load_texture galets ../../../raytracer_project/texture_assets/galets.bmp
+# Vertical
+quad (-200000, -90000, 100000) (-200000, 60000, 100000) (200000, 60000, 100000) (200000, -90000, 100000) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(landscape (0, 0) (0, 1) (1, 1) (1, 0))
+# quad (-200000, -100000000, 100000) (-200000, -90000, 100000) (200000, -90000, 100000) (200000, -100000000, 100000) material:(color:(10, 10, 10) emitted_color:(255, 255, 255) reflectivity:0.2 emission:2 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+# Horizontal
+quad (-100000, 500, 100000) (-100000, 500, 0) (100000, 500, 0) (100000, 500, 100000) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(galets (0, 0) (0, 1) (1, 1) (1, 0))
 
-cylinder origin:(-117, 100.1, 600) direction:(0, -1, 0) radius:80 length:300 material:myglass
-cylinder origin:(-117, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:mywater
+# Lake
+material mywater (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0.98 emission:0 specular_p:1 reflects_color:false transparency:1 scattering:0.05 refraction_index:1.5)
+box center:(0, -10000, 50000) x_axis:(1,0,0) y_axis:(0,1,0) 200000 10499 100000 material:mywater
 
-cylinder origin:(117, 100.1, 600) direction:(0, -1, 0) radius:80 length:300 material:myglass
-cylinder origin:(117, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:mywater
+# sphere center:( 0, -50, 500) radius:200 material:(color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:1 emission:0 specular_p:1 reflects_color:false transparency:1 scattering:0 refraction_index:1.3)
 
-cylinder origin:(350, 100.1, 600) direction:(0, -1, 0) radius:80 length:300 material:myglass
-cylinder origin:(350, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:mywater
+# Sun
+sphere center:(95000, -80000, 100000) radius:10000 material:(color:(255, 255, 255) emitted_color:(253, 251, 211) reflectivity:1 emission:30 specular_p:1 reflects_color:false transparency:0 scattering:0 refraction_index:1)

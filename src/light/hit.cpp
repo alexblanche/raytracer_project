@@ -220,7 +220,7 @@ rt::vector hit::get_random_refracted_direction(randomgen& rg, const double& refr
 /* Computes the Fresnel coefficient Kr */
 double hit::get_fresnel(const double& sin_theta_2_sq, const double& refr_1, const double& refr_2) const {
 
-    const double pdt = (generator->get_direction() | normal);
+    const double pdt = (-1) * (generator->get_direction() | normal);
     const double cos_theta_1 = abs(pdt);
     const double cos_theta_2 = sqrt(1 - sin_theta_2_sq);
 
@@ -228,4 +228,14 @@ double hit::get_fresnel(const double& sin_theta_2_sq, const double& refr_1, cons
     const double para = (refr_2 * cos_theta_2 - refr_1 * cos_theta_1) / (refr_2 * cos_theta_2 + refr_1 * cos_theta_1);
     
     return (para * para + orth * orth) / 2;
+}
+
+/* Compute Schlick's approximation of Fresnel coefficient Kr */
+double hit::get_schlick(const double& refr_1, const double& refr_2) const {
+    const double pdt = (-1) * (generator->get_direction() | normal);
+    const double cos_theta_1 = abs(pdt);
+
+    const double r_zero = pow((refr_1 - refr_2) / (refr_1 + refr_2), 2);
+
+    return r_zero + (1 - r_zero) * pow(1 - cos_theta_1, 5);
 }
