@@ -159,10 +159,11 @@ rt::vector hit::random_direction(randomgen& rg, const rt::vector& central_dir, c
     z = cos(theta)          = 1 - p(1-cos(theta_max))
     */
     const double cos_theta = 1 - p * (1-cos_theta_max);
+    const double sin_theta = sqrt(1 - cos_theta * cos_theta);
 
     return (
-          (cos(phi) * sqrt(1 - cos_theta * cos_theta)) * X
-        + (sin(phi) * sqrt(1 - cos_theta * cos_theta)) * Y
+          (cos(phi) * sin_theta) * X
+        + (sin(phi) * sin_theta) * Y
         + cos_theta * central_dir);
 }
 
@@ -214,7 +215,7 @@ rt::vector hit::get_random_refracted_direction(randomgen& rg, const double& refr
     const rt::vector& vx, const double& sin_theta_2_sq, const bool inward) const {
 
     rt::vector refr_dir = get_refracted_direction(vx, sin_theta_2_sq, inward);
-    return random_direction(rg, refr_dir, refraction_scattering * 3.14159265358979323846);
+    return random_direction(rg, refr_dir, refraction_scattering * 1.57079632679);
 }
 
 /* Computes the Fresnel coefficient Kr */
