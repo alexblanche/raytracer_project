@@ -17,7 +17,7 @@
 
 /* Auxiliary function that updates the color accumulators */
 void update_accumulators(const material& m, const object*& obj, const rt::vector& hit_point,
-    std::vector<const texture*>& texture_set,
+    const std::vector<texture>& texture_set,
     rt::color& emitted_colors, rt::color& color_materials,
     const bool update_color_materials) {
 
@@ -46,12 +46,7 @@ void update_accumulators(const material& m, const object*& obj, const rt::vector
 void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& normal,
     const bool inward, const bool outward_bias) {
 
-    if (outward_bias) {
-        r.set_origin(hit_point + (inward ? 0.001*normal : (-0.001)*normal));
-    }
-    else {
-        r.set_origin(hit_point + (inward ? (-0.001)*normal : 0.001*normal));
-    }
+    r.set_origin(hit_point + ((inward == outward_bias) ? 0.001*normal : (-0.001)*normal));
 }
 
 
@@ -139,7 +134,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
 
         if (h.object_hit()) {
             const object* obj = h.get_object();
-            const material m = obj->get_material();
+            material m = scene.material_set.at(obj->get_material_index());
 
             /* Full-intensity light source reached */
             if (m.get_emission_intensity() >= 1) {

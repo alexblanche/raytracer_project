@@ -52,14 +52,11 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix,
     PARALLEL_FOR_BEGIN(scene.width) {
 
         for (int j = 0; j < scene.height; j++) {
-            
-            // const rt::vector& direct = (rt::vector(i, j, scene.distance) - scene.screen_center).unit();
-            // ray r = ray(scene.position, direct);
-            ray r = scene.cam.gen_ray(i, j);
 
-            const rt::color& pixel_col = pathtrace(r, scene, number_of_bounces);
+            ray r = scene.cam.gen_ray(i, j);
+            const rt::color pixel_col = pathtrace(r, scene, number_of_bounces);
             
-            const rt::color& current_color = matrix.at(i).at(j);
+            const rt::color current_color = matrix.at(i).at(j);
             const rt::color new_color = current_color + pixel_col;
             // cpt += 1;
 

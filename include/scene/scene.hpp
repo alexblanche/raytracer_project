@@ -20,10 +20,10 @@ class scene {
         std::vector<const bounding*> bounding_set;
 
         /* Set containing all the textures from the scene */
-        std::vector<const texture> texture_set;
+        std::vector<texture> texture_set;
 
         /* Set containing all the materials from the scene */
-        std::vector<const material> material_set;
+        std::vector<material> material_set;
 
 
         // Color of the background
@@ -47,8 +47,8 @@ class scene {
         /* Main constructor */
         scene(const std::vector<const object*>& object_set,
             const std::vector<const bounding*>& bounding_set,
-            const std::vector<const texture>& texture_set,
-            const std::vector<const material>& material_set,
+            const std::vector<texture>& texture_set,
+            const std::vector<material>& material_set,
             const rt::color& background,
             const int width, const int height,
             const camera& cam,

@@ -15,18 +15,18 @@ quad (-600,-700,800) (-600,100,800) (600,100,800) (600,-700,800) material:(color
 quad (-600,100,800) (-600,100,400) (600,100,400) (600,100,800) material:(color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(stripes (0.5,0) (0,0.5) (0.5,1) (1,0.5))
 
 # Glasses of water
-material myglass (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:1 emission:0 specular_p:1 reflects_color:false transparency:0.2 scattering:0 refraction_index:1.3)
-material mywater (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:1 emission:0 specular_p:1 reflects_color:false transparency:1 scattering:0 refraction_index:1.5)
+# material myglass (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:1 emission:0 specular_p:1 reflects_color:false transparency:0.2 scattering:0 refraction_index:1.3)
+# material mywater (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:1 emission:0 specular_p:1 reflects_color:false transparency:1 scattering:0 refraction_index:1.5)
 
 # Glass
-cylinder origin:(-350, 100.1, 600) direction:(0, -1, 0) radius:80 length:300 material:myglass
-cylinder origin:(-350, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:mywater
+cylinder origin:(-350, 100.1, 600) direction:(0, -1, 0) radius:80 length:300 material:glass
+cylinder origin:(-350, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:water
 
-cylinder origin:(-117, 100.1, 600) direction:(0, -1, 0) radius:80 length:300 material:myglass
-cylinder origin:(-117, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:mywater
+cylinder origin:(-117, 100.1, 600) direction:(0, -1, 0) radius:80 length:300 material:glass
+cylinder origin:(-117, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:water
 
-cylinder origin:(117, 100.1, 600) direction:(0, -1, 0) radius:80 length:300 material:myglass
-cylinder origin:(117, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:mywater
+cylinder origin:(117, 100.1, 600) direction:(0, -1, 0) radius:80 length:300 material:glass
+cylinder origin:(117, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:water
 
-cylinder origin:(350, 100.1, 600) direction:(0, -1, 0) radius:80 length:300 material:myglass
-cylinder origin:(350, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:mywater
+cylinder origin:(350, 100.1, 600) direction:(0, -1, 0) radius:80 length:300 material:glass
+cylinder origin:(350, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:water

@@ -26,8 +26,8 @@ const double infinity = real.infinity();
 
 scene::scene(const std::vector<const object*>& object_set,
     const std::vector<const bounding*>& bounding_set,
-    const std::vector<const texture>& texture_set,
-    const std::vector<const material>& material_set,
+    const std::vector<texture>& texture_set,
+    const std::vector<material>& material_set,
     const rt::color& background,
     const int width, const int height,
     const camera& cam,
@@ -68,17 +68,18 @@ const material parse_material(FILE* file) {
     return material(rt::color(r, g, b), rt::color(er, eg, eb), refl, em_int, spec_p, refl_color, transp, scattering, refr_i);;
 }
 
-/* Auxiliary function: parses the name of a material and returns the material associated with it,
-   or parses and returns a new material */
-const material get_material(FILE* file, const std::vector<string>& mat_names, std::vector<const material>& material_set) {
+/* Auxiliary function: parses the name of a material and returns its index in material_set,
+   or parses a new material, stores it in material_set and returns its index */
+unsigned int get_material(FILE* file, const std::vector<string>& mat_names, std::vector<material>& material_set) {
     const long int position = ftell(file);
 
     const char firstchar = fgetc(file);
     if (firstchar == '(') {
         // material declaration
         const material m = parse_material(file);
+        const unsigned int m_i = material_set.size();
         material_set.push_back(m);
-        return m;
+        return m_i;
     }
     else {
         // Moving back the pointer back by one position
@@ -90,7 +91,7 @@ const material get_material(FILE* file, const std::vector<string>& mat_names, st
         
         if (ret != 1) {
             printf("Parsing error in get_material\n");
-            return material();
+            return ((unsigned int) -1);
         }
 
         unsigned int vindex = -1;
@@ -102,10 +103,10 @@ const material get_material(FILE* file, const std::vector<string>& mat_names, st
         }
         if (vindex == ((unsigned) -1)) {
             printf("Error, material %s not found.\n", vname);
-            return material();
+            return ((unsigned int) -1);
         }
         else {
-            return material_set.at(vindex);
+            return vindex;
         }
     }
 }
@@ -114,13 +115,16 @@ const material get_material(FILE* file, const std::vector<string>& mat_names, st
    set up the material m with said info
    is_triangle is true if the object is a triangle (in this case, 3 uv points are parsed),
    and false if it is a quad (4 uv points are parsed) */
-const material parse_texture_info(FILE* file, const std::vector<string>& texture_names, const material& base_mat, bool is_triangle) {
+unsigned int parse_texture_info(FILE* file,
+    std::vector<material>& material_set, const std::vector<string>& texture_names,
+    const material& base_mat, bool is_triangle) {
+
     const long int position = ftell(file);
     char keyword[8];
     const int ret = fscanf(file, "%7s", keyword);
     if (ret != 1) {
         printf("Parsing error in parse_texture_info (keyword texture)\n");
-        return material();
+        return ((unsigned int) -1);
     }
 
     if (strcmp(keyword, "texture") == 0) {
@@ -129,7 +133,7 @@ const material parse_texture_info(FILE* file, const std::vector<string>& texture
         const int ret2 = fscanf(file, ":(%64s", t_name);
         if (ret2 != 1) {
             printf("Parsing error in parse_texture_info (texture name)\n");
-            return material();
+            return ((unsigned int) -1);
         }
 
         unsigned int vindex = -1;
@@ -141,7 +145,7 @@ const material parse_texture_info(FILE* file, const std::vector<string>& texture
         }
         if (vindex == ((unsigned) -1)) {
             printf("Error, texture %s not found\n", t_name);
-            return material();
+            return ((unsigned int) -1);
         }
 
         if (is_triangle) {
@@ -149,28 +153,33 @@ const material parse_texture_info(FILE* file, const std::vector<string>& texture
                 &u0, &v0, &u1, &v1, &u2, &v2);
             if (ret3 != 6) {
                 printf("Parsing error in parse_texture_info (triangle UV-coordinates)\n");
-                return material();
+                return ((unsigned int) -1);
             }
 
-
-            return material(base_mat, vindex, {u0, v0, u1, v1, u2, v2});
+            const material m = material(base_mat, vindex, {u0, v0, u1, v1, u2, v2});
+            const unsigned int m_i = material_set.size();
+            material_set.push_back(m);
+            return m_i;
         }
         else {
             const int ret3 = fscanf(file, " (%lf,%lf) (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
                 &u0, &v0, &u1, &v1, &u2, &v2, &u3, &v3);
             if (ret3 != 8) {
                 printf("Parsing error in parse_texture_info (quad UV-coordinates)\n");
-                return material();
+                return ((unsigned int) -1);
             }
 
-            return material(base_mat, vindex, {u0, v0, u1, v1, u2, v2, u3, v3});
+            const material m = material(base_mat, vindex, {u0, v0, u1, v1, u2, v2, u3, v3});
+            const unsigned int m_i = material_set.size();
+            material_set.push_back(m);
+            return m_i;
         }
     }
     else {
         // No texture info, setting the position back before the keyword
         fseek(file, position, SEEK_SET);
+        return ((unsigned int) -1);
     }
-    return material();
 }
 
 
@@ -286,7 +295,7 @@ scene::scene(const char* file_name, bool& creation_successful)
     /* The name of the material is stored at index i of mat_names, and the associated material at index i of mat_content */
     std::vector<string> mat_names = {"diffuse", "mirror", "glass", "water"};
 
-    std::vector<const material> material_set = {material::DIFFUSE, material::MIRROR, material::GLASS, material::WATER};
+    material_set = {material::DIFFUSE, material::MIRROR, material::GLASS, material::WATER};
     
 
     /* Texture storage */
@@ -369,9 +378,9 @@ scene::scene(const char* file_name, bool& creation_successful)
                 creation_successful = false;
                 break;
             }
-            const material m = get_material(file, mat_names, material_set);
+            const unsigned int m_index = get_material(file, mat_names, material_set);
             object_set.push_back(
-                new sphere(rt::vector(x, y, z), r, &m)
+                new sphere(rt::vector(x, y, z), r, m_index)
             );
         }
         else if (strcmp(s, "plane") == 0) {
@@ -385,9 +394,9 @@ scene::scene(const char* file_name, bool& creation_successful)
                 creation_successful = false;
                 break;
             }
-            const material m = get_material(file, mat_names, material_set);
+            const unsigned int m_index = get_material(file, mat_names, material_set);
             object_set.push_back(
-                new plane(nx, ny, nz, rt::vector(px, py, pz), &m)
+                new plane(nx, ny, nz, rt::vector(px, py, pz), m_index)
             );
         }
         else if (strcmp(s, "box") == 0) {
@@ -403,12 +412,12 @@ scene::scene(const char* file_name, bool& creation_successful)
                 creation_successful = false;
                 break;
             }
-            const material m = get_material(file, mat_names, material_set);
+            const unsigned int m_index = get_material(file, mat_names, material_set);
             object_set.push_back(
                 new box(rt::vector(cx, cy, cz),
                     rt::vector(n1x, n1y, n1z).unit(),
                     rt::vector(n2x, n2y, n2z).unit(),
-                    l1, l2, l3, &m)
+                    l1, l2, l3, m_index)
             );
         }
         else if (strcmp(s, "triangle") == 0) {
@@ -423,15 +432,13 @@ scene::scene(const char* file_name, bool& creation_successful)
                 creation_successful = false;
                 break;
             }
-            const material base_mat = get_material(file, mat_names, material_set);
-            const material m = parse_texture_info(file, texture_names, base_mat, true);
-            /* Storing the new textured material */
-            material_set.push_back(m);
+            const unsigned int base_mat_index = get_material(file, mat_names, material_set);
+            const unsigned int m_index = parse_texture_info(file, material_set, texture_names, material_set.at(base_mat_index), true);
             object_set.push_back(
                 new triangle(rt::vector(x0, y0, z0),
                     rt::vector(x1, y1, z1),
                     rt::vector(x2, y2, z2),
-                    &m)
+                    (m_index != (unsigned int) -1) ? m_index : base_mat_index)
             );
         }
         else if (strcmp(s, "quad") == 0) {
@@ -447,15 +454,14 @@ scene::scene(const char* file_name, bool& creation_successful)
                 creation_successful = false;
                 break;
             }
-            const material base_mat = get_material(file, mat_names, material_set);
-            const material m = parse_texture_info(file, texture_names, base_mat, false);
-            material_set.push_back(m);
+            const unsigned int base_mat_index = get_material(file, mat_names, material_set);
+            const unsigned int m_index = parse_texture_info(file, material_set, texture_names, material_set.at(base_mat_index), false);
             object_set.push_back(
                 new quad(rt::vector(x0, y0, z0),
                     rt::vector(x1, y1, z1),
                     rt::vector(x2, y2, z2),
                     rt::vector(x3, y3, z3),
-                    &m)
+                    (m_index != (unsigned int) -1) ? m_index : base_mat_index)
             );
         }
         else if (strcmp(s, "cylinder") == 0) {
@@ -470,10 +476,10 @@ scene::scene(const char* file_name, bool& creation_successful)
                 creation_successful = false;
                 break;
             }
-            const material m = get_material(file, mat_names, material_set);
+            const unsigned int m_index = get_material(file, mat_names, material_set);
             object_set.push_back(
                 new cylinder(rt::vector(x0, y0, z0), rt::vector(dx, dy, dz).unit(),
-                    r, l, &m)
+                    r, l, m_index)
             );
         }
 

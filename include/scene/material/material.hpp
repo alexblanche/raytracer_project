@@ -156,7 +156,7 @@ class material {
 
         /* Returns the color of the pixel associated with UV-coordinates u, v */
         rt::color get_texture_color(const double& l1, const double& l2, const bool lower_triangle,
-            const std::vector<const texture*>& texture_set) const;
+            const std::vector<texture>& texture_set) const;
 };
 
 /* Specific constructors */

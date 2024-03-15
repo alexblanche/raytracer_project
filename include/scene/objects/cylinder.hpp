@@ -21,7 +21,7 @@ class cylinder : public object {
 
         cylinder(const rt::vector& origin, const rt::vector& direction,
             const double radius, const double length,
-            const material* material);
+            const unsigned int material_index);
 
         /* Accessors */
 
