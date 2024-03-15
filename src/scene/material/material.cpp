@@ -78,12 +78,12 @@ void material::get_barycenter(const double& l1, const double& l2, const bool low
     double& u, double& v) const {
 
     if (uv_coordinates.size() == 6 || lower_triangle) {
-        // Triangles or Quads with (u0, v0), (u1, v1), (u2, v3) considered
+        // Triangles or Quads with (u0, v0), (u1, v1), (u2, v2) considered
         u = (1 - l1 - l2) * uv_coordinates.at(0) + l1 * uv_coordinates.at(2) + l2 * uv_coordinates.at(4);
         v = (1 - l1 - l2) * uv_coordinates.at(1) + l1 * uv_coordinates.at(3) + l2 * uv_coordinates.at(5);
     }
     else {
-        // Quads with (u0, v0), (u3, v3), (u2, v3) (in this order) considered
+        // Quads with (u0, v0), (u3, v3), (u2, v2) (in this order) considered
         u = (1 - l1 - l2) * uv_coordinates.at(0) + l1 * uv_coordinates.at(6) + l2 * uv_coordinates.at(4);
         v = (1 - l1 - l2) * uv_coordinates.at(1) + l1 * uv_coordinates.at(7) + l2 * uv_coordinates.at(5);
     }

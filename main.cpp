@@ -115,11 +115,18 @@ int main(int argc, char *argv[]) {
        ./main.exe [number of bounces] [time]
 
        The first argument is the maximum number of bounces wanted (2 by default).
+
        If the string "time" is provided as a second argument, the time taken for each render
        (one ray per pixel) complete will be measured and displayed.
+
+       If the string "-rays" is provided as a second argument instead, the third argument
+       should be an integer: an image will be generated with the given number of rays per pixel,
+       and exported to image.bmp
      */
     unsigned int number_of_bounces = 2;
     bool time_enabled = false;
+    bool interactive = true;
+    unsigned int target_number_of_rays = 0;
 
     if (argc == 1) {
         printf("Number of bounces: %u (default)\n", number_of_bounces);
@@ -133,9 +140,17 @@ int main(int argc, char *argv[]) {
         if (strcmp(argv[2], "time") == 0) {
             time_enabled = true;
         }
+        else if (strcmp(argv[2], "-rays") == 0) {
+            if (argc == 4) {
+                interactive = false;
+                target_number_of_rays = atoi(argv[3]);
+            }
+            else {
+                printf("Error, wrong number of arguments\n");
+                return EXIT_FAILURE;
+            }
+        }
     }
-    
-    // printf("Initialization...\n");
 
     /* *************************** */
     /* Scene description */
@@ -159,6 +174,36 @@ int main(int argc, char *argv[]) {
 
     /* Definition of the matrix in which we will write the image */
     vector<vector<rt::color>> matrix(scene.width, vector<rt::color>(scene.height));
+
+
+    /* Generating an image of target_number_of_rays rays */
+
+    if (not interactive) {
+
+        printf("Rendering...\n");
+        printf("0 / %u", target_number_of_rays);
+        
+        for (unsigned int i = 0; i < target_number_of_rays; i++) {
+            render_loop_parallel(matrix, scene, number_of_bounces, false);
+            if (i % 10 == 0) {
+                printf("\r%u / %u", i, target_number_of_rays);
+            }
+        }
+
+        printf("%u / %u", target_number_of_rays, target_number_of_rays);
+        const bool success_bmp = write_bmp("image.bmp", matrix, target_number_of_rays);
+        if (success_bmp) {
+            printf(" Saved as image.bmp\n");
+        }
+        else {
+            printf("Save failed\n");
+            return EXIT_FAILURE;
+        }
+        return EXIT_SUCCESS;
+    }
+
+
+    /* Interactive mode */
 
     printf("Initialization complete, computing the first ray...");
     fflush(stdout);

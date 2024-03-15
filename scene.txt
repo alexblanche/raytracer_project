@@ -1,5 +1,5 @@
 resolution width:1366 height:768
-camera position:(-1000, -21000, 0) direction:(0, 0.2, 1) rightdir:(1, 0, 0) fov_width:1366 distance:400
+camera position:(0, 150, 0) direction:(0, 0.06, 1) rightdir:(1, 0, 0) fov_width:1366 distance:400
 background_color 190 235 255
 triangles_per_bounding 0
 
@@ -15,19 +15,27 @@ load_texture galets ../../../raytracer_project/texture_assets/galets.bmp
 quad (-200000, -90000, 100000) (-200000, 60000, 100000) (200000, 60000, 100000) (200000, -90000, 100000) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(landscape (0, 0) (0, 1) (1, 1) (1, 0))
 # quad (-200000, -100000000, 100000) (-200000, -90000, 100000) (200000, -90000, 100000) (200000, -100000000, 100000) material:(color:(10, 10, 10) emitted_color:(255, 255, 255) reflectivity:0.2 emission:2 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-# Bottom
-# quad (-100000, -14000, 100000) (-100000, -18000, 0) (100000, -18000, 0) (100000, -14000, 100000) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(galets (0, 0) (0, 1) (1, 1) (1, 0))
+# ######################################################################################################################
 
-# quad (-100000, 500, 50000) (-100000, 500, 0) (0, 500, 0) (0, 500, 50000) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(galets (0, 0) (0, 1) (1, 1) (1, 0))
-# quad (0, 500, 50000) (0, 500, 0) (100000, 500, 0) (100000, 500, 50000) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(galets (0, 0) (0, 1) (1, 1) (1, 0))
-quad (-50000, 500, 50000) (-50000, 500, 0) (50000, 500, 0) (50000, 500, 50000) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(galets (0, 0) (0, 1) (1, 1) (1, 0))
-quad (-100000, 501, 100000) (-100000, 501, 0) (0, 501, 0) (0, 501, 100000) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(galets (0, 0) (0, 1) (1, 1) (1, 0))
-quad (0, 501, 100000) (0, 501, 0) (100000, 501, 0) (100000, 501, 100000) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(galets (0, 0) (0, 1) (1, 1) (1, 0))
+# Bottom
+quad (-500, 500, 1000) (-500, 500, 0) (500, 500, 0) (500, 500, 1000) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(galets (0, 0) (0, 1) (1, 1) (1, 0))
+quad (-1500, 500, 1000) (-1500, 500, 0) (-500, 500, 0) (-500, 500, 1000) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(galets (0, 0) (0, 1) (1, 1) (1, 0))
+quad (500, 500, 1000) (500, 500, 0) (1500, 500, 0) (1500, 500, 1000) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(galets (0, 0) (0, 1) (1, 1) (1, 0))
+
+quad (-500, 700, 4000) (-500, 500, 1000) (500, 500, 1000) (500, 700, 4000) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(galets (0, 0) (0, 1) (1, 1) (1, 0))
+quad (-1500, 700, 4000) (-1500, 500, 1000) (-500, 500, 1000) (-500, 700, 4000) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(galets (0, 0) (0, 1) (1, 1) (1, 0))
+quad (500, 700, 4000) (500, 500, 1000) (1500, 500, 1000) (1500, 700, 4000) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(galets (0, 0) (0, 1) (1, 1) (1, 0))
+
+# quad (-1500, 500, 4000) (-1500, 500, 1000) (500, 500, 1000) (1500, 500, 4000) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(galets (0, 0) (0, 1) (1, 1) (1, 0))
+
+
+plane normal:(0, -1, 0) position:(0, 800, 0) material:(color:(140, 140, 140) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+
+# ######################################################################################################################
 
 # Lake
-material mywater (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0.98 emission:0 specular_p:1 reflects_color:false transparency:1 scattering:0.005 refraction_index:1.5)
-# box center:(0, -10000, 50000) x_axis:(1,0,0) y_axis:(0,1,0) 200000 10499 100000 material:mywater
-plane normal:(0, -1, 0) position:(0, -20000, 0) material:mywater
+material mywater (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0.985 emission:0 specular_p:0 reflects_color:false transparency:1 scattering:0.012 refraction_index:1.5)
+plane normal:(0, -1, 0) position:(0, 280, 0) material:mywater
 
 # sphere center:( 0, -50, 500) radius:200 material:(color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:1 emission:0 specular_p:1 reflects_color:false transparency:1 scattering:0 refraction_index:1.3)
 
