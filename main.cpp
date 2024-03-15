@@ -190,7 +190,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        printf("%u / %u", target_number_of_rays, target_number_of_rays);
+        printf("\r%u / %u", target_number_of_rays, target_number_of_rays);
         const bool success_bmp = write_bmp("image.bmp", matrix, target_number_of_rays);
         if (success_bmp) {
             printf(" Saved as image.bmp\n");

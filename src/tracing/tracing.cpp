@@ -5,6 +5,7 @@
 #include "scene/scene.hpp"
 #include "scene/objects/bounding.hpp"
 #include "scene/material/texture.hpp"
+#include <stack>
 
 #define PI 3.14159265358979323846
 
@@ -125,9 +126,12 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
 
     rt::color color_materials = rt::color::WHITE;
     rt::color emitted_colors = rt::color::BLACK;
+    
     double refr_index = 1;
+    std::stack<double> refr_stack;
 
     const bool bounding_method = scene.triangles_per_bounding != 0;
+
 
     for (unsigned int i = 0; i < bounce; i++) {
         
@@ -174,8 +178,16 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                 /* Transmission or reflection, depending on the Fresnel coefficients Kr, Kt
 	               Kr is the probability that the ray is reflected, Kt the probability that the ray is transmitted */
 
+                /* Computation of the new refraction index */
+                const double next_refr_i = inward ? m.get_refraction_index() : (refr_stack.empty() ? 1 : refr_stack.top());
+                if (inward) {
+                    refr_stack.push(next_refr_i);
+                }
+                else if (not refr_stack.empty()) {
+                    refr_stack.pop();
+                }
+
                 /* Pre-computation of the refracted direction */
-                const double next_refr_i = inward ? m.get_refraction_index() : 1;
                 double sin_theta_2_sq;
                 const rt::vector vx = h.get_sin_refracted(refr_index, next_refr_i, sin_theta_2_sq);
 
