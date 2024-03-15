@@ -4,9 +4,9 @@
 /* Constructors */
 
 object::object()
-    : position(rt::vector()), mat(material()) {}
+    : position(rt::vector()), mat(NULL) {}
 
-object::object(const rt::vector& position, const material& m)
+object::object(const rt::vector& position, const material* m)
     : position(position), mat(m) {}
 
 

@@ -9,7 +9,7 @@ class object {
     
     protected:
         rt::vector position;
-        material mat;
+        const material* mat;
 
     public:
 
@@ -19,7 +19,7 @@ class object {
 
         object();
 
-        object(const rt::vector& pos, const material& m);
+        object(const rt::vector& pos, const material* m);
 
         /* Accessors */
 
@@ -27,8 +27,8 @@ class object {
             return position;
         }
 
-        inline material get_material() const {
-            return mat;
+        inline const material get_material() const {
+            return *mat;
         }
 
         

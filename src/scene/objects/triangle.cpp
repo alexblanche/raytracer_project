@@ -15,7 +15,7 @@ triangle::triangle() : normal(rt::vector()), v1(rt::vector()), v2(rt::vector()),
         
 // Constructor from three points
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, 
-    const material& material)
+    const material* material)
 
     : object(p0, material) {
 
@@ -32,7 +32,7 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
 // Constructor from three points with vertex normals
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
     const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
-    const material& material)
+    const material* material)
 
     : object(p0, material), vn0(vn0.unit()), vn1(vn1.unit()), vn2(vn2.unit()) {
     

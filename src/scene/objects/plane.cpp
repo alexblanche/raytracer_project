@@ -18,7 +18,7 @@ plane::plane() : a(0), b(0), c(0), d(0) {}
  defined by 4 doubles a,b,c,d */
 /* The normal vector (a, b, c) is a unit vector */
 plane::plane(const double pa, const double pb, const double pc, const double pd,
-    const material& material)
+    const material* material)
     
     : object(rt::vector(), material) {
 
@@ -45,7 +45,7 @@ plane::plane(const double pa, const double pb, const double pc, const double pd,
 
 /* Constructor of a plane of normal vector (a,b,c) and touching the point v */
 plane::plane(const double pa, const double pb, const double pc, const rt::vector& position,
-    const material& material)
+    const material* material)
 
     : object(position, material) {
 

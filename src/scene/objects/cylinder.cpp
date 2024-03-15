@@ -14,7 +14,7 @@ cylinder::cylinder()
     : radius(0), length(0) {}
 
 cylinder::cylinder(const rt::vector& origin, const rt::vector& direction,
-    const double radius, const double length, const material& material)
+    const double radius, const double length, const material* material)
 
     : object(origin, material),
         direction(direction), radius(radius), length(length) {}

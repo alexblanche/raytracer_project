@@ -7,9 +7,10 @@
 
 /* Static element */
 
+const material material::DIFFUSE = material(rt::color(255,255,255), 0);
 const material material::MIRROR = material(rt::color(255,255,255), 1);
-const material material::GLASS = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 0.9, 0, 1.3);
-// const material material::WATER = material();
+const material material::GLASS = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 0.2, 0, 1.3);
+const material material::WATER = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 1, 0, 1.5);
 
 
 /* Constructors */
@@ -53,6 +54,15 @@ material::material(const rt::color& color, const rt::color& emitted_color,
         specular_probability(specular_probability), reflects_color(reflects_color),
         transparency(transparency), refraction_scattering(refraction_scattering),
         refraction_index(refraction_index),
+        textured(true), texture_index(texture_index), uv_coordinates(uv_coordinates) {}
+
+material::material(const material& m, const unsigned int texture_index, const std::vector<double>& uv_coordinates)
+    
+    : color(m.color), reflectivity(m.reflectivity),
+        emitted_color(m.emitted_color), emission_intensity(m.emission_intensity),
+        specular_probability(m.specular_probability), reflects_color(m.reflects_color),
+        transparency(m.transparency), refraction_scattering(m.refraction_scattering),
+        refraction_index(m.refraction_index),
         textured(true), texture_index(texture_index), uv_coordinates(uv_coordinates) {}
 
 

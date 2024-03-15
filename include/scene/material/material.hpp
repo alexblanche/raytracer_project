@@ -61,9 +61,10 @@ class material {
     public:
 
         /* Mirror surface */
+        static const material DIFFUSE;
         static const material MIRROR;
         static const material GLASS;
-        // static const material WATER;
+        static const material WATER;
 
 
         /* Constructors */
@@ -88,6 +89,9 @@ class material {
             const double& refraction_index_in,
             const unsigned int texture_index, const std::vector<double>& uv_coordinates);
 
+        /* Constructor by copy and texture settings */
+        material(const material& m, const unsigned int texture_index,
+            const std::vector<double>& uv_coordinates);
 
 
         /* Accessors */
