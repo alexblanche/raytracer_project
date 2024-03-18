@@ -1,5 +1,4 @@
 #include "scene/material/material.hpp"
-#include "scene/material/texture.hpp"
 #include "screen/color.hpp"
 
 #include <vector>
@@ -38,31 +37,6 @@ material::material(const rt::color& color, const rt::color& emitted_color,
         specular_probability(specular_probability), reflects_color(reflects_color),
         transparency(transparency), refraction_scattering(refraction_scattering),
         refraction_index(refraction_index) {}
-
-/*
-material::material(const rt::color& color, const rt::color& emitted_color,
-    const double& reflectivity, const double& emission_intensity,
-    const double& specular_probability, const bool reflects_color,
-    const double& transparency, const double& refraction_scattering,
-    const double& refraction_index,
-    const unsigned int texture_index, const std::vector<double>& uv_coordinates)
-
-    : color(color), reflectivity(reflectivity),
-        emitted_color(emitted_color), emission_intensity(emission_intensity),
-        specular_probability(specular_probability), reflects_color(reflects_color),
-        transparency(transparency), refraction_scattering(refraction_scattering),
-        refraction_index(refraction_index),
-        textured(true), texture_index(texture_index), uv_coordinates(uv_coordinates) {}
-
-material::material(const material& m, const unsigned int texture_index, const std::vector<double>& uv_coordinates)
-    
-    : color(m.color), reflectivity(m.reflectivity),
-        emitted_color(m.emitted_color), emission_intensity(m.emission_intensity),
-        specular_probability(m.specular_probability), reflects_color(m.reflects_color),
-        transparency(m.transparency), refraction_scattering(m.refraction_scattering),
-        refraction_index(m.refraction_index),
-        textured(true), texture_index(texture_index), uv_coordinates(uv_coordinates) {}
-*/
 
 
 /* Specific constructors */

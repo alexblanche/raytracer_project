@@ -15,6 +15,8 @@
 #include "scene/material/material.hpp"
 #include "scene/material/texture.hpp"
 
+#include "file_readers/obj_parser.hpp"
+
 #include <stdio.h>
 #include <string.h>
 #include <string>
@@ -145,7 +147,7 @@ texture_info parse_texture_info(FILE* file,
                 break;
             }
         }
-        if (vindex == ((unsigned) -1)) {
+        if (vindex == ((unsigned int) -1)) {
             printf("Error, texture %s not found\n", t_name);
             textured = false;
             return texture_info();
@@ -287,6 +289,13 @@ scene::scene(const char* file_name, bool& creation_successful)
     material:(...) texture:(t1 (0.2, 0.8) (0.5, 0.15) (0.7, 0.65)) (3 points for a triangle, 4 for a quad)
     or
     material:m1 texture:(...)
+
+    - An obj file can be loaded with its file name and one material (multiple materials support to be added later)
+      Mtl files are not yet supported, textures must be loaded beforehand, with the same name as in the associated mtl file.
+
+      material wood_mat (...)
+      load_texture wood wood_texture.bmp
+      load_obj wooden_table.bmp material:wood_mat
 
     - A line can be commented by adding a "#" and a space at the beginning of the line:
     # sphere [...]
@@ -507,6 +516,30 @@ scene::scene(const char* file_name, bool& creation_successful)
                 new cylinder(rt::vector(x0, y0, z0), rt::vector(dx, dy, dz).unit(),
                     r, l, m_index)
             );
+        }
+
+        /* Obj file parsing */
+        else if (strcmp(s, "load_obj") == 0) {
+            char ofile_name[65];
+            ret = fscanf(file, " %64s material:", ofile_name);
+            if (ret != 1) {
+                printf("Parsing error in scene constructor (obj file loading)\n");
+                creation_successful = false;
+                break;
+            }
+
+            const unsigned int m_index = get_material(file, mat_names, material_set);
+            const bool parsing_successful = parse_obj_file(ofile_name, object_set, m_index, texture_names);
+
+            if (parsing_successful) {
+                // printf("%s obj file loaded\n", ofile_name);
+                // Handled in the parsing function
+            }
+            else {
+                printf("%s obj file reading failed\n", ofile_name);
+                creation_successful = false;
+                break;
+            }
         }
 
         /* Parsing error */

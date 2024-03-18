@@ -23,14 +23,12 @@ namespace rt {
 	 */
 	struct vector {
 		
-		double x;
-		double y;
-		double z;
+		double x, y ,z;
 	
 		// Constructors
-		vector() : x(0.0), y(0.0), z(0.0) {}
+		vector() : x(0), y(0), z(0) {}
 
-		vector(const double a, const double b, const double c) : x(a), y(b), z(c) {}
+		vector(const double& a, const double& b, const double& c) : x(a), y(b), z(c) {}
 
 		/**
 		 * Comparison

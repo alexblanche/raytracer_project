@@ -2,7 +2,6 @@
 
 #include <vector>
 #include "screen/color.hpp"
-#include "texture.hpp"
 
 class material {
     
@@ -66,21 +65,6 @@ class material {
             const double& transparency, const double& refraction_scattering,
             const double& refraction_index_in);
 
-        /* Obsolete, to be deleted
-        * Main constructor with added texture *
-        material(const rt::color& color, const rt::color& emitted_color,
-            const double& reflectivity, const double& emission_intensity,
-            const double& specular_probability, const bool reflects_color,
-            const double& transparency, const double& refraction_scattering,
-            const double& refraction_index_in,
-            const unsigned int texture_index, const std::vector<double>& uv_coordinates);
-        
-
-        * Constructor by copy and texture settings *
-        material(const material& m, const unsigned int texture_index,
-            const std::vector<double>& uv_coordinates);
-        */
-
 
         /* Accessors */
 
@@ -119,18 +103,6 @@ class material {
         inline double get_refraction_index() const {
             return refraction_index;
         }
-
-
-        /* Mutators */
-
-        /* Obsolete, to be deleted */
-        /*
-        void set_texture(const unsigned int i, const std::vector<double>& uv_coord) {
-            textured = true;
-            texture_index = i;
-            uv_coordinates = uv_coord;
-        }
-        */
 };
 
 /* Specific constructors */
