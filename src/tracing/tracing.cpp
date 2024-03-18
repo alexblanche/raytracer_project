@@ -2,6 +2,7 @@
 #include "light/ray.hpp"
 #include "screen/color.hpp"
 #include "scene/objects/object.hpp"
+#include "scene/objects/polygon.hpp"
 #include "scene/scene.hpp"
 #include "scene/objects/bounding.hpp"
 #include "scene/material/texture.hpp"
@@ -27,12 +28,12 @@ void update_accumulators(const material& m, const object*& obj, const rt::vector
     emitted_colors = emitted_colors + (color_materials * emitted_light);
     
     if (update_color_materials) {
-        if (m.is_textured()) {
-            // Only triangles and quads can be textured (for now)
+        if (obj->is_textured()) {
+            // Only polygons (triangles and quads) can be textured (for now)
             double l1, l2;
-            const bool lower_triangle = obj->get_barycentric(hit_point, l1, l2);
+            const bool lower_triangle = static_cast<const polygon*>(obj)->get_barycentric(hit_point, l1, l2);
 
-            color_materials = color_materials * m.get_texture_color(l1, l2, lower_triangle, texture_set);
+            color_materials = color_materials * static_cast<const polygon*>(obj)->info.get_texture_color(l1, l2, lower_triangle, texture_set);
         }
         else {
             color_materials = color_materials * m.get_color();

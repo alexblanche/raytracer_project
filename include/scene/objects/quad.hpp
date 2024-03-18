@@ -1,13 +1,14 @@
 #pragma once
 
 #include "object.hpp"
+#include "polygon.hpp"
 #include "plane.hpp"
 
 #include "light/vector.hpp"
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
 
-class quad : public object {
+class quad : public polygon {
     
     private:
     
@@ -35,6 +36,14 @@ class quad : public object {
         quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
             const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
             const unsigned int material_index);
+
+        // Constructors for textured quads
+        quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
+            const unsigned int material_index, const texture_info& info);
+
+        quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
+            const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
+            const unsigned int material_index, const texture_info& info);
 
 
         /* Intersection determination */

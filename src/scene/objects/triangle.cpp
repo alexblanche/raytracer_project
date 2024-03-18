@@ -17,7 +17,7 @@ triangle::triangle() : normal(rt::vector()), v1(rt::vector()), v2(rt::vector()),
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, 
     const unsigned int material_index)
 
-    : object(p0, material_index) {
+    : polygon(p0, material_index) {
 
     v1 = p1 - p0;
     v2 = p2 - p0;
@@ -34,7 +34,36 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
     const unsigned int material_index)
 
-    : object(p0, material_index), vn0(vn0.unit()), vn1(vn1.unit()), vn2(vn2.unit()) {
+    : polygon(p0, material_index), vn0(vn0.unit()), vn1(vn1.unit()), vn2(vn2.unit()) {
+    
+    v1 = p1 - p0;
+    v2 = p2 - p0;
+    const rt::vector n = (v1 ^ v2);
+    normal = n.unit();
+    d = - (normal | p0);
+}
+
+// Constructors for textured triangles
+triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, 
+    const unsigned int material_index, const texture_info& info)
+
+    : polygon(p0, material_index, info) {
+
+    v1 = p1 - p0;
+    v2 = p2 - p0;
+    const rt::vector n = (v1 ^ v2);
+    normal = n.unit();
+    vn0 = normal;
+    vn1 = normal;
+    vn2 = normal;
+    d = - (normal | p0);
+}
+
+triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
+    const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
+    const unsigned int material_index, const texture_info& info)
+
+    : polygon(p0, material_index, info), vn0(vn0.unit()), vn1(vn1.unit()), vn2(vn2.unit()) {
     
     v1 = p1 - p0;
     v2 = p2 - p0;
@@ -48,8 +77,8 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
 /* Intersection determination */
 
 double triangle::measure_distance(const ray& r) const {
-    const rt::vector& u = r.get_origin();
-    const rt::vector& dir = r.get_direction();
+    const rt::vector u = r.get_origin();
+    const rt::vector dir = r.get_direction();
 
     // Intersection between the ray and the triangle plane
     const double pdt = (normal | dir); // ax + by + cz

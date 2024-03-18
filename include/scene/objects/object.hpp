@@ -8,8 +8,14 @@
 class object {
     
     protected:
+        /* Position of the object (depends on the type of object) */
         rt::vector position;
+
+        /* Index of the material in the material_set vector of the scene */
         const unsigned int material_index;
+
+        /* True if the object is textured (only allowed when it is a triangle or quad) */
+        const bool textured;
 
     public:
 
@@ -21,6 +27,8 @@ class object {
 
         object(const rt::vector& pos, const unsigned int material_index);
 
+        object(const rt::vector& pos, const unsigned int material_index, const bool textured);
+
         /* Accessors */
 
         inline rt::vector get_position() const {
@@ -31,6 +39,10 @@ class object {
             return material_index;
         }
 
+        inline bool is_textured() const {
+            return textured;
+        }
+
         
         // These four functions are overridden by derived classes
 
@@ -38,10 +50,6 @@ class object {
         virtual double measure_distance(const ray& r) const;
 
         virtual hit compute_intersection(ray& r, const double t) const;
-
-        /* Writes the barycentric coordinates in variables l1, l2
-           The boolean return value is used for determining the three points considered in quads */
-        virtual bool get_barycentric(const rt::vector& p, double& l1, double& l2) const;
 
         /* Writes the minimum and maximum coordinates of the object on the three axes */
         virtual void min_max_coord(double& min_x, double& max_x,

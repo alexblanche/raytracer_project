@@ -43,21 +43,6 @@ class material {
         /* Indice of refraction: air = 1, water = 1.3, glass = 1.5, diamond = 1.8 */
         double refraction_index;
 
-
-        /*** Texture (optional) ***/
-        
-        /* Boolean indicating whether a texture is specified */
-        bool textured;
-
-        /* Texture index in texture::set */
-        unsigned int texture_index;
-
-        /* Vector of UV coordinates (between 0 and 1)
-           6 for a triangle (u0,v0,u1,v1,u2,v2) and 8 for a quad */
-        std::vector<double> uv_coordinates;
-
-
-
     public:
 
         /* Mirror surface */
@@ -81,17 +66,20 @@ class material {
             const double& transparency, const double& refraction_scattering,
             const double& refraction_index_in);
 
-        /* Main constructor with added texture */
+        /* Obsolete, to be deleted
+        * Main constructor with added texture *
         material(const rt::color& color, const rt::color& emitted_color,
             const double& reflectivity, const double& emission_intensity,
             const double& specular_probability, const bool reflects_color,
             const double& transparency, const double& refraction_scattering,
             const double& refraction_index_in,
             const unsigned int texture_index, const std::vector<double>& uv_coordinates);
+        
 
-        /* Constructor by copy and texture settings */
+        * Constructor by copy and texture settings *
         material(const material& m, const unsigned int texture_index,
             const std::vector<double>& uv_coordinates);
+        */
 
 
         /* Accessors */
@@ -120,10 +108,6 @@ class material {
             return reflects_color;
         }
 
-        inline bool is_textured() const {
-            return textured;
-        }
-
         inline double get_transparency() const {
             return transparency;
         }
@@ -139,24 +123,14 @@ class material {
 
         /* Mutators */
 
+        /* Obsolete, to be deleted */
+        /*
         void set_texture(const unsigned int i, const std::vector<double>& uv_coord) {
             textured = true;
             texture_index = i;
             uv_coordinates = uv_coord;
         }
-
-
-        /* Texturing */
-
-        /* Write in u, v the UV-coordinate of the barycenter associated with the barycentric coordinates l1, l2
-        In the case of quads, the boolean lower_triangle indicates that the three points to
-        consider are (u0, v0), (u1, v1), (u2, v2) or (u0, v0), (u3, v3), (u2, v2) (in this order) */
-        void get_barycenter(const double& l1, const double& l2, const bool lower_triangle,
-            double& u, double& v) const;
-
-        /* Returns the color of the pixel associated with UV-coordinates u, v */
-        rt::color get_texture_color(const double& l1, const double& l2, const bool lower_triangle,
-            const std::vector<texture>& texture_set) const;
+        */
 };
 
 /* Specific constructors */

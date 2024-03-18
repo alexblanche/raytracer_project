@@ -1,13 +1,14 @@
 #pragma once
 
 #include "object.hpp"
+#include "polygon.hpp"
 #include "plane.hpp"
 
 #include "light/vector.hpp"
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
 
-class triangle : public object {
+class triangle : public polygon {
     
     private:
     
@@ -37,6 +38,14 @@ class triangle : public object {
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
             const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
             const unsigned int material_index);
+
+        // Constructors for textured triangles
+        triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, 
+            const unsigned int material_index, const texture_info& info);
+
+        triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
+            const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
+            const unsigned int material_index, const texture_info& info);
 
 
         /* Intersection determination */

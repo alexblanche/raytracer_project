@@ -4,10 +4,16 @@
 /* Constructors */
 
 object::object()
-    : position(rt::vector()), material_index((unsigned int) -1) {}
+    : position(rt::vector()), material_index((unsigned int) -1),
+      textured(false) {}
 
 object::object(const rt::vector& position, const unsigned int material_index)
-    : position(position), material_index(material_index) {}
+    : position(position), material_index(material_index),
+      textured(false) {}
+
+object::object(const rt::vector& position, const unsigned int material_index, const bool textured)
+    : position(position), material_index(material_index),
+      textured(textured) {}
 
 
 
@@ -23,11 +29,11 @@ hit object::compute_intersection(ray& /*r*/, const double /*t*/) const {
     return hit();
 }
 
-/* Writes the barycentric coordinates in variables l1, l2
-   The boolean return value is used for determining the three points considered in quads */
-bool object::get_barycentric(const rt::vector& /*p*/, double& /*l1*/, double& /*l2*/) const {
-    return true;
-}
+// /* Writes the barycentric coordinates in variables l1, l2
+//    The boolean return value is used for determining the three points considered in quads */
+// bool object::get_barycentric(const rt::vector& /*p*/, double& /*l1*/, double& /*l2*/) const {
+//     return true;
+// }
 
 /* Writes the minimum and maximum coordinates of the object on the three axes */
 void object::min_max_coord(double& /*min_x*/, double& /*max_x*/,
