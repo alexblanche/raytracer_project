@@ -15,14 +15,19 @@
 /* Parses .obj file file_name. Triangles and quads are added to obj_set,
    with material indices (defined with the keyword usemtl) found in material_names
    
-   Only one texture is handled.
+   - Only one texture is handled.
 
-   Object names (o), polygon groups (g), smooth shading (s), lines (l) are ignored
+   - Object names (o), polygon groups (g), smooth shading (s), lines (l) are ignored
+
+   - The object is scaled with the factor scale, and shifted by the vector shift
 
    Returns true if the operation was successful
  */
 bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
-   const unsigned int texture_index, std::vector<string>& material_names) {
+   const unsigned int texture_index, std::vector<string>& material_names,
+   const double& scale, const rt::vector& shift) {
+
+   printf("Parsing obj file...\n");
 
    FILE* file = fopen(file_name, "r");
 
@@ -137,7 +142,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
          
          if (vindex == ((unsigned int) -1)) {
             fclose(file);
-            printf("Error, texture %s not found\n", m_name);
+            printf("Error, material %s not found\n", m_name);
             return false;
          }
          else {
@@ -161,7 +166,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
             );
 
             obj_set.push_back(
-               new triangle(vertex_set.at(v1), vertex_set.at(v2), vertex_set.at(v3),
+               new triangle(shift + scale * vertex_set.at(v1), shift + scale * vertex_set.at(v2), shift + scale * vertex_set.at(v3),
                   normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
                   current_material_index, info)
             );
@@ -179,7 +184,10 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
             );
 
             obj_set.push_back(
-               new quad(vertex_set.at(v1), vertex_set.at(v2), vertex_set.at(v3), vertex_set.at(v4),
+               new quad(shift + scale * vertex_set.at(v1),
+                  shift + scale * vertex_set.at(v2),
+                  shift + scale * vertex_set.at(v3),
+                  shift + scale * vertex_set.at(v4),
                   normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3), normal_set.at(vn4),
                   current_material_index, info)
             );

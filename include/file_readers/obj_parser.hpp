@@ -19,4 +19,5 @@
    Returns true if the operation was successful
  */
 bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
-   const unsigned int material_index, std::vector<string>& texture_names);
+   const unsigned int texture_index, std::vector<string>& material_names,
+   const double& scale, const rt::vector& shift);

@@ -292,10 +292,12 @@ scene::scene(const char* file_name, bool& creation_successful)
 
     - An obj file can be loaded with its file name and a texture name.
     Mtl files are not yet supported, materials must be declared beforehand, with the same name as in the associated mtl file.
+    A shifting vector and a scale should be provided.
 
-    material wood_mat (...)
+    material wood_mat (...)  // appearing in wooden_table.mtl
+    material metal_mat (...) // appearing in wooden_table.mtl
     load_texture wood wood_texture.bmp
-    load_obj wooden_table.bmp wood
+    load_obj wooden_table.bmp (texture:wood shift:(0,0,0) scale:2) 
 
     - A line can be commented by adding a "#" and a space at the beginning of the line:
     # sphere [...]
@@ -321,7 +323,8 @@ scene::scene(const char* file_name, bool& creation_successful)
         // longest item is load_texture
         char s[14];
         if (fscanf(file, "%13s ", s) != 1) {
-            break;
+            fclose(file);
+            return;
         }
 
         /* Commented line */
@@ -340,7 +343,8 @@ scene::scene(const char* file_name, bool& creation_successful)
             if (ret != 1) {
                 printf("Parsing error in scene constructor (material declaration)\n");
                 creation_successful = false;
-                break;
+                fclose(file);
+                return;
             }
             m_name.resize(strlen(m_name.data()));
 
@@ -352,12 +356,13 @@ scene::scene(const char* file_name, bool& creation_successful)
         /* BMP file loading */
         else if (strcmp(s, "load_texture") == 0) {
             std::string t_name(65, '\0');
-            char tfile_name[65];
-            ret = fscanf(file, " %64s %64s", (char*) t_name.data(), tfile_name);
+            char tfile_name[513];
+            ret = fscanf(file, " %64s %512s", (char*) t_name.data(), tfile_name);
             if (ret != 2) {
                 printf("Parsing error in scene constructor (texture loading)\n");
                 creation_successful = false;
-                break;
+                fclose(file);
+                return;
             }
             t_name.resize(strlen(t_name.data()));
             
@@ -373,7 +378,8 @@ scene::scene(const char* file_name, bool& creation_successful)
             else {
                 printf("%s texture reading failed\n", tfile_name);
                 creation_successful = false;
-                break;
+                fclose(file);
+                return;
             }
         }
 
@@ -387,7 +393,8 @@ scene::scene(const char* file_name, bool& creation_successful)
             if (ret != 4) {
                 printf("Parsing error in scene constructor (sphere declaration)\n");
                 creation_successful = false;
-                break;
+                fclose(file);
+                return;
             }
             const unsigned int m_index = get_material(file, mat_names, material_set);
             object_set.push_back(
@@ -403,7 +410,8 @@ scene::scene(const char* file_name, bool& creation_successful)
             if (ret != 6) {
                 printf("Parsing error in scene constructor (plane declaration)\n");
                 creation_successful = false;
-                break;
+                fclose(file);
+                return;
             }
             const unsigned int m_index = get_material(file, mat_names, material_set);
             object_set.push_back(
@@ -421,7 +429,8 @@ scene::scene(const char* file_name, bool& creation_successful)
             if (ret != 12) {
                 printf("Parsing error in scene constructor (box declaration)\n");
                 creation_successful = false;
-                break;
+                fclose(file);
+                return;
             }
             const unsigned int m_index = get_material(file, mat_names, material_set);
             object_set.push_back(
@@ -441,7 +450,8 @@ scene::scene(const char* file_name, bool& creation_successful)
             if (ret != 9) {
                 printf("Parsing error in scene constructor (triangle declaration)\n");
                 creation_successful = false;
-                break;
+                fclose(file);
+                return;
             }
             const unsigned int m_index = get_material(file, mat_names, material_set);
             bool textured;
@@ -475,7 +485,8 @@ scene::scene(const char* file_name, bool& creation_successful)
             if (ret != 12) {
                 printf("Parsing error in scene constructor (quad declaration)\n");
                 creation_successful = false;
-                break;
+                fclose(file);
+                return;
             }
             const unsigned int m_index = get_material(file, mat_names, material_set);
             bool textured;
@@ -509,7 +520,8 @@ scene::scene(const char* file_name, bool& creation_successful)
             if (ret != 8) {
                 printf("Parsing error in scene constructor (cylinder declaration)\n");
                 creation_successful = false;
-                break;
+                fclose(file);
+                return;
             }
             const unsigned int m_index = get_material(file, mat_names, material_set);
             object_set.push_back(
@@ -520,13 +532,17 @@ scene::scene(const char* file_name, bool& creation_successful)
 
         /* Obj file parsing */
         else if (strcmp(s, "load_obj") == 0) {
-            char ofile_name[65];
+            char ofile_name[513];
             char t_name[65];
-            ret = fscanf(file, " %64s %64s\n", ofile_name, t_name);
-            if (ret != 1) {
+            double sx, sy, sz, scale;
+            ret = fscanf(file, " %512s (texture:%64s shift:(%lf,%lf,%lf) scale:%lf)\n",
+                ofile_name, t_name, &sx, &sy, &sz, &scale);
+
+            if (ret != 6) {
                 printf("Parsing error in scene constructor (obj file loading)\n");
                 creation_successful = false;
-                break;
+                fclose(file);
+                return;
             }
 
             /* Looking up the material name in the vector of already declared material names */
@@ -541,15 +557,18 @@ scene::scene(const char* file_name, bool& creation_successful)
             if (t_index == ((unsigned int) -1)) {
                 printf("Error, texture %s not found\n", t_name);
                 creation_successful = false;
-                break;
+                fclose(file);
+                return;
             }
 
-            const bool parsing_successful = parse_obj_file(ofile_name, object_set, t_index, mat_names);
+            const bool parsing_successful = parse_obj_file(ofile_name, object_set, t_index, mat_names,
+                scale, rt::vector(sx, sy, sz));
 
             if (not parsing_successful) {
                 printf("%s obj file reading failed\n", ofile_name);
                 creation_successful = false;
-                break;
+                fclose(file);
+                return;
             }
         }
 
@@ -558,7 +577,8 @@ scene::scene(const char* file_name, bool& creation_successful)
         else {
             printf("Parsing error: %s\n", s);
             creation_successful = false;
-            break;
+            fclose(file);
+            return;
         }
     }
 
