@@ -13,16 +13,16 @@
    In the future, maybe split polygons with >= 5 sides into triangles */
 
 /* Parses .obj file file_name. Triangles and quads are added to obj_set,
-   with texture indices found in texture_names
+   with material indices (defined with the keyword usemtl) found in material_names
    
-   For now, only one material is handled (multiple materials support to be added later)
+   Only one texture is handled.
 
    Object names (o), polygon groups (g), smooth shading (s), lines (l) are ignored
 
    Returns true if the operation was successful
  */
 bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
-   const unsigned int material_index, std::vector<string>& texture_names) {
+   const unsigned int texture_index, std::vector<string>& material_names) {
 
    FILE* file = fopen(file_name, "r");
 
@@ -32,17 +32,18 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
    }
 
    /* Storage */
+   /* All indices start at 1, so the first vector is unused */
    
    /* Vertices of the object */
-   std::vector<rt::vector> vertex_set;
+   std::vector<rt::vector> vertex_set = {rt::vector()};
 
    /* UV-coordinates ("vt"), only the first two attributes (x, y) of the vectors are used */
-   std::vector<rt::vector> uv_coord_set;
+   std::vector<rt::vector> uv_coord_set = {rt::vector()};
 
    /* Vertex normals */
-   std::vector<rt::vector> normal_set;
+   std::vector<rt::vector> normal_set = {rt::vector()};
 
-   unsigned int current_texture_index = (unsigned int) -1;
+   unsigned int current_material_index = -1;
 
    /* Counters */
    unsigned int number_of_vertices = 0;
@@ -116,19 +117,19 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
          }
       }
       else if (strcmp(s, "usemtl") == 0) {
-         /* Using a new texture */
-         char t_name[65];
-         const int ret = fscanf(file, " %64s", t_name);
+         /* Using a new material */
+         char m_name[65];
+         const int ret = fscanf(file, " %64s", m_name);
          if (ret != 1) {
             fclose(file);
             printf("Parsing error in file %s (texture name in usemtl)\n", file_name);
             return false;
          }
 
-         /* Looking up the texture name in the vector of already declared texture names */
+         /* Looking up the material name in the vector of already declared material names */
          unsigned int vindex = -1;
-         for (unsigned int i = 0; i < texture_names.size(); i++) {
-            if (texture_names.at(i).compare(t_name) == 0) {
+         for (unsigned int i = 0; i < material_names.size(); i++) {
+            if (material_names.at(i).compare(m_name) == 0) {
                vindex = i;
                break;
             }
@@ -136,11 +137,11 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
          
          if (vindex == ((unsigned int) -1)) {
             fclose(file);
-            printf("Error, texture %s not found\n", t_name);
+            printf("Error, texture %s not found\n", m_name);
             return false;
          }
          else {
-            current_texture_index = vindex;
+            current_material_index = vindex;
          }
       }
       else if (strcmp(s, "f") == 0) {
@@ -153,7 +154,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
 
          if (ret == 9) {
             /* Triangle */
-            const texture_info info(current_texture_index,
+            const texture_info info(texture_index,
                {uv_coord_set.at(vt1).x, uv_coord_set.at(vt1).y,
                uv_coord_set.at(vt2).x, uv_coord_set.at(vt2).y,
                uv_coord_set.at(vt3).x, uv_coord_set.at(vt3).y}
@@ -162,7 +163,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
             obj_set.push_back(
                new triangle(vertex_set.at(v1), vertex_set.at(v2), vertex_set.at(v3),
                   normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
-                  material_index, info)
+                  current_material_index, info)
             );
 
             number_of_polygons ++;
@@ -170,7 +171,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
          }
          else if (ret == 12) {
             /* Quad */
-            const texture_info info(current_texture_index,
+            const texture_info info(texture_index,
                {uv_coord_set.at(vt1).x, uv_coord_set.at(vt1).y,
                uv_coord_set.at(vt2).x, uv_coord_set.at(vt2).y,
                uv_coord_set.at(vt3).x, uv_coord_set.at(vt3).y,
@@ -180,7 +181,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
             obj_set.push_back(
                new quad(vertex_set.at(v1), vertex_set.at(v2), vertex_set.at(v3), vertex_set.at(v4),
                   normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3), normal_set.at(vn4),
-                  material_index, info)
+                  current_material_index, info)
             );
 
             number_of_polygons ++;

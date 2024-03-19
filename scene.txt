@@ -6,6 +6,9 @@ triangles_per_bounding 0
 plane normal:(0, -1, 0) position:(0, 0, 0) material:diffuse
 
 load_texture Wooden_stool_texture ../../../raytracer_project/3d_models/stool/Textures/wooden_stool_texture(F).bmp
-material wood (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:1 emission:0 specular_p:0.8 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+material wood (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0.95 emission:0 specular_p:0.8 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-load_obj ../../../raytracer_project/3d_models/stool/Obj_folder/wooden_stool.obj
+# load_obj ../../../raytracer_project/3d_models/stool/Obj_folder/wooden_stool.obj
+
+quad (-800, -850, 800) (-800, -850, 0) (-800, 0, 0) (-800, 0, 800) material:wood texture(Wooden_stool_texture (0,0) (0,1) (1,1) (1,0))
+

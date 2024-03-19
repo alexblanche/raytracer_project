@@ -290,12 +290,12 @@ scene::scene(const char* file_name, bool& creation_successful)
     or
     material:m1 texture:(...)
 
-    - An obj file can be loaded with its file name and one material (multiple materials support to be added later)
-      Mtl files are not yet supported, textures must be loaded beforehand, with the same name as in the associated mtl file.
+    - An obj file can be loaded with its file name and a texture name.
+    Mtl files are not yet supported, materials must be declared beforehand, with the same name as in the associated mtl file.
 
-      material wood_mat (...)
-      load_texture wood wood_texture.bmp
-      load_obj wooden_table.bmp material:wood_mat
+    material wood_mat (...)
+    load_texture wood wood_texture.bmp
+    load_obj wooden_table.bmp wood
 
     - A line can be commented by adding a "#" and a space at the beginning of the line:
     # sphere [...]
@@ -521,21 +521,32 @@ scene::scene(const char* file_name, bool& creation_successful)
         /* Obj file parsing */
         else if (strcmp(s, "load_obj") == 0) {
             char ofile_name[65];
-            ret = fscanf(file, " %64s material:", ofile_name);
+            char t_name[65];
+            ret = fscanf(file, " %64s %64s\n", ofile_name, t_name);
             if (ret != 1) {
                 printf("Parsing error in scene constructor (obj file loading)\n");
                 creation_successful = false;
                 break;
             }
 
-            const unsigned int m_index = get_material(file, mat_names, material_set);
-            const bool parsing_successful = parse_obj_file(ofile_name, object_set, m_index, texture_names);
-
-            if (parsing_successful) {
-                // printf("%s obj file loaded\n", ofile_name);
-                // Handled in the parsing function
+            /* Looking up the material name in the vector of already declared material names */
+            unsigned int t_index = -1;
+            for (unsigned int i = 0; i < texture_names.size(); i++) {
+                if (texture_names.at(i).compare(t_name) == 0) {
+                    t_index = i;
+                    break;
+                }
             }
-            else {
+         
+            if (t_index == ((unsigned int) -1)) {
+                printf("Error, texture %s not found\n", t_name);
+                creation_successful = false;
+                break;
+            }
+
+            const bool parsing_successful = parse_obj_file(ofile_name, object_set, t_index, mat_names);
+
+            if (not parsing_successful) {
                 printf("%s obj file reading failed\n", ofile_name);
                 creation_successful = false;
                 break;
