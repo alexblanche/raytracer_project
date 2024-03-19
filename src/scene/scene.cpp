@@ -72,7 +72,7 @@ const material parse_material(FILE* file) {
 
 /* Auxiliary function: parses the name of a material and returns its index in material_set,
    or parses a new material, stores it in material_set and returns its index */
-unsigned int get_material(FILE* file, const std::vector<string>& mat_names, std::vector<material>& material_set) {
+unsigned int get_material(FILE* file, std::vector<string>& mat_names, std::vector<material>& material_set) {
     const long int position = ftell(file);
 
     const char firstchar = fgetc(file);
@@ -81,6 +81,7 @@ unsigned int get_material(FILE* file, const std::vector<string>& mat_names, std:
         const material m = parse_material(file);
         const unsigned int m_i = material_set.size();
         material_set.push_back(m);
+        mat_names.push_back("@@@rt_custom_material@@@");
         return m_i;
     }
     else {

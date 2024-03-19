@@ -160,9 +160,9 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
          if (ret == 9) {
             /* Triangle */
             const texture_info info(texture_index,
-               {uv_coord_set.at(vt1).x, uv_coord_set.at(vt1).y,
-               uv_coord_set.at(vt2).x, uv_coord_set.at(vt2).y,
-               uv_coord_set.at(vt3).x, uv_coord_set.at(vt3).y}
+               {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
+               uv_coord_set.at(vt2).x, 1-uv_coord_set.at(vt2).y,
+               uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y}
             );
 
             obj_set.push_back(
@@ -177,10 +177,10 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
          else if (ret == 12) {
             /* Quad */
             const texture_info info(texture_index,
-               {uv_coord_set.at(vt1).x, uv_coord_set.at(vt1).y,
-               uv_coord_set.at(vt2).x, uv_coord_set.at(vt2).y,
-               uv_coord_set.at(vt3).x, uv_coord_set.at(vt3).y,
-               uv_coord_set.at(vt4).x, uv_coord_set.at(vt4).y}
+               {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
+               uv_coord_set.at(vt2).x, 1-uv_coord_set.at(vt2).y,
+               uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y,
+               uv_coord_set.at(vt4).x, 1-uv_coord_set.at(vt4).y}
             );
 
             obj_set.push_back(
