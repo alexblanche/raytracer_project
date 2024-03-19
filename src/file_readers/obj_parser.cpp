@@ -166,7 +166,10 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
             );
 
             obj_set.push_back(
-               new triangle(shift + scale * vertex_set.at(v1), shift + scale * vertex_set.at(v2), shift + scale * vertex_set.at(v3),
+               new triangle(
+                  shift + scale * vertex_set.at(v1),
+                  shift + scale * vertex_set.at(v2),
+                  shift + scale * vertex_set.at(v3),
                   normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
                   current_material_index, info)
             );
@@ -183,14 +186,17 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
                uv_coord_set.at(vt4).x, 1-uv_coord_set.at(vt4).y}
             );
 
+            
             obj_set.push_back(
-               new quad(shift + scale * vertex_set.at(v1),
+               new quad(
+                  shift + scale * vertex_set.at(v1),
                   shift + scale * vertex_set.at(v2),
                   shift + scale * vertex_set.at(v3),
                   shift + scale * vertex_set.at(v4),
                   normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3), normal_set.at(vn4),
                   current_material_index, info)
             );
+            
 
             number_of_polygons ++;
             number_of_quads ++;
