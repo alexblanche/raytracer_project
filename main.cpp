@@ -220,7 +220,7 @@ int main(int argc, char *argv[]) {
         
         for (unsigned int i = 0; i < target_number_of_rays; i++) {
             render_loop_parallel(matrix, scene, number_of_bounces);
-            if (i % 10 == 0) {
+            if (target_number_of_rays <= 10 || i % 10 == 0) {
                 printf("\r%u / %u", i, target_number_of_rays);
             }
         }

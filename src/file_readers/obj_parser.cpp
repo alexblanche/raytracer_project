@@ -179,27 +179,72 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
          }
          else if (ret == 12) {
             /* Quad */
-            const texture_info info(texture_index,
-               {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-               uv_coord_set.at(vt2).x, 1-uv_coord_set.at(vt2).y,
-               uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y,
-               uv_coord_set.at(vt4).x, 1-uv_coord_set.at(vt4).y}
-            );
 
-            
-            obj_set.push_back(
-               new quad(
-                  shift + scale * vertex_set.at(v1),
-                  shift + scale * vertex_set.at(v2),
-                  shift + scale * vertex_set.at(v3),
-                  shift + scale * vertex_set.at(v4),
-                  normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3), normal_set.at(vn4),
-                  current_material_index, info)
-            );
-            
+            /* Sometimes quads are made up of 4 non-coplanar vertices
+               When it is the case, we split the quad in two triangles */
 
-            number_of_polygons ++;
-            number_of_quads ++;
+            const rt::vector n12 = ((vertex_set.at(v2) - vertex_set.at(v1)) ^ (vertex_set.at(v3) - vertex_set.at(v1))).unit();
+            const rt::vector n23 = ((vertex_set.at(v3) - vertex_set.at(v1)) ^ (vertex_set.at(v4) - vertex_set.at(v1))).unit();
+            if (not (n12 == n23)) {
+               /* Non-coplanar vertices */
+
+               const texture_info info12(texture_index,
+                  {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
+                  uv_coord_set.at(vt2).x, 1-uv_coord_set.at(vt2).y,
+                  uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y}
+               );
+
+               obj_set.push_back(
+                  new triangle(
+                     shift + scale * vertex_set.at(v1),
+                     shift + scale * vertex_set.at(v2),
+                     shift + scale * vertex_set.at(v3),
+                     normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
+                     current_material_index, info12)
+               );
+
+               const texture_info info23(texture_index,
+                  {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
+                  uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y,
+                  uv_coord_set.at(vt4).x, 1-uv_coord_set.at(vt4).y}
+               );
+
+               obj_set.push_back(
+                  new triangle(
+                     shift + scale * vertex_set.at(v1),
+                     shift + scale * vertex_set.at(v3),
+                     shift + scale * vertex_set.at(v4),
+                     normal_set.at(vn1), normal_set.at(vn3), normal_set.at(vn4),
+                     current_material_index, info23)
+               );
+
+               number_of_polygons += 2;
+               number_of_triangles += 2;
+            }
+            else {
+               
+               /* Coplanar vertices */
+               const texture_info info(texture_index,
+                  {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
+                  uv_coord_set.at(vt2).x, 1-uv_coord_set.at(vt2).y,
+                  uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y,
+                  uv_coord_set.at(vt4).x, 1-uv_coord_set.at(vt4).y}
+               );
+
+               obj_set.push_back(
+                  new quad(
+                     shift + scale * vertex_set.at(v1),
+                     shift + scale * vertex_set.at(v2),
+                     shift + scale * vertex_set.at(v3),
+                     shift + scale * vertex_set.at(v4),
+                     normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3), normal_set.at(vn4),
+                     current_material_index, info)
+               );
+               
+
+               number_of_polygons ++;
+               number_of_quads ++;
+            }
          }
          else {
             fclose(file);
