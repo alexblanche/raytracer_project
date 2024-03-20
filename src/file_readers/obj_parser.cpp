@@ -185,7 +185,8 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
 
             const rt::vector n12 = ((vertex_set.at(v2) - vertex_set.at(v1)) ^ (vertex_set.at(v3) - vertex_set.at(v1))).unit();
             const rt::vector n23 = ((vertex_set.at(v3) - vertex_set.at(v1)) ^ (vertex_set.at(v4) - vertex_set.at(v1))).unit();
-            if (not (n12 == n23)) {
+            /* The value 0.001 (squared) is chosen empirically: it seems to remove all visible glitches by splitting a small number of quads */
+            if ((n12 - n23).normsq() > 0.000001) {
                /* Non-coplanar vertices */
 
                const texture_info info12(texture_index,

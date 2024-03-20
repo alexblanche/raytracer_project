@@ -217,11 +217,13 @@ int main(int argc, char *argv[]) {
 
         printf("Rendering...\n");
         printf("0 / %u", target_number_of_rays);
+        fflush(stdout);
         
         for (unsigned int i = 0; i < target_number_of_rays; i++) {
             render_loop_parallel(matrix, scene, number_of_bounces);
             if (target_number_of_rays <= 10 || i % 10 == 0) {
                 printf("\r%u / %u", i, target_number_of_rays);
+                fflush(stdout);
             }
         }
 

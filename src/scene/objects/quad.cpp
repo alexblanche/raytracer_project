@@ -117,7 +117,6 @@ double quad::measure_distance(const ray& r) const {
         const double l1xy = detv2cxy / det12xy;
         const double l2xy = (v1.x * c.y - v1.y * c.x) / det12xy;
         if (l1xy >= 0 && l2xy >= 0 && l1xy <= 1 && l1xy + l2xy <= 1) {
-            /* TEMPORARY return infinity; */
             return t;
 		}
         else {
