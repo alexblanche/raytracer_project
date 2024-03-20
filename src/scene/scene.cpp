@@ -644,7 +644,7 @@ hit scene::find_closest_object_bounding(ray& r) const {
      */
 
     double distance_to_closest = infinity;
-    const object* closest_obj;
+    const object* closest_obj = NULL;
     std::stack<const bounding*> bounding_stack;
 
     /* Pass through the set of first-level bounding boxes */

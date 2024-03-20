@@ -166,7 +166,7 @@ double box::measure_distance(const ray& r) const {
     */
 }
         
-hit box::compute_intersection(ray& r, const double t) const {
+hit box::compute_intersection(ray& r, const double& t) const {
     // Intersection point
     const rt::vector& u = r.get_origin();
     const rt::vector p = u + t * r.get_direction();

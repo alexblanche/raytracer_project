@@ -60,7 +60,7 @@ class quad : public polygon {
         
         rt::vector get_interpolated_normal(const double& l1, const double& l2, const bool triangle) const;
 
-        hit compute_intersection(ray& r, const double t) const;
+        hit compute_intersection(ray& r, const double& t) const;
 
         /* Minimum and maximum coordinates */
         void min_max_coord(double& min_x, double& max_x,

@@ -21,10 +21,10 @@ class plane : public object {
 
         plane();
         
-        plane(const double sa, const double sb, const double sc, const double sd,
+        plane(const double& sa, const double& sb, const double& sc, const double& sd,
             const unsigned int material_index);
         
-        plane(const double a, const double b, const double c, const rt::vector& position,
+        plane(const double& a, const double& b, const double& c, const rt::vector& position,
             const unsigned int material_index);
 
         /* Accessors */
@@ -38,5 +38,5 @@ class plane : public object {
 
         double measure_distance(const ray& r) const;
         
-        hit compute_intersection(ray& r, const double t) const;
+        hit compute_intersection(ray& r, const double& t) const;
 };

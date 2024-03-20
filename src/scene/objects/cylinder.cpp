@@ -14,7 +14,7 @@ cylinder::cylinder()
     : radius(0), length(0) {}
 
 cylinder::cylinder(const rt::vector& origin, const rt::vector& direction,
-    const double radius, const double length, const unsigned int material_index)
+    const double& radius, const double& length, const unsigned int material_index)
 
     : object(origin, material_index),
         direction(direction), radius(radius), length(length) {}
@@ -185,7 +185,7 @@ double cylinder::measure_distance(const ray& r) const {
 }
 
 /* Returns the hit corresponding with the given intersection value t */
-hit cylinder::compute_intersection(ray& r, const double t) const {
+hit cylinder::compute_intersection(ray& r, const double& t) const {
 
     // Intersection point
     const rt::vector u = r.get_origin();

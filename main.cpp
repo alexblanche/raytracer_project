@@ -206,6 +206,19 @@ int main(int argc, char *argv[]) {
 
     printf("Number of objects: %u\n", (unsigned int) scene.object_set.size());
 
+    /**************************************************************************/
+    vector<const object*> stool_polygons;
+    for(unsigned int i = 1; i < scene.object_set.size() - 1; i++) {
+        stool_polygons.push_back(scene.object_set.at(i));
+    }
+    vector<const object*> other_objects = {scene.object_set.at(0), scene.object_set.at(scene.object_set.size() - 1)};
+
+    const bounding* stool_bd = containing_objects(stool_polygons);
+    const bounding* others_bd = new bounding(other_objects);
+
+    scene.bounding_set = {stool_bd, others_bd};
+
+    /**************************************************************************/
 
     /* Definition of the matrix in which we will write the image */
     vector<vector<rt::color>> matrix(scene.width, vector<rt::color>(scene.height));
@@ -221,13 +234,12 @@ int main(int argc, char *argv[]) {
         
         for (unsigned int i = 0; i < target_number_of_rays; i++) {
             render_loop_parallel(matrix, scene, number_of_bounces);
-            if (target_number_of_rays <= 10 || i % 10 == 0) {
-                printf("\r%u / %u", i, target_number_of_rays);
+            if (target_number_of_rays <= 10 || i % 10 == 9) {
+                printf("\r%u / %u", i+1, target_number_of_rays);
                 fflush(stdout);
             }
         }
 
-        printf("\r%u / %u", target_number_of_rays, target_number_of_rays);
         const bool success_bmp = write_bmp("image.bmp", matrix, target_number_of_rays);
         if (success_bmp) {
             printf(" Saved as image.bmp\n");

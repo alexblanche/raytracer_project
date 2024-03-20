@@ -49,7 +49,7 @@ class object {
         /* Intersection determination */
         virtual double measure_distance(const ray& r) const;
 
-        virtual hit compute_intersection(ray& r, const double t) const;
+        virtual hit compute_intersection(ray& r, const double& t) const;
 
         /* Writes the minimum and maximum coordinates of the object on the three axes */
         virtual void min_max_coord(double& min_x, double& max_x,

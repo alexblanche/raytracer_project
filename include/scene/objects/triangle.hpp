@@ -61,7 +61,7 @@ class triangle : public polygon {
 
         rt::vector get_interpolated_normal(const double& l1, const double& l2) const;
 
-        hit compute_intersection(ray& r, const double t) const;
+        hit compute_intersection(ray& r, const double& t) const;
 
 
         /* Minimum and maximum coordinates */

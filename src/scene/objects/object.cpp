@@ -25,7 +25,7 @@ double object::measure_distance(const ray& /*r*/) const {
     return 0;
 }
 
-hit object::compute_intersection(ray& /*r*/, const double /*t*/) const {
+hit object::compute_intersection(ray& /*r*/, const double& /*t*/) const {
     return hit();
 }
 

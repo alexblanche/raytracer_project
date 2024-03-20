@@ -27,7 +27,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
    const unsigned int texture_index, std::vector<string>& material_names,
    const double& scale, const rt::vector& shift) {
 
-   printf("Parsing obj file...\n");
+   printf("Parsing obj file...");
 
    FILE* file = fopen(file_name, "r");
 
@@ -257,7 +257,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
    
    fclose(file);
 
-   printf("%s successfully loaded:\n", file_name);
+   printf("\r%s successfully loaded:\n", file_name);
    printf("%u vertices, %u polygons (%u triangles, %u quads)\n",
       number_of_vertices, number_of_polygons, number_of_triangles, number_of_quads);
 
