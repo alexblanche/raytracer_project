@@ -168,7 +168,7 @@ double box::measure_distance(const ray& r) const {
         
 hit box::compute_intersection(ray& r, const double& t) const {
     // Intersection point
-    const rt::vector& u = r.get_origin();
+    const rt::vector u = r.get_origin();
     const rt::vector p = u + t * r.get_direction();
 
     // Re-computing the face of intersection
@@ -238,13 +238,13 @@ void box::min_max_coord(double& min_x, double& max_x,
    The box is assumed to be standard (axes are n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1)) */
 bool box::is_hit_by(const ray& r) const {
     
-    const rt::vector& dir = r.get_direction();
-    const rt::vector& inv_dir = r.get_inv_dir();
-    const rt::vector& abs_inv_dir = r.get_abs_inv_dir();
+    const rt::vector dir = r.get_direction();
+    const rt::vector inv_dir = r.get_inv_dir();
+    const rt::vector abs_inv_dir = r.get_abs_inv_dir();
 
     // See measure_distance
 
-    const rt::vector& u = r.get_origin();
+    const rt::vector u = r.get_origin();
     const double pmux = position.x - u.x;
     const double pmuy = position.y - u.y;
     const double pmuz = position.z - u.z;

@@ -118,7 +118,7 @@ void bounding::check_box_next(const ray& r,
 
 /* Returns a non-terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the standard non-terminal bounding boxes bd0 and bd1 */
-bounding* containing_bounding(const bounding& bd0, const bounding& bd1) {
+bounding* containing_bounding_two(const bounding& bd0, const bounding& bd1) {
     const box* const b0 = bd0.get_b();
     const box* const b1 = bd1.get_b();
     const double bd0l1 = b0->get_l1();
@@ -128,8 +128,8 @@ bounding* containing_bounding(const bounding& bd0, const bounding& bd1) {
     const double bd1l2 = b1->get_l2();
     const double bd1l3 = b1->get_l3();
 
-    const rt::vector& pos0 = b0->get_position();
-    const rt::vector& pos1 = b1->get_position();
+    const rt::vector pos0 = b0->get_position();
+    const rt::vector pos1 = b1->get_position();
     const rt::vector position(
         (pos1.x + bd1l1 + (pos0.x - bd0l1)) / 2,
         (pos1.y + bd1l2 + (pos0.y - bd0l2)) / 2,
@@ -145,6 +145,47 @@ bounding* containing_bounding(const bounding& bd0, const bounding& bd1) {
 }
 
 /* Returns a non-terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
+   containing the standard non-terminal bounding boxes in the children vector */
+bounding* containing_bounding_any(const vector<const bounding*>& children) {
+
+    if (children.size() == 0) {
+        printf("Error, empty vector of children bounding boxes\n");
+        return NULL;
+    }
+
+    double min_x = infinity;
+    double max_x = -infinity;
+    double min_y = infinity;
+    double max_y = -infinity;
+    double min_z = infinity;
+    double max_z = -infinity;
+
+    /* Computation of the dimensions of the object set */
+    for(unsigned int i = 0; i < children.size(); i++) {
+
+        double x_min, x_max, y_min, y_max, z_min, z_max;
+        children.at(i)->get_b()->min_max_coord(x_min, x_max, y_min, y_max, z_min, z_max);
+
+        if (x_max > max_x) {max_x = x_max;}
+        if (x_min < min_x) {min_x = x_min;}
+        if (y_max > max_y) {max_y = y_max;}
+        if (y_min < min_y) {min_y = y_min;}
+        if (z_max > max_z) {max_z = z_max;}
+        if (z_min < min_z) {min_z = z_min;}
+    }
+
+    const box* b = new box(
+        rt::vector((max_x + min_x) / 2, (max_y + min_y) / 2, (max_z + min_z) / 2),
+        rt::vector(1, 0, 0), rt::vector(0, 1, 0),
+        max_x - min_x,
+        max_y - min_y,
+        max_z - min_z
+    );
+    
+    return new bounding(b, children);
+}
+
+/* Returns a terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the (finite) objects whose indices are in the obj vector */
 bounding* containing_objects(const std::vector<const object*>& obj) {
 

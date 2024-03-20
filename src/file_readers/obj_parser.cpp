@@ -65,6 +65,20 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
          break;
       }
 
+      /*
+      if (strcmp(s, "o") == 0) {
+         char group_name[65];
+         int ret = fscanf(file, "%64s", group_name);
+         printf("Group %s: polygon index: %u\n", group_name, number_of_polygons);
+         if (ret == 1) {
+            continue;
+         }
+         else {
+            break;
+         }
+      }
+      */
+
       /* Commented line, or ignored command */
       if (strcmp(s, "#") == 0
          || strcmp(s, "s") == 0
