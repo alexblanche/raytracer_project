@@ -259,6 +259,11 @@ int main(int argc, char *argv[]) {
 
     scene.bounding_set = {stool_bd, others_bd};
 
+    /* Wrongful bounding box test */
+    // const box* stool_b = stool_bd->get_b();
+    // const box* testb = new box(stool_b->get_position(), rt::vector(1,0,0), rt::vector(0,1,0), 2*stool_b->get_l1(), 2*stool_b->get_l2(), 2*stool_b->get_l3(), 4);
+    // scene.object_set.push_back(testb);
+
     /**************************************************************************/
 
     /* Definition of the matrix in which we will write the image */

@@ -215,22 +215,22 @@ void box::min_max_coord(double& min_x, double& max_x,
     const double a2x = n2.x >= 0 ? 1 : (-1);
     const double a3x = n3.x >= 0 ? 1 : (-1);
 
-    max_x = (position + (a1x * n1) + (a2x * n2) + (a3x * n3)).x;
-    min_x = (position + ((- a1x) * n1) + ((- a2x) * n2) + ((- a3x) * n3)).x;
+    max_x = (position + l1 * (a1x * n1) + l2 * (a2x * n2) + l3 * (a3x * n3)).x;
+    min_x = (position + l1 * ((- a1x) * n1) + l2 * ((- a2x) * n2) + l3 * ((- a3x) * n3)).x;
 
     const double a1y = n1.y >= 0 ? 1 : (-1);
     const double a2y = n2.y >= 0 ? 1 : (-1);
     const double a3y = n3.y >= 0 ? 1 : (-1);
 
-    max_y = (position + (a1y * n1) + (a2y * n2) + (a3y * n3)).y;
-    min_y = (position + ((- a1y) * n1) + ((- a2y) * n2) + ((- a3y) * n3)).y;
+    max_y = (position + l1 * (a1y * n1) + l2 * (a2y * n2) + l3 * (a3y * n3)).y;
+    min_y = (position + l1 * ((- a1y) * n1) + l2 * ((- a2y) * n2) + l3 * ((- a3y) * n3)).y;
 
     const double a1z = n1.z >= 0 ? 1 : (-1);
     const double a2z = n2.z >= 0 ? 1 : (-1);
     const double a3z = n3.z >= 0 ? 1 : (-1);
 
-    max_z = (position + (a1z * n1) + (a2z * n2) + (a3z * n3)).z;
-    min_z = (position + ((- a1z) * n1) + ((- a2z) * n2) + ((- a3z) * n3)).z;
+    max_z = (position + l1 * (a1z * n1) + l2 * (a2z * n2) + l3 * (a3z * n3)).z;
+    min_z = (position + l1 * ((- a1z) * n1) + l2 * ((- a2z) * n2) + l3 * ((- a3z) * n3)).z;
 }
 
 

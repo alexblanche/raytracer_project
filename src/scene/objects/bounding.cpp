@@ -174,6 +174,15 @@ bounding* containing_bounding_any(const vector<const bounding*>& children) {
         if (z_min < min_z) {min_z = z_min;}
     }
 
+    /*
+    printf("%lf, %lf, %lf, %lf, %lf, %lf\n", max_x, min_x, max_y, min_y, max_z, min_z);
+    printf("position:(%lf, %lf, %lf), l1 = %lf, l2 = %lf, l3 = %lf\n",
+        (max_x + min_x) / 2, (max_y + min_y) / 2, (max_z + min_z) / 2,
+        max_x - min_x,
+        max_y - min_y,
+        max_z - min_z);
+    */
+
     const box* b = new box(
         rt::vector((max_x + min_x) / 2, (max_y + min_y) / 2, (max_z + min_z) / 2),
         rt::vector(1, 0, 0), rt::vector(0, 1, 0),
