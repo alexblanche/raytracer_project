@@ -591,11 +591,25 @@ scene::scene(const char* file_name, bool& creation_successful)
 /* Destructor */
 
 scene::~scene() {
+    /* Destruction of the objects located on the heap */
     for (unsigned int i = 0; i < object_set.size(); i++) {
         delete(object_set.at(i));
     }
+
+    /* Recursive destruction of the bounding boxes */
+    std::stack<const bounding*> bd_stack;
     for (unsigned int i = 0; i < bounding_set.size(); i++) {
-        delete(bounding_set.at(i));
+        bd_stack.push(bounding_set.at(i));
+    }
+    while (not bd_stack.empty()) {
+        const bounding* bd = bd_stack.top();
+        bd_stack.pop();
+
+        std::vector<const bounding*> bd_children = bd->get_children();
+        for (unsigned int i = 0; i < bd_children.size(); i++) {
+            bd_stack.push(bd_children.at(i));
+        }
+        delete(bd);
     }
 }
 

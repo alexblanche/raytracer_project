@@ -1,4 +1,4 @@
-resolution width:800 height:600
+resolution width:200 height:150
 camera position:(0, 4.5, 8) direction:(0, -0.35, -1) rightdir:(1, 0, 0) fov_width:2.5 distance:3
 background_color 190 235 255
 triangles_per_bounding 1
