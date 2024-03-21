@@ -206,63 +206,6 @@ int main(int argc, char *argv[]) {
 
     printf("Number of objects: %u\n", (unsigned int) scene.object_set.size());
 
-    /**************************************************************************/
-    /* Speed test: manual definition of bounding boxes for the wooden stool */
-
-    // vector<const object*> stool_polygons;
-    // for(unsigned int i = 1; i < scene.object_set.size() - 1; i++) {
-    //     stool_polygons.push_back(scene.object_set.at(i));
-    // }
-    vector<const object*> truss_a_poly;
-    for(unsigned int i = 0; i < 8; i++) {
-        truss_a_poly.push_back(scene.object_set.at(i));
-    }
-
-    vector<const object*> sphere_poly;
-    for(unsigned int i = 8; i < 2056; i++) {
-        sphere_poly.push_back(scene.object_set.at(i));
-    }
-
-    vector<const object*> truss_b_poly;
-    for(unsigned int i = 2056; i < 2064; i++) {
-        truss_b_poly.push_back(scene.object_set.at(i));
-    }
-
-    vector<const object*> leg_poly;
-    for(unsigned int i = 2064; i < 2084; i++) {
-        leg_poly.push_back(scene.object_set.at(i));
-    }
-
-    vector<const object*> support_poly;
-    for(unsigned int i = 2084; i < 3716; i++) {
-        support_poly.push_back(scene.object_set.at(i));
-    }
-
-    vector<const object*> top_poly;
-    for(unsigned int i = 3716; i < scene.object_set.size() - 2; i++) {
-        top_poly.push_back(scene.object_set.at(i));
-    }
-
-    vector<const object*> other_objects = {scene.object_set.at(scene.object_set.size() - 2), scene.object_set.at(scene.object_set.size() - 1)};
-
-    const bounding* truss_a_bd = containing_objects(truss_a_poly);
-    const bounding* sphere_bd = containing_objects(sphere_poly);
-    const bounding* truss_b_bd = containing_objects(truss_b_poly);
-    const bounding* leg_bd = containing_objects(leg_poly);
-    const bounding* support_bd = containing_objects(support_poly);
-    const bounding* top_bd = containing_objects(top_poly);
-
-    vector<const bounding*> stool_children = {truss_a_bd, sphere_bd, truss_b_bd, leg_bd, support_bd, top_bd};
-    const bounding* stool_bd = containing_bounding_any(stool_children);
-
-    const bounding* others_bd = new bounding(other_objects);
-
-    scene.bounding_set = {stool_bd, others_bd};
-
-    /* Wrongful bounding box test */
-    // const box* stool_b = stool_bd->get_b();
-    // const box* testb = new box(stool_b->get_position(), rt::vector(1,0,0), rt::vector(0,1,0), 2*stool_b->get_l1(), 2*stool_b->get_l2(), 2*stool_b->get_l3(), 4);
-    // scene.object_set.push_back(testb);
 
     /**************************************************************************/
 

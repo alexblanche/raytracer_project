@@ -1,6 +1,7 @@
 #pragma once
 
 #include "scene/objects/object.hpp"
+#include "scene/objects/bounding.hpp"
 
 #include <vector>
 #include <string>
@@ -20,4 +21,5 @@
  */
 bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
    const unsigned int texture_index, std::vector<string>& material_names,
-   const double& scale, const rt::vector& shift);
+   const double& scale, const rt::vector& shift,
+   const bool bounding_enabled, const bounding*& output_bounding);

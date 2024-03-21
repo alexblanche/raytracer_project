@@ -163,25 +163,18 @@ bounding* containing_bounding_any(const vector<const bounding*>& children) {
     /* Computation of the dimensions of the object set */
     for(unsigned int i = 0; i < children.size(); i++) {
 
-        double x_min, x_max, y_min, y_max, z_min, z_max;
-        children.at(i)->get_b()->min_max_coord(x_min, x_max, y_min, y_max, z_min, z_max);
+        if (children.at(i)->get_b() != NULL) {
+            double x_min, x_max, y_min, y_max, z_min, z_max;
+            children.at(i)->get_b()->min_max_coord(x_min, x_max, y_min, y_max, z_min, z_max);
 
-        if (x_max > max_x) {max_x = x_max;}
-        if (x_min < min_x) {min_x = x_min;}
-        if (y_max > max_y) {max_y = y_max;}
-        if (y_min < min_y) {min_y = y_min;}
-        if (z_max > max_z) {max_z = z_max;}
-        if (z_min < min_z) {min_z = z_min;}
+            if (x_max > max_x) {max_x = x_max;}
+            if (x_min < min_x) {min_x = x_min;}
+            if (y_max > max_y) {max_y = y_max;}
+            if (y_min < min_y) {min_y = y_min;}
+            if (z_max > max_z) {max_z = z_max;}
+            if (z_min < min_z) {min_z = z_min;}
+        }
     }
-
-    /*
-    printf("%lf, %lf, %lf, %lf, %lf, %lf\n", max_x, min_x, max_y, min_y, max_z, min_z);
-    printf("position:(%lf, %lf, %lf), l1 = %lf, l2 = %lf, l3 = %lf\n",
-        (max_x + min_x) / 2, (max_y + min_y) / 2, (max_z + min_z) / 2,
-        max_x - min_x,
-        max_y - min_y,
-        max_z - min_z);
-    */
 
     const box* b = new box(
         rt::vector((max_x + min_x) / 2, (max_y + min_y) / 2, (max_z + min_z) / 2),

@@ -316,6 +316,12 @@ scene::scene(const char* file_name, bool& creation_successful)
     /* The name of the texture is stored at index i of texture_names, and the associated texture at index i of texture_set */
     std::vector<string> texture_names;
 
+    /* Bounding handling */
+    /* When triangles_per_bounding is different from 0, then objects that are not defined in an obj file are placed in
+       the vector other_content. At the end, these objects are placed in a bounding alongside the ones generated during obj files parsing */
+    std::vector<const object*> other_content;
+    const bool bounding_enabled = triangles_per_bounding != 0;
+
 
     /* Parsing loop */
 
@@ -325,7 +331,7 @@ scene::scene(const char* file_name, bool& creation_successful)
         char s[14];
         if (fscanf(file, "%13s ", s) != 1) {
             fclose(file);
-            return;
+            break;
         }
 
         /* Commented line */
@@ -375,6 +381,7 @@ scene::scene(const char* file_name, bool& creation_successful)
 
             if (parsing_successful) {
                 printf("%s texture loaded\n", tfile_name);
+                fflush(stdout);
             }
             else {
                 printf("%s texture reading failed\n", tfile_name);
@@ -398,9 +405,12 @@ scene::scene(const char* file_name, bool& creation_successful)
                 return;
             }
             const unsigned int m_index = get_material(file, mat_names, material_set);
-            object_set.push_back(
-                new sphere(rt::vector(x, y, z), r, m_index)
-            );
+            const sphere* sph = new sphere(rt::vector(x, y, z), r, m_index);
+            object_set.push_back(sph);
+            
+            if (bounding_enabled) {
+                other_content.push_back(sph);
+            }
         }
         else if (strcmp(s, "plane") == 0) {
             /* normal:(0, -1, 0) position:(0, 160, 0) [material] */
@@ -415,9 +425,12 @@ scene::scene(const char* file_name, bool& creation_successful)
                 return;
             }
             const unsigned int m_index = get_material(file, mat_names, material_set);
-            object_set.push_back(
-                new plane(nx, ny, nz, rt::vector(px, py, pz), m_index)
-            );
+            const plane* pln = new plane(nx, ny, nz, rt::vector(px, py, pz), m_index);
+            object_set.push_back(pln);
+                
+            if (bounding_enabled) {
+                other_content.push_back(pln);
+            }
         }
         else if (strcmp(s, "box") == 0) {
             /* center:(166, -200, 600) x_axis:(100, 100, -100) y_axis:(-200, 100, -100) 300 200 300 */
@@ -434,12 +447,15 @@ scene::scene(const char* file_name, bool& creation_successful)
                 return;
             }
             const unsigned int m_index = get_material(file, mat_names, material_set);
-            object_set.push_back(
-                new box(rt::vector(cx, cy, cz),
-                    rt::vector(n1x, n1y, n1z).unit(),
-                    rt::vector(n2x, n2y, n2z).unit(),
-                    l1, l2, l3, m_index)
-            );
+            const box* bx = new box(rt::vector(cx, cy, cz),
+                rt::vector(n1x, n1y, n1z).unit(),
+                rt::vector(n2x, n2y, n2z).unit(),
+                l1, l2, l3, m_index);
+            object_set.push_back(bx);
+                
+            if (bounding_enabled) {
+                other_content.push_back(bx);
+            }
         }
         else if (strcmp(s, "triangle") == 0) {
             /* (-620, -100, 600) (-520, 100, 500) (-540, -200, 700) [material] */
@@ -458,20 +474,26 @@ scene::scene(const char* file_name, bool& creation_successful)
             bool textured;
             const texture_info info = parse_texture_info(file, texture_names, true, textured);
             if (textured) {
-                object_set.push_back(
-                    new triangle(rt::vector(x0, y0, z0),
-                        rt::vector(x1, y1, z1),
-                        rt::vector(x2, y2, z2),
-                        m_index, info)
-                );
+                const triangle* tr = new triangle(rt::vector(x0, y0, z0),
+                    rt::vector(x1, y1, z1),
+                    rt::vector(x2, y2, z2),
+                    m_index, info);
+                object_set.push_back(tr);
+                    
+                if (bounding_enabled) {
+                    other_content.push_back(tr);
+                }
             }
             else {
-                object_set.push_back(
-                    new triangle(rt::vector(x0, y0, z0),
-                        rt::vector(x1, y1, z1),
-                        rt::vector(x2, y2, z2),
-                        m_index)
-                );
+                const triangle* tr = new triangle(rt::vector(x0, y0, z0),
+                    rt::vector(x1, y1, z1),
+                    rt::vector(x2, y2, z2),
+                    m_index);
+                object_set.push_back(tr);
+                    
+                if (bounding_enabled) {
+                    other_content.push_back(tr);
+                }
             }
             
         }
@@ -493,22 +515,28 @@ scene::scene(const char* file_name, bool& creation_successful)
             bool textured;
             const texture_info info = parse_texture_info(file, texture_names, false, textured);
             if (textured) {
-                object_set.push_back(
-                    new quad(rt::vector(x0, y0, z0),
-                        rt::vector(x1, y1, z1),
-                        rt::vector(x2, y2, z2),
-                        rt::vector(x3, y3, z3),
-                        m_index, info)
-                );
+                const quad* q = new quad(rt::vector(x0, y0, z0),
+                    rt::vector(x1, y1, z1),
+                    rt::vector(x2, y2, z2),
+                    rt::vector(x3, y3, z3),
+                    m_index, info);
+                object_set.push_back(q);
+                    
+                if (bounding_enabled) {
+                    other_content.push_back(q);
+                }
             }
             else {
-                object_set.push_back(
-                    new quad(rt::vector(x0, y0, z0),
-                        rt::vector(x1, y1, z1),
-                        rt::vector(x2, y2, z2),
-                        rt::vector(x3, y3, z3),
-                        m_index)
-                );
+                const quad* q = new quad(rt::vector(x0, y0, z0),
+                    rt::vector(x1, y1, z1),
+                    rt::vector(x2, y2, z2),
+                    rt::vector(x3, y3, z3),
+                    m_index);
+                object_set.push_back(q);
+                    
+                if (bounding_enabled) {
+                    other_content.push_back(q);
+                }
             }
         }
         else if (strcmp(s, "cylinder") == 0) {
@@ -525,10 +553,13 @@ scene::scene(const char* file_name, bool& creation_successful)
                 return;
             }
             const unsigned int m_index = get_material(file, mat_names, material_set);
-            object_set.push_back(
-                new cylinder(rt::vector(x0, y0, z0), rt::vector(dx, dy, dz).unit(),
-                    r, l, m_index)
-            );
+            const cylinder* cyl = new cylinder(rt::vector(x0, y0, z0), rt::vector(dx, dy, dz).unit(),
+                r, l, m_index);
+            object_set.push_back(cyl);
+                
+            if (bounding_enabled) {
+                other_content.push_back(cyl);
+            }
         }
 
         /* Obj file parsing */
@@ -562,14 +593,20 @@ scene::scene(const char* file_name, bool& creation_successful)
                 return;
             }
 
+            const bounding* output_bd;
             const bool parsing_successful = parse_obj_file(ofile_name, object_set, t_index, mat_names,
-                scale, rt::vector(sx, sy, sz));
+                scale, rt::vector(sx, sy, sz),
+                bounding_enabled, output_bd);
 
             if (not parsing_successful) {
                 printf("%s obj file reading failed\n", ofile_name);
                 creation_successful = false;
                 fclose(file);
                 return;
+            }
+
+            if (bounding_enabled) {
+                bounding_set.push_back(output_bd);
             }
         }
 
@@ -581,6 +618,10 @@ scene::scene(const char* file_name, bool& creation_successful)
             fclose(file);
             return;
         }
+    }
+
+    if (bounding_enabled) {
+        bounding_set.push_back(new bounding(other_content));
     }
 
     fclose(file);
