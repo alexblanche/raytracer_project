@@ -66,7 +66,7 @@ bool assign_to_closest(const std::vector<std::vector<const object*>>& old_group,
 }
 
 /* Returns a vector of k vectors of object* representing the k clusters */
-std::vector<std::vector<const object*>> k_means(std::vector<const object*>& obj, const unsigned int k) {
+std::vector<std::vector<const object*>> k_means(const std::vector<const object*>& obj, const unsigned int k) {
 
     /* Vectors containing the k initial means */
     std::vector<rt::vector> means(k);

@@ -40,7 +40,7 @@ class scene {
         randomgen rg;
 
         // Triangles are grouped by the given number in the bounding box tree-search method
-        unsigned int triangles_per_bounding;
+        unsigned int polygons_per_bounding;
 
         /* Constructor */
 
@@ -52,7 +52,7 @@ class scene {
             const rt::color& background,
             const int width, const int height,
             const camera& cam,
-            const unsigned int triangles_per_bounding);
+            const unsigned int polygons_per_bounding);
 
         /* Constructor from an external file */
         scene(const char* file_name, bool& creation_successful);

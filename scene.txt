@@ -1,7 +1,7 @@
 resolution width:800 height:600
 camera position:(0, 4.5, 8) direction:(0, -0.35, -1) rightdir:(1, 0, 0) fov_width:2.5 distance:3
 background_color 190 235 255
-triangles_per_bounding 1
+polygons_per_bounding 1
 
 material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:2 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 # material red_light (color:(255, 255, 255) emitted_color:(255, 0, 0) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)

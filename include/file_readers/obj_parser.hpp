@@ -12,14 +12,19 @@
    In the future, maybe split polygons with >= 5 sides into triangles */
 
 /* Parses .obj file file_name. Triangles and quads are added to obj_set,
-   with materials indices found in material_names, and texture indices found
-   in texture_names
-
-   Object names (o), polygon groups (g), smooth shading (s), lines (l) are ignored
-
+   with material indices (defined with the keyword usemtl) found in material_names
+   
+   - Only one texture is handled.
+   - Object names (o), polygon groups (g), smooth shading (s), lines (l) are ignored.
+   - The object is scaled with the factor scale, and shifted by the vector shift.
+   - If bounding_enabled, a bounding containing the whole object is placed in output_bd.
+     It contains a hierarchy of bounding boxes, such that the terminal ones contain at most
+     polygons_per_bounding polygons.
+   
    Returns true if the operation was successful
- */
+*/
 bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
    const unsigned int texture_index, std::vector<string>& material_names,
    const double& scale, const rt::vector& shift,
-   const bool bounding_enabled, const bounding*& output_bounding);
+   const bool bounding_enabled, const unsigned int polygons_per_bounding,
+   const bounding*& output_bd);

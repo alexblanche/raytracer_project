@@ -41,6 +41,7 @@ add_library(${libname} SHARED
 	src/scene/scene.cpp
 	src/file_readers/bmp_reader.cpp
 	src/file_readers/raw_data.cpp
+	src/auxiliary/clustering.cpp
 	src/file_readers/obj_parser.cpp
 )
 

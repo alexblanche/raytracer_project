@@ -33,11 +33,11 @@ scene::scene(const std::vector<const object*>& object_set,
     const rt::color& background,
     const int width, const int height,
     const camera& cam,
-    const unsigned int triangles_per_bounding)
+    const unsigned int polygons_per_bounding)
 
     : object_set(object_set), bounding_set(bounding_set), texture_set(texture_set), material_set(material_set),
     background(background), width(width), height(height),
-    cam(cam), rg(randomgen()), triangles_per_bounding(triangles_per_bounding) {}
+    cam(cam), rg(randomgen()), polygons_per_bounding(polygons_per_bounding) {}
 
 
 
@@ -210,7 +210,7 @@ scene::scene(const char* file_name, bool& creation_successful)
     resolution width:1366 height:768
     camera position:(0, 0, 0) direction:(0, 0, 1) rightdir:(1, 0, 0) fov_width:1000 distance:400
     background_color 190 235 255
-    triangles_per_bounding 10 //specifying 0 will deactivate the bounding generation
+    polygons_per_bounding 10 //specifying 0 will deactivate the bounding generation
 
     fov_height is generated automatically (for width/height aspect ratio)
     */
@@ -246,9 +246,9 @@ scene::scene(const char* file_name, bool& creation_successful)
 
     background = rt::color(r, g, b);
 
-    ret = fscanf(file, "triangles_per_bounding %u\n", &triangles_per_bounding);
+    ret = fscanf(file, "polygons_per_bounding %u\n", &polygons_per_bounding);
     if (ret != 1) {
-        printf("Parsing error in scene constructor (triangles per bounding)\n");
+        printf("Parsing error in scene constructor (polygons per bounding)\n");
         creation_successful = false;
         return;
     }
@@ -317,10 +317,10 @@ scene::scene(const char* file_name, bool& creation_successful)
     std::vector<string> texture_names;
 
     /* Bounding handling */
-    /* When triangles_per_bounding is different from 0, then objects that are not defined in an obj file are placed in
+    /* When polygons_per_bounding is different from 0, then objects that are not defined in an obj file are placed in
        the vector other_content. At the end, these objects are placed in a bounding alongside the ones generated during obj files parsing */
     std::vector<const object*> other_content;
-    const bool bounding_enabled = triangles_per_bounding != 0;
+    const bool bounding_enabled = polygons_per_bounding != 0;
 
 
     /* Parsing loop */
@@ -596,7 +596,7 @@ scene::scene(const char* file_name, bool& creation_successful)
             const bounding* output_bd;
             const bool parsing_successful = parse_obj_file(ofile_name, object_set, t_index, mat_names,
                 scale, rt::vector(sx, sy, sz),
-                bounding_enabled, output_bd);
+                bounding_enabled, polygons_per_bounding, output_bd);
 
             if (not parsing_successful) {
                 printf("%s obj file reading failed\n", ofile_name);

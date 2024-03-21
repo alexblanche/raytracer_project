@@ -5,13 +5,79 @@
 #include "scene/objects/triangle.hpp"
 #include "scene/objects/quad.hpp"
 
+#include "auxiliary/clustering.hpp"
+
 #include <stdio.h>
 #include <string.h>
 #include <string>
 
+#define MIN_NUMBER_OF_POLYGONS_FOR_BOX 20
+
+
 /* Wavefront .obj file parser */
 /* Only handles .obj files made up of triangles and quads, for now.
    In the future, maybe split polygons with >= 5 sides into triangles */
+
+
+/* Auxiliary function that returns a bounding* to add to children,
+   containing the objects of content, split into a hierarchy of boundings if their number
+   exceeds MIN_NUMBER_OF_POLYGONS_FOR_BOX */
+
+const bounding* create_bounding_hierarchy(const std::vector<const object*>& content,
+   const unsigned int polygons_per_bounding) {
+
+   /* Not enough polygons for it to be worth having a bounding box,
+      the bounding here just acts as a container */
+   if (content.size() < MIN_NUMBER_OF_POLYGONS_FOR_BOX) {
+      return new bounding(content);
+   }
+   
+   /* content fits in one bounding box */
+   if (content.size() <= polygons_per_bounding) {
+      return containing_objects(content);
+   }
+   
+   /* A hierarchy has to be created */
+   
+   /* Splitting the objects into groups of at most polygons_per_bounding (on average) */
+   const unsigned int k = 1 + content.size() / polygons_per_bounding;
+   const std::vector<std::vector<const object*>> groups = k_means(content, k);
+
+   /*
+   // Automatic bounding boxes definition
+    queue<const bounding*> bounding_queue;
+    
+    // Creation of the terminal nodes and their non-terminal containers
+    for(unsigned int i = 0; i < number_of_triangles / triangles_per_terminal; i++) {
+        vector<unsigned int> v(triangles_per_terminal);
+        for(unsigned int j = 0; j < triangles_per_terminal; j++) {
+            v.at(j) = nb_obj + i * triangles_per_terminal + j;
+        }
+        bounding_queue.push(containing_objects(v));
+    }
+
+    // Grouping them by two until there is only one left
+    while (bounding_queue.size() != 1) {
+        const bounding* bd0 = bounding_queue.front();
+        bounding_queue.pop();
+        const bounding* bd1 = bounding_queue.front();
+        bounding_queue.pop();
+
+        const bounding* bd01 = containing_bounding(*bd0, *bd1);
+        bounding_queue.push(bd01);
+    }
+    
+    vector<unsigned int> indices(nb_obj);
+    for (unsigned int i = 0; i < nb_obj; i++) {
+        indices.at(i) = object::set.at(i)->get_index();
+    }
+    const bounding c(indices);
+    const bounding* bd = bounding_queue.front();
+    bounding::set = {bd, &c};
+    */
+}
+
+
 
 /* Parses .obj file file_name. Triangles and quads are added to obj_set,
    with material indices (defined with the keyword usemtl) found in material_names
@@ -20,13 +86,17 @@
    - Object names (o), polygon groups (g), smooth shading (s), lines (l) are ignored.
    - The object is scaled with the factor scale, and shifted by the vector shift.
    - If bounding_enabled, a bounding containing the whole object is placed in output_bd.
+     It contains a hierarchy of bounding boxes, such that the terminal ones contain at most
+     polygons_per_bounding polygons.
 
    Returns true if the operation was successful
- */
+*/
+
 bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
    const unsigned int texture_index, std::vector<string>& material_names,
    const double& scale, const rt::vector& shift,
-   const bool bounding_enabled, const bounding*& output_bd) {
+   const bool bounding_enabled, const unsigned int polygons_per_bounding,
+   const bounding*& output_bd) {
 
    printf("Parsing obj file...");
    fflush(stdout);
@@ -77,13 +147,11 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
       /* New group definition
          If bounding_enabled is true, the current content vector of polygons
          is placed in a box that is added to the children vector */
-      if (bounding_enabled && strcmp(s, "o") == 0) {
+      if (bounding_enabled && strcmp(s, "o") == 0 && content.size() != 0) {
 
-         if (bounding_enabled) {
-            const bounding* bd = (content.size() >= 20) ? containing_objects(content) : new bounding(content);
-            children.push_back(bd);
-            content.clear();
-         }
+         const bounding* bd = create_bounding_hierarchy(content, polygons_per_bounding);
+         children.push_back(bd);
+         content.clear();
       }
 
       /* Commented line, or ignored command */
@@ -301,7 +369,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
 
    if (bounding_enabled) {
       /* Placing the last group into a bounding */
-      const bounding* bd = (content.size() >= 20) ? containing_objects(content) : new bounding(content);
+      const bounding* bd = create_bounding_hierarchy(content, polygons_per_bounding);
       children.push_back(bd);
 
       /* Setting the final bounding */
