@@ -11,7 +11,7 @@ numeric_limits<double> realclu;
 const double infinity = realclu.infinity();
 
 #define MIN_NUMBER_OF_POLYGONS_FOR_BOX 20
-#define CARDINAL_OF_BOX_GROUP 2
+#define CARDINAL_OF_BOX_GROUP 3
 #define MAX_NUMBER_OF_ITERATIONS 50
 
 /** K-means clustering algorithm **/
@@ -121,6 +121,7 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
         iterations--;
     }
 
+    printf("k_means: %u iterations (maximum = %u)\n", MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS);
     // printf("k_means: loop exitted\n");
 
     /* Final vector of groups */

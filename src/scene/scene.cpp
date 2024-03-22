@@ -257,7 +257,7 @@ scene::scene(const char* file_name, bool& creation_successful)
     /*
     - Materials are defined with this syntax:
     
-    material:(color:(120, 120, 120) emitted_color:(0, 0, 0) reflectivity:1 emission:0 specular_p:1.0 reflects_color:false)
+    material:(color:(120, 120, 120) emitted_color:(0, 0, 0) reflectivity:1 emission:0 specular_p:1.0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
 
     - Objects can be defined in any order, with this syntax:
@@ -275,7 +275,6 @@ scene::scene(const char* file_name, bool& creation_successful)
     cylinder origin:(0, 0, 0) direction:(1, -1, 1) radius:100 length:300 [material]
 
     For boxes and cylinders, the axes do not need to be unit vectors, they will be normalized when the objects are defined.
-    Objects are automatically stored in object::set.
 
     - We can declare a material as a variable (before the objects are declared):
     material m1 (...)
