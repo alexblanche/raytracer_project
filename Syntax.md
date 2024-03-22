@@ -19,13 +19,24 @@ When polygon meshes are used (see below), the rendering can be accelerated with 
 To enable the BVH strategy, a non-zero value should be specified:  
 ``polygons_per_bounding 60``
 
-Specifying 0 will disable the method, and a linear search will be performed instead:
+Specifying 0 will disable the method, and a linear search will be performed instead:  
 ``polygons_per_bounding 0``
 
 
 ## Material definition
 
-Materials are defined with this syntax:  
+Materials are defined by the following parameters:
+- ``color``: the base color of the material. (it will be covered by the texture in the case of a textured polygon)
+- ``emitted_color``: when the material emits some light, the color to be emitted
+- ``reflectivity``: the reflectivity of the material. 0 for purely diffuse (matte) materials, 1 for pure mirrors, and a value between 0 and 1 for glossy materials (with blurry reflections)
+- ``emission``: the brightness of the material. 0 for materials that do not emit light. The value can go above 1 and to an arbitrary value, but note that the material will appear closer to white (but will still cast a light of the given ``emitted_color``).
+- ``specular_p``: represents how reflective the material is. A value of 0 will have the reflections on the material be purely diffuse (for matte objects). With 1, the material will specularly reflect the entirety of the incoming light (with glossiness subject to the ``reflectivity`` parameter). A value between 0 and 1 will be a mix of ``color`` and the reflection of the incoming light.
+- ``reflects_color``: when the parameter ``specular_p`` is different from 0, the specular reflections will keep the ``color`` of the material. Usually ``reflects_color`` is set at ``false``, except in the case of conductors and metals.
+- ``transparency``: the amount of light transmitted through the material when going at a normal angle, for transparent materials. The amount of light transmitted depends on the angle,, so even will a value of 1, some reflections will occur when the angle between the ray and the normal approaches $\pi$/2, according to Fresnel's formula.
+- ``scattering``: the scattering of the light when transmitted through the material, similarly to ``reflectivity`` for reflections. The value should be close to 0 for most transparent materials.
+- ``refraction_index``: the refraction index of the material, used when the ray is be refracted according to Snell-Descartes' law. Air has 1, water 1.33, glass 1.52, and diamond 2.42.  
+
+Materials are thus defined with this syntax:  
 ``material:(color:(120, 120, 120) emitted_color:(0, 0, 0) reflectivity:1 emission:0 specular_p:1.0 reflects_color:false transparency:0 scattering:0 refraction_index:1)``  
 
 A material can be given a name with this syntax:  
@@ -51,13 +62,13 @@ A box is defined by its center, two axes x and y (the z axis is the cross produc
 Polygons can be either triangles or quads, and are defined by three or four points.  
 ``triangle (-620, -100, 600) (-520,100,500) (-540, -200, 700) material:m1``  
 or  
-``quad (-620, -100, 600) (-520, 100, 600) (-540, -200, 600) (-500, -250, 600) [material]``
+``quad (-620, -100, 600) (-520, 100, 600) (-540, -200, 600) (-500, -250, 600) material:m1``
 
 The polygons are one-sided, and should be declared in counter-clockwise order. Behavior when looking through the back side is undefined.
 
 ### Cylinder
 A cylinder is defined by its origin, direction vector, radius and length. The origin is the center of the bottom disk. The radius parameter designates the common radius of the bottom and top disks. The length is the length of the cylinder along the direction vector. The direction vector does not need to be a unit vector.    
-``cylinder origin:(0, 0, 0) direction:(1, -1, 1) radius:100 length:300 [material]``
+``cylinder origin:(0, 0, 0) direction:(1, -1, 1) radius:100 length:300 material:m1``
 
 
 ## Texture definition
@@ -85,7 +96,7 @@ load_obj wooden_table.bmp (texture:wood shift:(1,0,0) scale:2)
 ``````
 
 ## Comments
-A line can be commented by adding a "#" and a space at the beginning of the line:
+A line can be commented by adding a ``#`` and a space at the beginning of the line:  
 ``# sphere [...]``
 
 
@@ -93,7 +104,7 @@ A line can be commented by adding a "#" and a space at the beginning of the line
 
 # Command line arguments
 
-The first command-line argument is always an integer, and specifies the maximum number of bounces allowed for each ray:
+The first command-line argument is always an integer, and specifies the maximum number of bounces allowed for each ray:  
 ``./main 10``  
 
 The executable works in two modes: the interactive mode displays the image in a window every 10 samples per pixel, and the non-interactive mode generates a given number of samples per pixel without display.
@@ -103,10 +114,10 @@ The executable works in two modes: the interactive mode displays the image in a 
 The interactive mode is activated by default, with this syntax:  
 ``./main 10``  
 
-The time taken to render each sample per pixel can be displayed with the option:  
+The time taken to render each sample per pixel can be displayed with the option:   
 ``./main 10 -time``
 
-When a single sample per pixel takes a long time, the progress and estimated time can be displayed with the option:
+When a single sample per pixel takes a long time, the progress and estimated time can be displayed with the option:  
 ``./main 10 -time all``
 
 When the window appears, the render stops and waits for an input by the user:  
