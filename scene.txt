@@ -1,7 +1,7 @@
-resolution width:800 height:600
-camera position:(0, 4.5, 8) direction:(0, -0.35, -1) rightdir:(1, 0, 0) fov_width:2.5 distance:3
+resolution width:1920 height:1080
+camera position:(0, 5, 8) direction:(0, -0.4, -1) rightdir:(1, 0, 0) fov_width:2.5 distance:3
 background_color 190 235 255
-polygons_per_bounding 1
+polygons_per_bounding 60
 
 material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:2 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 # material red_light (color:(255, 255, 255) emitted_color:(255, 0, 0) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
@@ -9,8 +9,8 @@ material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflec
 # material green_light (color:(255, 255, 255) emitted_color:(0, 255, 0) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 # material yellow_light (color:(255, 255, 255) emitted_color:(255, 255, 0) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-# load_texture wood_floor ../../../raytracer_project/texture_assets/parquet.bmp
-load_texture wood_floor ../../../raytracer_project/texture_assets/stripes.bmp
+load_texture wood_floor ../../../raytracer_project/texture_assets/parquet.bmp
+# load_texture wood_floor ../../../raytracer_project/texture_assets/stripes.bmp
 load_texture stool_wood ../../../raytracer_project/3d_models/stool/Textures/wooden_stool_texture(F).bmp
 material Wooden_stool_texture (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0.8 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 

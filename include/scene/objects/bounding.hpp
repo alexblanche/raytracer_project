@@ -64,6 +64,10 @@ class bounding {
             return children;
         }
 
+        inline bool is_terminal_bd() const {
+            return is_terminal;
+        }
+
         /* Auxiliary function to scene::find_closest_object_bounding :
            Places the children of the bounding on the bounding_stack if the box is hit,
            or determines the closest to the objects from the content if the bounding is terminal

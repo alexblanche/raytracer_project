@@ -196,9 +196,13 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
    
     /* Splitting the objects into groups of polygons_per_bounding polygons (on average) */
     const unsigned int k = 1 + content.size() / polygons_per_bounding;
+
+    // printf("1 Calling k_means: %u elements, k = %u\n", content.size(), k);
     const std::vector<std::vector<element>> groups = k_means(get_element_vector(content), k);
 
     /** Creating the hierarchy **/
+
+    // unsigned int cpt = 0;
 
     /* Creating terminal nodes */
     std::vector<const bounding*> term_nodes;
@@ -210,28 +214,37 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
             else {
                 term_nodes.push_back(containing_objects(get_object_vector(groups.at(i))));
             }
+            // cpt ++;
         }
     }
+    // printf("1 non-empty nodes: %u, empty nodes: %u\n", cpt, k - cpt);
 
     std::vector<element> nodes = get_element_vector(term_nodes);
-
-    printf("nodes.size() = %u\n", nodes.size());
+    // printf("nodes.size() = %u\n", nodes.size());
 
     while (nodes.size() > CARDINAL_OF_BOX_GROUP) {
 
         const unsigned int k = 1 + nodes.size() / CARDINAL_OF_BOX_GROUP;
+
+        // printf("2 Calling k_means: %u elements, k = %u\n", nodes.size(), k);
         const std::vector<std::vector<element>> groups = k_means(nodes, k);
 
         std::vector<const bounding*> new_bd_nodes;
+        
+        // cpt = 0;
         for (unsigned int i = 0; i < k; i++) {
+            
             if (groups.at(i).size() != 0) {
                 new_bd_nodes.push_back(containing_bounding_any(get_bounding_vector(groups.at(i))));
+                // cpt ++;
             }
         }
+        // printf("2 non-empty nodes: %u, empty nodes: %u\n", cpt, k - cpt);
 
         nodes.clear();
         nodes = get_element_vector(new_bd_nodes);
-        printf("nodes.size() = %u\n", nodes.size());
+
+        // printf("nodes.size() = %u\n", nodes.size());
     }
 
     return containing_bounding_any(get_bounding_vector(nodes));    
@@ -251,7 +264,7 @@ void display_hierarchy_properties(const bounding* bd0) {
     printf("Level 0: arity = %u\n", bd0->get_children().size());
 
     while (not bds.empty()) {
-        printf("bds.size() = %u\n", bds.size());
+        // printf("bds.size() = %u\n", bds.size());
 
         /* Computing min, max and average arity of the nodes on the stack
            If one node is terminal, its arity counts as zero. */
@@ -264,7 +277,10 @@ void display_hierarchy_properties(const bounding* bd0) {
         while(not bds.empty()) {
             const bounding* bd = bds.top();
             bds.pop();
-            if (bd->get_content().size() != 0) {
+            if (bd->is_terminal_bd()) {
+                terminal_nodes ++;
+            }
+            else {
                 unsigned int arity = bd->get_children().size();
                 if (arity > max) {max = arity;}
                 if (arity < min) {min = arity;}
@@ -272,9 +288,6 @@ void display_hierarchy_properties(const bounding* bd0) {
                 for (unsigned int j = 0; j < arity; j++) {
                     next_bds.push(bd->get_children().at(j));
                 }
-            }
-            else {
-                terminal_nodes ++;
             }
         }
 
@@ -292,6 +305,8 @@ void display_hierarchy_properties(const bounding* bd0) {
             bds.push(next_bds.top());
             next_bds.pop();
         }
+
+        level++;
     }
     printf("===============================================================================\n");
 }
