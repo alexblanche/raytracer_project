@@ -51,3 +51,9 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& elts, cons
    exceeds MIN_NUMBER_OF_POLYGONS_FOR_BOX */
 const bounding* create_bounding_hierarchy(const std::vector<const object*>& content,
    const unsigned int polygons_per_bounding);
+
+
+/** Tests **/
+
+/* Displays the depth of the hierarchy, as well as the minimum, maximum and average arity of each depth */
+void display_hierarchy_properties(const bounding* bd);

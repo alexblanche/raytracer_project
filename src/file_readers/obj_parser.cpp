@@ -89,6 +89,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
 
          /* Heuristic: each group is a depth 1 node in the global bounding box hierarchy */
          const bounding* bd = create_bounding_hierarchy(content, polygons_per_bounding);
+         display_hierarchy_properties(bd);
          children.push_back(bd);
          content.clear();
       }
@@ -300,15 +301,11 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
    }
    
    fclose(file);
-
-   printf("\r%s successfully loaded:\n", file_name);
-   printf("%u vertices, %u polygons (%u triangles, %u quads)\n",
-      number_of_vertices, number_of_polygons, number_of_triangles, number_of_quads);
-   fflush(stdout);
-
+   
    if (bounding_enabled) {
       /* Placing the last group into a bounding */
       const bounding* bd = create_bounding_hierarchy(content, polygons_per_bounding);
+      display_hierarchy_properties(bd);
       children.push_back(bd);
 
       /* Setting the final bounding */
@@ -320,6 +317,12 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
          output_bd = bd;
       }
    }
+
+   printf("\r%s successfully loaded:\n", file_name);
+   printf("%u vertices, %u polygons (%u triangles, %u quads)\n",
+      number_of_vertices, number_of_polygons, number_of_triangles, number_of_quads);
+   fflush(stdout);
+
 
    return true;
 }

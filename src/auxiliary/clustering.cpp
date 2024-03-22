@@ -4,6 +4,8 @@
 #include "scene/objects/object.hpp"
 #include "scene/objects/bounding.hpp"
 
+#include <stack>
+
 #include<limits>
 numeric_limits<double> realclu;
 const double infinity = realclu.infinity();
@@ -213,7 +215,10 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
 
     std::vector<element> nodes = get_element_vector(term_nodes);
 
+    printf("nodes.size() = %u\n", nodes.size());
+
     while (nodes.size() > CARDINAL_OF_BOX_GROUP) {
+
         const unsigned int k = 1 + nodes.size() / CARDINAL_OF_BOX_GROUP;
         const std::vector<std::vector<element>> groups = k_means(nodes, k);
 
@@ -226,7 +231,67 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
 
         nodes.clear();
         nodes = get_element_vector(new_bd_nodes);
+        printf("nodes.size() = %u\n", nodes.size());
     }
 
     return containing_bounding_any(get_bounding_vector(nodes));    
+}
+
+
+/** Test function **/
+
+/* Displays the depth of the hierarchy, as well as the minimum, maximum and average arity of each depth */
+void display_hierarchy_properties(const bounding* bd0) {
+
+    printf("============================= HIERARCHY STATISTICS =============================\n");
+
+    unsigned int level = 0;
+    std::stack<const bounding*> bds;
+    bds.push(bd0);
+    printf("Level 0: arity = %u\n", bd0->get_children().size());
+
+    while (not bds.empty()) {
+        printf("bds.size() = %u\n", bds.size());
+
+        /* Computing min, max and average arity of the nodes on the stack
+           If one node is terminal, its arity counts as zero. */
+        unsigned int terminal_nodes = 0;
+        unsigned int min = 4294967295;
+        unsigned int max = 0;
+        unsigned int total = 0;
+        const unsigned int number_of_nodes = bds.size();
+        std::stack<const bounding*> next_bds;
+        while(not bds.empty()) {
+            const bounding* bd = bds.top();
+            bds.pop();
+            if (bd->get_content().size() != 0) {
+                unsigned int arity = bd->get_children().size();
+                if (arity > max) {max = arity;}
+                if (arity < min) {min = arity;}
+                total += arity;
+                for (unsigned int j = 0; j < arity; j++) {
+                    next_bds.push(bd->get_children().at(j));
+                }
+            }
+            else {
+                terminal_nodes ++;
+            }
+        }
+
+        /* Displaying the statistics */
+        if (terminal_nodes == number_of_nodes) {
+            printf("Level %u: nodes: %u, all terminal\n", level, number_of_nodes);
+        }
+        else {
+            printf("Level %u: nodes: %u, terminal: %u, minimum arity: %u, maximum: %u, average: %lf\n",
+                level, number_of_nodes, terminal_nodes, min, max, ((double) total) / number_of_nodes);
+        }
+        
+        // bds = next_bds;
+        while (not next_bds.empty()) {
+            bds.push(next_bds.top());
+            next_bds.pop();
+        }
+    }
+    printf("===============================================================================\n");
 }
