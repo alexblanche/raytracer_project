@@ -11,73 +11,11 @@
 #include <string.h>
 #include <string>
 
-#define MIN_NUMBER_OF_POLYGONS_FOR_BOX 20
 
 
 /* Wavefront .obj file parser */
 /* Only handles .obj files made up of triangles and quads, for now.
    In the future, maybe split polygons with >= 5 sides into triangles */
-
-
-/* Auxiliary function that returns a bounding* to add to children,
-   containing the objects of content, split into a hierarchy of boundings if their number
-   exceeds MIN_NUMBER_OF_POLYGONS_FOR_BOX */
-
-const bounding* create_bounding_hierarchy(const std::vector<const object*>& content,
-   const unsigned int polygons_per_bounding) {
-
-   /* Not enough polygons for it to be worth having a bounding box,
-      the bounding here just acts as a container */
-   if (content.size() < MIN_NUMBER_OF_POLYGONS_FOR_BOX) {
-      return new bounding(content);
-   }
-   
-   /* content fits in one bounding box */
-   if (content.size() <= polygons_per_bounding) {
-      return containing_objects(content);
-   }
-   
-   /* A hierarchy has to be created */
-   
-   /* Splitting the objects into groups of at most polygons_per_bounding (on average) */
-   const unsigned int k = 1 + content.size() / polygons_per_bounding;
-   const std::vector<std::vector<const object*>> groups = k_means(content, k);
-
-   /*
-   // Automatic bounding boxes definition
-    queue<const bounding*> bounding_queue;
-    
-    // Creation of the terminal nodes and their non-terminal containers
-    for(unsigned int i = 0; i < number_of_triangles / triangles_per_terminal; i++) {
-        vector<unsigned int> v(triangles_per_terminal);
-        for(unsigned int j = 0; j < triangles_per_terminal; j++) {
-            v.at(j) = nb_obj + i * triangles_per_terminal + j;
-        }
-        bounding_queue.push(containing_objects(v));
-    }
-
-    // Grouping them by two until there is only one left
-    while (bounding_queue.size() != 1) {
-        const bounding* bd0 = bounding_queue.front();
-        bounding_queue.pop();
-        const bounding* bd1 = bounding_queue.front();
-        bounding_queue.pop();
-
-        const bounding* bd01 = containing_bounding(*bd0, *bd1);
-        bounding_queue.push(bd01);
-    }
-    
-    vector<unsigned int> indices(nb_obj);
-    for (unsigned int i = 0; i < nb_obj; i++) {
-        indices.at(i) = object::set.at(i)->get_index();
-    }
-    const bounding c(indices);
-    const bounding* bd = bounding_queue.front();
-    bounding::set = {bd, &c};
-    */
-}
-
-
 
 /* Parses .obj file file_name. Triangles and quads are added to obj_set,
    with material indices (defined with the keyword usemtl) found in material_names

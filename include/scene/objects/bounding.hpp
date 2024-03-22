@@ -84,7 +84,7 @@ class bounding {
 
 /* Returns a bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the bounding boxes bd0 and bd1 */
-bounding* containing_bounding_two(const bounding& bd0, const bounding& bd1);
+bounding* containing_bounding_two(const bounding*& bd0, const bounding*& bd1);
 
 /* Returns a non-terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the standard non-terminal bounding boxes in the children vector */
