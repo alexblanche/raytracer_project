@@ -2,18 +2,18 @@
 
 ## Goal
 
-The goal of this project is to code a bidirectional path-tracer, that handles all sorts of objects including triangle meshes, and realistic shading, reflections, refraction and different kinds of materials. The secundary goal is to make it converge as fast as possible.
+The goal of this project is to code a path-tracer that handles all sorts of objects, including polygon meshes, and realistic shading, reflections, refraction and different kinds of materials. The secondary goal is to make it converge as fast as possible.
 
 ### State of the project
 
-The project currently handles multiple shapes (triangles, quads, spheres, planes, boxes and cylinders), made up of materials of various reflectivity (from diffuse to glossy, to mirror), specular probability (to simulate realistic reflections on non-metallic materials) and refractive index (for water, glass). Triangles and quads can be textured with textures read from bmp files. Scenes are defined in a file ```scene.txt``` at the root (see syntax in ```src/scene/scene.cpp```). The rendered images can be exported as raw data (that can then be combined into a bmp) or as a bmp file.
+The project currently handles polygon meshes (composed of triangles and quads for now) and multiple shapes (triangles, quads, spheres, planes, boxes and cylinders), made up of materials of various reflectivity (from diffuse to glossy, to mirror), specular probability (to simulate realistic reflections on non-metallic materials) and refractive index (for water, glass). Triangles and quads can be textured with textures read from bmp files, and objects can be imported from .obj files. The rendering of polygon meshes is accelerated with the [Bounding Volume Hierarchy](https://en.wikipedia.org/wiki/Bounding_volume_hierarchy) method. Scenes are defined in a file ```scene.txt``` at the root (see syntax in ```src/scene/scene.cpp```). The rendered images can be exported as raw data (that can then be combined into a bmp) or as a bmp file.
 
-Old state (new pictures to come):
+Current state:
 
-![Screen](pictures/pathtracer11_1000rpp.jpg)
+![Screen](pictures/stool_HD.jpg)
 
 Next steps:
-Variable reflectivity, triangle and quad meshes (parsed from .obj files), bounding boxes (tree search already implemented, automatic determination of optimal bounding boxes next), bidirectional path-tracing (to accelerate the rendering of dark scenes).
+Depth of field, light halo (added as post-process). Future plans involve the introduction of some bidirectionality to the path-tracing (to accelerate the rendering of dark scenes) and a conversion to GPU rendering.
 
 
 ## How to run the code
