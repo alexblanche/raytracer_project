@@ -300,7 +300,8 @@ int main(int argc, char *argv[]) {
             delete(scr);
             switch (key) {
                 case 1:
-                    /* Esc or X clicked */
+                    /* Esc or the window exit "X" clicked */
+                    printf("\n");
                     return EXIT_SUCCESS;
                 case 2:
                     /* Space or Enter */

@@ -1,7 +1,7 @@
 resolution width:1920 height:1080
 camera position:(-2, 5, 8) direction:(0.2, -0.4, -1) rightdir:(1, 0, 0.2) fov_width:3 distance:3
 background_color 190 235 255
-polygons_per_bounding 60
+polygons_per_bounding 20
 
 material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:2 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 # material red_light (color:(255, 255, 255) emitted_color:(255, 10, 10) reflectivity:0 emission:26 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
@@ -27,7 +27,3 @@ quad (-4, 10, 10) (-4, 10, 0) (4, 10, 0) (4, 10, 10) material:white_light
 quad (-20,0,10) (-20,0,-50) (40,0,-50) (40,0,10) material:Wooden_stool_texture texture:(wood_floor (0,0) (0,1) (1,1) (1,0))
 
 # sphere center:(-2.5,0.4,-1) radius:0.4 material:red_light
-
-
-
-

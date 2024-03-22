@@ -8,8 +8,8 @@
 
 const material material::DIFFUSE = material(rt::color(255,255,255), 0);
 const material material::MIRROR = material(rt::color(255,255,255), 1);
-const material material::GLASS = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 0.2, 0, 1.3);
-const material material::WATER = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 1, 0, 1.5);
+const material material::GLASS = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 0.2, 0, 1.52);
+const material material::WATER = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 1, 0, 1.33);
 
 
 /* Constructors */

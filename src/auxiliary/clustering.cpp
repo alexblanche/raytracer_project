@@ -232,15 +232,15 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
 
         std::vector<const bounding*> new_bd_nodes;
         
-        // cpt = 0;
+        unsigned int cpt = 0;
         for (unsigned int i = 0; i < k; i++) {
             
             if (groups.at(i).size() != 0) {
                 new_bd_nodes.push_back(containing_bounding_any(get_bounding_vector(groups.at(i))));
-                // cpt ++;
+                cpt ++;
             }
         }
-        // printf("2 non-empty nodes: %u, empty nodes: %u\n", cpt, k - cpt);
+        printf("non-empty nodes: %u, empty nodes: %u\n", cpt, k - cpt);
 
         nodes.clear();
         nodes = get_element_vector(new_bd_nodes);
@@ -248,7 +248,12 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
         // printf("nodes.size() = %u\n", nodes.size());
     }
 
-    return containing_bounding_any(get_bounding_vector(nodes));    
+    if (nodes.size() == 1) {
+        return nodes.at(0).bd;
+    }
+    else {
+        return containing_bounding_any(get_bounding_vector(nodes));
+    }
 }
 
 
