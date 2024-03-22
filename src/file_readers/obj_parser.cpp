@@ -328,7 +328,6 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
       number_of_vertices, number_of_polygons, number_of_triangles, number_of_quads);
    fflush(stdout);
 
-
    return true;
 }
 

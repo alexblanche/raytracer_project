@@ -88,7 +88,7 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
     /* Filling the vector with k elements uniformly distributed along the obj vector */
     const double step = std::max((double) (obj.size() / k), 1.0);
 
-    for (unsigned int i = 0; i < std::min(obj.size(), k); i++) {
+    for (unsigned int i = 0; i < std::min((unsigned int) obj.size(), k); i++) {
         means.at(i) = obj.at((int) (i * step)).get_position();
     }
 
@@ -261,7 +261,7 @@ void display_hierarchy_properties(const bounding* bd0) {
     unsigned int level = 0;
     std::stack<const bounding*> bds;
     bds.push(bd0);
-    printf("Level 0: arity = %u\n", bd0->get_children().size());
+    printf("Level 0: arity = %u\n", (unsigned int) bd0->get_children().size());
 
     while (not bds.empty()) {
         // printf("bds.size() = %u\n", bds.size());
@@ -309,4 +309,5 @@ void display_hierarchy_properties(const bounding* bd0) {
         level++;
     }
     printf("===============================================================================\n");
+    fflush(stdout);
 }

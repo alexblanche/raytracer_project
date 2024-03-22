@@ -332,6 +332,7 @@ scene::scene(const char* file_name, bool& creation_successful)
         char s[14];
         if (fscanf(file, "%13s ", s) != 1) {
             fclose(file);
+            file = NULL;
             break;
         }
 
@@ -625,7 +626,9 @@ scene::scene(const char* file_name, bool& creation_successful)
         bounding_set.push_back(new bounding(other_content));
     }
 
-    fclose(file);
+    if (file != NULL) {
+        fclose(file);
+    }
 }
 
 /*********************************************************************/
