@@ -40,12 +40,17 @@ rt::vector compute_centroid(const std::vector<element>& obj) {
 bool assign_to_closest(const std::vector<std::vector<element>>& old_group, std::vector<std::vector<element>>& new_group,
     const std::vector<rt::vector>& means) {
 
+    // printf("assign_to_closest : begin\n");
+
     bool change = false;
     
     for (unsigned int n = 0; n < old_group.size(); n++) {
+        // printf("old_group.at(n).size() = %u, means.size() = %u\n", old_group.at(n).size(), means.size());
         for (unsigned int i = 0; i < old_group.at(n).size(); i++) {
+            // printf("(%u, %u) ", n, i);
 
-            const rt::vector v = old_group.at(n).at(i).get_position();
+            const element elt = old_group.at(n).at(i);
+            const rt::vector v = elt.get_position();
 
             unsigned int closest_index = 0;
             double distance_to_closest = (means.at(0) - v).normsq();
@@ -61,9 +66,11 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_group, std::
             if (closest_index != n) {
                 change = true;
             }
-            new_group.at(closest_index).push_back(old_group.at(n).at(i));
+            new_group.at(closest_index).push_back(elt);
         }
     }
+
+    // printf("assign_to_closest : end\n");
 
     return change;
 }
@@ -74,21 +81,29 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
     /* Vectors containing the k initial means */
     std::vector<rt::vector> means(k);
 
-    /* Filling the vector with k elements uniformly distributed along the obj vector */
-    const double step = std::max(obj.size() / k, (unsigned int) 1);
+    // printf("k_means: starting\n");
 
-    for (unsigned int i = 0; i < k; i++) {
+    /* Filling the vector with k elements uniformly distributed along the obj vector */
+    const double step = std::max((double) (obj.size() / k), 1.0);
+
+    for (unsigned int i = 0; i < std::min(obj.size(), k); i++) {
         means.at(i) = obj.at((int) (i * step)).get_position();
     }
+
+    // printf("\nk_means: initial means created\n");
     
     /* I use pointers to vectors to prevent multiple copies of vectors in the while loop below */
     std::vector<std::vector<element>>* group = new std::vector<std::vector<element>>(k);
     assign_to_closest({obj}, *group, means);
 
+    // printf("k_means: assign_to_closest done\n");
+
     unsigned int iterations = MAX_NUMBER_OF_ITERATIONS;
     bool change = true;
     
     while (change && iterations != 0) {
+
+        // printf("k_means: iteration\n");
 
         /* Updating the means */
         for (unsigned int i = 0; i < means.size(); i++) {
@@ -104,9 +119,13 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
         iterations--;
     }
 
+    // printf("k_means: loop exitted\n");
+
     /* Final vector of groups */
     std::vector<std::vector<element>> output_groups = *group;
     delete(group);
+
+    // printf("k_means: ready to exit\n");
 
     return output_groups;
 }
@@ -180,25 +199,31 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
     /** Creating the hierarchy **/
 
     /* Creating terminal nodes */
-    std::vector<const bounding*> term_nodes(k);
+    std::vector<const bounding*> term_nodes;
     for (unsigned int i = 0; i < k; i++) {
-        if (groups.at(i).size() < MIN_NUMBER_OF_POLYGONS_FOR_BOX) {
-            term_nodes.at(i) = new bounding(get_object_vector(groups.at(i)));
-        }
-        else {
-            term_nodes.at(i) = containing_objects(get_object_vector(groups.at(i)));
+        if (groups.at(i).size() != 0) {
+            if (groups.at(i).size() < MIN_NUMBER_OF_POLYGONS_FOR_BOX) {
+                term_nodes.push_back(new bounding(get_object_vector(groups.at(i))));
+            }
+            else {
+                term_nodes.push_back(containing_objects(get_object_vector(groups.at(i))));
+            }
         }
     }
 
     std::vector<element> nodes = get_element_vector(term_nodes);
 
     while (nodes.size() > CARDINAL_OF_BOX_GROUP) {
-        const std::vector<std::vector<element>> groups = k_means(nodes, CARDINAL_OF_BOX_GROUP);
+        const unsigned int k = 1 + nodes.size() / CARDINAL_OF_BOX_GROUP;
+        const std::vector<std::vector<element>> groups = k_means(nodes, k);
 
-        std::vector<const bounding*> new_bd_nodes(CARDINAL_OF_BOX_GROUP);
+        std::vector<const bounding*> new_bd_nodes;
         for (unsigned int i = 0; i < k; i++) {
-            new_bd_nodes.at(i) = containing_bounding_any(get_bounding_vector(groups.at(i)));
+            if (groups.at(i).size() != 0) {
+                new_bd_nodes.push_back(containing_bounding_any(get_bounding_vector(groups.at(i))));
+            }
         }
+
         nodes.clear();
         nodes = get_element_vector(new_bd_nodes);
     }

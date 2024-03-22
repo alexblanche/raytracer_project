@@ -9,7 +9,8 @@ material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflec
 # material green_light (color:(255, 255, 255) emitted_color:(0, 255, 0) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 # material yellow_light (color:(255, 255, 255) emitted_color:(255, 255, 0) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-load_texture wood_floor ../../../raytracer_project/texture_assets/parquet.bmp
+# load_texture wood_floor ../../../raytracer_project/texture_assets/parquet.bmp
+load_texture wood_floor ../../../raytracer_project/texture_assets/stripes.bmp
 load_texture stool_wood ../../../raytracer_project/3d_models/stool/Textures/wooden_stool_texture(F).bmp
 material Wooden_stool_texture (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0.8 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 

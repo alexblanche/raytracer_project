@@ -126,7 +126,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
     double refr_index = 1;
     std::stack<double> refr_stack;
 
-    const bool bounding_method = scene.triangles_per_bounding != 0;
+    const bool bounding_method = scene.polygons_per_bounding != 0;
 
 
     for (unsigned int i = 0; i < bounce; i++) {

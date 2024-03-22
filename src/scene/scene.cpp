@@ -306,7 +306,8 @@ scene::scene(const char* file_name, bool& creation_successful)
     */
 
     /* Material storage */
-    /* The name of the material is stored at index i of mat_names, and the associated material at index i of mat_content */
+    /* The name of the material is stored at index i of mat_names, and the associated material at index i of mat_content.
+       Each new declared material is appended to these vectors. */
     std::vector<string> mat_names = {"diffuse", "mirror", "glass", "water"};
 
     material_set = {material::DIFFUSE, material::MIRROR, material::GLASS, material::WATER};

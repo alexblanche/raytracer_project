@@ -87,6 +87,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
          is placed in a box that is added to the children vector */
       if (bounding_enabled && strcmp(s, "o") == 0 && content.size() != 0) {
 
+         /* Heuristic: each group is a depth 1 node in the global bounding box hierarchy */
          const bounding* bd = create_bounding_hierarchy(content, polygons_per_bounding);
          children.push_back(bd);
          content.clear();

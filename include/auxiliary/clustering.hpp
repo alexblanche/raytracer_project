@@ -14,6 +14,11 @@ struct element {
 
    /* Constructors */
 
+   element() {
+      obj = NULL;
+      bd = NULL;
+   }
+
    element(const object* o) {
       obj = o;
       bd = NULL;
@@ -27,7 +32,15 @@ struct element {
    /* Position accessor */
 
    inline rt::vector get_position() const {
-      return (obj != NULL) ? obj->get_position() : bd->get_b()->get_position();
+      if (obj != NULL) {
+         return obj->get_position();
+      }
+      else if (bd != NULL && bd->get_b() != NULL) {
+         return bd->get_b()->get_position();
+      }
+      else {
+         return bd->get_content().at(0)->get_position();
+      }
    }
 };
 
