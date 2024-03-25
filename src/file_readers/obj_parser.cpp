@@ -93,7 +93,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
          // Second method: create a bounding hierarchy containing all the nodes
          /* Heuristic: each group is a depth 1 node in the global bounding box hierarchy */
          const bounding* bd = create_bounding_hierarchy(content, polygons_per_bounding);
-         display_hierarchy_properties(bd);
+         // display_hierarchy_properties(bd);
          children.push_back(bd);
          content.clear();
       }
@@ -310,7 +310,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
       /* Placing the last group into a bounding */
       // const bounding* bd = containing_objects(content);
       const bounding* bd = create_bounding_hierarchy(content, polygons_per_bounding);
-      display_hierarchy_properties(bd);
+      // display_hierarchy_properties(bd);
       children.push_back(bd);
 
       /* Setting the final bounding */

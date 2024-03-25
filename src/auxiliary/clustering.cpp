@@ -11,9 +11,10 @@
 numeric_limits<double> realclu;
 const double infinity = realclu.infinity();
 
-#define MIN_NUMBER_OF_POLYGONS_FOR_BOX 20
+#define MIN_NUMBER_OF_POLYGONS_FOR_BOX 5
 #define CARDINAL_OF_BOX_GROUP 3
 #define MAX_NUMBER_OF_ITERATIONS 50
+#define DISPLAY_KMEANS false
 
 /** K-means clustering algorithm **/
 
@@ -112,8 +113,6 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
     /* Vectors containing the k initial means */
     std::vector<rt::vector> means(k);
 
-    // printf("k_means: starting\n");
-
     /* Filling the vector with k elements uniformly distributed along the obj vector */
     const double step = std::max((double) (obj.size() / k), 1.0);
 
@@ -124,8 +123,6 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
     std::vector<std::vector<element>> group(k);
     assign_to_closest({obj}, group, means);
     fill_empty_clusters(group);
-
-    // printf("k_means: assign_to_closest done\n");
 
     unsigned int iterations = MAX_NUMBER_OF_ITERATIONS;
     bool change = true;
@@ -153,14 +150,17 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
         }
     }
 
-    if (MAX_NUMBER_OF_ITERATIONS - iterations < 2) {
-        printf("> k_means: %u iteration (maximum = %u, n = %u, k = %u)\n",
-        MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS, (unsigned int) obj.size(), k);
+    if (DISPLAY_KMEANS) {
+        if (MAX_NUMBER_OF_ITERATIONS - iterations < 2) {
+            printf("> k_means: %u iteration (maximum = %u, n = %u, k = %u)\n",
+            MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS, (unsigned int) obj.size(), k);
+        }
+        else {
+            printf("> k_means: %u iterations (maximum = %u, n = %u, k = %u)\n",
+            MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS, (unsigned int) obj.size(), k);
+        }
     }
-    else {
-        printf("> k_means: %u iterations (maximum = %u, n = %u, k = %u)\n",
-        MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS, (unsigned int) obj.size(), k);
-    }
+    
 
     return group;
 }
@@ -243,7 +243,9 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
             cpt ++;
         }
     }
-    printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
+    if (DISPLAY_KMEANS) {
+        printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
+    }
     
     std::vector<element> nodes = get_element_vector(term_nodes);
 
@@ -263,7 +265,9 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
                 cpt ++;
             }
         }
-        printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
+        if (DISPLAY_KMEANS) {
+            printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
+        }
 
         nodes.clear();
         nodes = get_element_vector(new_bd_nodes);
