@@ -43,6 +43,8 @@ $ make
 $ .\main 5
 ``````
 
+See command-line arguments and scene descriptor syntax in ``Syntax.md``.  
+
 ## Sources
 
 [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html)  

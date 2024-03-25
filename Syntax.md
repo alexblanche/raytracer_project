@@ -122,8 +122,8 @@ When a single sample per pixel takes a long time, the progress and estimated tim
 
 When the window appears, the render stops and waits for an input by the user:  
 - Space/Enter: Continue
-- B key: Save the generated image as image.bmp and continue
-- R key: Save the generated raw data as image.rtdata and continue
+- B key: Save the generated image as ``image.bmp`` and continue
+- R key: Save the generated raw data as ``image.rtdata`` and continue
 - Esc key: Exit
 
 ## Non-interactive mode

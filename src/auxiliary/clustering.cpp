@@ -17,21 +17,21 @@ const double infinity = realclu.infinity();
 /** K-means clustering algorithm **/
 
 /* Auxiliary function that computes the centroid of a vector of objects */
-rt::vector compute_centroid(const std::vector<element>& obj) {
+rt::vector compute_centroid(const std::vector<element>& elts) {
     double sum_x = 0;
     double sum_y = 0;
     double sum_z = 0;
 
     /* Computation of the dimensions of the object set */
-    for(unsigned int i = 0; i < obj.size(); i++) {
+    for(unsigned int i = 0; i < elts.size(); i++) {
         
-        const rt::vector pos = obj.at(i).get_position();
+        const rt::vector pos = elts.at(i).get_position();
         sum_x += pos.x;
         sum_y += pos.y;
         sum_z += pos.z;
     }
 
-    const unsigned int k = obj.size();
+    const unsigned int k = elts.size();
 
     return rt::vector(sum_x / k, sum_y / k, sum_z / k);
 }
@@ -118,10 +118,19 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
         delete(group);
         group = new_group;
 
-        iterations--;
+        if (change) {
+            iterations--;
+        }
     }
 
-    printf("k_means: %u iterations (maximum = %u)\n", MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS);
+    if (MAX_NUMBER_OF_ITERATIONS - iterations < 2) {
+        printf("> k_means: %u iteration (maximum = %u, n = %u, k = %u)\n",
+        MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS, obj.size(), k);
+    }
+    else {
+        printf("> k_means: %u iterations (maximum = %u, n = %u, k = %u)\n",
+        MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS, obj.size(), k);
+    }
     // printf("k_means: loop exitted\n");
 
     /* Final vector of groups */
@@ -187,14 +196,14 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
     if (content.size() < MIN_NUMBER_OF_POLYGONS_FOR_BOX) {
         return new bounding(content);
     }
-   
+    
     /* content fits in one bounding box */
     if (content.size() <= polygons_per_bounding) {
         return containing_objects(content);
     }
    
     /* A hierarchy has to be created */
-   
+    
     /* Splitting the objects into groups of polygons_per_bounding polygons (on average) */
     const unsigned int k = 1 + content.size() / polygons_per_bounding;
 
@@ -283,27 +292,43 @@ void display_hierarchy_properties(const bounding* bd0) {
         while(not bds.empty()) {
             const bounding* bd = bds.top();
             bds.pop();
+            unsigned int arity;
             if (bd->is_terminal_bd()) {
                 terminal_nodes ++;
+                arity = bd->get_content().size();
             }
             else {
-                unsigned int arity = bd->get_children().size();
-                if (arity > max) {max = arity;}
-                if (arity < min) {min = arity;}
-                total += arity;
+                arity = bd->get_children().size();
                 for (unsigned int j = 0; j < arity; j++) {
                     next_bds.push(bd->get_children().at(j));
                 }
             }
+            if (arity > max) {max = arity;}
+            if (arity < min) {min = arity;}
+            total += arity;
         }
 
         /* Displaying the statistics */
         if (terminal_nodes == number_of_nodes) {
-            printf("Level %u: nodes: %u, all terminal\n", level, number_of_nodes);
+            if (number_of_nodes == 1) {
+                printf("Level %u: nodes: %u, terminal\n", level, number_of_nodes);
+                printf("Object arity: %u\n", total);
+            }
+            else {
+                printf("Level %u: nodes: %u, all terminal\n", level, number_of_nodes);
+                printf("Minimum object arity: %u, maximum: %u, average: %lf\n",
+                    min, max, ((double) total) / number_of_nodes);
+            }
         }
         else {
-            printf("Level %u: nodes: %u, terminal: %u, minimum arity: %u, maximum: %u, average: %lf\n",
-                level, number_of_nodes, terminal_nodes, min, max, ((double) total) / number_of_nodes);
+            if (number_of_nodes == 1) {
+                printf("Level %u: nodes: %u, arity: %u\n",
+                    level, number_of_nodes, total);
+            }
+            else {
+                printf("Level %u: nodes: %u, terminal: %u, minimum arity: %u, maximum: %u, average: %lf\n",
+                    level, number_of_nodes, terminal_nodes, min, max, ((double) total) / number_of_nodes);
+            }
         }
         
         // bds = next_bds;

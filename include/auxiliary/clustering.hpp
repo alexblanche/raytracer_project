@@ -35,7 +35,7 @@ struct element {
       if (obj != NULL) {
          return obj->get_position();
       }
-      else if (bd != NULL && bd->get_b() != NULL) {
+      else if (bd->get_b() != NULL) {
          return bd->get_b()->get_position();
       }
       else {
