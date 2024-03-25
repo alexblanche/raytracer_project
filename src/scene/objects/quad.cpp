@@ -80,8 +80,6 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
     d = - (normal | p0);
 }
 
-
-
 /* Intersection determination */
 
 double quad::measure_distance(const ray& r) const {

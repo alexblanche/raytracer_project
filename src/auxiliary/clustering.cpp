@@ -132,18 +132,19 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
     
     while (change && iterations != 0) {
 
-        // printf("k_means: iteration\n");
-
         /* Updating the means */
-        for (unsigned int i = 0; i < means.size(); i++) {
-            means.at(i) = compute_centroid(group.at(i));
+        means.clear();
+        for (unsigned int i = 0; i < group.size(); i++) {
+            if (group.at(i).size() != 0) {
+                means.push_back(compute_centroid(group.at(i)));
+            }
         }
 
         /* Re-assigning the objects to the right group */
         std::vector<std::vector<element>> new_group(k);
         change = assign_to_closest(group, new_group, means);
         fill_empty_clusters(new_group);
-        
+
         group.clear();
         group.swap(new_group);
 
@@ -154,11 +155,11 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
 
     if (MAX_NUMBER_OF_ITERATIONS - iterations < 2) {
         printf("> k_means: %u iteration (maximum = %u, n = %u, k = %u)\n",
-        MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS, obj.size(), k);
+        MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS, (unsigned int) obj.size(), k);
     }
     else {
         printf("> k_means: %u iterations (maximum = %u, n = %u, k = %u)\n",
-        MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS, obj.size(), k);
+        MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS, (unsigned int) obj.size(), k);
     }
 
     return group;
@@ -225,11 +226,9 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
     }
    
     /* A hierarchy has to be created */
-    
+
     /* Splitting the objects into groups of polygons_per_bounding polygons (on average) */
     const unsigned int k = 1 + content.size() / polygons_per_bounding;
-
-    // printf("1 Calling k_means: %u elements, k = %u\n", content.size(), k);
     const std::vector<std::vector<element>> groups = k_means(get_element_vector(content), k);
 
     /** Creating the hierarchy **/
@@ -240,16 +239,11 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
     std::vector<const bounding*> term_nodes;
     for (unsigned int i = 0; i < k; i++) {
         if (groups.at(i).size() != 0) {
-            if (groups.at(i).size() < MIN_NUMBER_OF_POLYGONS_FOR_BOX) {
-                term_nodes.push_back(new bounding(get_object_vector(groups.at(i))));
-            }
-            else {
-                term_nodes.push_back(containing_objects(get_object_vector(groups.at(i))));
-            }
+            term_nodes.push_back(containing_objects(get_object_vector(groups.at(i))));
             cpt ++;
         }
     }
-    printf("non-empty nodes: %u, empty nodes: %u\n", cpt, k - cpt);
+    printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
     
     std::vector<element> nodes = get_element_vector(term_nodes);
 
@@ -269,7 +263,7 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
                 cpt ++;
             }
         }
-        printf("non-empty nodes: %u, empty nodes: %u\n", cpt, k - cpt);
+        printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
 
         nodes.clear();
         nodes = get_element_vector(new_bd_nodes);
@@ -330,22 +324,22 @@ void display_hierarchy_properties(const bounding* bd0) {
         /* Displaying the statistics */
         if (terminal_nodes == number_of_nodes) {
             if (number_of_nodes == 1) {
-                printf("Level %u: nodes: %u, terminal\n", level, number_of_nodes);
-                printf("Object arity: %u\n", total);
+                printf("|| Level %u: nodes: %u, terminal\n", level, number_of_nodes);
+                printf("|| Object arity: %u\n", total);
             }
             else {
-                printf("Level %u: nodes: %u, all terminal\n", level, number_of_nodes);
-                printf("Minimum object arity: %u, maximum: %u, average: %lf\n",
+                printf("|| Level %u: nodes: %u, all terminal\n", level, number_of_nodes);
+                printf("|| Minimum object arity: %u, maximum: %u, average: %lf\n",
                     min, max, ((double) total) / number_of_nodes);
             }
         }
         else {
             if (number_of_nodes == 1) {
-                printf("Level %u: nodes: %u, arity: %u\n",
+                printf("|| Level %u: nodes: %u, arity: %u\n",
                     level, number_of_nodes, total);
             }
             else {
-                printf("Level %u: nodes: %u, terminal: %u, minimum arity: %u, maximum: %u, average: %lf\n",
+                printf("|| Level %u: nodes: %u, terminal: %u, minimum arity: %u, maximum: %u, average: %lf\n",
                     level, number_of_nodes, terminal_nodes, min, max, ((double) total) / number_of_nodes);
             }
         }

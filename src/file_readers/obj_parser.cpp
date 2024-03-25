@@ -318,8 +318,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
          output_bd = children.at(0);
       }
       else {
-         const bounding* bdch = containing_bounding_any(children);
-         output_bd = bdch;
+         output_bd = containing_bounding_any(children);
       }
    }
 

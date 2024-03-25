@@ -45,7 +45,6 @@ class quad : public polygon {
             const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
             const unsigned int material_index, const texture_info& info);
 
-
         /* Intersection determination */
 
         double measure_distance(const ray& r) const;

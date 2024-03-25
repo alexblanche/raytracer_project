@@ -118,7 +118,7 @@ void bounding::check_box_next(const ray& r,
 
 /* Returns a non-terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the standard non-terminal bounding boxes bd0 and bd1 */
-bounding* containing_bounding_two(const bounding*& bd0, const bounding*& bd1) {
+const bounding* containing_bounding_two(const bounding*& bd0, const bounding*& bd1) {
     const box* const b0 = bd0->get_b();
     const box* const b1 = bd1->get_b();
     const double bd0l1 = b0->get_l1();
@@ -146,11 +146,14 @@ bounding* containing_bounding_two(const bounding*& bd0, const bounding*& bd1) {
 
 /* Returns a non-terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the standard non-terminal bounding boxes in the children vector */
-bounding* containing_bounding_any(const vector<const bounding*>& children) {
+const bounding* containing_bounding_any(const vector<const bounding*>& children) {
 
     if (children.size() == 0) {
         printf("Error, empty vector of children bounding boxes\n");
         return NULL;
+    }
+    else if (children.size() == 1) {
+        return children.at(0);
     }
 
     double min_x = infinity;
@@ -189,7 +192,12 @@ bounding* containing_bounding_any(const vector<const bounding*>& children) {
 
 /* Returns a terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the (finite) objects whose indices are in the obj vector */
-bounding* containing_objects(const std::vector<const object*>& obj) {
+const bounding* containing_objects(const std::vector<const object*>& obj) {
+
+    if (obj.size() == 0) {
+        printf("Error, empty vector of objects\n");
+        return NULL;
+    }
 
     double min_x = infinity;
     double max_x = -infinity;
