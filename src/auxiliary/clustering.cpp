@@ -5,6 +5,7 @@
 #include "scene/objects/bounding.hpp"
 
 #include <stack>
+#include <queue>
 
 #include<limits>
 numeric_limits<double> realclu;
@@ -18,6 +19,11 @@ const double infinity = realclu.infinity();
 
 /* Auxiliary function that computes the centroid of a vector of objects */
 rt::vector compute_centroid(const std::vector<element>& elts) {
+    if (elts.size() == 0) {
+        printf("Error, empty element set\n");
+        return rt::vector(-infinity, -infinity, -infinity);
+    }
+
     double sum_x = 0;
     double sum_y = 0;
     double sum_z = 0;
@@ -42,14 +48,10 @@ rt::vector compute_centroid(const std::vector<element>& elts) {
 bool assign_to_closest(const std::vector<std::vector<element>>& old_group, std::vector<std::vector<element>>& new_group,
     const std::vector<rt::vector>& means) {
 
-    // printf("assign_to_closest : begin\n");
-
     bool change = false;
     
     for (unsigned int n = 0; n < old_group.size(); n++) {
-        // printf("old_group.at(n).size() = %u, means.size() = %u\n", old_group.at(n).size(), means.size());
         for (unsigned int i = 0; i < old_group.at(n).size(); i++) {
-            // printf("(%u, %u) ", n, i);
 
             const element elt = old_group.at(n).at(i);
             const rt::vector v = elt.get_position();
@@ -72,10 +74,37 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_group, std::
         }
     }
 
-    // printf("assign_to_closest : end\n");
-
     return change;
 }
+
+/* Auxiliary function that fills all empty_clusters */
+void fill_empty_clusters(std::vector<std::vector<element>>& groups) {
+    std::stack<unsigned int> empty_groups;
+    std::queue<unsigned int> non_empty_groups;
+    for(unsigned int n = 0; n < groups.size(); n++) {
+        if (groups.at(n).size() == 0) {
+            empty_groups.push(n);
+        }
+        else {
+            non_empty_groups.push(n);
+        }
+    }
+
+    while(not empty_groups.empty()) {
+        const unsigned int empty = empty_groups.top();
+        const unsigned int non_empty = non_empty_groups.front();
+        
+        groups.at(empty).push_back(groups.at(non_empty).back());
+        groups.at(non_empty).pop_back();
+        empty_groups.pop();
+
+        non_empty_groups.pop();
+        if (groups.at(non_empty).size() != 0) {
+            non_empty_groups.push(non_empty);
+        }
+    }
+}
+
 
 /* Returns a vector of k vectors of elements representing the k clusters */
 std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const unsigned int k) {
@@ -91,12 +120,10 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
     for (unsigned int i = 0; i < std::min((unsigned int) obj.size(), k); i++) {
         means.at(i) = obj.at((int) (i * step)).get_position();
     }
-
-    // printf("\nk_means: initial means created\n");
     
-    /* I use pointers to vectors to prevent multiple copies of vectors in the while loop below */
-    std::vector<std::vector<element>>* group = new std::vector<std::vector<element>>(k);
-    assign_to_closest({obj}, *group, means);
+    std::vector<std::vector<element>> group(k);
+    assign_to_closest({obj}, group, means);
+    fill_empty_clusters(group);
 
     // printf("k_means: assign_to_closest done\n");
 
@@ -109,14 +136,16 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
 
         /* Updating the means */
         for (unsigned int i = 0; i < means.size(); i++) {
-            means.at(i) = compute_centroid(group->at(i));
+            means.at(i) = compute_centroid(group.at(i));
         }
 
         /* Re-assigning the objects to the right group */
-        std::vector<std::vector<element>>* new_group = new std::vector<std::vector<element>>(k);
-        change = assign_to_closest(*group, *new_group, means);
-        delete(group);
-        group = new_group;
+        std::vector<std::vector<element>> new_group(k);
+        change = assign_to_closest(group, new_group, means);
+        fill_empty_clusters(new_group);
+        
+        group.clear();
+        group.swap(new_group);
 
         if (change) {
             iterations--;
@@ -131,15 +160,8 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
         printf("> k_means: %u iterations (maximum = %u, n = %u, k = %u)\n",
         MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS, obj.size(), k);
     }
-    // printf("k_means: loop exitted\n");
 
-    /* Final vector of groups */
-    std::vector<std::vector<element>> output_groups = *group;
-    delete(group);
-
-    // printf("k_means: ready to exit\n");
-
-    return output_groups;
+    return group;
 }
 
 /** Auxiliary conversion functions **/
@@ -212,7 +234,7 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
 
     /** Creating the hierarchy **/
 
-    // unsigned int cpt = 0;
+    unsigned int cpt = 0;
 
     /* Creating terminal nodes */
     std::vector<const bounding*> term_nodes;
@@ -224,19 +246,17 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
             else {
                 term_nodes.push_back(containing_objects(get_object_vector(groups.at(i))));
             }
-            // cpt ++;
+            cpt ++;
         }
     }
-    // printf("1 non-empty nodes: %u, empty nodes: %u\n", cpt, k - cpt);
-
+    printf("non-empty nodes: %u, empty nodes: %u\n", cpt, k - cpt);
+    
     std::vector<element> nodes = get_element_vector(term_nodes);
-    // printf("nodes.size() = %u\n", nodes.size());
 
     while (nodes.size() > CARDINAL_OF_BOX_GROUP) {
 
         const unsigned int k = 1 + nodes.size() / CARDINAL_OF_BOX_GROUP;
 
-        // printf("2 Calling k_means: %u elements, k = %u\n", nodes.size(), k);
         const std::vector<std::vector<element>> groups = k_means(nodes, k);
 
         std::vector<const bounding*> new_bd_nodes;
@@ -276,7 +296,6 @@ void display_hierarchy_properties(const bounding* bd0) {
     unsigned int level = 0;
     std::stack<const bounding*> bds;
     bds.push(bd0);
-    printf("Level 0: arity = %u\n", (unsigned int) bd0->get_children().size());
 
     while (not bds.empty()) {
         // printf("bds.size() = %u\n", bds.size());
