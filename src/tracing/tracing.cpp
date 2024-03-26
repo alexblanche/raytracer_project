@@ -177,7 +177,9 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                 /* Computation of the new refraction index */
                 const double next_refr_i = inward ? m.get_refraction_index() : (refr_stack.empty() ? 1 : refr_stack.top());
                 if (inward) {
-                    refr_stack.push(next_refr_i);
+                    if (refr_index != 1) {
+                        refr_stack.push(refr_index);
+                    }
                 }
                 else if (not refr_stack.empty()) {
                     refr_stack.pop();
