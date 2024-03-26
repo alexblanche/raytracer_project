@@ -214,7 +214,8 @@ scene::scene(const char* file_name, bool& creation_successful)
 
     fov_height is generated automatically (for width/height aspect ratio)
     */
-    double posx, posy, posz, dx, dy, dz, rdx, rdy, rdz, fovw, dist;
+    double posx, posy, posz, dx, dy, dz, rdx, rdy, rdz, fovw, dist, focl, apr;
+    bool depth_of_field_enabled = true;
 
     int ret;
 
@@ -225,16 +226,35 @@ scene::scene(const char* file_name, bool& creation_successful)
         return;
     }
     
-    ret = fscanf(file, "camera position:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) rightdir:(%lf,%lf,%lf) fov_width:%lf distance:%lf\n",
-        &posx, &posy, &posz, &dx, &dy, &dz, &rdx, &rdy, &rdz, &fovw, &dist);
-    if (ret != 11) {
+    ret = fscanf(file, "camera position:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) rightdir:(%lf,%lf,%lf) fov_width:%lf distance:%lf focal_distance:%lf aperture:%lf\n",
+        &posx, &posy, &posz, &dx, &dy, &dz, &rdx, &rdy, &rdz, &fovw, &dist, &focl, &apr);
+
+    if (ret < 11) {
         printf("Parsing error in scene constructor (camera)\n");
         creation_successful = false;
         return;
     }
+    else if (ret == 11) {
+        // Focal length and apertue omitted
+        depth_of_field_enabled = false;
+        char c;
+        do {
+            c = fgetc(file);
+        }
+        while (c != '\n' && c != EOF);
+        ungetc(c, file);
+    }
 
     double fovh = fovw * ((double) height) / ((double) width);
-    cam = camera(rt::vector(posx, posy, posz), rt::vector(dx, dy, dz), rt::vector(rdx, rdy, rdz), fovw, fovh, dist, width, height);
+    
+    if (depth_of_field_enabled) {
+        cam = camera(rt::vector(posx, posy, posz), rt::vector(dx, dy, dz), rt::vector(rdx, rdy, rdz),
+            fovw, fovh, dist, width, height, focl, apr);
+    }
+    else {
+        cam = camera(rt::vector(posx, posy, posz), rt::vector(dx, dy, dz), rt::vector(rdx, rdy, rdz),
+            fovw, fovh, dist, width, height);
+    }
 
     double r, g, b;
     ret = fscanf(file, "background_color %lf %lf %lf\n", &r, &g, &b);

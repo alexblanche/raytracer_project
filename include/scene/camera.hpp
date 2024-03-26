@@ -31,8 +31,14 @@ class camera {
         double mhalf_fovw;
         double mhalf_fovh;
 
+        /* Depth of field */
+        double focal_length;
+        double aperture;
+
 
     public:
+        bool depth_of_field_enabled;
+
         /* Constructors */
         camera();
 
@@ -40,10 +46,18 @@ class camera {
             const double& fov_w, const double& fov_h, const double& dist,
             const int width, const int height);
 
+        camera(const rt::vector& origin, const rt::vector& direction, const rt::vector& to_the_right,
+            const double& fov_w, const double& fov_h, const double& dist,
+            const int width, const int height,
+            const double& focal_length, const double& aperture);
+
         /* Returns the ray that goes toward the pixel i,j of the screen */
         ray gen_ray(const int i, const int j) const;
 
         /* Returns the ray that goes toward the pixel i,j of the screen in average,
            following a normal distribution around to center of the pixel, with given stardard deviation */
         ray gen_ray_normal(const int i, const int j, const double& std_dev, randomgen& rg) const;
+
+        /* Returns the ray that goes toward the pixel i,j of the screen, with depth of field */
+        ray gen_ray_dof(const int i, const int j, randomgen& rg) const;
 };

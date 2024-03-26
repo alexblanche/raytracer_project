@@ -4,6 +4,8 @@
 #include "auxiliary/randomgen.hpp"
 #include <cmath>
 
+#define TWOPI 6.2831853071795862
+
 /** The hit class contains the information
  * of a ray hitting a surface: the ray in question,
  * the point of contact, the normal of the surface at
@@ -70,11 +72,9 @@ rt::vector hit::get_central_reflected_direction(const double& reflectivity, cons
 std::vector<ray> hit::random_reflect(const unsigned int n, randomgen& rg,
     const rt::vector& central_dir, const double& theta_max) const {
 
-    const double twopi = 2 * 3.14159265358979323846;
-
     // n random doubles between 0 and 1, and n between 0 and 2*pi
     const std::vector<double> rands01 = rg.random_double_array(n, 1);
-    const std::vector<double> rands0twopi = rg.random_double_array(n, twopi);
+    const std::vector<double> rands0twopi = rg.random_double_array(n, TWOPI);
 
     // Central direction of the rays
     const double a = central_dir.x;
@@ -123,11 +123,9 @@ std::vector<ray> hit::random_reflect(const unsigned int n, randomgen& rg,
 /* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
 rt::vector hit::random_direction(randomgen& rg, const rt::vector& central_dir, const double& theta_max) const {
 
-    const double twopi = 2 * 3.14159265358979323846;
-
     // n random doubles between 0 and 1, and n between 0 and 2*pi
     const double p = rg.random_double(1);
-    const double phi = rg.random_double(twopi);
+    const double phi = rg.random_double(TWOPI);
 
     // Central direction of the rays
     const double a = central_dir.x;
