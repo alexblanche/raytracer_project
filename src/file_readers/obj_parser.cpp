@@ -11,6 +11,8 @@
 #include <string.h>
 #include <string>
 
+#include <stack>
+
 
 
 /* Wavefront .obj file parser */
@@ -85,7 +87,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
       /* New group definition
          If bounding_enabled is true, the current content vector of polygons
          is placed in a box that is added to the children vector */
-      if (bounding_enabled && strcmp(s, "o") == 0 && content.size() != 0) {
+      if (bounding_enabled && (strcmp(s, "o") == 0 || strcmp(s, "g") == 0) && content.size() != 0) {
 
          // First method: put the whole group in one bounding
          // const bounding* bd = containing_objects(content);
@@ -101,8 +103,8 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
       /* Commented line, or ignored command */
       if (strcmp(s, "#") == 0
          || strcmp(s, "s") == 0
-         || strcmp(s, "g") == 0
          || strcmp(s, "l") == 0
+         || strcmp(s, "g") == 0
          || strcmp(s, "o") == 0
          || strcmp(s, "vp") == 0
          || strcmp(s, "mtllib") == 0) {
@@ -194,9 +196,9 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
          /* Face declaration */
 
          /* 3 or 4 vertices will be parsed */
-         unsigned int v1, vt1, vn1, v2, vt2, vn2, v3, vt3, vn3, v4, vt4, vn4;
-         const int ret = fscanf(file, "%u/%u/%u %u/%u/%u %u/%u/%u %u/%u/%u",
-            &v1, &vt1, &vn1, &v2, &vt2, &vn2, &v3, &vt3, &vn3, &v4, &vt4, &vn4);
+         unsigned int v1, vt1, vn1, v2, vt2, vn2, v3, vt3, vn3, v4, vt4, vn4, v5, vt5, vn5;
+         const int ret = fscanf(file, "%u/%u/%u %u/%u/%u %u/%u/%u %u/%u/%u %u/%u/%u",
+            &v1, &vt1, &vn1, &v2, &vt2, &vn2, &v3, &vt3, &vn3, &v4, &vt4, &vn4, &v5, &vt5, &vn5);
 
          if (ret == 9) {
             /* Triangle */
@@ -305,9 +307,120 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
             }
          }
          else {
-            fclose(file);
-            printf("Parsing error in file %s (face definition)\n", file_name);
-            return false;
+            // Polygons with more than 4 sides
+            std::stack<unsigned int> v_stack;
+            std::stack<unsigned int> vt_stack;
+            std::stack<unsigned int> vn_stack;
+            v_stack.push(v1); v_stack.push(v2); v_stack.push(v3); v_stack.push(v4);v_stack.push(v5);
+            vt_stack.push(vt1); vt_stack.push(vt2); vt_stack.push(vt3); vt_stack.push(vt4); vt_stack.push(vt5);
+            vn_stack.push(vn1); vn_stack.push(vn2); vn_stack.push(vn3); vn_stack.push(vn4); vn_stack.push(vn5);
+
+            unsigned int cpt = 5;
+            rt::vector final_v = vertex_set.at(v1) + vertex_set.at(v2) + vertex_set.at(v3) + vertex_set.at(v4) + vertex_set.at(v5);
+            rt::vector final_vt = uv_coord_set.at(vt1) + uv_coord_set.at(vt2) + uv_coord_set.at(vt3) + uv_coord_set.at(vt4) + uv_coord_set.at(vt5);
+            rt::vector final_vn = normal_set.at(vn1) + normal_set.at(vn2) + normal_set.at(vn3) + normal_set.at(vn4) + normal_set.at(vn5);
+            
+            // Reading triplets until the end of the line
+            char c;
+            bool stop = false;
+            do {
+               unsigned int vi, vti, vni;
+               int ret = fscanf(file, "%u/%u/%u", &vi, &vti, &vni);
+               if (ret != 3) {
+                  fclose(file);
+                  printf("Error in parsing of polygons of at least 5 sides\n");
+                  return false;
+               }
+
+               v_stack.push(vi);
+               vt_stack.push(vti);
+               vn_stack.push(vni);
+
+               final_v = final_v + vertex_set.at(vi);
+               final_vt = final_vt + uv_coord_set.at(vti);
+               final_vn = final_vn + normal_set.at(vni);
+               cpt ++;
+
+               c = fgetc(file);
+               if (c == '\n' || c == EOF) {
+                  stop = true;
+               }
+               else {
+                  ungetc(c, file);
+               }
+            }
+            while (not stop);
+            ungetc(c, file);
+
+            // New central vertex
+            final_v = final_v / cpt;
+            final_vt = final_vt / cpt;
+            final_vn = final_vn / cpt;
+
+            // Keeping the last vertex in memory to form a triangle with the first vertex
+            const unsigned int last_v = v_stack.top();
+            const unsigned int last_vt = vt_stack.top();
+            const unsigned int last_vn = vn_stack.top();
+
+            // Adding the new triangles having the new central vertex as a common vertex
+            for (unsigned int i = 0; i < cpt - 1; i++) {
+               const unsigned int vi = v_stack.top();
+               const unsigned int vti = vt_stack.top();
+               const unsigned int vni = vn_stack.top();
+               v_stack.pop();
+               vt_stack.pop();
+               vn_stack.pop();
+               const unsigned int vj = v_stack.top();
+               const unsigned int vtj = vt_stack.top();
+               const unsigned int vnj = vn_stack.top();
+
+               const texture_info info(texture_index,
+                  {uv_coord_set.at(vtj).x, 1-uv_coord_set.at(vtj).y,
+                  uv_coord_set.at(vti).x, 1-uv_coord_set.at(vti).y,
+                  final_vt.x, 1-final_vt.y}
+               );
+
+               const triangle* tr = new triangle(
+                  shift + scale * vertex_set.at(vj),
+                  shift + scale * vertex_set.at(vi),
+                  shift + scale * final_v,
+                  normal_set.at(vnj), normal_set.at(vni), final_vn,
+                  current_material_index, info
+               );
+
+               obj_set.push_back(tr);
+
+               number_of_polygons ++;
+               number_of_triangles ++;
+
+               if (bounding_enabled) {
+                  content.push_back(tr);
+               }
+            }
+
+            // Adding the last triangle
+            const texture_info info(texture_index,
+               {uv_coord_set.at(last_vt).x, 1-uv_coord_set.at(last_vt).y,
+               uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
+               final_vt.x, 1-final_vt.y}
+            );
+
+            const triangle* tr = new triangle(
+               shift + scale * vertex_set.at(last_v),
+               shift + scale * vertex_set.at(v1),
+               shift + scale * final_v,
+               normal_set.at(last_vn), normal_set.at(vn1), final_vn,
+               current_material_index, info
+            );
+
+            obj_set.push_back(tr);
+
+            number_of_polygons ++;
+            number_of_triangles ++;
+
+            if (bounding_enabled) {
+               content.push_back(tr);
+            }
          }
       }
    }
