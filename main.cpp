@@ -35,6 +35,7 @@ using namespace std;
 #define PARALLEL_FOR_END()})
 
 #define MAX_RAYS 1000
+#define ANTI_ALIASING 0.15
 
 
 /* ********** Render loop ********** */
@@ -49,7 +50,7 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix,
 
         for (int j = 0; j < scene.height; j++) {
 
-            ray r = scene.cam.gen_ray(i, j);
+            ray r = scene.cam.gen_ray_normal(i, j, ANTI_ALIASING, scene.rg);
             const rt::color pixel_col = pathtrace(r, scene, number_of_bounces);
             
             const rt::color current_color = matrix.at(i).at(j);
@@ -80,7 +81,7 @@ void render_loop_parallel_time(vector<vector<rt::color>>& matrix,
 
         for (int j = 0; j < scene.height; j++) {
 
-            ray r = scene.cam.gen_ray(i, j);
+            ray r = scene.cam.gen_ray_normal(i, j, ANTI_ALIASING, scene.rg);
             const rt::color pixel_col = pathtrace(r, scene, number_of_bounces);
             
             const rt::color current_color = matrix.at(i).at(j);

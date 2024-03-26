@@ -12,10 +12,18 @@ class randomgen {
         randomgen();
 
         void update_seed();
+        
+        /* Returns a random double between 0 and m */
+        double random_double(const double& m);
+
+        /* Returns an array of n random doubles between 0 and m */
+        std::vector<double> random_double_array(const unsigned int n, const double& m);
+
+        /* Returns a random double chosen according to a normal distribution
+           of mean m and standard deviation std_dev */
+        double random_double_normal(const double& m, const double& std_dev);
+
+        /* Writes in x, y two random doubles chosen according to a normal distribution
+           of mean m and standard deviation std_dev */
+        void random_pair_normal(const double& m, const double& std_dev, double& x, double& y);
 };
-
-/* Returns a random double between 0 and m */
-double random_double(randomgen& r, const double m);
-
-/* Returns an array of n random doubles between 0 and m */
-std::vector<double> random_double_array(randomgen& r, const unsigned int n, const double m);

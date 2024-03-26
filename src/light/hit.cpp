@@ -73,8 +73,8 @@ std::vector<ray> hit::random_reflect(const unsigned int n, randomgen& rg,
     const double twopi = 2 * 3.14159265358979323846;
 
     // n random doubles between 0 and 1, and n between 0 and 2*pi
-    const std::vector<double> rands01 = random_double_array(rg, n, 1);
-    const std::vector<double> rands0twopi = random_double_array(rg, n, twopi);
+    const std::vector<double> rands01 = rg.random_double_array(n, 1);
+    const std::vector<double> rands0twopi = rg.random_double_array(n, twopi);
 
     // Central direction of the rays
     const double a = central_dir.x;
@@ -126,8 +126,8 @@ rt::vector hit::random_direction(randomgen& rg, const rt::vector& central_dir, c
     const double twopi = 2 * 3.14159265358979323846;
 
     // n random doubles between 0 and 1, and n between 0 and 2*pi
-    const double p = random_double(rg, 1);
-    const double phi = random_double(rg, twopi);
+    const double p = rg.random_double(1);
+    const double phi = rg.random_double(twopi);
 
     // Central direction of the rays
     const double a = central_dir.x;
