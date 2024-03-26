@@ -1,5 +1,5 @@
 resolution width:1920 height:1080
-camera position:(-2, 5, 8) direction:(0.2, -0.4, -1) rightdir:(1, 0, 0.2) fov_width:3 distance:3
+camera position:(-4, 0.5, -6) direction:(0.72, -0.13, 1) rightdir:(-1, 0, 0.72) fov_width:0.6 distance:1
 background_color 190 235 255
 polygons_per_bounding 3
 
@@ -9,21 +9,11 @@ material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflec
 # material green_light (color:(255, 255, 255) emitted_color:(0, 255, 0) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 # material yellow_light (color:(255, 255, 255) emitted_color:(255, 255, 0) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-load_texture wood_floor ../../../raytracer_project/texture_assets/parquet.bmp
-# load_texture wood_floor ../../../raytracer_project/texture_assets/stripes.bmp
-load_texture stool_wood ../../../raytracer_project/3d_models/stool/Textures/wooden_stool_texture(F).bmp
-material Wooden_stool_texture (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0.8 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+load_texture porsche ../../../raytracer_project/3d_models/porsche/skin00/0000_test.BMP
+material car_material (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0.95 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-load_obj ../../../raytracer_project/3d_models/stool/Obj_folder/wooden_stool.obj (texture:stool_wood shift:(0,0,0) scale:1)
-# load_obj ../../../raytracer_project/3d_models/stool_parts/Truss_a_Cube.obj (texture:stool_wood shift:(0,0,0) scale:1)
-# load_obj ../../../raytracer_project/3d_models/stool_parts/Sphere.obj (texture:stool_wood shift:(0,0,0) scale:1)
-# load_obj ../../../raytracer_project/3d_models/stool_parts/Truss_b_Cube.obj (texture:stool_wood shift:(0,0,0) scale:1)
-# load_obj ../../../raytracer_project/3d_models/stool_parts/Leg_Cube.obj (texture:stool_wood shift:(0,0,0) scale:1)
-# load_obj ../../../raytracer_project/3d_models/stool_parts/Stoll_top_support_Cylinder.obj (texture:stool_wood shift:(0,0,0) scale:1)
-# load_obj ../../../raytracer_project/3d_models/stool_parts/Top_of_stool_Cylinder.obj (texture:stool_wood shift:(0,0,0) scale:1)
+load_obj ../../../raytracer_project/3d_models/porsche/Porsche_911_GT2.obj (texture:porsche shift:(0,0,0) scale:1)
 
 quad (-4, 10, 10) (-4, 10, 0) (4, 10, 0) (4, 10, 10) material:white_light
+plane normal:(0,1,0) position:(0, -0.6, 0) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.95 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-quad (-20,0,10) (-20,0,-50) (40,0,-50) (40,0,10) material:Wooden_stool_texture texture:(wood_floor (0,0) (0,1) (1,1) (1,0))
-
-# sphere center:(-2.5,0.4,-1) radius:0.4 material:red_light

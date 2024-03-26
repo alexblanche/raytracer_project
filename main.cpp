@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <stdlib.h>
 #include <vector>
-#include <queue>
 #include <ctime>
 
 #include "screen/color.hpp"
@@ -12,7 +11,6 @@
 #include "light/ray.hpp"
 
 #include "scene/objects/object.hpp"
-#include "scene/objects/triangle.hpp"
 #include "scene/objects/bounding.hpp"
 
 #include "parallel/parallel.h"

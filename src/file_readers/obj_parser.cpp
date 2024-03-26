@@ -138,7 +138,15 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
             return false;
          }
          else {
-            uv_coord_set.push_back(rt::vector(u, v, 0));
+            if (u >= 0 && u <= 1 && v >= 0 && v <= 1) {
+               uv_coord_set.push_back(rt::vector(u, v, 0));
+            }
+            else {
+               // Stupid case in some garbage obj files...
+               const double nu = (u >= 0) ? 1 : ((u <= (-1)) ? 0 : 1 + u);
+               const double nv = (v >= 0) ? 1 : ((v <= (-1)) ? 0 : 1 + v);
+               uv_coord_set.push_back(rt::vector(nu, nv, 0));
+            }
          }
       }
       else if (strcmp(s, "vn") == 0) {
@@ -310,7 +318,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
       /* Placing the last group into a bounding */
       // const bounding* bd = containing_objects(content);
       const bounding* bd = create_bounding_hierarchy(content, polygons_per_bounding);
-      // display_hierarchy_properties(bd);
+      display_hierarchy_properties(bd);
       children.push_back(bd);
 
       /* Setting the final bounding */

@@ -11,8 +11,7 @@ The project currently handles polygon meshes (composed of triangles and quads fo
 Current state:
 
 ![Screen](pictures/stool_HD.jpg)
-Model found at [free3d.com](https://free3d.com/fr/3d-model/wood-stool-303532.html).  
-Rendered in 1920x1080 with 100 samples per pixel in 2 minutes 11 seconds on my 2016 laptop (i7-6700HQ CPU @ 2.60GHz).  
+Model found at [free3d.com](https://free3d.com/fr/3d-model/wood-stool-303532.html), made up of 5600 polygons. Rendered in 1920x1080 in 2 minutes 11 seconds on my 2016 laptop (100 samples per pixel, maximum 10 bounces, i7-6700HQ CPU @ 2.60GHz).  
 
 Next steps:  
 Depth of field, light halo (added as post-process). Future plans involve the introduction of some bidirectionality to the path-tracing (to accelerate the rendering of dark scenes) and a conversion to GPU rendering.

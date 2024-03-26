@@ -4,6 +4,13 @@
 #include "scene/objects/object.hpp"
 #include "scene/objects/bounding.hpp"
 
+#include "parallel/parallel.h"
+#ifdef __unix__
+#include <mutex>
+#else
+#include "mingw.mutex.h"
+#endif
+
 #include <stack>
 #include <queue>
 
@@ -14,7 +21,11 @@ const double infinity = realclu.infinity();
 #define MIN_NUMBER_OF_POLYGONS_FOR_BOX 5
 #define CARDINAL_OF_BOX_GROUP 3
 #define MAX_NUMBER_OF_ITERATIONS 50
-#define DISPLAY_KMEANS false
+#define DISPLAY_KMEANS true
+
+// Macros for parallel k_means
+#define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](unsigned int start, unsigned int end){ for(unsigned int n = start; n < end; ++n)
+#define PARALLEL_FOR_END()})
 
 /** K-means clustering algorithm **/
 
@@ -49,8 +60,11 @@ rt::vector compute_centroid(const std::vector<element>& elts) {
 bool assign_to_closest(const std::vector<std::vector<element>>& old_group, std::vector<std::vector<element>>& new_group,
     const std::vector<rt::vector>& means) {
 
-    bool change = false;
     
+    
+    // Former sequential version
+    /*
+    bool change = false;
     for (unsigned int n = 0; n < old_group.size(); n++) {
         for (unsigned int i = 0; i < old_group.at(n).size(); i++) {
 
@@ -74,8 +88,68 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_group, std::
             new_group.at(closest_index).push_back(elt);
         }
     }
+    */
 
-    return change;
+
+    // Parallel version
+    const unsigned int nb_of_groups = old_group.size();
+    
+    mutex m;
+
+    if (nb_of_groups == 1) {
+        // First iteration (all elements in the first group)
+        PARALLEL_FOR_BEGIN(old_group.at(0).size()) {
+
+            const element elt = old_group.at(0).at(n);
+            const rt::vector v = elt.get_position();
+
+            unsigned int closest_index = 0;
+            double distance_to_closest = (means.at(0) - v).normsq();
+
+            for (unsigned int m = 1; m < means.size(); m++) {
+                const double d = (means.at(m) - v).normsq();
+                if(d < distance_to_closest) {
+                    distance_to_closest = d;
+                    closest_index = m;
+                }
+            }
+            m.lock();
+            new_group.at(closest_index).push_back(elt);
+            m.unlock();
+        } PARALLEL_FOR_END();
+
+        return true;
+    }
+    else {
+        // All other iterations, 
+        bool change = false;
+        PARALLEL_FOR_BEGIN(nb_of_groups) {
+            for (unsigned int i = 0; i < old_group.at(n).size(); i++) {
+                const element elt = old_group.at(n).at(i);
+                const rt::vector v = elt.get_position();
+
+                unsigned int closest_index = 0;
+                double distance_to_closest = (means.at(0) - v).normsq();
+
+                for (unsigned int m = 1; m < means.size(); m++) {
+                    const double d = (means.at(m) - v).normsq();
+                    if(d < distance_to_closest) {
+                        distance_to_closest = d;
+                        closest_index = m;
+                    }
+                }
+                
+                if (closest_index != n) {
+                    change = true;
+                }
+
+                m.lock();
+                new_group.at(closest_index).push_back(elt);
+                m.unlock();
+            }
+        } PARALLEL_FOR_END();
+        return change;
+    }
 }
 
 /* Auxiliary function that fills all empty_clusters */
@@ -129,6 +203,11 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
     
     while (change && iterations != 0) {
 
+        if (DISPLAY_KMEANS) {
+            printf("\rIteration %u / %u", MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS);
+            fflush(stdout);
+        }
+
         /* Updating the means */
         means.clear();
         for (unsigned int i = 0; i < group.size(); i++) {
@@ -152,13 +231,14 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
 
     if (DISPLAY_KMEANS) {
         if (MAX_NUMBER_OF_ITERATIONS - iterations < 2) {
-            printf("> k_means: %u iteration (maximum = %u, n = %u, k = %u)\n",
+            printf("\r> k_means: %u iteration (maximum = %u, n = %u, k = %u)\n",
             MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS, (unsigned int) obj.size(), k);
         }
         else {
-            printf("> k_means: %u iterations (maximum = %u, n = %u, k = %u)\n",
+            printf("\r> k_means: %u iterations (maximum = %u, n = %u, k = %u)\n",
             MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS, (unsigned int) obj.size(), k);
         }
+        fflush(stdout);
     }
     
 
@@ -226,6 +306,10 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
     }
    
     /* A hierarchy has to be created */
+    if (DISPLAY_KMEANS) {
+        printf("\nOptimizing the data structure...\n");
+        fflush(stdout);
+    }
 
     /* Splitting the objects into groups of polygons_per_bounding polygons (on average) */
     const unsigned int k = 1 + content.size() / polygons_per_bounding;
@@ -245,6 +329,7 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
     }
     if (DISPLAY_KMEANS) {
         printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
+        fflush(stdout);
     }
     
     std::vector<element> nodes = get_element_vector(term_nodes);
@@ -267,6 +352,7 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
         }
         if (DISPLAY_KMEANS) {
             printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
+            fflush(stdout);
         }
 
         nodes.clear();
