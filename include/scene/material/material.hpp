@@ -65,6 +65,11 @@ class material {
             const double& transparency, const double& refraction_scattering,
             const double& refraction_index_in);
 
+        /* Constructor from mtl parameters */
+        material(const double& ns,
+            const rt::color& ka, const rt::color& kd, const rt::color& ks, const rt::color& ke,
+            const double& ni, const double& d, const unsigned int illum);
+
 
         /* Accessors */
 

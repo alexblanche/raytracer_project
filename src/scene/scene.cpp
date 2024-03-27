@@ -235,14 +235,8 @@ scene::scene(const char* file_name, bool& creation_successful)
         return;
     }
     else if (ret == 11) {
-        // Focal length and apertue omitted
+        // Focal length and aperture omitted
         depth_of_field_enabled = false;
-        char c;
-        do {
-            c = fgetc(file);
-        }
-        while (c != '\n' && c != EOF);
-        ungetc(c, file);
     }
 
     double fovh = fovw * ((double) height) / ((double) width);

@@ -17,7 +17,7 @@ find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
 
 # libmyraytracer.so
-set (libname myraytracer)
+set (libname raytracer)
 add_library(${libname} SHARED
 	src/screen/color.cpp
 	src/scene/material/texture.cpp

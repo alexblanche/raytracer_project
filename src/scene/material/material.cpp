@@ -8,7 +8,7 @@
 
 const material material::DIFFUSE = material(rt::color(255,255,255), 0);
 const material material::MIRROR = material(rt::color(255,255,255), 1);
-const material material::GLASS = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 0.2, 0, 1.52);
+const material material::GLASS = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 0.6, 0, 1.52);
 const material material::WATER = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 1, 0, 1.33);
 
 
@@ -37,6 +37,40 @@ material::material(const rt::color& color, const rt::color& emitted_color,
         specular_probability(specular_probability), reflects_color(reflects_color),
         transparency(transparency), refraction_scattering(refraction_scattering),
         refraction_index(refraction_index) {}
+
+/* Constructor from mtl parameters */
+material::material(const double& ns,
+    const rt::color& /*ka*/, const rt::color& kd, const rt::color& ks, const rt::color& ke,
+    const double& ni, const double& d, const unsigned int illum)
+    
+    : color(kd * 255), reflectivity(ns / 1000),
+      emitted_color(ke * 255),
+      specular_probability((ks.get_red() + ks.get_green() + ks.get_blue()) / (3 * 255)),
+      reflects_color(false),
+      refraction_scattering(ns / 1000), refraction_index(ni) {
+
+    /* Ambient light is unused and left to global illumination
+       reflects_color is left to false
+       refraction_scattering is set equal to the reflectivity
+    */
+
+    // Light emission
+    if (ke == rt::color(0, 0, 0)) {
+        emission_intensity = 0;
+    }
+    else {
+        emission_intensity = 1;
+    }
+
+    if (illum == 4 || illum == 6 || illum == 7 || illum == 9) {
+        // Glass
+        transparency = 1 - d;
+    }
+    else {
+        // Other materials
+        transparency = 0;
+    }
+}
 
 
 /* Specific constructors */

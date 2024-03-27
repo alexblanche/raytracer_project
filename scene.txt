@@ -1,18 +1,18 @@
 resolution width:1366 height:768
-camera position:(0, 200, 0) direction:(0, 0, 1) rightdir:(1, 0, 0) fov_width:1366 distance:350 focal_distance:650 aperture:40
+camera position:(0, 250, 0) direction:(0, 0.2, 1) rightdir:(1, 0, 0) fov_width:1366 distance:350
 background_color 190 235 255
 polygons_per_bounding 0
 
 
 plane normal:(0, -1, 0) position:(0, 600, 0) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-plane normal:(0, 0, -1) position:(0, 0, 2000) material:(color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-plane normal:(1, 0, 0) position:(-600, 0, 0) material:(color:(255, 80, 80) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-plane normal:(-1, 0, 0) position:(600, 0, 0) material:(color:(80, 255, 80) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-plane normal:(0, 0, 1) position:(0, 0, 0) material:(color:(10, 180, 255) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-plane normal:(0, 1, 0) position:(0, -600, 0) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.8 emission:0 specular_p:0.5 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+# plane normal:(0, 0, -1) position:(0, 0, 2000) material:(color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+# plane normal:(1, 0, 0) position:(-600, 0, 0) material:(color:(255, 80, 80) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+# plane normal:(-1, 0, 0) position:(600, 0, 0) material:(color:(80, 255, 80) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+# plane normal:(0, 0, 1) position:(0, 0, 0) material:(color:(10, 180, 255) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+# plane normal:(0, 1, 0) position:(0, -600, 0) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.8 emission:0 specular_p:0.5 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
 material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 quad (-400, -599, 800) (-400, -599, 400) (400, -599, 400) (400, -599, 800) material:white_light
 
-sphere center:(-400, 350, 1350) radius:250 material:mirror
-sphere center:( 200, 350, 650) radius:250 material:glass
+# sphere center:(-700, 350, 1850) radius:250 material:mirror
+sphere center:( 0, 350, 500) radius:250 material:diffuse

@@ -49,7 +49,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
    }
 
    /* Storage */
-   /* All indices start at 1, so the first vector is unused */
+   /* All indices start at 1, so for simplicity we add an unused first vector */
    
    /* Vertices of the object */
    std::vector<rt::vector> vertex_set = {rt::vector()};
