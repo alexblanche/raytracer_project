@@ -592,20 +592,24 @@ scene::scene(const char* file_name, bool& creation_successful)
                 return;
             }
 
-            /* Looking up the texture name in the vector of already declared texture names */
+            
             unsigned int t_index = -1;
-            for (unsigned int i = 0; i < texture_names.size(); i++) {
-                if (texture_names.at(i).compare(t_name) == 0) {
-                    t_index = i;
-                    break;
+
+            if (strcmp(t_name, "none") != 0) {
+                /* Looking up the texture name in the vector of already declared texture names */
+                for (unsigned int i = 0; i < texture_names.size(); i++) {
+                    if (texture_names.at(i).compare(t_name) == 0) {
+                        t_index = i;
+                        break;
+                    }
                 }
-            }
-         
-            if (t_index == ((unsigned int) -1)) {
-                printf("Error, texture %s not found\n", t_name);
-                creation_successful = false;
-                fclose(file);
-                return;
+            
+                if (t_index == ((unsigned int) -1)) {
+                    printf("Error, texture %s not found\n", t_name);
+                    creation_successful = false;
+                    fclose(file);
+                    return;
+                }
             }
 
             const bounding* output_bd;

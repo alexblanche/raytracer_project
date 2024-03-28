@@ -46,7 +46,7 @@ struct mt_assoc {
 
    Returns true if the operation was successful */
 
-bool parse_mtl_file(const char* file_name,
+bool parse_mtl_file(const char* file_name, const std::string& path,
     std::vector<std::string>& material_names, std::vector<material>& material_set,
     std::vector<std::string>& texture_names, std::vector<texture>& texture_set,
     mt_assoc& assoc);

@@ -21,15 +21,15 @@
 
    Returns true if the operation was successful */
 
-bool parse_mtl_file(const char* file_name,
+bool parse_mtl_file(const char* file_name, const std::string& path,
     std::vector<std::string>& material_names, std::vector<material>& material_set,
     std::vector<std::string>& texture_names, std::vector<texture>& texture_set,
     mt_assoc& assoc) {
 
-    FILE* file = fopen(file_name, "r");
+    FILE* file = fopen((path + std::string(file_name)).data(), "r");
 
     if (file == NULL) {
-        printf("Error, .mtl file %s not found\n", file_name);
+        printf("Error, file %s not found\n", file_name);
         return false;
     }
 
@@ -54,7 +54,7 @@ bool parse_mtl_file(const char* file_name,
         else if (strcmp(s, "newmtl") == 0) {
             /* Generating a new material */
             std::string m_name(65, '\0');
-            int ret = fscanf(file, " %64s", (char*) m_name.data());
+            int ret = fscanf(file, " %64s\n", (char*) m_name.data());
             if (ret != 1) {
                 fclose(file);
                 printf("Parsing error in file %s (newmtl)\n", file_name);
@@ -157,12 +157,12 @@ bool parse_mtl_file(const char* file_name,
                 
                 bool parsing_successful;
                 texture_set.push_back(
-                    texture(tfile_name, parsing_successful)
+                    texture((path + std::string(tfile_name)).data(), parsing_successful)
                 );
                 texture_names.push_back("@@@rt_unnamed_texture@@@");
 
                 if (parsing_successful) {
-                    printf("mtl_parser: %s texture loaded\n", tfile_name);
+                    printf("\rmtl_parser: %s texture loaded\n", tfile_name);
                     fflush(stdout);
                 }
                 else {

@@ -15,6 +15,7 @@
 
 #include <stack>
 
+#define DISPLAY_HIERARCHY true
 
 
 /* Wavefront .obj file parser */
@@ -51,6 +52,11 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
       printf("Error, .obj file %s not found\n", file_name);
       return false;
    }
+
+   /* Extraction of the path to the .obj file, to be appended to relative paths of mtl and texture files */
+   const string file_name_string = string(file_name);
+   const unsigned int last_slash = file_name_string.find_last_of("/\\");
+   const string path = file_name_string.substr(0, last_slash + 1);
 
    /* Storage */
    /* All indices start at 1, so for simplicity we add an unused first vector */
@@ -106,7 +112,9 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
          // Second method: create a bounding hierarchy containing all the nodes
          /* Heuristic: each group is a depth 1 node in the global bounding box hierarchy */
          const bounding* bd = create_bounding_hierarchy(content, polygons_per_bounding);
-         //display_hierarchy_properties(bd);
+         if (DISPLAY_HIERARCHY) {
+            display_hierarchy_properties(bd);
+         }
          children.push_back(bd);
          content.clear();
       }
@@ -222,7 +230,7 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
          }
 
          const bool mtl_parsing_successful =
-            parse_mtl_file(mtl_file_name, material_names, material_set,
+            parse_mtl_file(mtl_file_name, path, material_names, material_set,
                texture_names, texture_set, assoc);
 
          if (not mtl_parsing_successful) {
@@ -413,11 +421,11 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             rt::vector final_vn = normal_set.at(vn1) + normal_set.at(vn2) + normal_set.at(vn3) + normal_set.at(vn4) + normal_set.at(vn5);
             
             // Reading triplets until the end of the line
-            char c;
-            bool stop = false;
-            do {
+            char c = fgetc(file);
+            while (c != '\n' && c != EOF) {
+               ungetc(c, file);
                unsigned int vi, vti, vni;
-               int ret = fscanf(file, "%u/%u/%u", &vi, &vti, &vni);
+               int ret = fscanf(file, " %u/%u/%u", &vi, &vti, &vni);
                if (ret != 3) {
                   fclose(file);
                   printf("Error in parsing of polygons of at least 5 sides\n");
@@ -434,14 +442,7 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                cpt ++;
 
                c = fgetc(file);
-               if (c == '\n' || c == EOF) {
-                  stop = true;
-               }
-               else {
-                  ungetc(c, file);
-               }
             }
-            while (not stop);
             ungetc(c, file);
 
             // New central vertex
@@ -549,7 +550,9 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
       /* Placing the last group into a bounding */
       // const bounding* bd = containing_objects(content);
       const bounding* bd = create_bounding_hierarchy(content, polygons_per_bounding);
-      //display_hierarchy_properties(bd);
+      if (DISPLAY_HIERARCHY) {
+         display_hierarchy_properties(bd);
+      }
       children.push_back(bd);
 
       /* Setting the final bounding */
