@@ -2,6 +2,7 @@
 
 #include "scene/objects/object.hpp"
 #include "scene/objects/bounding.hpp"
+#include "scene/material/texture.hpp"
 
 #include <vector>
 #include <string>
@@ -23,8 +24,10 @@
    
    Returns true if the operation was successful
 */
-bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
-   const unsigned int texture_index, std::vector<string>& material_names,
+bool parse_obj_file(const char* file_name, const unsigned int default_texture_index,
+   std::vector<const object*>& obj_set,
+   std::vector<string>& material_names, std::vector<material>& material_set,
+   std::vector<string>& texture_names, std::vector<texture>& texture_set,
    const double& scale, const rt::vector& shift,
    const bool bounding_enabled, const unsigned int polygons_per_bounding,
    const bounding*& output_bd);

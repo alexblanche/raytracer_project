@@ -1,6 +1,7 @@
 #include "file_readers/mtl_parser.hpp"
 
 #include "scene/material/material.hpp"
+#include "scene/material/texture.hpp"
 
 #include <vector>
 #include <stdio.h>
@@ -11,9 +12,19 @@
 
 /* Defines the new materials from the mtl file file_name,
    places their name in material_names, and places the materials in material_set
+
+    - When a texture is loaded with map_Ka / Kd, it is placed in texture_set (like in the scene parser)
+      and the association table is updated with a new pair (m_index, t_index) so that each material created
+      with index m_index must have the texture t_index
+    - Textures are loaded each time without checking for duplicates, because I assume that it does not happen often
+      (otherwise I need a table to remember the already loaded texture's file names)
+
    Returns true if the operation was successful */
+
 bool parse_mtl_file(const char* file_name,
-    std::vector<std::string>& material_names, std::vector<material>& material_set) {
+    std::vector<std::string>& material_names, std::vector<material>& material_set,
+    std::vector<std::string>& texture_names, std::vector<texture>& texture_set,
+    mt_assoc& assoc) {
 
     FILE* file = fopen(file_name, "r");
 
@@ -82,7 +93,7 @@ bool parse_mtl_file(const char* file_name,
             }
 
             double kd_r, kd_g, kd_b;
-            ret = fscanf(file, "Ka %lf %lf %lf\n", &kd_r, &kd_g, &kd_b);
+            ret = fscanf(file, "Kd %lf %lf %lf\n", &kd_r, &kd_g, &kd_b);
             if (ret != 3) {
                 fclose(file);
                 printf("Parsing error in file %s (Kd)\n", file_name);
@@ -90,7 +101,7 @@ bool parse_mtl_file(const char* file_name,
             }
 
             double ks_r, ks_g, ks_b;
-            ret = fscanf(file, "Ka %lf %lf %lf\n", &ks_r, &ks_g, &ks_b);
+            ret = fscanf(file, "Ks %lf %lf %lf\n", &ks_r, &ks_g, &ks_b);
             if (ret != 3) {
                 fclose(file);
                 printf("Parsing error in file %s (Ks)\n", file_name);
@@ -98,7 +109,7 @@ bool parse_mtl_file(const char* file_name,
             }
 
             double ke_r, ke_g, ke_b;
-            ret = fscanf(file, "Ka %lf %lf %lf\n", &ke_r, &ke_g, &ke_b);
+            ret = fscanf(file, "Ke %lf %lf %lf\n", &ke_r, &ke_g, &ke_b);
             if (ret != 3) {
                 fclose(file);
                 printf("Parsing error in file %s (Ke)\n", file_name);
@@ -122,28 +133,48 @@ bool parse_mtl_file(const char* file_name,
             }
 
             unsigned int illum;
-            ret = fscanf(file, "illum %u\n", &d);
+            ret = fscanf(file, "illum %u\n", &illum);
             if (ret != 1) {
                 fclose(file);
                 printf("Parsing error in file %s (illum)\n", file_name);
                 return false;
             }
 
-            char tfile_name[513];
-            ret = fscanf(file, "map_Ka %512s\n");
-            //if (ret == 0) {
-                // map_Ka omitted
-                const material m(ns, rt::color(ka_r, ka_g, ka_b), rt::color(kd_r, kd_g, kd_b),
+            const material m(ns, rt::color(ka_r, ka_g, ka_b), rt::color(kd_r, kd_g, kd_b),
                     rt::color(ks_r, ks_g, ks_b), rt::color(ke_r, ke_g, ke_b),
                     ni, d, illum);
-                material_names.push_back(m_name);
-                material_set.push_back(m);
-            // }
-            // else {
-            //     // I need to find a way to link the material with a texture...
-            // }
-        }
+            material_names.push_back(m_name);
+            const unsigned int material_index = material_set.size();
+            material_set.push_back(m);
 
+            /* Test for associated texture */
+            char tfile_name[513];
+            char c;
+            ret = fscanf(file, "map_K%c %512s\n", &c, tfile_name);
+            if (ret == 2) {
+                // Texture loading
+                const unsigned int texture_index = texture_set.size();
+                
+                bool parsing_successful;
+                texture_set.push_back(
+                    texture(tfile_name, parsing_successful)
+                );
+                texture_names.push_back("@@@rt_unnamed_texture@@@");
+
+                if (parsing_successful) {
+                    printf("mtl_parser: %s texture loaded\n", tfile_name);
+                    fflush(stdout);
+                }
+                else {
+                    fclose(file);
+                    printf("mtl_parser: %s texture reading failed\n", tfile_name);
+                    return false;
+                }
+
+                assoc.push(material_index, texture_index);
+            }
+            // else: texture omitted
+        }
     }
 
     fclose(file);

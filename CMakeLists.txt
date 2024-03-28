@@ -43,6 +43,7 @@ add_library(${libname} SHARED
 	src/file_readers/raw_data.cpp
 	src/auxiliary/clustering.cpp
 	src/file_readers/obj_parser.cpp
+	src/file_readers/mtl_parser.cpp
 )
 
 target_link_libraries(${libname}

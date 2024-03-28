@@ -49,7 +49,7 @@ const material parse_material(FILE* file) {
         specular_p:1.0 reflects_color:false transparency:0.5 scattering:0 refraction_index:1.2)
 
         See the file structure below.    
-     */
+    */
 
     double r, g, b, er, eg, eb, refl, em_int, spec_p, transp, scattering, refr_i;
     bool refl_color = false;
@@ -389,7 +389,7 @@ scene::scene(const char* file_name, bool& creation_successful)
             t_name.resize(strlen(t_name.data()));
             
             texture_names.push_back(t_name);
-            bool parsing_successful = true;
+            bool parsing_successful;
             texture_set.push_back(
                 texture(tfile_name, parsing_successful)
             );
@@ -592,7 +592,7 @@ scene::scene(const char* file_name, bool& creation_successful)
                 return;
             }
 
-            /* Looking up the material name in the vector of already declared material names */
+            /* Looking up the texture name in the vector of already declared texture names */
             unsigned int t_index = -1;
             for (unsigned int i = 0; i < texture_names.size(); i++) {
                 if (texture_names.at(i).compare(t_name) == 0) {
@@ -609,7 +609,8 @@ scene::scene(const char* file_name, bool& creation_successful)
             }
 
             const bounding* output_bd;
-            const bool parsing_successful = parse_obj_file(ofile_name, object_set, t_index, mat_names,
+            const bool parsing_successful = parse_obj_file(ofile_name, t_index, object_set,
+                mat_names, material_set, texture_names, texture_set,
                 scale, rt::vector(sx, sy, sz),
                 bounding_enabled, polygons_per_bounding, output_bd);
 

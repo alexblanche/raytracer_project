@@ -4,8 +4,10 @@
 #include "scene/objects/bounding.hpp"
 #include "scene/objects/triangle.hpp"
 #include "scene/objects/quad.hpp"
+#include "scene/material/texture.hpp"
 
 #include "auxiliary/clustering.hpp"
+#include "file_readers/mtl_parser.hpp"
 
 #include <stdio.h>
 #include <string.h>
@@ -32,8 +34,10 @@
    Returns true if the operation was successful
 */
 
-bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
-   const unsigned int texture_index, std::vector<string>& material_names,
+bool parse_obj_file(const char* file_name, const unsigned int default_texture_index,
+   std::vector<const object*>& obj_set,
+   std::vector<string>& material_names, std::vector<material>& material_set,
+   std::vector<string>& texture_names, std::vector<texture>& texture_set,
    const double& scale, const rt::vector& shift,
    const bool bounding_enabled, const unsigned int polygons_per_bounding,
    const bounding*& output_bd) {
@@ -60,7 +64,14 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
    /* Vertex normals */
    std::vector<rt::vector> normal_set = {rt::vector()};
 
+   /* Material -> texture association table */
+   mt_assoc assoc = mt_assoc();
+
    unsigned int current_material_index = -1;
+   unsigned int current_texture_index = default_texture_index;
+
+   const bool default_texture_provided = default_texture_index != (unsigned int) -1;
+   bool apply_texture = default_texture_provided;
 
    /* Counters */
    unsigned int number_of_vertices = 0;
@@ -106,8 +117,7 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
          || strcmp(s, "l") == 0
          || strcmp(s, "g") == 0
          || strcmp(s, "o") == 0
-         || strcmp(s, "vp") == 0
-         || strcmp(s, "mtllib") == 0) {
+         || strcmp(s, "vp") == 0) {
 
          char c;
          do {
@@ -190,6 +200,35 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
          }
          else {
             current_material_index = vindex;
+            unsigned int t_index;
+            if (assoc.lookup(current_material_index, t_index)) {
+               // A texture was associated with the material by an mtl file
+               current_texture_index = t_index;
+               apply_texture = true;
+            }
+            else {
+               current_texture_index = default_texture_index;
+               apply_texture = default_texture_provided;
+            }
+         }
+      }
+      else if (strcmp(s, "mtllib") == 0) {
+         char mtl_file_name[513];
+         const int ret = fscanf(file, " %512s\n", mtl_file_name);
+         if (ret != 1) {
+            fclose(file);
+            printf("Parsing error in file %s (mtllib)\n", file_name);
+            return false;
+         }
+
+         const bool mtl_parsing_successful =
+            parse_mtl_file(mtl_file_name, material_names, material_set,
+               texture_names, texture_set, assoc);
+
+         if (not mtl_parsing_successful) {
+            fclose(file);
+            printf("Parsing error in obj file parsing (mtl file loading)\n");
+            return false;
          }
       }
       else if (strcmp(s, "f") == 0) {
@@ -202,19 +241,32 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
 
          if (ret == 9) {
             /* Triangle */
-            const texture_info info(texture_index,
-               {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-               uv_coord_set.at(vt2).x, 1-uv_coord_set.at(vt2).y,
-               uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y}
-            );
+            const texture_info info =
+               apply_texture ?
+               
+               texture_info(current_texture_index,
+                  {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
+                  uv_coord_set.at(vt2).x, 1-uv_coord_set.at(vt2).y,
+                  uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y})
+               :
+               texture_info();
 
-            const triangle* tr = new triangle(
-               shift + scale * vertex_set.at(v1),
-               shift + scale * vertex_set.at(v2),
-               shift + scale * vertex_set.at(v3),
-               normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
-               current_material_index, info
-            );
+            const triangle* tr =
+               apply_texture ?
+
+               new triangle(
+                  shift + scale * vertex_set.at(v1),
+                  shift + scale * vertex_set.at(v2),
+                  shift + scale * vertex_set.at(v3),
+                  normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
+                  current_material_index, info)
+               :
+               new triangle(
+                  shift + scale * vertex_set.at(v1),
+                  shift + scale * vertex_set.at(v2),
+                  shift + scale * vertex_set.at(v3),
+                  normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
+                  current_material_index);
 
             obj_set.push_back(tr);
 
@@ -237,35 +289,61 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
             if ((n12 - n23).normsq() > 0.000001) {
                /* Non-coplanar vertices: splitting the quad into two triangles */
 
-               const texture_info info12(texture_index,
-                  {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-                  uv_coord_set.at(vt2).x, 1-uv_coord_set.at(vt2).y,
-                  uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y}
-               );
+               const texture_info info12 =
+                  apply_texture ?
+                  
+                  texture_info(current_texture_index,
+                     {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
+                     uv_coord_set.at(vt2).x, 1-uv_coord_set.at(vt2).y,
+                     uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y})
+                  :
+                  texture_info();
 
-               const triangle* tr1 = new triangle(
-                  shift + scale * vertex_set.at(v1),
-                  shift + scale * vertex_set.at(v2),
-                  shift + scale * vertex_set.at(v3),
-                  normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
-                  current_material_index, info12
-               );
+               const triangle* tr1 =
+                  apply_texture ?
+
+                  new triangle(
+                     shift + scale * vertex_set.at(v1),
+                     shift + scale * vertex_set.at(v2),
+                     shift + scale * vertex_set.at(v3),
+                     normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
+                     current_material_index, info12)
+                  :
+                  new triangle(
+                     shift + scale * vertex_set.at(v1),
+                     shift + scale * vertex_set.at(v2),
+                     shift + scale * vertex_set.at(v3),
+                     normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
+                     current_material_index);
 
                obj_set.push_back(tr1);
 
-               const texture_info info23(texture_index,
-                  {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-                  uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y,
-                  uv_coord_set.at(vt4).x, 1-uv_coord_set.at(vt4).y}
-               );
+               const texture_info info23 =
+                  apply_texture ?
 
-               const triangle* tr2 = new triangle(
-                  shift + scale * vertex_set.at(v1),
-                  shift + scale * vertex_set.at(v3),
-                  shift + scale * vertex_set.at(v4),
-                  normal_set.at(vn1), normal_set.at(vn3), normal_set.at(vn4),
-                  current_material_index, info23
-               );
+                  texture_info(current_texture_index,
+                     {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
+                     uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y,
+                     uv_coord_set.at(vt4).x, 1-uv_coord_set.at(vt4).y})
+                  :
+                  texture_info();
+
+               const triangle* tr2 =
+                  apply_texture?
+                  
+                  new triangle(
+                     shift + scale * vertex_set.at(v1),
+                     shift + scale * vertex_set.at(v3),
+                     shift + scale * vertex_set.at(v4),
+                     normal_set.at(vn1), normal_set.at(vn3), normal_set.at(vn4),
+                     current_material_index, info23)
+                  :
+                  new triangle(
+                     shift + scale * vertex_set.at(v1),
+                     shift + scale * vertex_set.at(v3),
+                     shift + scale * vertex_set.at(v4),
+                     normal_set.at(vn1), normal_set.at(vn3), normal_set.at(vn4),
+                     current_material_index);
 
                obj_set.push_back(tr2);
 
@@ -280,21 +358,35 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
             else {
                
                /* Coplanar vertices: keeping the quad */
-               const texture_info info(texture_index,
-                  {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-                  uv_coord_set.at(vt2).x, 1-uv_coord_set.at(vt2).y,
-                  uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y,
-                  uv_coord_set.at(vt4).x, 1-uv_coord_set.at(vt4).y}
-               );
+               const texture_info info =
+                  apply_texture ?
 
-               const quad* q = new quad(
-                  shift + scale * vertex_set.at(v1),
-                  shift + scale * vertex_set.at(v2),
-                  shift + scale * vertex_set.at(v3),
-                  shift + scale * vertex_set.at(v4),
-                  normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3), normal_set.at(vn4),
-                  current_material_index, info
-               );
+                  texture_info(current_texture_index,
+                     {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
+                     uv_coord_set.at(vt2).x, 1-uv_coord_set.at(vt2).y,
+                     uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y,
+                     uv_coord_set.at(vt4).x, 1-uv_coord_set.at(vt4).y})
+                  :
+                  texture_info();
+
+               const quad* q =
+                  apply_texture ?
+                  
+                  new quad(
+                     shift + scale * vertex_set.at(v1),
+                     shift + scale * vertex_set.at(v2),
+                     shift + scale * vertex_set.at(v3),
+                     shift + scale * vertex_set.at(v4),
+                     normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3), normal_set.at(vn4),
+                     current_material_index, info)
+                  :
+                  new quad(
+                     shift + scale * vertex_set.at(v1),
+                     shift + scale * vertex_set.at(v2),
+                     shift + scale * vertex_set.at(v3),
+                     shift + scale * vertex_set.at(v4),
+                     normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3), normal_set.at(vn4),
+                     current_material_index);
 
                obj_set.push_back(q);
                
@@ -374,19 +466,32 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
                const unsigned int vtj = vt_stack.top();
                const unsigned int vnj = vn_stack.top();
 
-               const texture_info info(texture_index,
-                  {uv_coord_set.at(vtj).x, 1-uv_coord_set.at(vtj).y,
-                  uv_coord_set.at(vti).x, 1-uv_coord_set.at(vti).y,
-                  final_vt.x, 1-final_vt.y}
-               );
+               const texture_info info =
+                  apply_texture ?
 
-               const triangle* tr = new triangle(
-                  shift + scale * vertex_set.at(vj),
-                  shift + scale * vertex_set.at(vi),
-                  shift + scale * final_v,
-                  normal_set.at(vnj), normal_set.at(vni), final_vn,
-                  current_material_index, info
-               );
+                  texture_info(current_texture_index,
+                     {uv_coord_set.at(vtj).x, 1-uv_coord_set.at(vtj).y,
+                     uv_coord_set.at(vti).x, 1-uv_coord_set.at(vti).y,
+                     final_vt.x, 1-final_vt.y})
+                  :
+                  texture_info();
+
+               const triangle* tr =
+                  apply_texture ?
+
+                  new triangle(
+                     shift + scale * vertex_set.at(vj),
+                     shift + scale * vertex_set.at(vi),
+                     shift + scale * final_v,
+                     normal_set.at(vnj), normal_set.at(vni), final_vn,
+                     current_material_index, info)
+                  :
+                  new triangle(
+                     shift + scale * vertex_set.at(vj),
+                     shift + scale * vertex_set.at(vi),
+                     shift + scale * final_v,
+                     normal_set.at(vnj), normal_set.at(vni), final_vn,
+                     current_material_index);
 
                obj_set.push_back(tr);
 
@@ -399,19 +504,32 @@ bool parse_obj_file(const char* file_name, std::vector<const object*>& obj_set,
             }
 
             // Adding the last triangle
-            const texture_info info(texture_index,
-               {uv_coord_set.at(last_vt).x, 1-uv_coord_set.at(last_vt).y,
-               uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-               final_vt.x, 1-final_vt.y}
-            );
+            const texture_info info =
+               apply_texture ?
 
-            const triangle* tr = new triangle(
-               shift + scale * vertex_set.at(last_v),
-               shift + scale * vertex_set.at(v1),
-               shift + scale * final_v,
-               normal_set.at(last_vn), normal_set.at(vn1), final_vn,
-               current_material_index, info
-            );
+               texture_info(current_texture_index,
+                  {uv_coord_set.at(last_vt).x, 1-uv_coord_set.at(last_vt).y,
+                  uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
+                  final_vt.x, 1-final_vt.y})
+               :
+               texture_info();
+
+            const triangle* tr =
+               apply_texture ?
+               
+               new triangle(
+                  shift + scale * vertex_set.at(last_v),
+                  shift + scale * vertex_set.at(v1),
+                  shift + scale * final_v,
+                  normal_set.at(last_vn), normal_set.at(vn1), final_vn,
+                  current_material_index, info)
+               :
+               new triangle(
+                  shift + scale * vertex_set.at(last_v),
+                  shift + scale * vertex_set.at(v1),
+                  shift + scale * final_v,
+                  normal_set.at(last_vn), normal_set.at(vn1), final_vn,
+                  current_material_index);
 
             obj_set.push_back(tr);
 
