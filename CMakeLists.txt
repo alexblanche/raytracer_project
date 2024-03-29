@@ -58,7 +58,7 @@ target_include_directories(${libname}
 # Main executable
 set(main_name main)
 add_executable(${main_name}
-	main.cpp
+	src/main.cpp
 )
 target_link_libraries(${main_name}
 	${libname}

@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "screen/screen.hpp"
+#include "light/hit.hpp"
 
 namespace rt {
 
@@ -125,6 +126,9 @@ namespace rt {
 						default:
 							break;
 					}
+					break;
+				case SDL_MOUSEBUTTONDOWN:
+					printf("\nX = %d, Y = %d", event.button.x, event.button.y);
 					break;
 			}
 		}

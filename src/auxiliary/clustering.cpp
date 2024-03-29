@@ -21,7 +21,7 @@ const double infinity = realclu.infinity();
 #define MIN_NUMBER_OF_POLYGONS_FOR_BOX 5
 #define CARDINAL_OF_BOX_GROUP 3
 #define MAX_NUMBER_OF_ITERATIONS 100
-#define DISPLAY_KMEANS true
+#define DISPLAY_KMEANS false
 
 // Macros for parallel k_means
 #define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](unsigned int start, unsigned int end){ for(unsigned int n = start; n < end; ++n)
@@ -308,6 +308,10 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
     /* A hierarchy has to be created */
     if (DISPLAY_KMEANS) {
         printf("\nOptimizing the data structure...\n");
+        fflush(stdout);
+    }
+    else {
+        printf("\rOptimizing the data structure...");
         fflush(stdout);
     }
 

@@ -15,7 +15,7 @@
 
 #include <stack>
 
-#define DISPLAY_HIERARCHY true
+#define DISPLAY_HIERARCHY false
 
 
 /* Wavefront .obj file parser */
@@ -407,11 +407,22 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             }
          }
          else {
+            // Temporary workaround (skip the polygons of more than 4 sides)
+            // char ca;
+            // do {
+            //    ca = fgetc(file);
+            // }
+            // while (ca != '\n' && ca != EOF);
+            // ungetc(ca, file);
+
+            // continue;
+
+            
             // Polygons with more than 4 sides
             std::stack<unsigned int> v_stack;
             std::stack<unsigned int> vt_stack;
             std::stack<unsigned int> vn_stack;
-            v_stack.push(v1); v_stack.push(v2); v_stack.push(v3); v_stack.push(v4);v_stack.push(v5);
+            v_stack.push(v1); v_stack.push(v2); v_stack.push(v3); v_stack.push(v4); v_stack.push(v5);
             vt_stack.push(vt1); vt_stack.push(vt2); vt_stack.push(vt3); vt_stack.push(vt4); vt_stack.push(vt5);
             vn_stack.push(vn1); vn_stack.push(vn2); vn_stack.push(vn3); vn_stack.push(vn4); vn_stack.push(vn5);
 

@@ -1,6 +1,8 @@
 #include "scene/material/material.hpp"
 #include "screen/color.hpp"
 
+#include <cmath>
+
 #include <vector>
 #include <iostream>
 
@@ -40,14 +42,14 @@ material::material(const rt::color& color, const rt::color& emitted_color,
 
 /* Constructor from mtl parameters */
 material::material(const double& ns,
-    const rt::color& /*ka*/, const rt::color& kd, const rt::color& ks, const rt::color& ke,
+    const rt::color& ka, const rt::color& kd, const rt::color& ks, const rt::color& ke,
     const double& ni, const double& d, const unsigned int illum)
     
-    : color(kd * 255), reflectivity(ns / 1000),
+    : color(kd * 255), reflectivity(pow(ns / 1000, 0.25)),
       emitted_color(ke * 255),
-      specular_probability((ks.get_red() + ks.get_green() + ks.get_blue()) / (3 * 255)),
+      specular_probability((ks.get_red() + ks.get_green() + ks.get_blue()) / 3),
       reflects_color(false),
-      refraction_scattering(ns / 1000), refraction_index(ni) {
+      refraction_scattering(0), refraction_index(ni) {
 
     /* Ambient light is unused and left to global illumination
        reflects_color is left to false
@@ -59,12 +61,14 @@ material::material(const double& ns,
         emission_intensity = 0;
     }
     else {
-        emission_intensity = 1;
+        // Temporary
+        emission_intensity = 1000;
     }
 
     if (illum == 4 || illum == 6 || illum == 7 || illum == 9) {
         // Glass
         transparency = 1 - d;
+        color = ka * 255; // Usually kd = black for glass
     }
     else {
         // Other materials
