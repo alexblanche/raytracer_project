@@ -248,6 +248,9 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             &v1, &vt1, &vn1, &v2, &vt2, &vn2, &v3, &vt3, &vn3, &v4, &vt4, &vn4, &v5, &vt5, &vn5);
 
          if (ret == 9) {
+            // Temporary
+            // continue;
+
             /* Triangle */
             const texture_info info =
                apply_texture ?
@@ -286,6 +289,10 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             }
          }
          else if (ret == 12) {
+
+            // Temporary
+            // continue;
+
             /* Quad */
 
             /* Sometimes quads are made up of 4 non-coplanar vertices

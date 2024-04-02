@@ -62,7 +62,7 @@ material::material(const double& ns,
     }
     else {
         // Temporary
-        emission_intensity = 1000;
+        emission_intensity = 10;
     }
 
     if (illum == 4 || illum == 6 || illum == 7 || illum == 9) {

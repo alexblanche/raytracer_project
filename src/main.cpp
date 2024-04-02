@@ -230,6 +230,10 @@ int main(int argc, char *argv[]) {
                 printf("\r%u / %u", i+1, target_number_of_rays);
                 fflush(stdout);
             }
+            /* Exporting as rtdata every 100 samples */
+            if (i % 100 == 99) {
+                export_raw("image.rtdata", i+1, matrix);
+            } 
         }
 
         printf("\r%u / %u", target_number_of_rays, target_number_of_rays);
@@ -241,6 +245,8 @@ int main(int argc, char *argv[]) {
             printf("Save failed\n");
             return EXIT_FAILURE;
         }
+
+        export_raw("image.rtdata", target_number_of_rays, matrix);
         return EXIT_SUCCESS;
     }
 
