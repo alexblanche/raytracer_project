@@ -156,4 +156,14 @@ namespace rt {
 
 		return rt::color(r / n, g / n, b / n);
 	}
+
+	/**
+	 * Maxing out color components at 255.
+	 */
+	color color::max_out() const {
+		const double maxed_red   = std::min(red,   255.0);
+		const double maxed_green = std::min(green, 255.0);
+		const double maxed_blue  = std::min(blue,  255.0);
+		return rt::color(maxed_red, maxed_green, maxed_blue);
+	}
 }

@@ -151,6 +151,11 @@ namespace rt {
 			 * Division operator.
 			 */
 			virtual color operator/(const double x) const;
+
+			/**
+			 * Maxing out color components at 255.
+			 */
+			virtual color max_out() const;
 	};
 
 	/* Adds all the colors of the given color vector */

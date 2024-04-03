@@ -28,6 +28,8 @@
 #include "file_readers/raw_data.hpp"
 #include "file_readers/bmp_reader.hpp"
 
+#include "postprocess/glow.hpp"
+
 using namespace std;
 
 // Parallel for-loop macros
@@ -237,7 +239,14 @@ int main(int argc, char *argv[]) {
         }
 
         printf("\r%u / %u", target_number_of_rays, target_number_of_rays);
+
+        /*** Test post-process ***/
+
+        vector<vector<rt::color>> post_processed_image = apply_glow(matrix, target_number_of_rays);
+
+        /************************/
         const bool success_bmp = write_bmp("image.bmp", matrix, target_number_of_rays);
+        write_bmp("post.bmp", post_processed_image, 1);
         if (success_bmp) {
             printf(" Saved as image.bmp\n");
         }
@@ -246,7 +255,7 @@ int main(int argc, char *argv[]) {
             return EXIT_FAILURE;
         }
 
-        export_raw("image.rtdata", target_number_of_rays, matrix);
+        //export_raw("image.rtdata", target_number_of_rays, matrix);
         return EXIT_SUCCESS;
     }
 

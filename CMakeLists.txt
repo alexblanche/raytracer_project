@@ -44,6 +44,7 @@ add_library(${libname} SHARED
 	src/auxiliary/clustering.cpp
 	src/file_readers/obj_parser.cpp
 	src/file_readers/mtl_parser.cpp
+	src/postprocess/glow.cpp
 )
 
 target_link_libraries(${libname}
