@@ -4,11 +4,11 @@ background_color 0 0 0
 polygons_per_bounding 0
 
 plane normal:(0, -1, 0) position:(0, 160, 0) material:(color:(150, 150, 150) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# plane normal:(0, 0, -1) position:(0, 0, 1200) material:(color:(150, 150, 150) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# plane normal:(1, 0, 0) position:(-1000, 0, 0) material:(color:(150, 150, 150) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# plane normal:(-1, 0, 0) position:(1000, 0, 0) material:(color:(150, 150, 150) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# plane normal:(0, 0, 1) position:(0, 0, 0) material:(color:(150, 150, 150) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# plane normal:(0, 1, 0) position:(0, -600, 0) material:(color:(150, 150, 150) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+plane normal:(0, 0, -1) position:(0, 0, 1200) material:(color:(150, 150, 150) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+plane normal:(1, 0, 0) position:(-1000, 0, 0) material:(color:(150, 150, 150) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+plane normal:(-1, 0, 0) position:(1000, 0, 0) material:(color:(150, 150, 150) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+plane normal:(0, 0, 1) position:(0, 0, 0) material:(color:(150, 150, 150) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+plane normal:(0, 1, 0) position:(0, -600, 0) material:(color:(150, 150, 150) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
 # material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 # quad (-400, -599, 800) (-400, -599, 400) (400, -599, 400) (400, -599, 800) material:white_light
@@ -21,4 +21,4 @@ material yellow_light (color:(255, 255, 255) emitted_color:(255, 255, 10) reflec
 sphere center:(-500, -100, 700) radius:60 material:blue_light
 sphere center:(-150, -100, 700) radius:60 material:orange_light
 sphere center:(150, -100, 700) radius:60 material:red_light
-sphere center:(500, -100, 700) radius:60 material:yellow_light
+# sphere center:(500, -100, 700) radius:60 material:yellow_light
