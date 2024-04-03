@@ -44,7 +44,6 @@ add_library(${libname} SHARED
 	src/auxiliary/clustering.cpp
 	src/file_readers/obj_parser.cpp
 	src/file_readers/mtl_parser.cpp
-	src/postprocess/glow.cpp
 )
 
 target_link_libraries(${libname}
@@ -66,11 +65,20 @@ target_link_libraries(${main_name}
 )
 
 
-#Executable that combines an array of raw data files into a bmp file
-set(merger merge)
-add_executable(${merger}
+# Executable that combines an array of raw data files into a bmp file
+set(merger_name merge)
+add_executable(${merger_name}
 	src/screen/color.cpp
 	src/file_readers/raw_data.cpp
 	src/file_readers/bmp_reader.cpp
 	src/file_readers/merger.cpp
+)
+
+# Executable that applies glow postprocessing to a raw data file and generates a bmp file
+set(glow postprocess)
+add_executable(${glow}
+	src/screen/color.cpp
+	src/file_readers/raw_data.cpp
+	src/file_readers/bmp_reader.cpp
+	src/postprocess/glow.cpp
 )

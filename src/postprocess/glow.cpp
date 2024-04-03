@@ -1,7 +1,11 @@
 #include "postprocess/glow.hpp"
 
+#include "file_readers/raw_data.hpp"
+#include "file_readers/bmp_reader.hpp"
+
 #include <cmath>
 #include <stdio.h>
+#include <cstdlib>
 
 #define TWOPI 6.2831853071795862
 
@@ -29,7 +33,7 @@ struct pixel {
             return (orig_col / number_of_rays).max_out();
         }
         else {
-            return (orig_col / number_of_rays) * (1 - alpha) + col * alpha;
+            return ((orig_col / number_of_rays) * (1 - alpha)) + (col * alpha);
         }
     }
 };
@@ -56,7 +60,7 @@ std::vector<std::vector<rt::color>> extract_bright_pixels(const std::vector<std:
         for (unsigned int j = 0; j < height; j++) {
             const rt::color col = image.at(i).at(j);
             const double max = std::max(col.get_red(), std::max(col.get_green(), col.get_blue()));
-            if (max > 255 * number_of_rays) {
+            if (max > 255 * number_of_rays * 3) {
                 bright_pixels.at(i).at(j) = col;
             }
         }
@@ -67,6 +71,7 @@ std::vector<std::vector<rt::color>> extract_bright_pixels(const std::vector<std:
 
 /* Applies blurred normalized_color to output_image at center pixel (a,b), with given intensity */
 void blur_pixel(std::vector<std::vector<pixel>>& output_image,
+    const std::vector<std::vector<rt::color>>& bright_pixels,
     const int a, const int b,
     const rt::color& normalized_color, const double& intensity) {
 
@@ -81,8 +86,10 @@ void blur_pixel(std::vector<std::vector<pixel>>& output_image,
 
     for(int i = std::max((int) -radius, -a); i < std::min((int) radius,  width - a); i++) {
         for(int j = std::max((int) -radius, -b); j < std::min((int) radius, height - b); j++) {
-            const double gaussian = exp(div * (i * i + j * j));
-            output_image.at(i+a).at(j+b).add(normalized_color, gaussian);
+            if (bright_pixels.at(i+a).at(j+b) == rt::color::BLACK) {
+                const double gaussian = exp(div * (i * i + j * j));
+                output_image.at(i+a).at(j+b).add(normalized_color, gaussian);
+            }
         }
     }
 }
@@ -95,16 +102,20 @@ std::vector<std::vector<pixel>> generate_glow(const std::vector<std::vector<rt::
     const unsigned int height = bright_pixels.at(0).size();
     std::vector<std::vector<pixel>> glow(width, std::vector<pixel>(height));
 
+    printf("\n0 / %u", width);
+
     for (unsigned int i = 0; i < width; i++) {
         for (unsigned int j = 0; j < height; j++) {
             if (not (bright_pixels.at(i).at(j) == rt::color::BLACK)) {
                 double intensity;
                 const rt::color normalized_color = get_normalized_color(bright_pixels.at(i).at(j), number_of_rays, intensity);
-                blur_pixel(glow, i, j, normalized_color, intensity);
+                blur_pixel(glow, bright_pixels, i, j, normalized_color, intensity);
             }
         }
-        printf("%u \n", i);
+        printf("\r%u / %u", i+1, width);
+        fflush(stdout);
     }
+    printf("\n");
 
     return glow;
 }
@@ -127,11 +138,44 @@ std::vector<std::vector<rt::color>> apply_glow(const std::vector<std::vector<rt:
 
     for (unsigned int i = 0; i < width; i++) {
         for (unsigned int j = 0; j < height; j++) {
-            //output_image.at(i).at(j) = glow_image.at(i).at(j).col * glow_image.at(i).at(j).alpha;
-            //output_image.at(i).at(j) = glow_image.at(i).at(j).superimpose(rt::color(0,0,0), 1);
             output_image.at(i).at(j) = glow_image.at(i).at(j).superimpose(image.at(i).at(j), number_of_rays);
         }
     }
 
     return output_image;
+}
+
+/* Main function, reads the raw data file at argv[1], applies glow to it and saves it as bmp file argv[2] */
+int main(int argc, char* argv[]) {
+
+    if (argc <= 2) {
+        printf("No destination file name provided\n");
+        return EXIT_SUCCESS;
+    }
+
+    unsigned int number_of_rays;
+    bool success;
+    std::vector<std::vector<rt::color>>& image = read_raw(argv[1], number_of_rays, success);
+    
+    if (not success) {
+        printf("Error reading file %s\n", argv[1]);
+        return EXIT_SUCCESS;
+    }
+
+    printf("Applying glow...\n");
+
+    std::vector<std::vector<rt::color>> postprocessed_image = apply_glow(image, number_of_rays);
+
+    printf("Done.\n");
+
+    const bool success_export = write_bmp(argv[2], postprocessed_image, 1);
+
+    if (success_export) {
+        printf("File %s created\n", argv[2]);
+    }
+    else {
+        printf("Error, export failed\n");
+    }
+
+    return EXIT_SUCCESS;
 }
