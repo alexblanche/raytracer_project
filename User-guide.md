@@ -18,7 +18,7 @@ The resolution of the rendered image is defined by:
 The view angle of the camera is defined by the position of the camera in world space, the direction it points at, and a vector rightdir orthogonal to the direction and "to the right" (it is used to tilt the camera in any angle). The ``fov_width`` parameter designates the width of the screen in world space (used to zoom in or out of the scene). The associated parameter ``fov_height`` is defined automatically (for width/height aspect ratio). Finally, the ``distance`` parameter indicates the distance in world space between the screen and the camera.  
 ``camera position:(0, 0, 0) direction:(0, 0, 1) rightdir:(1, 0, 0) fov_width:1000 distance:400``  
 
-To enable the depth of field camera effect, the focal distance and aperture can be specified with the commands:
+To enable the depth of field camera effect, the focal distance and aperture can be specified with the commands:  
 ``focal_distance:500 aperture:100``  
 on the same line as ``camera``.
 
