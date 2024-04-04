@@ -208,7 +208,7 @@ scene::scene(const char* file_name, bool& creation_successful)
     Example:
 
     resolution width:1366 height:768
-    camera position:(0, 0, 0) direction:(0, 0, 1) rightdir:(1, 0, 0) fov_width:1000 distance:400
+    camera position:(0, 0, 0) direction:(0, 0, 1) rightdir:(1, 0, 0) fov_width:1000 distance:400 [focal_distance:500 aperture:100] (optional)
     background_color 190 235 255
     polygons_per_bounding 10 //specifying 0 will deactivate the bounding generation
 

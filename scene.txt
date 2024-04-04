@@ -1,41 +1,30 @@
 resolution width:1366 height:950
-camera position:(0, -300, 0) direction:(0, 0.6, 1) rightdir:(1, 0, 0) fov_width:1200 distance:450
+camera position:(0, -300, -1000) direction:(0, 0.6, 1) rightdir:(1, 0, 0) fov_width:1200 distance:450
 background_color 0 0 0
 polygons_per_bounding 0
 
-# #### GLOWING SPHERES ####
-
-# camera position:(0, -200, 0) direction:(0, 0, 1) rightdir:(1, 0, 0) fov_width:1000 distance:400
-
-# plane normal:(0, -1, 0) position:(0, 160, 0) material:(color:(150, 150, 150) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# plane normal:(0, 0, -1) position:(0, 0, 1200) material:(color:(150, 150, 150) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# plane normal:(1, 0, 0) position:(-1000, 0, 0) material:(color:(150, 150, 150) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# plane normal:(-1, 0, 0) position:(1000, 0, 0) material:(color:(150, 150, 150) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# plane normal:(0, 0, 1) position:(0, 0, 0) material:(color:(150, 150, 150) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# plane normal:(0, 1, 0) position:(0, -600, 0) material:(color:(150, 150, 150) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-
-# material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# quad (-400, -599, 800) (-400, -599, 400) (400, -599, 400) (400, -599, 800) material:white_light
-
-# material blue_light (color:(255, 255, 255) emitted_color:(10, 10, 255) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# material orange_light (color:(255, 255, 255) emitted_color:(255, 127, 10) reflectivity:0 emission:10 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# material red_light (color:(255, 255, 255) emitted_color:(255, 10, 10) reflectivity:0 emission:26 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# material yellow_light (color:(255, 255, 255) emitted_color:(255, 255, 10) reflectivity:0 emission:100 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-
-# sphere center:(-500, -100, 700) radius:60 material:blue_light
-# sphere center:(-150, -100, 700) radius:60 material:orange_light
-# sphere center:(150, -100, 700) radius:60 material:red_light
-# sphere center:(500, -100, 700) radius:60 material:yellow_light
-
-# ############################################################################################
-
-# #### TONEMAPPING TEST ####
-
 plane normal:(0, -1, 0) position:(0, 0, 0) material:(color:(50, 50, 50) emitted_color:(0, 0, 0) reflectivity:0.95 emission:0 specular_p:0.95 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-plane normal:(0, -1, 0) position:(0, -0.02, 0) material:(color:(255, 220, 220) emitted_color:(0, 0, 0) reflectivity:0.8 emission:0 specular_p:0.2 reflects_color:false transparency:0.9 scattering:0.25 refraction_index:1.25)
+plane normal:(0, -1, 0) position:(0, -0.02, 0) material:(color:(255, 220, 220) emitted_color:(0, 0, 0) reflectivity:0.6 emission:0 specular_p:0.2 reflects_color:false transparency:0.9 scattering:0.1 refraction_index:1.25)
 
-material bright_blue (color:(255, 255, 255) emitted_color:(10, 8, 255) reflectivity:0 emission:26 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-material bright_red (color:(255, 255, 255) emitted_color:(255, 10, 8.4) reflectivity:0 emission:26 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+# plane normal:(0, -1, 0) position:(0, 0, 0) material:(color:(50, 50, 50) emitted_color:(0, 0, 0) reflectivity:0.2 emission:0 specular_p:0.95 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-box center:(-510, -100, 1100) x_axis:(1,0,0.3) y_axis:(0,1,0) 1000 200 40 material:bright_blue
-box center:(510, -100, 1100) x_axis:(-1,0,0.3) y_axis:(0,1,0) 1000 200 40 material:bright_red
+
+material bright_red (color:(255, 255, 255) emitted_color:(255, 10, 8.4) reflectivity:0 emission:150 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+material dark (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0 emission:1 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+
+
+sphere center:(0, -200, 2000) radius:50 material:bright_red
+
+quad (-51, -251, 2051) (-51, -149, 2051) (51, -149, 2051) (51, -251, 2051) material:dark
+
+quad (-51, -251, 2051) (-51, -149, 2051) (-51, -149, 900) (-51, -251, 900) material:dark
+quad (-50.9, -250.9, 2050.9) (-50.9, -250.9, 900) (-50.9, -149.1, 900) (-50.9, -149.1, 2050.9) material:mirror
+
+quad (51, -251, 2051) (51, -251, 900) (51, -149, 900) (51, -149, 2051) material:dark
+quad (50.9, -250.9, 2050.9) (50.9, -149.1, 2050.9) (50.9, -149.1, 900) (50.9, -250.9, 900) material:mirror
+
+quad (-51, -251, 2051) (-51, -251, 900) (51, -251, 900) (51, -251, 2051) material:dark
+quad (-50.9, -250.9, 2050.9) (50.9, -250.9, 2050.9) (50.9, -250.9, 900) (-50.9, -250.9, 900) material:mirror
+
+quad (-51, -149, 2051) (51, -149, 2051) (51, -149, 900) (-51, -149, 900) material:dark
+quad (-50.9, -149.1, 2050.9) (-50.9, -149.1, 900) (50.9, -149.1, 900) (50.9, -149.1, 2050.9) material:mirror

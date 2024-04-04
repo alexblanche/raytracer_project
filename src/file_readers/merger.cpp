@@ -6,7 +6,7 @@
 
 /* Program that combines raw data files into a bmp file */
 /* Arguments syntax:
-   ./merger dest.bmp dest.rtdata source1 source2 ... sourcen */
+   ./merge dest.bmp dest.rtdata source1 source2 ... sourcen */
 int main(int argc, char* argv[]) {
 
     if (argc <= 3) {

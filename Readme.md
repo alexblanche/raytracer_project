@@ -6,7 +6,7 @@ The goal of this project is to code a path-tracer that handles all sorts of obje
 
 ### State of the project
 
-The project currently handles polygon meshes (composed of triangles and quads for now) and multiple shapes (triangles, quads, spheres, planes, boxes and cylinders), made up of materials of various reflectivity (from diffuse to glossy, to mirror), specular probability (to simulate realistic reflections on non-metallic materials) and refractive index (for water, glass). Triangles and quads can be textured with textures read from bmp files, and objects can be imported from .obj files. The rendering of polygon meshes is accelerated with the [Bounding Volume Hierarchy](https://en.wikipedia.org/wiki/Bounding_volume_hierarchy) method. Scenes are defined in a file ```scene.txt``` at the root (see the syntax in ```Syntax.md```). The rendered images can be exported as raw data (that can then be combined into a bmp) or as a bmp file.
+The project currently handles polygon meshes (composed of triangles and quads for now) and multiple shapes (triangles, quads, spheres, planes, boxes and cylinders), made up of materials of various reflectivity (from diffuse to glossy, to mirror), specular probability (to simulate realistic reflections on non-metallic materials) and refractive index (for water, glass). Triangles and quads can be textured with textures read from bmp files, and objects can be imported from Wavefront .obj files. The rendering of polygon meshes is accelerated with the [Bounding Volume Hierarchy](https://en.wikipedia.org/wiki/Bounding_volume_hierarchy) method. Scenes are defined in a file ```scene.txt``` at the root (see the syntax in ```User-guide.md```). The rendered images can be exported as raw data (that can then be combined into a bmp) or as a bmp file. Raw data files can be merged into a bmp file, or can be postprocessed to add a glowing effect around bright lights (see ```User-guide.md```).
 
 Current state:
 
@@ -14,7 +14,7 @@ Current state:
 Model found at [free3d.com](https://free3d.com/fr/3d-model/wood-stool-303532.html), made up of 5600 polygons. Rendered in 1920x1080 in 2 minutes 11 seconds on my 2016 laptop (100 samples per pixel, maximum 10 bounces, i7-6700HQ CPU @ 2.60GHz).  
 
 Next steps:  
-Depth of field, light halo (added as post-process). Future plans involve the introduction of some bidirectionality to the path-tracing (to accelerate the rendering of dark scenes) and a conversion to GPU rendering.
+Future plans involve the introduction of some bidirectionality to the path-tracing (to accelerate the rendering of dark scenes) and a conversion to GPU rendering.
 
 
 ## How to run the code
@@ -42,7 +42,7 @@ $ make
 $ .\main 5
 ``````
 
-See command-line arguments and scene descriptor syntax in ``Syntax.md``.  
+See command-line arguments and scene descriptor syntax in ``User-guide.md``.  
 
 ## Sources
 
