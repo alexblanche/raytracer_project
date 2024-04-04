@@ -15,15 +15,24 @@
 struct pixel {
     rt::color col;
     double alpha;
+    double total_alpha;
 
-    pixel() : col(rt::color(0,0,0)), alpha(0) {}
+    pixel() : col(rt::color::BLACK), alpha(0), total_alpha(0) {}
 
     pixel(const rt::color& col, const double& alpha)
-        : col(col), alpha(alpha) {}
+        : col(col), alpha(alpha), total_alpha(alpha) {}
 
     void add(const rt::color& ncol, const double& nalpha) {
-        col = (col * alpha + ncol * nalpha) / (alpha + nalpha);
-        alpha = std::max(alpha, nalpha);
+        if (col == rt::color::BLACK) {
+            col = ncol;
+            alpha = nalpha;
+            total_alpha = nalpha;
+        }
+        else {
+            col = ((col * total_alpha) + (ncol * nalpha)) / (total_alpha + nalpha);
+            alpha = std::max(alpha, nalpha);
+            total_alpha = total_alpha + nalpha;
+        }
     }
 
     rt::color superimpose(const rt::color& orig_col, const unsigned int number_of_rays) {
@@ -60,7 +69,7 @@ std::vector<std::vector<rt::color>> extract_bright_pixels(const std::vector<std:
         for (unsigned int j = 0; j < height; j++) {
             const rt::color col = image.at(i).at(j);
             const double max = std::max(col.get_red(), std::max(col.get_green(), col.get_blue()));
-            if (max > 255 * number_of_rays * 3) {
+            if (max > 255 * number_of_rays * 4) {
                 bright_pixels.at(i).at(j) = col;
             }
         }
@@ -70,25 +79,26 @@ std::vector<std::vector<rt::color>> extract_bright_pixels(const std::vector<std:
 }
 
 /* Applies blurred normalized_color to output_image at center pixel (a,b), with given intensity */
-void blur_pixel(std::vector<std::vector<pixel>>& output_image,
+void blur_pixel(std::vector<std::vector<pixel>>& glow_image,
     const std::vector<std::vector<rt::color>>& bright_pixels,
     const int a, const int b,
     const rt::color& normalized_color, const double& intensity) {
 
-    const int width = output_image.size();
-    const int height = output_image.at(0).size();
+    const int width = glow_image.size();
+    const int height = glow_image.at(0).size();
 
     const double std_dev_sq = intensity * intensity;
 
-    //const double scal = 1 / (TWOPI * std_dev_sq);
     const double div = - 1 / (2 * std_dev_sq);
-    const double radius = sqrt(-2 * std_dev_sq * log(0.01/* * TWOPI * std_dev_sq*/));
-
-    for(int i = std::max((int) -radius, -a); i < std::min((int) radius,  width - a); i++) {
+    const double radius = sqrt(4 * std_dev_sq * log(10)); // 2 * std_dev_sq * log(0.01)
+    
+    for(int i = std::max((int) -radius, -a); i < std::min((int) radius, width - a); i++) {
         for(int j = std::max((int) -radius, -b); j < std::min((int) radius, height - b); j++) {
-            if (bright_pixels.at(i+a).at(j+b) == rt::color::BLACK) {
+
+            if (bright_pixels.at(i + a).at(j + b) == rt::color::BLACK) {
+
                 const double gaussian = exp(div * (i * i + j * j));
-                output_image.at(i+a).at(j+b).add(normalized_color, gaussian);
+                glow_image.at(i + a).at(j + b).add(normalized_color, gaussian);
             }
         }
     }
