@@ -17,6 +17,8 @@
 
 #define DISPLAY_HIERARCHY false
 
+#include "scene/objects/sphere.hpp"
+
 
 /* Wavefront .obj file parser */
 /* Only handles .obj files made up of triangles and quads, for now.
@@ -249,7 +251,7 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
 
          if (ret == 9) {
             // Temporary
-            // continue;
+            continue;
 
             /* Triangle */
             const texture_info info =
@@ -291,7 +293,7 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
          else if (ret == 12) {
 
             // Temporary
-            // continue;
+            continue;
 
             /* Quad */
 
@@ -454,6 +456,11 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                vt_stack.push(vti);
                vn_stack.push(vni);
 
+               /************************/
+               const sphere* sph = new sphere(vertex_set.at(vi), 0.006, 5);
+               obj_set.push_back(sph);
+               /***********************/
+
                final_v = final_v + vertex_set.at(vi);
                final_vt = final_vt + uv_coord_set.at(vti);
                final_vn = final_vn + normal_set.at(vni);
@@ -463,16 +470,24 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             }
             ungetc(c, file);
 
+            printf("%u\n", cpt);
+
             // New central vertex
             final_v = final_v / cpt;
             final_vt = final_vt / cpt;
             final_vn = final_vn / cpt;
+
+            /**************************************************/
+            const sphere* sphf = new sphere(final_v, 0.006, 6);
+            obj_set.push_back(sphf);
+            /**************************************************/
 
             // Keeping the last vertex in memory to form a triangle with the first vertex
             const unsigned int last_v = v_stack.top();
             const unsigned int last_vt = vt_stack.top();
             const unsigned int last_vn = vn_stack.top();
 
+            
             // Adding the new triangles having the new central vertex as a common vertex
             for (unsigned int i = 0; i < cpt - 1; i++) {
                const unsigned int vi = v_stack.top();
@@ -520,8 +535,10 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                if (bounding_enabled) {
                   content.push_back(tr);
                }
+               
             }
-
+            
+            
             // Adding the last triangle
             const texture_info info =
                apply_texture ?
@@ -541,14 +558,16 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                   shift + scale * vertex_set.at(v1),
                   shift + scale * final_v,
                   normal_set.at(last_vn), normal_set.at(vn1), final_vn,
-                  current_material_index, info)
+                  4//current_material_index
+                  , info)
                :
                new triangle(
                   shift + scale * vertex_set.at(last_v),
                   shift + scale * vertex_set.at(v1),
                   shift + scale * final_v,
                   normal_set.at(last_vn), normal_set.at(vn1), final_vn,
-                  current_material_index);
+                  4//current_material_index
+                  );
 
             obj_set.push_back(tr);
 
