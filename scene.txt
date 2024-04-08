@@ -3,7 +3,12 @@ camera position:(-3.33, 0.8, -2) direction:(0.76, -0.14, 1) rightdir:(-1, 0, 0.7
 background_color 190 235 255
 polygons_per_bounding 0
 
-# camera position:(-3, 0.8, -2) direction:(0.72, -0.13, 1) rightdir:(-1, 0, 0.72) fov_width:0.3 distance:1
+# Zoom wheel
+# camera position:(-3.33, 0.8, -2) direction:(0.76, -0.14, 1) rightdir:(-1, 0, 0.72) fov_width:0.22 distance:1
+
+# Zoomed out
+# camera position:(4, 1.1, 6) direction:(-0.72, -0.13, -1) rightdir:(1, 0, -0.72) fov_width:0.6 distance:1
+
 
 # Lamp
 material red_light (color:(255, 255, 255) emitted_color:(255, 10, 10) reflectivity:0 emission:2 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
@@ -24,4 +29,33 @@ load_obj ../../../raytracer_project/3d_models/porsche_2016/porsche_obj.obj (text
 # The faulty blocks around the rim are poly>=5
 # The missing triangles are not
 
-plane normal:(1,0,0) position:(-0.8,0,0) material:light_green_light
+# plane normal:(1,0,0) position:(-0.8,0,0) material:light_green_light
+
+# v1=(-0.885335, 0.367814, 1.511993)
+# v2=(-0.885335, 0.423273, 1.500205)
+# v3=(-0.885335, 0.418542, 1.485644)
+# v4=(-0.885335, 0.392378, 1.491206)
+# v5=(-0.885335, 0.376135, 1.494658)
+# v6=(-0.885335, 0.366214, 1.496767)
+# final_v=(-0.885335, 0.390726, 1.496746)
+# 1 2 final, 2 3 final, etc.
+# triangle (-0.885335, 0.367814, 1.511993) (-0.885335, 0.423273, 1.500205) (-0.885335, 0.390726, 1.496746) material:white_light
+# triangle (-0.885335, 0.423273, 1.500205) (-0.885335, 0.418542, 1.485644) (-0.885335, 0.390726, 1.496746) material:blue_light
+# triangle (-0.885335, 0.418542, 1.485644) (-0.885335, 0.392378, 1.491206) (-0.885335, 0.390726, 1.496746) material:red_light
+# triangle (-0.885335, 0.392378, 1.491206) (-0.885335, 0.376135, 1.494658) (-0.885335, 0.390726, 1.496746) material:white_light
+# triangle (-0.885335, 0.376135, 1.494658) (-0.885335, 0.366214, 1.496767) (-0.885335, 0.390726, 1.496746) material:blue_light
+# triangle (-0.885335, 0.366214, 1.496767) (-0.885335, 0.367814, 1.511993) (-0.885335, 0.390726, 1.496746) material:red_light
+
+# triangle (-0.885335, 0.376135, 1.494658) (-0.885335, 0.366214, 1.496767) (-0.885335, 0.390726, 1.496746) material:white_light
+# triangle (-0.885335, 0.392378, 1.491206) (-0.885335, 0.376135, 1.494658) (-0.885335, 0.390726, 1.496746) material:blue_light
+# triangle (-0.885335, 0.418542, 1.485644) (-0.885335, 0.392378, 1.491206) (-0.885335, 0.390726, 1.496746) material:red_light
+# triangle (-0.885335, 0.423273, 1.500205) (-0.885335, 0.418542, 1.485644) (-0.885335, 0.390726, 1.496746) material:white_light
+# triangle (-0.885335, 0.367814, 1.511993) (-0.885335, 0.423273, 1.500205) (-0.885335, 0.390726, 1.496746) material:blue_light
+# triangle (-0.885335, 0.366214, 1.496767) (-0.885335, 0.367814, 1.511993) (-0.885335, 0.390726, 1.496746) material:red_light
+
+# triangle (-0.885335, 0.376135, 1.494658) (-0.885335, 0.366214, 1.496767) (-0.885335, 0.390726, 1.496746) material:white_light
+# triangle (-0.885335, 0.392378, 1.491206) (-0.885335, 0.376135, 1.494658) (-0.885335, 0.390726, 1.496746) material:blue_light
+# triangle (-0.885335, 0.418542, 1.485644) (-0.885335, 0.392378, 1.491206) (-0.885335, 0.390726, 1.496746) material:red_light
+# triangle (-0.885335, 0.423273, 1.500205) (-0.885335, 0.418542, 1.485644) (-0.885335, 0.390726, 1.496746) material:white_light
+# triangle (-0.885335, 0.367814, 1.511993) (-0.885335, 0.423273, 1.500205) (-0.885335, 0.390726, 1.496746) material:blue_light
+triangle (-0.885335, 0.366214, 1.496767) (-0.885335, 0.367814, 1.511993) (-0.885335, 0.390726, 1.496746) material:red_light
