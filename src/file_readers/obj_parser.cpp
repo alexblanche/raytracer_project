@@ -250,8 +250,6 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             &v1, &vt1, &vn1, &v2, &vt2, &vn2, &v3, &vt3, &vn3, &v4, &vt4, &vn4, &v5, &vt5, &vn5);
 
          if (ret == 9) {
-            // Temporary
-            continue;
 
             /* Triangle */
             const texture_info info =
@@ -291,10 +289,6 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             }
          }
          else if (ret == 12) {
-
-            // Temporary
-            continue;
-
             /* Quad */
 
             /* Sometimes quads are made up of 4 non-coplanar vertices
@@ -431,7 +425,7 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             std::stack<unsigned int> v_stack;
             std::stack<unsigned int> vt_stack;
             std::stack<unsigned int> vn_stack;
-            v_stack.push(v1); v_stack.push(v2); v_stack.push(v3); v_stack.push(v4); v_stack.push(v5);
+            v_stack.push(v1);   v_stack.push(v2);   v_stack.push(v3);   v_stack.push(v4);   v_stack.push(v5);
             vt_stack.push(vt1); vt_stack.push(vt2); vt_stack.push(vt3); vt_stack.push(vt4); vt_stack.push(vt5);
             vn_stack.push(vn1); vn_stack.push(vn2); vn_stack.push(vn3); vn_stack.push(vn4); vn_stack.push(vn5);
 
@@ -475,10 +469,10 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             const unsigned int last_vt = vt_stack.top();
             const unsigned int last_vn = vn_stack.top();
 
-            if (cpt == 6 && v1 == 23560) {//(cpt == 6 && vertex_set.at(v1).x < -0.8 && vertex_set.at(v1).x > -0.93 && vertex_set.at(v1).z > 1.3) {
+            // if (cpt == 6 && v1 == 23560) {//(cpt == 6 && vertex_set.at(v1).x < -0.8 && vertex_set.at(v1).x > -0.93 && vertex_set.at(v1).z > 1.3) {
             
             // Adding the new triangles having the new central vertex as a common vertex
-            for (unsigned int i = 0; i < 0*(cpt - 1); i++) {
+            for (unsigned int i = 0; i < cpt - 1; i++) {
                const unsigned int vi = v_stack.top();
                const unsigned int vti = vt_stack.top();
                const unsigned int vni = vn_stack.top();
@@ -516,11 +510,13 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                      normal_set.at(vnj), normal_set.at(vni), final_vn,
                      current_material_index);
 
-               const rt::vector vecj = shift + scale * vertex_set.at(vj);
-               const rt::vector veci = shift + scale * vertex_set.at(vi);
-               const rt::vector vecf = shift + scale * final_v;
-               printf("triangle (%lf, %lf, %lf) (%lf, %lf, %lf) (%lf, %lf, %lf)\n",
-                  vecj.x, vecj.y, vecj.z, veci.x, veci.y, veci.z, vecf.x, vecf.y, vecf.z);
+               /****/
+               // const rt::vector vecj = shift + scale * vertex_set.at(vj);
+               // const rt::vector veci = shift + scale * vertex_set.at(vi);
+               // const rt::vector vecf = shift + scale * final_v;
+               // printf("triangle (%lf, %lf, %lf) (%lf, %lf, %lf) (%lf, %lf, %lf)\n",
+               //    vecj.x, vecj.y, vecj.z, veci.x, veci.y, veci.z, vecf.x, vecf.y, vecf.z);
+               /****/
 
                obj_set.push_back(tr);
 
@@ -544,7 +540,7 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                :
                texture_info();
 
-            printf("Apply texture = %d\n", apply_texture);
+            // printf("Apply texture = %d\n", apply_texture);
 
             const triangle* tr =
                apply_texture ?
@@ -554,7 +550,7 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                   shift + scale * vertex_set.at(v1),
                   shift + scale * final_v,
                   normal_set.at(last_vn), normal_set.at(vn1), final_vn,
-                  4//current_material_index
+                  current_material_index
                   , info)
                :
                new triangle(
@@ -562,14 +558,16 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                   shift + scale * vertex_set.at(v1),
                   shift + scale * final_v,
                   normal_set.at(last_vn), normal_set.at(vn1), final_vn,
-                  4//current_material_index
+                  current_material_index
                   );
 
-            const rt::vector vecj = shift + scale * vertex_set.at(last_v);
-            const rt::vector veci = shift + scale * vertex_set.at(v1);
-            const rt::vector vecf = shift + scale * final_v;
-            printf("triangle (%lf, %lf, %lf) (%lf, %lf, %lf) (%lf, %lf, %lf)\n",
-               vecj.x, vecj.y, vecj.z, veci.x, veci.y, veci.z, vecf.x, vecf.y, vecf.z);
+            /****/
+            // const rt::vector vecj = shift + scale * vertex_set.at(last_v);
+            // const rt::vector veci = shift + scale * vertex_set.at(v1);
+            // const rt::vector vecf = shift + scale * final_v;
+            // printf("triangle (%lf, %lf, %lf) (%lf, %lf, %lf) (%lf, %lf, %lf)\n",
+            //    vecj.x, vecj.y, vecj.z, veci.x, veci.y, veci.z, vecf.x, vecf.y, vecf.z);
+            /****/
 
             obj_set.push_back(tr);
 
@@ -580,7 +578,7 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                content.push_back(tr);
             }
 
-            }
+            // }
          }
       }
    }

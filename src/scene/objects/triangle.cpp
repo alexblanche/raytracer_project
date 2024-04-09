@@ -27,6 +27,14 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     vn1 = normal;
     vn2 = normal;
     d = - (normal | p0);
+
+    // printf("TRIANGLE (from 3 points):\n");
+    // printf("p0 = (%lf, %lf, %lf), v1 = (%lf, %lf, %lf), v2 = (%lf, %lf, %lf)\n",
+    //     p0.x, p0.y, p0.z, v1.x, v1.y, v1.z, v2.x, v2.y, v2.z);
+    // printf("vn0 = (%lf, %lf, %lf), vn1 = (%lf, %lf, %lf), vn2 = (%lf, %lf, %lf)\n",
+    //     vn0.x, vn0.y, vn0.z, vn1.x, vn1.y, vn1.z, vn2.x, vn2.y, vn2.z);
+    // printf("normal = (%lf, %lf, %lf)\n", normal.x, normal.y, normal.z);
+    // printf("d = %lf\n", d);
 }
 
 // Constructor from three points with vertex normals
@@ -67,9 +75,19 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     
     v1 = p1 - p0;
     v2 = p2 - p0;
-    const rt::vector n = (v1 ^ v2);
-    normal = n.unit();
+    // const rt::vector n = (v1 ^ v2);
+    // normal = n.unit();
+    normal = (vn0 + vn1 + vn2).unit();
     d = - (normal | p0);
+
+
+    // printf("TRIANGLE (textured, from 3 points + vertex normals):\n");
+    // printf("p0 = (%lf, %lf, %lf), v1 = (%lf, %lf, %lf), v2 = (%lf, %lf, %lf)\n",
+    //     p0.x, p0.y, p0.z, v1.x, v1.y, v1.z, v2.x, v2.y, v2.z);
+    // printf("vn0 = (%lf, %lf, %lf), vn1 = (%lf, %lf, %lf), vn2 = (%lf, %lf, %lf)\n",
+    //     vn0.x, vn0.y, vn0.z, vn1.x, vn1.y, vn1.z, vn2.x, vn2.y, vn2.z);
+    // printf("normal = (%lf, %lf, %lf)\n", normal.x, normal.y, normal.z);
+    // printf("d = %lf\n", d);
 }
 
 
@@ -83,6 +101,9 @@ double triangle::measure_distance(const ray& r) const {
     // Intersection between the ray and the triangle plane
     const double pdt = (normal | dir); // ax + by + cz
     const double upln = (normal | u) + d; // aX + bY + cZ + d
+
+    // printf("u = (%lf, %lf, %lf), dir = (%lf, %lf, %lf), pdt = %lf, upln = %lf\n",
+    //     u.x, u.y, u.z, dir.x, dir.y, dir.z, pdt, upln);
     
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
     if (pdt * upln >= 0) {
@@ -107,7 +128,9 @@ double triangle::measure_distance(const ray& r) const {
     const rt::vector c = u + (t * dir) - position;
     const double detxy = v1.x * v2.y - v1.y * v2.x;
 
-    if (detxy != 0) {
+    // printf("c = (%lf, %lf, %lf), detxy = %lf, abs(detxy) = %lf, cond = %d\n", c.x, c.y, c.z, detxy, abs(detxy), abs(detxy) > 0.00000001);
+
+    if (abs(detxy) > 0.00000001) {
         const double l1 = (c.x * v2.y - c.y * v2.x) / detxy;
         if (l1 >= 0 && l1 <= 1) {
             const double l2 = (v1.x * c.y - v1.y * c.x) / detxy;
@@ -122,7 +145,7 @@ double triangle::measure_distance(const ray& r) const {
         // The vectors v1, v2 are colinear when projected on the plane z = 0
         // Another attempt with rows x, z
         const double detxz = v1.x * v2.z - v1.z * v2.x;
-        if (detxz != 0) {
+        if (abs(detxz) > 0.00000001) {
             const double l1xz = (c.x * v2.z - c.z * v2.x) / detxz;
             if (l1xz >= 0 && l1xz <= 1) {
                 const double l2xz = (v1.x * c.z - v1.z * c.x) / detxz;
@@ -138,7 +161,7 @@ double triangle::measure_distance(const ray& r) const {
             // (e.g. the triangle lies in the plane x = constant)
             // Last attempt with rows y, z
             const double detyz = v1.y * v2.z - v1.z * v2.y;
-            if (detyz != 0) {
+            if (abs(detyz) > 0.00000001) {
                 const double l1yz = (c.y * v2.z - c.z * v2.y) / detyz;
                 if (l1yz >= 0 && l1yz <= 1) {
                     const double l2yz = (v1.y * c.z - v1.z * c.y) / detyz;
@@ -164,13 +187,13 @@ bool triangle::get_barycentric(const rt::vector& p, double& l1, double& l2) cons
 
     const rt::vector c = p - position;
     const double detxy = v1.x * v2.y - v1.y * v2.x;
-    if (detxy != 0) {
+    if (abs(detxy) > 0.00000001) {
         l1 = (c.x * v2.y - c.y * v2.x) / detxy;
         l2 = (v1.x * c.y - v1.y * c.x) / detxy;
     }
     else {
         const double detxz = v1.x * v2.z - v1.z * v2.x;
-        if (detxz != 0) {
+        if (abs(detxz) > 0.00000001) {
             l1 = (c.x * v2.z - c.z * v2.x) / detxz;
             l2 = (v1.x * c.z - v1.z * c.x) / detxz;
         }
