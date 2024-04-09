@@ -17,8 +17,6 @@
 
 #define DISPLAY_HIERARCHY false
 
-#include "scene/objects/sphere.hpp"
-
 
 /* Wavefront .obj file parser */
 /* Only handles .obj files made up of triangles and quads, for now.
@@ -297,8 +295,9 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
 
             const rt::vector n12 = ((vertex_set.at(v2) - vertex_set.at(v1)) ^ (vertex_set.at(v3) - vertex_set.at(v1))).unit();
             const rt::vector n23 = ((vertex_set.at(v3) - vertex_set.at(v1)) ^ (vertex_set.at(v4) - vertex_set.at(v1))).unit();
-            /* The value 0.001 (squared) is chosen empirically: it seems to remove all visible glitches by splitting a small number of quads */
-            if ((n12 - n23).normsq() > 0.000001) {
+            /* The value 1.0E-7 is chosen empirically: it seems to remove all visible glitches by splitting a small number of quads */
+            /* History: for the stool, 1.0E-6 is sufficient, but leaves visible glitches on the "Porsche 2016" test model. 1.0E-7 removes them. */
+            if ((n12 - n23).normsq() > 1.0E-7) {
                /* Non-coplanar vertices: splitting the quad into two triangles */
 
                const texture_info info12 =
@@ -410,19 +409,7 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                }
             }
          }
-         else {
-
-            // Temporary workaround (skip the polygons of more than 4 sides)
-            // char ca;
-            // do {
-            //    ca = fgetc(file);
-            // }
-            // while (ca != '\n' && ca != EOF);
-            // ungetc(ca, file);
-
-            // continue;
-
-            
+         else {            
             // Polygons with more than 4 sides
             std::stack<unsigned int> v_stack;
             std::stack<unsigned int> vt_stack;

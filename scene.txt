@@ -1,5 +1,5 @@
-resolution width:1440 height:1080
-camera position:(4, 1.1, 6) direction:(-0.72, -0.13, -1) rightdir:(1, 0, -0.72) fov_width:0.6 distance:1
+resolution width:3840 height:2880
+camera position:(-3.33, 0.8, -2) direction:(0.76, -0.14, 1) rightdir:(-1, 0, 0.72) fov_width:0.22 distance:1
 background_color 190 235 255
 polygons_per_bounding 3
 
@@ -9,11 +9,14 @@ polygons_per_bounding 3
 # Zoomed out
 # camera position:(4, 1.1, 6) direction:(-0.72, -0.13, -1) rightdir:(1, 0, -0.72) fov_width:0.6 distance:1
 
+# View of roof
+# camera position:(2.5, 4, 3) direction:(-0.72, -0.9, -1) rightdir:(1, 0, -0.72) fov_width:0.3 distance:1
+
 # Lamp
 material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:2 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-# material red_light (color:(255, 255, 255) emitted_color:(255, 10, 10) reflectivity:0 emission:2 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# material blue_light (color:(255, 255, 255) emitted_color:(10, 10, 255) reflectivity:0 emission:2 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+material red_light (color:(255, 255, 255) emitted_color:(255, 10, 10) reflectivity:0 emission:2 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+material blue_light (color:(255, 255, 255) emitted_color:(10, 10, 255) reflectivity:0 emission:2 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 # material green_light (color:(255, 255, 255) emitted_color:(10, 255, 10) reflectivity:0 emission:1 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 # material light_green_light (color:(255, 255, 255) emitted_color:(100, 255, 100) reflectivity:0 emission:1 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 

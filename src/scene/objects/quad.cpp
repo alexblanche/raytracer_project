@@ -273,6 +273,12 @@ rt::vector quad::get_interpolated_normal(const double& l1, const double& l2, con
 
 hit quad::compute_intersection(ray& r, const double& t) const {
 
+    // const rt::vector p1 = position + v1;
+    // const rt::vector p2 = position + v2;
+    // const rt::vector p3 = position + v3;
+    // printf("\n\np0 = (%lf, %lf, %lf), p1 = (%lf, %lf, %lf), p2 = (%lf, %lf, %lf), p3 = (%lf, %lf, %lf)\n\n",
+    //     position.x, position.y, position.z, p1.x, p1.y, p1.z, p2.x, p2.y, p2.z, p3.x, p3.y, p3.z);
+
     const rt::vector p = r.get_origin() + t * r.get_direction();
 
     // Computation of the interpolated normal vector
