@@ -289,6 +289,7 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             }
          }
          else if (ret == 12) {
+
             /* Quad */
 
             /* Sometimes quads are made up of 4 non-coplanar vertices
@@ -410,6 +411,7 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             }
          }
          else {
+
             // Temporary workaround (skip the polygons of more than 4 sides)
             // char ca;
             // do {
@@ -469,8 +471,6 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             const unsigned int last_vt = vt_stack.top();
             const unsigned int last_vn = vn_stack.top();
 
-            // if (cpt == 6 && v1 == 23560) {//(cpt == 6 && vertex_set.at(v1).x < -0.8 && vertex_set.at(v1).x > -0.93 && vertex_set.at(v1).z > 1.3) {
-            
             // Adding the new triangles having the new central vertex as a common vertex
             for (unsigned int i = 0; i < cpt - 1; i++) {
                const unsigned int vi = v_stack.top();
@@ -510,14 +510,6 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                      normal_set.at(vnj), normal_set.at(vni), final_vn,
                      current_material_index);
 
-               /****/
-               // const rt::vector vecj = shift + scale * vertex_set.at(vj);
-               // const rt::vector veci = shift + scale * vertex_set.at(vi);
-               // const rt::vector vecf = shift + scale * final_v;
-               // printf("triangle (%lf, %lf, %lf) (%lf, %lf, %lf) (%lf, %lf, %lf)\n",
-               //    vecj.x, vecj.y, vecj.z, veci.x, veci.y, veci.z, vecf.x, vecf.y, vecf.z);
-               /****/
-
                obj_set.push_back(tr);
 
                number_of_polygons ++;
@@ -540,8 +532,6 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                :
                texture_info();
 
-            // printf("Apply texture = %d\n", apply_texture);
-
             const triangle* tr =
                apply_texture ?
                
@@ -561,14 +551,6 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                   current_material_index
                   );
 
-            /****/
-            // const rt::vector vecj = shift + scale * vertex_set.at(last_v);
-            // const rt::vector veci = shift + scale * vertex_set.at(v1);
-            // const rt::vector vecf = shift + scale * final_v;
-            // printf("triangle (%lf, %lf, %lf) (%lf, %lf, %lf) (%lf, %lf, %lf)\n",
-            //    vecj.x, vecj.y, vecj.z, veci.x, veci.y, veci.z, vecf.x, vecf.y, vecf.z);
-            /****/
-
             obj_set.push_back(tr);
 
             number_of_polygons ++;
@@ -577,8 +559,6 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             if (bounding_enabled) {
                content.push_back(tr);
             }
-
-            // }
          }
       }
    }

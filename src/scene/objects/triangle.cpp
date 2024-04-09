@@ -75,19 +75,9 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     
     v1 = p1 - p0;
     v2 = p2 - p0;
-    // const rt::vector n = (v1 ^ v2);
-    // normal = n.unit();
-    normal = (vn0 + vn1 + vn2).unit();
+    const rt::vector n = (v1 ^ v2);
+    normal = n.unit();
     d = - (normal | p0);
-
-
-    // printf("TRIANGLE (textured, from 3 points + vertex normals):\n");
-    // printf("p0 = (%lf, %lf, %lf), v1 = (%lf, %lf, %lf), v2 = (%lf, %lf, %lf)\n",
-    //     p0.x, p0.y, p0.z, v1.x, v1.y, v1.z, v2.x, v2.y, v2.z);
-    // printf("vn0 = (%lf, %lf, %lf), vn1 = (%lf, %lf, %lf), vn2 = (%lf, %lf, %lf)\n",
-    //     vn0.x, vn0.y, vn0.z, vn1.x, vn1.y, vn1.z, vn2.x, vn2.y, vn2.z);
-    // printf("normal = (%lf, %lf, %lf)\n", normal.x, normal.y, normal.z);
-    // printf("d = %lf\n", d);
 }
 
 
