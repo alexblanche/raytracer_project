@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
     printf("Done.\n");
 
     if (success) {
-        printf("Files %s and %s created\n", argv[1]);
+        printf("Files %s and %s created\n", argv[1], argv[2]);
     }
     else {
         printf("Error, merger failed\n");

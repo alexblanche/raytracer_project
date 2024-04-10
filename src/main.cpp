@@ -35,7 +35,7 @@ using namespace std;
 #define PARALLEL_FOR_END()})
 
 #define MAX_RAYS 1000
-#define ANTI_ALIASING 0.15
+#define ANTI_ALIASING 0.3
 
 
 /* ********** Render loop ********** */

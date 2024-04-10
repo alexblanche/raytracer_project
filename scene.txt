@@ -1,63 +1,50 @@
-resolution width:3840 height:2880
-camera position:(-3.33, 0.8, -2) direction:(0.76, -0.14, 1) rightdir:(-1, 0, 0.72) fov_width:0.22 distance:1
-background_color 190 235 255
-polygons_per_bounding 3
+resolution width:1920 height:1080
+camera position:(4, 1.1, 6) direction:(-0.72, -0.13, -1) rightdir:(1, 0, -0.72) fov_width:0.6 distance:1
+background_color 0 0 0
+polygons_per_bounding 1
 
-# Zoom wheel
-# camera position:(-3.33, 0.8, -2) direction:(0.76, -0.14, 1) rightdir:(-1, 0, 0.72) fov_width:0.22 distance:1
+# Front
+# camera position:(0, 1.1, 16) direction:(0, 0, -1) rightdir:(1, 0, 0) fov_width:0.6 distance:1
 
-# Zoomed out
+# Right
+# camera position:(16, 1.1, 0) direction:(-1, 0, 0) rightdir:(0, 0, -1) fov_width:0.6 distance:1
+
+# Side (back)
+# camera position:(-4, 1.1, -6) direction:(0.72, -0.13, 1) rightdir:(-1, 0, 0.72) fov_width:0.6 distance:1
+
+# Side (front)
 # camera position:(4, 1.1, 6) direction:(-0.72, -0.13, -1) rightdir:(1, 0, -0.72) fov_width:0.6 distance:1
 
-# View of roof
-# camera position:(2.5, 4, 3) direction:(-0.72, -0.9, -1) rightdir:(1, 0, -0.72) fov_width:0.3 distance:1
-
-# Lamp
-material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:2 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-
-material red_light (color:(255, 255, 255) emitted_color:(255, 10, 10) reflectivity:0 emission:2 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-material blue_light (color:(255, 255, 255) emitted_color:(10, 10, 255) reflectivity:0 emission:2 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# material green_light (color:(255, 255, 255) emitted_color:(10, 255, 10) reflectivity:0 emission:1 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# material light_green_light (color:(255, 255, 255) emitted_color:(100, 255, 100) reflectivity:0 emission:1 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-
-quad (-4, 10, 10) (-4, 10, 0) (4, 10, 0) (4, 10, 10) material:white_light
+# Sky color
+# background_color 190 235 255
 
 # Ground
-plane normal:(0,1,0) position:(0, 0, 0) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.98 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+plane normal:(0,1,0) position:(0, 0, 0) material:(color:(100, 100, 100) emitted_color:(0, 0, 0) reflectivity:0.98 emission:0 specular_p:0.4 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+
+# Ceiling
+plane normal:(0,-1,0) position:(0, 10, 0) material:(color:(160, 160, 160) emitted_color:(160, 160, 160) reflectivity:0.2 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+
 
 # Model
 load_obj ../../../raytracer_project/3d_models/porsche_2016/porsche_obj.obj (texture:none shift:(0,0,0) scale:1)
 
-# The faulty blocks around the rim are poly>=5
-# The missing triangles are not
+# Lamp
+# material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+# quad (-4, 0.01, 10) (-4, 0.01, 0) (4, 0.01, 0) (4, 0.01, 10) material:white_light
 
-# plane normal:(1,0,0) position:(-0.8,0,0) material:light_green_light
+material blue_light (color:(255, 255, 255) emitted_color:(40, 40, 255) reflectivity:0 emission:7 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+# material blue_light (color:(255, 255, 255) emitted_color:(40, 40, 255) reflectivity:0 emission:4 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-# v1=(-0.885335, 0.367814, 1.511993)
-# v2=(-0.885335, 0.423273, 1.500205)
-# v3=(-0.885335, 0.418542, 1.485644)
-# v4=(-0.885335, 0.392378, 1.491206)
-# v5=(-0.885335, 0.376135, 1.494658)
-# v6=(-0.885335, 0.366214, 1.496767)
-# final_v=(-0.885335, 0.390726, 1.496746)
-# 1 2 final, 2 3 final, etc.
-# triangle (-0.885335, 0.367814, 1.511993) (-0.885335, 0.423273, 1.500205) (-0.885335, 0.390726, 1.496746) material:white_light
-# triangle (-0.885335, 0.423273, 1.500205) (-0.885335, 0.418542, 1.485644) (-0.885335, 0.390726, 1.496746) material:blue_light
-# triangle (-0.885335, 0.418542, 1.485644) (-0.885335, 0.392378, 1.491206) (-0.885335, 0.390726, 1.496746) material:red_light
-# triangle (-0.885335, 0.392378, 1.491206) (-0.885335, 0.376135, 1.494658) (-0.885335, 0.390726, 1.496746) material:white_light
-# triangle (-0.885335, 0.376135, 1.494658) (-0.885335, 0.366214, 1.496767) (-0.885335, 0.390726, 1.496746) material:blue_light
-# triangle (-0.885335, 0.366214, 1.496767) (-0.885335, 0.367814, 1.511993) (-0.885335, 0.390726, 1.496746) material:red_light
+quad (-4, 3, -3) (-4, 2, -4) (-2, 2, -4) (-2, 3, -3) material:blue_light
+quad (-4, 3, 2) (-4, 2, 3) (-2, 2, 3) (-2, 3, 2) material:blue_light
+quad (-1, 3, -3) (-1, 2, -4) (1, 2, -4) (1, 3, -3) material:blue_light
+quad (-1, 3, 2) (-1, 2, 3) (1, 2, 3) (1, 3, 2) material:blue_light
+quad (2, 3, -3) (2, 2, -4) (4, 2, -4) (4, 3, -3) material:blue_light
+quad (2, 3, 2) (2, 2, 3) (4, 2, 3) (4, 3, 2) material:blue_light
 
-# triangle (-0.885335, 0.376135, 1.494658) (-0.885335, 0.366214, 1.496767) (-0.885335, 0.390726, 1.496746) material:white_light
-# triangle (-0.885335, 0.392378, 1.491206) (-0.885335, 0.376135, 1.494658) (-0.885335, 0.390726, 1.496746) material:blue_light
-# triangle (-0.885335, 0.418542, 1.485644) (-0.885335, 0.392378, 1.491206) (-0.885335, 0.390726, 1.496746) material:red_light
-# triangle (-0.885335, 0.423273, 1.500205) (-0.885335, 0.418542, 1.485644) (-0.885335, 0.390726, 1.496746) material:white_light
-# triangle (-0.885335, 0.367814, 1.511993) (-0.885335, 0.423273, 1.500205) (-0.885335, 0.390726, 1.496746) material:blue_light
-# triangle (-0.885335, 0.366214, 1.496767) (-0.885335, 0.367814, 1.511993) (-0.885335, 0.390726, 1.496746) material:red_light
+material orange_light (color:(255, 255, 255) emitted_color:(255, 80, 10) reflectivity:0 emission:26 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+# material orange_light (color:(255, 255, 255) emitted_color:(255, 80, 10) reflectivity:0 emission:4 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-# triangle (-0.885335, 0.376135, 1.494658) (-0.885335, 0.366214, 1.496767) (-0.885335, 0.390726, 1.496746) material:white_light
-# triangle (-0.885335, 0.392378, 1.491206) (-0.885335, 0.376135, 1.494658) (-0.885335, 0.390726, 1.496746) material:blue_light
-# triangle (-0.885335, 0.418542, 1.485644) (-0.885335, 0.392378, 1.491206) (-0.885335, 0.390726, 1.496746) material:red_light
-# triangle (-0.885335, 0.423273, 1.500205) (-0.885335, 0.418542, 1.485644) (-0.885335, 0.390726, 1.496746) material:white_light
-# triangle (-0.885335, 0.367814, 1.511993) (-0.885335, 0.423273, 1.500205) (-0.885335, 0.390726, 1.496746) material:blue_light
-# triangle (-0.885335, 0.366214, 1.496767) (-0.885335, 0.367814, 1.511993) (-0.885335, 0.390726, 1.496746) material:red_light
+quad (-1.5, 3.5, -2) (-1.5, 3.5, 2) (-1, 3.5, 2) (-1, 3.5, -2) material:orange_light
+
+quad (4, 1.2, 10) (4, 0.8, 10) (4, 0.8, -10) (4, 1.2, -10) material:orange_light

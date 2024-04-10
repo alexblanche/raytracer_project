@@ -255,8 +255,8 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                
                texture_info(current_texture_index,
                   {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-                  uv_coord_set.at(vt2).x, 1-uv_coord_set.at(vt2).y,
-                  uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y})
+                  uv_coord_set.at(vt2).x,  1-uv_coord_set.at(vt2).y,
+                  uv_coord_set.at(vt3).x,  1-uv_coord_set.at(vt3).y})
                :
                texture_info();
 
@@ -305,8 +305,8 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                   
                   texture_info(current_texture_index,
                      {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-                     uv_coord_set.at(vt2).x, 1-uv_coord_set.at(vt2).y,
-                     uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y})
+                     uv_coord_set.at(vt2).x,  1-uv_coord_set.at(vt2).y,
+                     uv_coord_set.at(vt3).x,  1-uv_coord_set.at(vt3).y})
                   :
                   texture_info();
 
@@ -334,13 +334,13 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
 
                   texture_info(current_texture_index,
                      {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-                     uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y,
-                     uv_coord_set.at(vt4).x, 1-uv_coord_set.at(vt4).y})
+                     uv_coord_set.at(vt3).x,  1-uv_coord_set.at(vt3).y,
+                     uv_coord_set.at(vt4).x,  1-uv_coord_set.at(vt4).y})
                   :
                   texture_info();
 
                const triangle* tr2 =
-                  apply_texture?
+                  apply_texture ?
                   
                   new triangle(
                      shift + scale * vertex_set.at(v1),
@@ -374,9 +374,9 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
 
                   texture_info(current_texture_index,
                      {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-                     uv_coord_set.at(vt2).x, 1-uv_coord_set.at(vt2).y,
-                     uv_coord_set.at(vt3).x, 1-uv_coord_set.at(vt3).y,
-                     uv_coord_set.at(vt4).x, 1-uv_coord_set.at(vt4).y})
+                     uv_coord_set.at(vt2).x,  1-uv_coord_set.at(vt2).y,
+                     uv_coord_set.at(vt3).x,  1-uv_coord_set.at(vt3).y,
+                     uv_coord_set.at(vt4).x,  1-uv_coord_set.at(vt4).y})
                   :
                   texture_info();
 
@@ -527,16 +527,14 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                   shift + scale * vertex_set.at(v1),
                   shift + scale * final_v,
                   normal_set.at(last_vn), normal_set.at(vn1), final_vn,
-                  current_material_index
-                  , info)
+                  current_material_index, info)
                :
                new triangle(
                   shift + scale * vertex_set.at(last_v),
                   shift + scale * vertex_set.at(v1),
                   shift + scale * final_v,
                   normal_set.at(last_vn), normal_set.at(vn1), final_vn,
-                  current_material_index
-                  );
+                  current_material_index);
 
             obj_set.push_back(tr);
 
