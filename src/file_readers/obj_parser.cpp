@@ -22,6 +22,482 @@
 /* Only handles .obj files made up of triangles and quads, for now.
    In the future, maybe split polygons with >= 5 sides into triangles */
 
+/* Auxiliary function that adds a trianlge to obj_set and to content if bounded_enabled is true */
+void add_triangle(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
+   const std::vector<rt::vector>& normal_set,
+   std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
+   unsigned int& number_of_polygons, unsigned int& number_of_triangles,
+   const rt::vector& shift, const double& scale,
+   const unsigned int& v1, const unsigned int& v2, const unsigned int& v3,
+   const unsigned int& vt1, const unsigned int& vt2, const unsigned int& vt3,
+   const unsigned int& vn1, const unsigned int& vn2, const unsigned int& vn3,
+   const unsigned int& current_texture_index, const unsigned int& current_material_index,
+   const bool apply_texture) {
+
+   const texture_info info =
+      apply_texture ?
+               
+      texture_info(current_texture_index,
+         {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
+         uv_coord_set.at(vt2).x,  1-uv_coord_set.at(vt2).y,
+         uv_coord_set.at(vt3).x,  1-uv_coord_set.at(vt3).y})
+      :
+      texture_info();
+
+   const triangle* tr =
+      apply_texture ?
+
+      new triangle(
+         shift + scale * vertex_set.at(v1),
+         shift + scale * vertex_set.at(v2),
+         shift + scale * vertex_set.at(v3),
+         normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
+         current_material_index, info)
+      :
+      new triangle(
+         shift + scale * vertex_set.at(v1),
+         shift + scale * vertex_set.at(v2),
+         shift + scale * vertex_set.at(v3),
+         normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
+         current_material_index);
+
+   obj_set.push_back(tr);
+
+   number_of_polygons ++;
+   number_of_triangles ++;
+
+   if (bounding_enabled) {
+      content.push_back(tr);
+   }
+}
+
+/* Auxiliary function that adds a trianlge in a subdivided polygon with more than 5 sides */
+void add_triangle_subdiv(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
+   const std::vector<rt::vector>& normal_set,
+   std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
+   unsigned int& number_of_polygons, unsigned int& number_of_triangles,
+   const rt::vector& shift, const double& scale,
+   const unsigned int& vj, const unsigned int& vi, const rt::vector& final_v,
+   const unsigned int& vtj, const unsigned int& vti, const rt::vector& final_vt,
+   const unsigned int& vnj, const unsigned int& vni, const rt::vector& final_vn,
+   const unsigned int& current_texture_index, const unsigned int& current_material_index,
+   const bool apply_texture) {
+
+   const texture_info info =
+      apply_texture ?
+
+      texture_info(current_texture_index,
+         {uv_coord_set.at(vtj).x, 1-uv_coord_set.at(vtj).y,
+         uv_coord_set.at(vti).x, 1-uv_coord_set.at(vti).y,
+         final_vt.x, 1-final_vt.y})
+      :
+      texture_info();
+
+   const triangle* tr =
+      apply_texture ?
+
+      new triangle(
+         shift + scale * vertex_set.at(vj),
+         shift + scale * vertex_set.at(vi),
+         shift + scale * final_v,
+         normal_set.at(vnj), normal_set.at(vni), final_vn,
+         current_material_index, info)
+      :
+      new triangle(
+         shift + scale * vertex_set.at(vj),
+         shift + scale * vertex_set.at(vi),
+         shift + scale * final_v,
+         normal_set.at(vnj), normal_set.at(vni), final_vn,
+         current_material_index);
+
+   obj_set.push_back(tr);
+
+   number_of_polygons ++;
+   number_of_triangles ++;
+
+   if (bounding_enabled) {
+      content.push_back(tr);
+   }
+}
+
+/* Auxiliary function that adds a quad to obj_set and to content if bounded_enabled is true */
+void add_quad(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
+   const std::vector<rt::vector>& normal_set,
+   std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
+   unsigned int& number_of_polygons, unsigned int& number_of_quads,
+   const rt::vector& shift, const double& scale,
+   const unsigned int& v1, const unsigned int& v2, const unsigned int& v3, const unsigned int& v4,
+   const unsigned int& vt1, const unsigned int& vt2, const unsigned int& vt3, const unsigned int& vt4,
+   const unsigned int& vn1, const unsigned int& vn2, const unsigned int& vn3, const unsigned int& vn4,
+   const unsigned int& current_texture_index, const unsigned int& current_material_index,
+   const bool apply_texture) {
+
+   const texture_info info =
+      apply_texture ?
+
+      texture_info(current_texture_index,
+         {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
+         uv_coord_set.at(vt2).x,  1-uv_coord_set.at(vt2).y,
+         uv_coord_set.at(vt3).x,  1-uv_coord_set.at(vt3).y,
+         uv_coord_set.at(vt4).x,  1-uv_coord_set.at(vt4).y})
+      :
+      texture_info();
+
+   const quad* q =
+      apply_texture ?
+                  
+      new quad(
+         shift + scale * vertex_set.at(v1),
+         shift + scale * vertex_set.at(v2),
+         shift + scale * vertex_set.at(v3),
+         shift + scale * vertex_set.at(v4),
+         normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3), normal_set.at(vn4),
+         current_material_index, info)
+      :
+      new quad(
+         shift + scale * vertex_set.at(v1),
+         shift + scale * vertex_set.at(v2),
+         shift + scale * vertex_set.at(v3),
+         shift + scale * vertex_set.at(v4),
+         normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3), normal_set.at(vn4),
+         current_material_index);
+
+   obj_set.push_back(q);
+               
+   number_of_polygons ++;
+   number_of_quads ++;
+
+   if (bounding_enabled) {
+      content.push_back(q);
+   }
+}
+
+
+/* Auxiliary function that adds a trianlge with no vertex normal */
+void add_triangle_no_normal(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
+   std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
+   unsigned int& number_of_polygons, unsigned int& number_of_triangles,
+   const rt::vector& shift, const double& scale,
+   const unsigned int& v1, const unsigned int& v2, const unsigned int& v3,
+   const unsigned int& vt1, const unsigned int& vt2, const unsigned int& vt3,
+   const unsigned int& current_texture_index, const unsigned int& current_material_index,
+   const bool apply_texture) {
+
+   const texture_info info =
+      apply_texture ?
+               
+      texture_info(current_texture_index,
+         {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
+         uv_coord_set.at(vt2).x,  1-uv_coord_set.at(vt2).y,
+         uv_coord_set.at(vt3).x,  1-uv_coord_set.at(vt3).y})
+      :
+      texture_info();
+
+   const triangle* tr =
+      apply_texture ?
+
+      new triangle(
+         shift + scale * vertex_set.at(v1),
+         shift + scale * vertex_set.at(v2),
+         shift + scale * vertex_set.at(v3),
+         current_material_index, info)
+      :
+      new triangle(
+         shift + scale * vertex_set.at(v1),
+         shift + scale * vertex_set.at(v2),
+         shift + scale * vertex_set.at(v3),
+         current_material_index);
+
+   obj_set.push_back(tr);
+
+   number_of_polygons ++;
+   number_of_triangles ++;
+
+   if (bounding_enabled) {
+      content.push_back(tr);
+   }
+}
+
+/* Auxiliary function that adds a trianlge in a subdivided polygon with more than 5 sides, with no vertex normal */
+void add_triangle_subdiv_no_normal(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
+   std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
+   unsigned int& number_of_polygons, unsigned int& number_of_triangles,
+   const rt::vector& shift, const double& scale,
+   const unsigned int& vj, const unsigned int& vi, const rt::vector& final_v,
+   const unsigned int& vtj, const unsigned int& vti, const rt::vector& final_vt,
+   const unsigned int& current_texture_index, const unsigned int& current_material_index,
+   const bool apply_texture) {
+
+   const texture_info info =
+      apply_texture ?
+
+      texture_info(current_texture_index,
+         {uv_coord_set.at(vtj).x, 1-uv_coord_set.at(vtj).y,
+         uv_coord_set.at(vti).x, 1-uv_coord_set.at(vti).y,
+         final_vt.x, 1-final_vt.y})
+      :
+      texture_info();
+
+   const triangle* tr =
+      apply_texture ?
+
+      new triangle(
+         shift + scale * vertex_set.at(vj),
+         shift + scale * vertex_set.at(vi),
+         shift + scale * final_v,
+         current_material_index, info)
+      :
+      new triangle(
+         shift + scale * vertex_set.at(vj),
+         shift + scale * vertex_set.at(vi),
+         shift + scale * final_v,
+         current_material_index);
+
+   obj_set.push_back(tr);
+
+   number_of_polygons ++;
+   number_of_triangles ++;
+
+   if (bounding_enabled) {
+      content.push_back(tr);
+   }
+}
+
+/* Auxiliary function that adds a quad with no vertex normal */
+void add_quad_no_normal(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
+   std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
+   unsigned int& number_of_polygons, unsigned int& number_of_quads,
+   const rt::vector& shift, const double& scale,
+   const unsigned int& v1, const unsigned int& v2, const unsigned int& v3, const unsigned int& v4,
+   const unsigned int& vt1, const unsigned int& vt2, const unsigned int& vt3, const unsigned int& vt4,
+   const unsigned int& current_texture_index, const unsigned int& current_material_index,
+   const bool apply_texture) {
+
+   const texture_info info =
+      apply_texture ?
+
+      texture_info(current_texture_index,
+         {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
+         uv_coord_set.at(vt2).x,  1-uv_coord_set.at(vt2).y,
+         uv_coord_set.at(vt3).x,  1-uv_coord_set.at(vt3).y,
+         uv_coord_set.at(vt4).x,  1-uv_coord_set.at(vt4).y})
+      :
+      texture_info();
+
+   const quad* q =
+      apply_texture ?
+                  
+      new quad(
+         shift + scale * vertex_set.at(v1),
+         shift + scale * vertex_set.at(v2),
+         shift + scale * vertex_set.at(v3),
+         shift + scale * vertex_set.at(v4),
+         current_material_index, info)
+      :
+      new quad(
+         shift + scale * vertex_set.at(v1),
+         shift + scale * vertex_set.at(v2),
+         shift + scale * vertex_set.at(v3),
+         shift + scale * vertex_set.at(v4),
+         current_material_index);
+
+   obj_set.push_back(q);
+               
+   number_of_polygons ++;
+   number_of_quads ++;
+
+   if (bounding_enabled) {
+      content.push_back(q);
+   }
+}
+
+/* Auxiliary function that subdivides a polygon with more than 5 sides into triangles, and adds all of them */
+/* Handles syntaxes "f v/vt/vn ..." and "f v//vn ..." */
+void add_subdivided_polygon(FILE* file,
+   const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
+   const std::vector<rt::vector>& normal_set,
+   std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
+   unsigned int& number_of_polygons, unsigned int& number_of_triangles,
+   const rt::vector& shift, const double& scale,
+   const unsigned int& v1, const unsigned int& v2, const unsigned int& v3, const unsigned int& v4, const unsigned int& v5,
+   const unsigned int& vt1, const unsigned int& vt2, const unsigned int& vt3, const unsigned int& vt4, const unsigned int& vt5,
+   const unsigned int& vn1, const unsigned int& vn2, const unsigned int& vn3, const unsigned int& vn4, const unsigned int& vn5,
+   const unsigned int& current_texture_index, const unsigned int& current_material_index,
+   bool apply_texture) {
+   
+   std::stack<unsigned int> v_stack;
+   std::stack<unsigned int> vt_stack;
+   std::stack<unsigned int> vn_stack;
+   v_stack.push(v1);   v_stack.push(v2);   v_stack.push(v3);   v_stack.push(v4);   v_stack.push(v5);
+   vt_stack.push(vt1); vt_stack.push(vt2); vt_stack.push(vt3); vt_stack.push(vt4); vt_stack.push(vt5);
+   vn_stack.push(vn1); vn_stack.push(vn2); vn_stack.push(vn3); vn_stack.push(vn4); vn_stack.push(vn5);
+
+   unsigned int cpt = 5;
+   rt::vector final_v  = vertex_set.at(v1)    + vertex_set.at(v2)    + vertex_set.at(v3)    + vertex_set.at(v4)    + vertex_set.at(v5);
+   rt::vector final_vt = uv_coord_set.at(vt1) + uv_coord_set.at(vt2) + uv_coord_set.at(vt3) + uv_coord_set.at(vt4) + uv_coord_set.at(vt5);
+   rt::vector final_vn = normal_set.at(vn1)   + normal_set.at(vn2)   + normal_set.at(vn3)   + normal_set.at(vn4)   + normal_set.at(vn5);
+            
+   // Reading triplets until the end of the line
+   char c = fgetc(file);
+   while (c != '\n' && c != EOF) {
+      ungetc(c, file);
+      int ret;
+      unsigned int vi, vti, vni;
+      ret = fscanf(file, " %u/%u/%u", &vi, &vti, &vni);
+      if (ret < 1) {
+         fclose(file);
+         printf("Error in parsing of polygons of at least 5 sides (with normal)\n");
+         return;
+      }
+      else if (ret == 1) {
+         ret = fscanf(file, "/%u", &vni);
+         if (ret != 1) {
+            fclose(file);
+            printf("Error in parsing of polygons of at least 5 sides (with normal) [2]\n");
+            return;
+         } 
+         apply_texture = false;
+      }
+
+      v_stack.push(vi);
+      if (apply_texture) { vt_stack.push(vti); }
+      vn_stack.push(vni);
+
+      final_v = final_v + vertex_set.at(vi);
+      if (apply_texture) { final_vt = final_vt + uv_coord_set.at(vti); }
+      final_vn = final_vn + normal_set.at(vni);
+      cpt ++;
+
+      c = fgetc(file);
+   }
+   ungetc(c, file);
+
+   // New central vertex
+   final_v = final_v / cpt;
+   if (apply_texture) { final_vt = final_vt / cpt; }
+   final_vn = final_vn / cpt;
+
+   // Keeping the last vertex in memory to form a triangle with the first vertex
+   const unsigned int last_v  = v_stack.top();
+   unsigned int last_vt = 0;
+   if (apply_texture) { last_vt = vt_stack.top(); }
+   const unsigned int last_vn = vn_stack.top();
+
+   // Adding the new triangles having the new central vertex as a common vertex
+   for (unsigned int i = 0; i < cpt - 1; i++) {
+      const unsigned int vi = v_stack.top();
+      unsigned int vti = 0;
+      if (apply_texture) { vti = vt_stack.top(); }
+      const unsigned int vni = vn_stack.top();
+
+      v_stack.pop();
+      if (apply_texture) { vt_stack.pop(); }
+      vn_stack.pop();
+
+      const unsigned int vj = v_stack.top();
+      unsigned int vtj = 0;
+      if (apply_texture) { vtj = vt_stack.top(); }
+      const unsigned int vnj = vn_stack.top();
+
+      add_triangle_subdiv(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+         number_of_polygons, number_of_triangles,
+         shift, scale, vj, vi, final_v, vtj, vti, final_vt, vnj, vni, final_vn,
+         current_texture_index, current_material_index, apply_texture);
+   }
+            
+   // Adding the last triangle
+   add_triangle_subdiv(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+      number_of_polygons, number_of_triangles,
+      shift, scale, last_v, v1, final_v, last_vt, vt1, final_vt, last_vn, vn1, final_vn,
+      current_texture_index, current_material_index, apply_texture);
+}
+
+/* Auxiliary function that subdivides a polygon with more than 5 sides into triangles with no vertex normal, and adds all of them */
+/* Handles syntaxes "f v ..." and "f v/vt ..." */
+void add_subdivided_polygon_no_normal(FILE* file,
+   const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
+   std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
+   unsigned int& number_of_polygons, unsigned int& number_of_triangles,
+   const rt::vector& shift, const double& scale,
+   const unsigned int& v1, const unsigned int& v2, const unsigned int& v3, const unsigned int& v4, const unsigned int& v5,
+   const unsigned int& vt1, const unsigned int& vt2, const unsigned int& vt3, const unsigned int& vt4, const unsigned int& vt5,
+   const unsigned int& current_texture_index, const unsigned int& current_material_index,
+   bool apply_texture) {
+   
+   std::stack<unsigned int> v_stack;
+   std::stack<unsigned int> vt_stack;
+   v_stack.push(v1);   v_stack.push(v2);   v_stack.push(v3);   v_stack.push(v4);   v_stack.push(v5);
+   vt_stack.push(vt1); vt_stack.push(vt2); vt_stack.push(vt3); vt_stack.push(vt4); vt_stack.push(vt5);
+
+   unsigned int cpt = 5;
+   rt::vector final_v  = vertex_set.at(v1)    + vertex_set.at(v2)    + vertex_set.at(v3)    + vertex_set.at(v4)    + vertex_set.at(v5);
+   rt::vector final_vt = uv_coord_set.at(vt1) + uv_coord_set.at(vt2) + uv_coord_set.at(vt3) + uv_coord_set.at(vt4) + uv_coord_set.at(vt5);
+            
+   // Reading triplets until the end of the line
+   char c = fgetc(file);
+   while (c != '\n' && c != EOF) {
+      ungetc(c, file);
+      int ret;
+      unsigned int vi, vti;
+      ret = fscanf(file, " %u/%u", &vi, &vti);
+      if (ret < 1) {
+         fclose(file);
+         printf("Error in parsing of polygons of at least 5 sides (without normal)\n");
+         return;
+      }
+      else if (ret == 1) {
+         fgetc(file);
+         apply_texture = false;
+      }
+
+      v_stack.push(vi);
+      if (apply_texture) { vt_stack.push(vti); }
+
+      final_v = final_v + vertex_set.at(vi);
+      if (apply_texture) { final_vt = final_vt + uv_coord_set.at(vti); }
+      cpt ++;
+
+      c = fgetc(file);
+   }
+   ungetc(c, file);
+
+   // New central vertex
+   final_v = final_v / cpt;
+   if (apply_texture) { final_vt = final_vt / cpt; }
+
+   // Keeping the last vertex in memory to form a triangle with the first vertex
+   const unsigned int last_v  = v_stack.top();
+   unsigned int last_vt = 0;
+   if (apply_texture) { last_vt = vt_stack.top(); }
+
+   // Adding the new triangles having the new central vertex as a common vertex
+   for (unsigned int i = 0; i < cpt - 1; i++) {
+      const unsigned int vi = v_stack.top();
+      unsigned int vti = 0;
+      if (apply_texture) { vti = vt_stack.top(); }
+
+      v_stack.pop();
+      if (apply_texture) { vt_stack.pop(); }
+
+      const unsigned int vj = v_stack.top();
+      unsigned int vtj = 0;
+      if (apply_texture) { vtj = vt_stack.top(); }
+
+      add_triangle_subdiv_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+         number_of_polygons, number_of_triangles,
+         shift, scale, vj, vi, final_v, vtj, vti, final_vt,
+         current_texture_index, current_material_index, apply_texture);
+   }
+            
+   // Adding the last triangle
+   add_triangle_subdiv_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+      number_of_polygons, number_of_triangles,
+      shift, scale, last_v, v1, final_v, last_vt, vt1, final_vt,
+      current_texture_index, current_material_index, apply_texture);
+}
+
+
+
 /* Parses .obj file file_name. Triangles and quads are added to obj_set,
    with material indices (defined with the keyword usemtl) found in material_names
    
@@ -250,41 +726,12 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
          if (ret == 9) {
 
             /* Triangle */
-            const texture_info info =
-               apply_texture ?
-               
-               texture_info(current_texture_index,
-                  {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-                  uv_coord_set.at(vt2).x,  1-uv_coord_set.at(vt2).y,
-                  uv_coord_set.at(vt3).x,  1-uv_coord_set.at(vt3).y})
-               :
-               texture_info();
 
-            const triangle* tr =
-               apply_texture ?
-
-               new triangle(
-                  shift + scale * vertex_set.at(v1),
-                  shift + scale * vertex_set.at(v2),
-                  shift + scale * vertex_set.at(v3),
-                  normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
-                  current_material_index, info)
-               :
-               new triangle(
-                  shift + scale * vertex_set.at(v1),
-                  shift + scale * vertex_set.at(v2),
-                  shift + scale * vertex_set.at(v3),
-                  normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
-                  current_material_index);
-
-            obj_set.push_back(tr);
-
-            number_of_polygons ++;
-            number_of_triangles ++;
-
-            if (bounding_enabled) {
-               content.push_back(tr);
-            }
+            add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+               number_of_polygons, number_of_triangles,
+               shift, scale, v1, v2, v3, vt1, vt2, vt3, vn1, vn2, vn3,
+               current_texture_index, current_material_index, apply_texture);
+            
          }
          else if (ret == 12) {
 
@@ -295,254 +742,250 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
 
             const rt::vector n12 = ((vertex_set.at(v2) - vertex_set.at(v1)) ^ (vertex_set.at(v3) - vertex_set.at(v1))).unit();
             const rt::vector n23 = ((vertex_set.at(v3) - vertex_set.at(v1)) ^ (vertex_set.at(v4) - vertex_set.at(v1))).unit();
+            
             /* The value 1.0E-7 is chosen empirically: it seems to remove all visible glitches by splitting a small number of quads */
             /* History: for the stool, 1.0E-6 is sufficient, but leaves visible glitches on the "Porsche 2016" test model. 1.0E-7 removes them. */
             if ((n12 - n23).normsq() > 1.0E-7) {
                /* Non-coplanar vertices: splitting the quad into two triangles */
 
-               const texture_info info12 =
-                  apply_texture ?
-                  
-                  texture_info(current_texture_index,
-                     {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-                     uv_coord_set.at(vt2).x,  1-uv_coord_set.at(vt2).y,
-                     uv_coord_set.at(vt3).x,  1-uv_coord_set.at(vt3).y})
-                  :
-                  texture_info();
+               add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                  number_of_polygons, number_of_triangles,
+                  shift, scale, v1, v2, v3, vt1, vt2, vt3, vn1, vn2, vn3,
+                  current_texture_index, current_material_index, apply_texture);
 
-               const triangle* tr1 =
-                  apply_texture ?
-
-                  new triangle(
-                     shift + scale * vertex_set.at(v1),
-                     shift + scale * vertex_set.at(v2),
-                     shift + scale * vertex_set.at(v3),
-                     normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
-                     current_material_index, info12)
-                  :
-                  new triangle(
-                     shift + scale * vertex_set.at(v1),
-                     shift + scale * vertex_set.at(v2),
-                     shift + scale * vertex_set.at(v3),
-                     normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
-                     current_material_index);
-
-               obj_set.push_back(tr1);
-
-               const texture_info info23 =
-                  apply_texture ?
-
-                  texture_info(current_texture_index,
-                     {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-                     uv_coord_set.at(vt3).x,  1-uv_coord_set.at(vt3).y,
-                     uv_coord_set.at(vt4).x,  1-uv_coord_set.at(vt4).y})
-                  :
-                  texture_info();
-
-               const triangle* tr2 =
-                  apply_texture ?
-                  
-                  new triangle(
-                     shift + scale * vertex_set.at(v1),
-                     shift + scale * vertex_set.at(v3),
-                     shift + scale * vertex_set.at(v4),
-                     normal_set.at(vn1), normal_set.at(vn3), normal_set.at(vn4),
-                     current_material_index, info23)
-                  :
-                  new triangle(
-                     shift + scale * vertex_set.at(v1),
-                     shift + scale * vertex_set.at(v3),
-                     shift + scale * vertex_set.at(v4),
-                     normal_set.at(vn1), normal_set.at(vn3), normal_set.at(vn4),
-                     current_material_index);
-
-               obj_set.push_back(tr2);
-
-               number_of_polygons += 2;
-               number_of_triangles += 2;
-
-               if (bounding_enabled) {
-                  content.push_back(tr1);
-                  content.push_back(tr2);
-               }
+               add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                  number_of_polygons, number_of_triangles,
+                  shift, scale, v1, v3, v4, vt1, vt3, vt4, vn1, vn3, vn4,
+                  current_texture_index, current_material_index, apply_texture);
             }
             else {
                
                /* Coplanar vertices: keeping the quad */
-               const texture_info info =
-                  apply_texture ?
-
-                  texture_info(current_texture_index,
-                     {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-                     uv_coord_set.at(vt2).x,  1-uv_coord_set.at(vt2).y,
-                     uv_coord_set.at(vt3).x,  1-uv_coord_set.at(vt3).y,
-                     uv_coord_set.at(vt4).x,  1-uv_coord_set.at(vt4).y})
-                  :
-                  texture_info();
-
-               const quad* q =
-                  apply_texture ?
-                  
-                  new quad(
-                     shift + scale * vertex_set.at(v1),
-                     shift + scale * vertex_set.at(v2),
-                     shift + scale * vertex_set.at(v3),
-                     shift + scale * vertex_set.at(v4),
-                     normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3), normal_set.at(vn4),
-                     current_material_index, info)
-                  :
-                  new quad(
-                     shift + scale * vertex_set.at(v1),
-                     shift + scale * vertex_set.at(v2),
-                     shift + scale * vertex_set.at(v3),
-                     shift + scale * vertex_set.at(v4),
-                     normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3), normal_set.at(vn4),
-                     current_material_index);
-
-               obj_set.push_back(q);
                
-               number_of_polygons ++;
-               number_of_quads ++;
-
-               if (bounding_enabled) {
-                  content.push_back(q);
-               }
+               add_quad(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                  number_of_polygons, number_of_quads,
+                  shift, scale, v1, v2, v3, v4, vt1, vt2, vt3, vt4, vn1, vn2, vn3, vn4,
+                  current_texture_index, current_material_index, apply_texture);
             }
          }
-         else {            
+         else if (ret > 12) {            
             // Polygons with more than 4 sides
-            std::stack<unsigned int> v_stack;
-            std::stack<unsigned int> vt_stack;
-            std::stack<unsigned int> vn_stack;
-            v_stack.push(v1);   v_stack.push(v2);   v_stack.push(v3);   v_stack.push(v4);   v_stack.push(v5);
-            vt_stack.push(vt1); vt_stack.push(vt2); vt_stack.push(vt3); vt_stack.push(vt4); vt_stack.push(vt5);
-            vn_stack.push(vn1); vn_stack.push(vn2); vn_stack.push(vn3); vn_stack.push(vn4); vn_stack.push(vn5);
 
-            unsigned int cpt = 5;
-            rt::vector final_v = vertex_set.at(v1) + vertex_set.at(v2) + vertex_set.at(v3) + vertex_set.at(v4) + vertex_set.at(v5);
-            rt::vector final_vt = uv_coord_set.at(vt1) + uv_coord_set.at(vt2) + uv_coord_set.at(vt3) + uv_coord_set.at(vt4) + uv_coord_set.at(vt5);
-            rt::vector final_vn = normal_set.at(vn1) + normal_set.at(vn2) + normal_set.at(vn3) + normal_set.at(vn4) + normal_set.at(vn5);
+            add_subdivided_polygon(file, vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+               number_of_polygons, number_of_triangles,
+               shift, scale, v1, v2, v3, v4, v5, vt1, vt2, vt3, vt4, vt5, vn1, vn2, vn3, vn4, vn5,
+               current_texture_index, current_material_index, apply_texture);
+
+            // v_stack.push(v1);   v_stack.push(v2);   v_stack.push(v3);   v_stack.push(v4);   v_stack.push(v5);
+            // vt_stack.push(vt1); vt_stack.push(vt2); vt_stack.push(vt3); vt_stack.push(vt4); vt_stack.push(vt5);
+            // vn_stack.push(vn1); vn_stack.push(vn2); vn_stack.push(vn3); vn_stack.push(vn4); vn_stack.push(vn5);
+
+            // unsigned int cpt = 5;
+            // rt::vector final_v = vertex_set.at(v1) + vertex_set.at(v2) + vertex_set.at(v3) + vertex_set.at(v4) + vertex_set.at(v5);
+            // rt::vector final_vt = uv_coord_set.at(vt1) + uv_coord_set.at(vt2) + uv_coord_set.at(vt3) + uv_coord_set.at(vt4) + uv_coord_set.at(vt5);
+            // rt::vector final_vn = normal_set.at(vn1) + normal_set.at(vn2) + normal_set.at(vn3) + normal_set.at(vn4) + normal_set.at(vn5);
             
-            // Reading triplets until the end of the line
-            char c = fgetc(file);
-            while (c != '\n' && c != EOF) {
-               ungetc(c, file);
-               unsigned int vi, vti, vni;
-               int ret = fscanf(file, " %u/%u/%u", &vi, &vti, &vni);
-               if (ret != 3) {
-                  fclose(file);
-                  printf("Error in parsing of polygons of at least 5 sides\n");
-                  return false;
+            // // Reading triplets until the end of the line
+            // char c = fgetc(file);
+            // while (c != '\n' && c != EOF) {
+            //    ungetc(c, file);
+            //    unsigned int vi, vti, vni;
+            //    int ret = fscanf(file, " %u/%u/%u", &vi, &vti, &vni);
+            //    if (ret != 3) {
+            //       fclose(file);
+            //       printf("Error in parsing of polygons of at least 5 sides\n");
+            //       return false;
+            //    }
+
+            //    v_stack.push(vi);
+            //    vt_stack.push(vti);
+            //    vn_stack.push(vni);
+
+            //    final_v = final_v + vertex_set.at(vi);
+            //    final_vt = final_vt + uv_coord_set.at(vti);
+            //    final_vn = final_vn + normal_set.at(vni);
+            //    cpt ++;
+
+            //    c = fgetc(file);
+            // }
+            // ungetc(c, file);
+
+            // // New central vertex
+            // final_v = final_v / cpt;
+            // final_vt = final_vt / cpt;
+            // final_vn = final_vn / cpt;
+
+            // // Keeping the last vertex in memory to form a triangle with the first vertex
+            // const unsigned int last_v = v_stack.top();
+            // const unsigned int last_vt = vt_stack.top();
+            // const unsigned int last_vn = vn_stack.top();
+
+            // // Adding the new triangles having the new central vertex as a common vertex
+            // for (unsigned int i = 0; i < cpt - 1; i++) {
+            //    const unsigned int vi = v_stack.top();
+            //    const unsigned int vti = vt_stack.top();
+            //    const unsigned int vni = vn_stack.top();
+            //    v_stack.pop();
+            //    vt_stack.pop();
+            //    vn_stack.pop();
+            //    const unsigned int vj = v_stack.top();
+            //    const unsigned int vtj = vt_stack.top();
+            //    const unsigned int vnj = vn_stack.top();
+
+            //    add_triangle_subdiv(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+            //       number_of_polygons, number_of_triangles,
+            //       shift, scale, vj, vi, final_v, vtj, vti, final_vt, vnj, vni, final_vn,
+            //       current_texture_index, current_material_index, apply_texture);
+            // }
+            
+            // // Adding the last triangle
+            // add_triangle_subdiv(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+            //       number_of_polygons, number_of_triangles,
+            //       shift, scale, last_v, v1, final_v, last_vt, vt1, final_vt, last_vn, vn1, final_vn,
+            //       current_texture_index, current_material_index, apply_texture);
+         }
+         else if (ret == 1) {
+            /* Neither texture coordinates nor the vertex normals are specified */
+
+            const char c = fgetc(file);
+            if (c == ' ') {
+               // f v1 v2 v3 ...
+
+               const int ret2 = fscanf(file, "%u %u %u %u",
+                  &v2, &v3, &v4, &v5);
+
+               if (ret2 == 2) {
+                  // Triangle with no texture and normal
+                  add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                     number_of_polygons, number_of_triangles,
+                     shift, scale, v1, v2, v3, 0, 0, 0,
+                     0, current_material_index, false);
                }
+               else if (ret2 == 3) {
+                  // Quad with no texture and normal
+                  const rt::vector n12 = ((vertex_set.at(v2) - vertex_set.at(v1)) ^ (vertex_set.at(v3) - vertex_set.at(v1))).unit();
+                  const rt::vector n23 = ((vertex_set.at(v3) - vertex_set.at(v1)) ^ (vertex_set.at(v4) - vertex_set.at(v1))).unit();
+                  
+                  if ((n12 - n23).normsq() > 1.0E-7) {
+                     // Splitting into triangles with no texture and normal
+                     add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                        number_of_polygons, number_of_triangles,
+                        shift, scale, v1, v2, v3, 0, 0, 0,
+                        0, current_material_index, false);
 
-               v_stack.push(vi);
-               vt_stack.push(vti);
-               vn_stack.push(vni);
-
-               final_v = final_v + vertex_set.at(vi);
-               final_vt = final_vt + uv_coord_set.at(vti);
-               final_vn = final_vn + normal_set.at(vni);
-               cpt ++;
-
-               c = fgetc(file);
+                     add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                        number_of_polygons, number_of_triangles,
+                        shift, scale, v1, v3, v4, 0, 0, 0,
+                        0, current_material_index, false);
+                  }
+                  else {
+                     // Keeping the quad with no texture and normal
+                     add_quad_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                        number_of_polygons, number_of_quads,
+                        shift, scale, v1, v2, v3, v4, 0, 0, 0, 0,
+                        0, current_material_index, false);
+                  }
+               }
+               else {
+                  // Untextured polygon with more than 5 sides
+                  add_subdivided_polygon_no_normal(file, vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                     number_of_polygons, number_of_triangles,
+                     shift, scale, v1, v2, v3, v4, v5, vt1, vt2, vt3, vt4, vt5,
+                     current_texture_index, current_material_index, apply_texture);
+               }
             }
-            ungetc(c, file);
+            else {
+               // By elimination: c = '/'
+               // f v1//vn1 v2//vn2 ...
+               const int ret2 = fscanf(file, "/%u %u//%u %u//%u %u//%u %u//%u",
+                  &vn1, &v2, &vn2, &v3, &vn3, &v4, &vn4, &v5, &vn5);
 
-            // New central vertex
-            final_v = final_v / cpt;
-            final_vt = final_vt / cpt;
-            final_vn = final_vn / cpt;
-
-            // Keeping the last vertex in memory to form a triangle with the first vertex
-            const unsigned int last_v = v_stack.top();
-            const unsigned int last_vt = vt_stack.top();
-            const unsigned int last_vn = vn_stack.top();
-
-            // Adding the new triangles having the new central vertex as a common vertex
-            for (unsigned int i = 0; i < cpt - 1; i++) {
-               const unsigned int vi = v_stack.top();
-               const unsigned int vti = vt_stack.top();
-               const unsigned int vni = vn_stack.top();
-               v_stack.pop();
-               vt_stack.pop();
-               vn_stack.pop();
-               const unsigned int vj = v_stack.top();
-               const unsigned int vtj = vt_stack.top();
-               const unsigned int vnj = vn_stack.top();
-
-               const texture_info info =
-                  apply_texture ?
-
-                  texture_info(current_texture_index,
-                     {uv_coord_set.at(vtj).x, 1-uv_coord_set.at(vtj).y,
-                     uv_coord_set.at(vti).x, 1-uv_coord_set.at(vti).y,
-                     final_vt.x, 1-final_vt.y})
-                  :
-                  texture_info();
-
-               const triangle* tr =
-                  apply_texture ?
-
-                  new triangle(
-                     shift + scale * vertex_set.at(vj),
-                     shift + scale * vertex_set.at(vi),
-                     shift + scale * final_v,
-                     normal_set.at(vnj), normal_set.at(vni), final_vn,
-                     current_material_index, info)
-                  :
-                  new triangle(
-                     shift + scale * vertex_set.at(vj),
-                     shift + scale * vertex_set.at(vi),
-                     shift + scale * final_v,
-                     normal_set.at(vnj), normal_set.at(vni), final_vn,
-                     current_material_index);
-
-               obj_set.push_back(tr);
-
-               number_of_polygons ++;
-               number_of_triangles ++;
-
-               if (bounding_enabled) {
-                  content.push_back(tr);
+               if (ret2 == 5) {
+                  // Untextured triangle
+                  add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                     number_of_polygons, number_of_triangles,
+                     shift, scale, v1, v2, v3, 0, 0, 0, vn1, vn2, vn3,
+                     0, current_material_index, false);
                }
-               
+               else if (ret2 == 7) {
+                  // Untextured quad
+                  const rt::vector n12 = ((vertex_set.at(v2) - vertex_set.at(v1)) ^ (vertex_set.at(v3) - vertex_set.at(v1))).unit();
+                  const rt::vector n23 = ((vertex_set.at(v3) - vertex_set.at(v1)) ^ (vertex_set.at(v4) - vertex_set.at(v1))).unit();
+                  
+                  if ((n12 - n23).normsq() > 1.0E-7) {
+                     // Splitting into two untextured triangles
+                     add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                        number_of_polygons, number_of_triangles,
+                        shift, scale, v1, v2, v3, 0, 0, 0, vn1, vn2, vn3,
+                        0, current_material_index, false);
+
+                     add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                        number_of_polygons, number_of_triangles,
+                        shift, scale, v1, v3, v4, 0, 0, 0, vn1, vn3, vn4,
+                        0, current_material_index, false);
+                  }
+                  else {
+                     // Keeping the untextured quad
+                     add_quad(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                        number_of_polygons, number_of_quads,
+                        shift, scale, v1, v2, v3, v4, 0, 0, 0, 0, vn1, vn2, vn3, vn4,
+                        0, current_material_index, false);
+                  }
+               }
+               else {
+                  // Untextured polygon with more than 5 sides
+                  add_subdivided_polygon(file, vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                     number_of_polygons, number_of_triangles,
+                     shift, scale, v1, v2, v3, v4, v5, 0, 0, 0, 0, 0, vn1, vn2, vn3, vn4, vn5,
+                     0, current_material_index, false);
+               }
             }
             
-            // Adding the last triangle
-            const texture_info info =
-               apply_texture ?
+         }
+         else {
+            // ret == 2
+            // f v1/vt1 v2/vt2 ...
+            const int ret2 = fscanf(file, "%u/%u %u/%u %u/%u %u/%u",
+               &v2, &vt2, &v3, &vt3, &v4, &vt4, &v5, &vt5);
 
-               texture_info(current_texture_index,
-                  {uv_coord_set.at(last_vt).x, 1-uv_coord_set.at(last_vt).y,
-                  uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-                  final_vt.x, 1-final_vt.y})
-               :
-               texture_info();
+            if (ret2 == 4) {
+               // Triangle with no normal
+               add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                  number_of_polygons, number_of_triangles,
+                  shift, scale, v1, v2, v3, vt1, vt2, vt3,
+                  current_texture_index, current_material_index, apply_texture);
+            }
+            else if (ret2 == 6) {
+               // Quad with no normal
+               const rt::vector n12 = ((vertex_set.at(v2) - vertex_set.at(v1)) ^ (vertex_set.at(v3) - vertex_set.at(v1))).unit();
+               const rt::vector n23 = ((vertex_set.at(v3) - vertex_set.at(v1)) ^ (vertex_set.at(v4) - vertex_set.at(v1))).unit();
+                  
+               if ((n12 - n23).normsq() > 1.0E-7) {
+                  // Splitting into two triangles with no normal
+                  add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                     number_of_polygons, number_of_triangles,
+                     shift, scale, v1, v2, v3, vt1, vt2, vt3,
+                     current_texture_index, current_material_index, apply_texture);
 
-            const triangle* tr =
-               apply_texture ?
-               
-               new triangle(
-                  shift + scale * vertex_set.at(last_v),
-                  shift + scale * vertex_set.at(v1),
-                  shift + scale * final_v,
-                  normal_set.at(last_vn), normal_set.at(vn1), final_vn,
-                  current_material_index, info)
-               :
-               new triangle(
-                  shift + scale * vertex_set.at(last_v),
-                  shift + scale * vertex_set.at(v1),
-                  shift + scale * final_v,
-                  normal_set.at(last_vn), normal_set.at(vn1), final_vn,
-                  current_material_index);
-
-            obj_set.push_back(tr);
-
-            number_of_polygons ++;
-            number_of_triangles ++;
-
-            if (bounding_enabled) {
-               content.push_back(tr);
+                  add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                     number_of_polygons, number_of_triangles,
+                     shift, scale, v1, v3, v4, vt1, vt3, vt4,
+                     current_texture_index, current_material_index, apply_texture);
+               }
+               else {
+                  // Keeping the quad with no normal
+                  add_quad_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                     number_of_polygons, number_of_quads,
+                     shift, scale, v1, v2, v3, v4, vt1, vt2, vt3, vt4,
+                     current_texture_index, current_material_index, apply_texture);
+               }
+            }
+            else {
+               // Polygon with more than 5 sides with no normal
+               add_subdivided_polygon_no_normal(file, vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                  number_of_polygons, number_of_triangles,
+                  shift, scale, v1, v2, v3, v4, v5, vt1, vt2, vt3, vt4, vt5,
+                  current_texture_index, current_material_index, apply_texture);
             }
          }
       }
