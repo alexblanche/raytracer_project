@@ -1,5 +1,5 @@
 resolution width:1920 height:1080
-camera position:(-4, 1.1, -6) direction:(0.72, -0.13, 1) rightdir:(-1, 0, 0.72) fov_width:0.6 distance:1
+camera position:(-4, 1.1, -6) direction:(0.72, -0.13, 1) rightdir:(-1, 0, 0.72) fov_width:1.5 distance:1
 background_color 190 235 255
 polygons_per_bounding 1
 
@@ -21,11 +21,12 @@ material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflec
 # quad (-4, 0.01, 10) (-4, 0.01, 0) (4, 0.01, 0) (4, 0.01, 10) material:white_light
 
 # Ground
-plane normal:(0,1,0) position:(0, 0, 0) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.98 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+plane normal:(0,1,0) position:(0, -0.05, 0) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.98 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
 # Model
-load_obj ../../../raytracer_project/3d_models/porsche_2016/porsche_obj.obj (texture:none shift:(0,0,0) scale:1)
-# ../../../raytracer_project/3d_models/glasses/whiskey_glass.obj (texture:none shift:(0,0.43,0) scale:1)
+load_obj ../../../raytracer_project/3d_models/glasses/wine_glass.obj (texture:none shift:(0,5,0) scale:1)
+# load_obj ../../../raytracer_project/3d_models/glasses/pitcher.obj (texture:none shift:(-1,0,0) scale:3)
+# load_obj ../../../raytracer_project/3d_models/glasses/whiskey_glass.obj (texture:none shift:(1,0.43,0) scale:1)
 
 # material red_light (color:(255, 255, 255) emitted_color:(255, 10, 10) reflectivity:0 emission:1 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 # sphere center:(0.682871, 0.76, 1.610379) radius:0.04 material:red_light

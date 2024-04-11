@@ -439,14 +439,14 @@ void add_subdivided_polygon_no_normal(FILE* file,
       ungetc(c, file);
       int ret;
       unsigned int vi, vti;
-      ret = fscanf(file, " %u/%u", &vi, &vti);
+      ret = fscanf(file, "%u/%u", &vi, &vti);
       if (ret < 1) {
          fclose(file);
          printf("Error in parsing of polygons of at least 5 sides (without normal)\n");
          return;
       }
       else if (ret == 1) {
-         fgetc(file);
+         // fgetc(file);
          apply_texture = false;
       }
 
@@ -724,7 +724,6 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             &v1, &vt1, &vn1, &v2, &vt2, &vn2, &v3, &vt3, &vn3, &v4, &vt4, &vn4, &v5, &vt5, &vn5);
 
          if (ret == 9) {
-
             /* Triangle */
 
             add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
@@ -734,7 +733,6 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             
          }
          else if (ret == 12) {
-
             /* Quad */
 
             /* Sometimes quads are made up of 4 non-coplanar vertices
@@ -745,6 +743,7 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             
             /* The value 1.0E-7 is chosen empirically: it seems to remove all visible glitches by splitting a small number of quads */
             /* History: for the stool, 1.0E-6 is sufficient, but leaves visible glitches on the "Porsche 2016" test model. 1.0E-7 removes them. */
+            
             if ((n12 - n23).normsq() > 1.0E-7) {
                /* Non-coplanar vertices: splitting the quad into two triangles */
 
@@ -759,7 +758,6 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                   current_texture_index, current_material_index, apply_texture);
             }
             else {
-               
                /* Coplanar vertices: keeping the quad */
                
                add_quad(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
@@ -768,81 +766,13 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                   current_texture_index, current_material_index, apply_texture);
             }
          }
-         else if (ret > 12) {            
-            // Polygons with more than 4 sides
+         else if (ret > 12) {     
+            /* Polygons with more than 4 sides */
 
             add_subdivided_polygon(file, vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
                number_of_polygons, number_of_triangles,
                shift, scale, v1, v2, v3, v4, v5, vt1, vt2, vt3, vt4, vt5, vn1, vn2, vn3, vn4, vn5,
                current_texture_index, current_material_index, apply_texture);
-
-            // v_stack.push(v1);   v_stack.push(v2);   v_stack.push(v3);   v_stack.push(v4);   v_stack.push(v5);
-            // vt_stack.push(vt1); vt_stack.push(vt2); vt_stack.push(vt3); vt_stack.push(vt4); vt_stack.push(vt5);
-            // vn_stack.push(vn1); vn_stack.push(vn2); vn_stack.push(vn3); vn_stack.push(vn4); vn_stack.push(vn5);
-
-            // unsigned int cpt = 5;
-            // rt::vector final_v = vertex_set.at(v1) + vertex_set.at(v2) + vertex_set.at(v3) + vertex_set.at(v4) + vertex_set.at(v5);
-            // rt::vector final_vt = uv_coord_set.at(vt1) + uv_coord_set.at(vt2) + uv_coord_set.at(vt3) + uv_coord_set.at(vt4) + uv_coord_set.at(vt5);
-            // rt::vector final_vn = normal_set.at(vn1) + normal_set.at(vn2) + normal_set.at(vn3) + normal_set.at(vn4) + normal_set.at(vn5);
-            
-            // // Reading triplets until the end of the line
-            // char c = fgetc(file);
-            // while (c != '\n' && c != EOF) {
-            //    ungetc(c, file);
-            //    unsigned int vi, vti, vni;
-            //    int ret = fscanf(file, " %u/%u/%u", &vi, &vti, &vni);
-            //    if (ret != 3) {
-            //       fclose(file);
-            //       printf("Error in parsing of polygons of at least 5 sides\n");
-            //       return false;
-            //    }
-
-            //    v_stack.push(vi);
-            //    vt_stack.push(vti);
-            //    vn_stack.push(vni);
-
-            //    final_v = final_v + vertex_set.at(vi);
-            //    final_vt = final_vt + uv_coord_set.at(vti);
-            //    final_vn = final_vn + normal_set.at(vni);
-            //    cpt ++;
-
-            //    c = fgetc(file);
-            // }
-            // ungetc(c, file);
-
-            // // New central vertex
-            // final_v = final_v / cpt;
-            // final_vt = final_vt / cpt;
-            // final_vn = final_vn / cpt;
-
-            // // Keeping the last vertex in memory to form a triangle with the first vertex
-            // const unsigned int last_v = v_stack.top();
-            // const unsigned int last_vt = vt_stack.top();
-            // const unsigned int last_vn = vn_stack.top();
-
-            // // Adding the new triangles having the new central vertex as a common vertex
-            // for (unsigned int i = 0; i < cpt - 1; i++) {
-            //    const unsigned int vi = v_stack.top();
-            //    const unsigned int vti = vt_stack.top();
-            //    const unsigned int vni = vn_stack.top();
-            //    v_stack.pop();
-            //    vt_stack.pop();
-            //    vn_stack.pop();
-            //    const unsigned int vj = v_stack.top();
-            //    const unsigned int vtj = vt_stack.top();
-            //    const unsigned int vnj = vn_stack.top();
-
-            //    add_triangle_subdiv(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
-            //       number_of_polygons, number_of_triangles,
-            //       shift, scale, vj, vi, final_v, vtj, vti, final_vt, vnj, vni, final_vn,
-            //       current_texture_index, current_material_index, apply_texture);
-            // }
-            
-            // // Adding the last triangle
-            // add_triangle_subdiv(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
-            //       number_of_polygons, number_of_triangles,
-            //       shift, scale, last_v, v1, final_v, last_vt, vt1, final_vt, last_vn, vn1, final_vn,
-            //       current_texture_index, current_material_index, apply_texture);
          }
          else if (ret == 1) {
             /* Neither texture coordinates nor the vertex normals are specified */
@@ -853,6 +783,9 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
 
                const int ret2 = fscanf(file, "%u %u %u %u",
                   &v2, &v3, &v4, &v5);
+
+               printf("[ret2 == %d]\n", ret2);
+               fflush(stdout);
 
                if (ret2 == 2) {
                   // Triangle with no texture and normal
@@ -897,7 +830,7 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             else {
                // By elimination: c = '/'
                // f v1//vn1 v2//vn2 ...
-               const int ret2 = fscanf(file, "/%u %u//%u %u//%u %u//%u %u//%u",
+               const int ret2 = fscanf(file, "%u %u//%u %u//%u %u//%u %u//%u",
                   &vn1, &v2, &vn2, &v3, &vn3, &v4, &vn4, &v5, &vn5);
 
                if (ret2 == 5) {
