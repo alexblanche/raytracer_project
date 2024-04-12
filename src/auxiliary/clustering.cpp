@@ -207,6 +207,10 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
             printf("\rIteration %u / %u", MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS);
             fflush(stdout);
         }
+        else {
+            printf("\rOptimizing the data structure... Iteration %u / %u", MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS);
+            fflush(stdout);
+        }
 
         /* Updating the means */
         means.clear();

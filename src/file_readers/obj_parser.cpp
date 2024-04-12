@@ -9,6 +9,10 @@
 #include "auxiliary/clustering.hpp"
 #include "file_readers/mtl_parser.hpp"
 
+#include<limits>
+numeric_limits<double> realobj;
+const double infinity = realobj.infinity();
+
 #include <stdio.h>
 #include <string.h>
 #include <string>
@@ -432,7 +436,7 @@ void add_subdivided_polygon_no_normal(FILE* file,
    unsigned int cpt = 5;
    rt::vector final_v  = vertex_set.at(v1)    + vertex_set.at(v2)    + vertex_set.at(v3)    + vertex_set.at(v4)    + vertex_set.at(v5);
    rt::vector final_vt = uv_coord_set.at(vt1) + uv_coord_set.at(vt2) + uv_coord_set.at(vt3) + uv_coord_set.at(vt4) + uv_coord_set.at(vt5);
-            
+
    // Reading triplets until the end of the line
    char c = fgetc(file);
    while (c != '\n' && c != EOF) {
@@ -440,13 +444,13 @@ void add_subdivided_polygon_no_normal(FILE* file,
       int ret;
       unsigned int vi, vti;
       ret = fscanf(file, "%u/%u", &vi, &vti);
+
       if (ret < 1) {
          fclose(file);
          printf("Error in parsing of polygons of at least 5 sides (without normal)\n");
          return;
       }
       else if (ret == 1) {
-         // fgetc(file);
          apply_texture = false;
       }
 
@@ -561,6 +565,10 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
    unsigned int number_of_quads = 0;
    unsigned int number_of_polygons = 0;
 
+   /* Max dimensions */
+   double min_x, min_y, min_z = infinity;
+   double max_x, max_y, max_z = -infinity;
+
    /* Bounding containers
       content will contain the polygons of a group before being placed in a bounding,
       which will be added to the children vector
@@ -622,6 +630,14 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
          else {
             vertex_set.push_back(rt::vector(x, y, z));
             number_of_vertices ++;
+
+            /* Updating max dimensions */
+            if (x > max_x) { max_x = x; }
+            if (x < min_x) { min_x = x; }
+            if (y > max_y) { max_y = y; }
+            if (y < min_y) { min_y = y; }
+            if (z > max_z) { max_z = z; }
+            if (z < min_z) { min_z = z; }
          }
       }
       else if (strcmp(s, "vt") == 0) {
@@ -784,9 +800,6 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                const int ret2 = fscanf(file, "%u %u %u %u",
                   &v2, &v3, &v4, &v5);
 
-               printf("[ret2 == %d]\n", ret2);
-               fflush(stdout);
-
                if (ret2 == 2) {
                   // Triangle with no texture and normal
                   add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
@@ -823,8 +836,8 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                   // Untextured polygon with more than 5 sides
                   add_subdivided_polygon_no_normal(file, vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
                      number_of_polygons, number_of_triangles,
-                     shift, scale, v1, v2, v3, v4, v5, vt1, vt2, vt3, vt4, vt5,
-                     current_texture_index, current_material_index, apply_texture);
+                     shift, scale, v1, v2, v3, v4, v5, 0, 0, 0, 0, 0,
+                     0, current_material_index, false);
                }
             }
             else {
@@ -947,6 +960,8 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
    printf("\r%s successfully loaded:\n", file_name);
    printf("%u vertices, %u polygons (%u triangles, %u quads)\n",
       number_of_vertices, number_of_polygons, number_of_triangles, number_of_quads);
+   printf("Dimensions: (x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf])\n",
+      min_x, max_x, min_y, max_y, min_z, max_z);
    fflush(stdout);
 
    return true;
