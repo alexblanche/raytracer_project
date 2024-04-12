@@ -566,8 +566,8 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
    unsigned int number_of_polygons = 0;
 
    /* Max dimensions */
-   double min_x, min_y, min_z = infinity;
-   double max_x, max_y, max_z = -infinity;
+   double min_x = infinity, min_y = infinity, min_z = infinity;
+   double max_x = -infinity, max_y = -infinity, max_z = -infinity;
 
    /* Bounding containers
       content will contain the polygons of a group before being placed in a bounding,
@@ -962,6 +962,12 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
       number_of_vertices, number_of_polygons, number_of_triangles, number_of_quads);
    printf("Dimensions: (x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf])\n",
       min_x, max_x, min_y, max_y, min_z, max_z);
+   if (scale != 1 || not (shift == rt::vector(0,0,0))) {
+      printf("Rescaled/shifted dimensions: (x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf])\n",
+         shift.x + scale * min_x, shift.x + scale * max_x,
+         shift.y + scale * min_y, shift.y + scale * max_y,
+         shift.z + scale * min_z, shift.z + scale * max_z);   
+   }
    fflush(stdout);
 
    return true;

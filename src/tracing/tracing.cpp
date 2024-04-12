@@ -47,7 +47,7 @@ void update_accumulators(const material& m, const object*& obj, const rt::vector
 void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& normal,
     const bool inward, const bool outward_bias) {
 
-    r.set_origin(hit_point + ((inward == outward_bias) ? 0.001*normal : (-0.001)*normal));
+    r.set_origin(hit_point + ((inward == outward_bias) ? 1.0E-6*normal : (-1.0E-6)*normal));
 }
 
 
