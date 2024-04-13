@@ -18,9 +18,10 @@
 numeric_limits<double> realclu;
 const double infinity = realclu.infinity();
 
+#define MAX_NUMBER_OF_ITERATIONS 10
+
 #define MIN_NUMBER_OF_POLYGONS_FOR_BOX 5
 #define CARDINAL_OF_BOX_GROUP 3
-#define MAX_NUMBER_OF_ITERATIONS 10
 #define DISPLAY_KMEANS false
 
 // Macros for parallel k_means

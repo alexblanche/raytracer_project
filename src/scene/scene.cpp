@@ -89,7 +89,7 @@ unsigned int get_material(FILE* file, std::vector<string>& mat_names, std::vecto
         fseek(file, position, SEEK_SET);
 
         // material variable name
-        char vname[64];
+        char vname[65];
         const int ret = fscanf(file, "%64s\n", vname);
         
         if (ret != 1) {

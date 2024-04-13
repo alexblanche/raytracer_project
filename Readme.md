@@ -40,7 +40,7 @@ Install the SDL2 library, then create a folder ```build``` at the root, move to 
 ``````
 $ cmake ..
 $ make
-$ .\main 5
+$ ./main 5
 ``````
 
 See command-line arguments and scene descriptor syntax in ``User-guide.md``.  

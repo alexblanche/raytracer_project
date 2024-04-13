@@ -20,8 +20,10 @@ class camera {
         rt::vector to_the_bottom;
 
         /* World space dimensions of the field of view: width and height */
-        double fov_w;
-        double fov_h;
+        /* Unused: only the pre-computed mhalf_fovw, mhalf_fovh */
+        /* double fov_w;
+        double fov_h; */
+        
         /* World space distance to the screen */
         double distance;
 

@@ -13,8 +13,7 @@ camera::camera(const rt::vector& origin, const rt::vector& direction, const rt::
     const int width, const int height)
 
     : origin(origin), direction(direction.unit()), to_the_right(to_the_right.unit()),
-      to_the_bottom((direction ^ to_the_right).unit()),
-      fov_w(fov_w), fov_h(fov_h), distance(dist),
+      to_the_bottom((direction ^ to_the_right).unit()), distance(dist),
       di(fov_w / ((double) width)), dj(fov_h / ((double) height)),
       mhalf_fovw(-fov_w/2), mhalf_fovh(-fov_h/2),
       focal_length(-1), aperture(-1), depth_of_field_enabled(false) {}
@@ -25,8 +24,7 @@ camera::camera(const rt::vector& origin, const rt::vector& direction, const rt::
     const double& focal_length, const double& aperture)
 
     : origin(origin), direction(direction.unit()), to_the_right(to_the_right.unit()),
-      to_the_bottom((direction ^ to_the_right).unit()),
-      fov_w(fov_w), fov_h(fov_h), distance(dist),
+      to_the_bottom((direction ^ to_the_right).unit()), distance(dist),
       di(fov_w / ((double) width)), dj(fov_h / ((double) height)),
       mhalf_fovw(-fov_w/2), mhalf_fovh(-fov_h/2),
       focal_length(focal_length), aperture(aperture), depth_of_field_enabled(true) {}
