@@ -153,7 +153,7 @@ When the source files are rtdata files ``source1.rtdata``, ..., ``sourcen.rtdata
 
 ## Postprocessing <a name="post"></a>
 
-The postprocessing glow effect can be applied to raw data files with the ``postprocess`` executable, which can be compiled with ``make postprocess``. It generates an output bmp image.
+The postprocessing glow effect can be applied to raw data files with the ``postprocess`` executable, which can be compiled with ``make postprocess``. It generates an output bmp image. A threshold can be specified to only affect lights of a certain minimum brightness (the threshold cannot be lower than 4), and a glow intensity parameter can also be specified.
 The syntax is the following:  
-``./postprocess source.rtdata dest.bmp``  
-When the source file is ``source.rtdata`` and the destination file is ``dest.bmp``.
+``./postprocess -threshold 10 -glow 3 source.rtdata dest.bmp``  
+When the source file is ``source.rtdata`` and the destination file is ``dest.bmp``. The ``-threshold`` and ``-glow`` arguments are optional.
