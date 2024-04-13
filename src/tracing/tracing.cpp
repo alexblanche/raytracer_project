@@ -135,11 +135,25 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
 
         if (h.object_hit()) {
             const object* obj = h.get_object();
-            material m = scene.material_set.at(obj->get_material_index());
+            const material m = scene.material_set.at(obj->get_material_index());
 
             /* Full-intensity light source reached */
             if (m.get_emission_intensity() >= 1) {
-                return (color_materials * (m.get_emitted_color() * m.get_emission_intensity())) + emitted_colors;
+
+                if (obj->is_textured()) {
+                    // Only polygons (triangles and quads) can be textured (for now)
+                    double l1, l2;
+                    const bool lower_triangle = static_cast<const polygon*>(obj)->get_barycentric(h.get_point(), l1, l2);
+                    return
+                        (color_materials *
+                            (static_cast<const polygon*>(obj)->info.get_texture_color(l1, l2, lower_triangle, scene.texture_set)
+                                * m.get_emission_intensity())
+                        )
+                        + emitted_colors;
+                }
+                else {
+                    return (color_materials * (m.get_emitted_color() * m.get_emission_intensity())) + emitted_colors;
+                }                
             }
 
             /* The ray can either be transmitted (and refracted) through the surface,

@@ -1,5 +1,5 @@
-resolution width:1920 height:1080
-camera position:(-0.15, 0.4, 2.5) direction:(0, -0.125, -1) rightdir:(1, 0, 0) fov_width:0.05 distance:0.15 focal_distance:2.8 aperture:0.006
+resolution width:800 height:400
+camera position:(-0.15, 0.36, 2.5) direction:(0, -0.1, -1) rightdir:(1, 0, 0) fov_width:0.05 distance:0.15 focal_distance:2.4 aperture:0.008
 background_color 190 235 255
 polygons_per_bounding 3
 
@@ -20,7 +20,7 @@ polygons_per_bounding 3
 # plane normal:(0,1,0) position:(0, -0.000005, 0) material:(color:(88, 57, 39) emitted_color:(0, 0, 0) reflectivity:0.8 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 load_texture wooden_table ../../../raytracer_project/texture_assets/wooden_table.bmp
 material wood (color:(88, 57, 39) emitted_color:(0, 0, 0) reflectivity:0.8 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-quad (-2, -0.000005, -1) (-2, -0.000005, 1) (2, -0.000005, 1) (2, -0.000005, -1) material:wood texture:(wooden_table (0,0) (0,1) (1,1) (1,0))
+quad (-0.75, -0.000005, -1) (-0.75, -0.000005, 1) (0.45, -0.000005, 1) (0.45, -0.000005, -1) material:wood texture:(wooden_table (1,0) (0,0) (0,1) (1,1))
 
 # Models
 load_obj ../../../raytracer_project/3d_models/glasses/wine_glass2_1.obj (texture:none shift:(0, 0, 0.2) scale:1.295)
@@ -31,7 +31,7 @@ load_obj ../../../raytracer_project/3d_models/glasses/whiskey_glass.obj (texture
 # pitcher.obj (11216 vertices, 17946 polygons (13460 triangles, 4486 quads)) (x: [-0.068263; 0.137107]; y: [0.000000; 0.200754]; z: [-0.068263; 0.068263]) (real ~25.7cm tall)
 # whiskey_glass.obj (5202 vertices, 6138 polygons (1868 triangles, 4270 quads)) (x: [-0.701641; 0.701641]; y: [-0.429850; 0.765331]; z: [-0.703608; 0.703608]) (real ~9.5cm tall)
 
-# Lamp
+# Lamps
 material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 # quad (-4, 0.01, 10) (-4, 0.01, 0) (4, 0.01, 0) (4, 0.01, 10) material:white_light
 
@@ -45,13 +45,13 @@ material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflec
 
 # quad (-4, 1, -3) (-4, 1, -4) (-2, 1, -4) (-2, 1, -3) material:white_light
 
-# material orange_light (color:(255, 255, 255) emitted_color:(255, 80, 10) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# sphere center:(-0.5, 10, -20) radius:5 material:orange_light
+# Sun
+# material sunlight (color:(255, 255, 255) emitted_color:(255, 251, 211) reflectivity:0 emission:10000 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+# quad (4, 5, 0) (4, 1, 0) (4, 1, -3) (4, 5, -3) material:white_light
+# sphere center:(45,10,-220) radius:10 material:sunlight
 
-# Lamp
-quad (4, 5, 0) (4, 1, 0) (4, 1, -3) (4, 5, -3) material:white_light
 # Ceiling
 # plane normal:(0,1,0) position:(0, 10, 0) material:(color:(88, 57, 39) emitted_color:(0, 0, 0) reflectivity:0.8 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
 load_texture landscape ../../../raytracer_project/texture_assets/landscape.bmp
-quad (-5, 1, -20) (-5, -3, -20) (5, -3, -20) (5, 1, -20) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(landscape (0, 0) (0, 1) (1, 1) (1, 0))
+quad (-50, 10, -250) (-50, -30, -250) (50, -30, -250) (50, 10, -250) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0 emission:10 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(landscape (0, 0) (0, 1) (1, 1) (1, 0))

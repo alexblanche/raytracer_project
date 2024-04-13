@@ -20,7 +20,7 @@ const double infinity = realclu.infinity();
 
 #define MIN_NUMBER_OF_POLYGONS_FOR_BOX 5
 #define CARDINAL_OF_BOX_GROUP 3
-#define MAX_NUMBER_OF_ITERATIONS 100
+#define MAX_NUMBER_OF_ITERATIONS 10
 #define DISPLAY_KMEANS false
 
 // Macros for parallel k_means
