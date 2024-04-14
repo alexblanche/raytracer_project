@@ -10,8 +10,9 @@ The project currently handles polygon meshes (composed of triangles and quads fo
 
 Current state:
 
-![Screen](pictures/Porsche_2016_neon_1000rpp.jpg) 
-![Screen](pictures/stool_HD.jpg)
+![Screen](pictures/porsche_glow.jpg) 
+![Screen](pictures/glasses_520_glow.jpg) 
+![Screen](pictures/stool_HD_1000.jpg) 
 Models found at [free3d.com](https://free3d.com/fr/3d-model/wood-stool-303532.html) and [CGTrader.com](https://www.cgtrader.com/free-3d-models/car/sport-car/2016-porsche-911-turbo).  
 
 Next steps:  
