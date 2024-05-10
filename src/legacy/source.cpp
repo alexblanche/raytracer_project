@@ -54,6 +54,8 @@ rt::color source::apply_obj(const hit& h, const vector<const object*>& obj_set) 
     }
     //printf("\n");
 
+
+    /* Change to legacy_object and do simplified versions, with color instead of material */
     const rt::color hit_color = h.get_object()->get_material().get_color();
 
     /* normal is oriented outward the object, and position - h.get_point() is oriented toward the light source,

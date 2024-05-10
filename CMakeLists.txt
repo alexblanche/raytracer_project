@@ -82,3 +82,19 @@ add_executable(${glow}
 	src/file_readers/bmp_reader.cpp
 	src/postprocess/glow.cpp
 )
+
+# Legacy raytracer (first version, 2014)
+add_executable(legacy_raytracer
+	src/screen/color.cpp
+	src/screen/image.cpp
+	src/screen/screen.cpp
+	src/light/hit.cpp
+	src/light/ray.cpp
+	src/light/vector.cpp
+	src/scene/objects/plane.cpp
+	src/scene/objects/sphere.cpp
+	src/legacy/source.cpp
+	src/legacy/raytracing/application.cpp
+	src/legacy/raytracing/tracing.cpp
+	src/legacy/legacy.cpp
+)
