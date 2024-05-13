@@ -655,22 +655,22 @@ scene::scene(const char* file_name, bool& creation_successful)
 
 scene::~scene() {
     /* Destruction of the objects located on the heap */
-    for (unsigned int i = 0; i < object_set.size(); i++) {
-        delete(object_set.at(i));
+    for (const object* obj : object_set) {
+        delete(obj);
     }
 
     /* Recursive destruction of the bounding boxes */
     std::stack<const bounding*> bd_stack;
-    for (unsigned int i = 0; i < bounding_set.size(); i++) {
-        bd_stack.push(bounding_set.at(i));
+    for (const bounding* bd : bounding_set) {
+        bd_stack.push(bd);
     }
     while (not bd_stack.empty()) {
         const bounding* bd = bd_stack.top();
         bd_stack.pop();
 
         std::vector<const bounding*> bd_children = bd->get_children();
-        for (unsigned int i = 0; i < bd_children.size(); i++) {
-            bd_stack.push(bd_children.at(i));
+        for (const bounding* bd : bd_children) {
+            bd_stack.push(bd);
         }
         delete(bd);
     }
@@ -725,8 +725,8 @@ hit scene::find_closest_object_bounding(ray& r) const {
     std::stack<const bounding*> bounding_stack;
 
     /* Pass through the set of first-level bounding boxes */
-    for (unsigned int i = 0; i < bounding_set.size(); i++) {
-        bounding_set.at(i)->check_box(r, distance_to_closest, closest_obj, bounding_stack);
+    for (const bounding* bd : bounding_set) {
+        bd->check_box(r, distance_to_closest, closest_obj, bounding_stack);
     }
 
     /* In order to avoid pushing and then immediately popping an element from bounding_stack,

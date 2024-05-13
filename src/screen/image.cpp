@@ -9,8 +9,7 @@ namespace rt {
 	 * only by inheriting classes. It is forbidden to
 	 * build an image without at least its dimensions.
 	 */
-	image::image() {
-	}
+	image::image() {}
 
 
 	/**

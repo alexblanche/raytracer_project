@@ -47,16 +47,16 @@ rt::color source::apply_obj(const hit& h, const std::vector<const object*>& obj_
 
     /* normal is oriented outward the object, and position - h.get_point() is oriented toward the light source,
        so cos_hit < 0 means the object is on the far side, cos_hit > 0 means the light hits the object. */
-    double cos_hit = (h.get_normal() | (h.get_point() - position).unit());
+    const double cos_hit = (h.get_normal() | (position - h.get_point()).unit());
 
     if (cos_hit < 0) {
         // The point is on the far side of the object
         return rt::color::BLACK;
     }
     else {
-        const unsigned char r = (color.get_red()   * hit_color.get_red())   * cos_hit / 255 ;
-        const unsigned char g = (color.get_green() * hit_color.get_green()) * cos_hit / 255 ;
-        const unsigned char b = (color.get_blue()  * hit_color.get_blue())  * cos_hit / 255 ;
+        const double r = (color.get_red()   * hit_color.get_red())   * cos_hit / 255 ;
+        const double g = (color.get_green() * hit_color.get_green()) * cos_hit / 255 ;
+        const double b = (color.get_blue()  * hit_color.get_blue())  * cos_hit / 255 ;
         return rt::color(r, g, b);
     }    
 }
