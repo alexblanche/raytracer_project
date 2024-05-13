@@ -77,7 +77,7 @@ void render_loop_parallel_time(vector<vector<rt::color>>& matrix,
     mutex m;
     float cpt = 0;
     float x = 100.0 / (((double) scene.width) * ((double) scene.height));
-    time_t t_init=time(NULL);
+    const long int t_init = time(NULL);
 
     PARALLEL_FOR_BEGIN(scene.width) {
 

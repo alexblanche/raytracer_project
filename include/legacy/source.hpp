@@ -2,9 +2,8 @@
 
 #include "light/vector.hpp"
 #include "screen/color.hpp"
-
-#include "light/hit.hpp"
-#include "scene/objects/object.hpp"
+#include "legacy/light/hit.hpp"
+#include "legacy/objects/object.hpp"
 
 class source {
     private:
@@ -12,6 +11,9 @@ class source {
         rt::color color;
 
     public:
-        rt::color apply_obj(const hit& h, const vector<const object*>& obj_set) const;
+        source();
 
+        source(const rt::vector& position, const rt::color& color);
+
+        rt::color apply_obj(const hit& h, const vector<const object*>& obj_set) const;
 };

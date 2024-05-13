@@ -1,5 +1,4 @@
 /*** Legacy raytracer (2014) ***/
-/* Work in progress */
 
 #include <iostream>
 #include <fstream>
@@ -9,19 +8,11 @@
 #include "screen/color.hpp"
 #include "screen/screen.hpp"
 
-/*
-#include "src/light/headers/vector.hpp"
-#include "src/light/headers/hit.hpp"
-*/
-
 #include "legacy/source.hpp"
 #include "light/ray.hpp"
 
-/*
-#include "src/objects/headers/object.hpp"
-*/
-#include "objects/sphere.hpp"
-#include "objects/plane.hpp"
+#include "legacy/objects/sphere.hpp"
+#include "legacy/objects/plane.hpp"
 
 #include "parallel/parallel.h"
 #ifdef __unix__
@@ -32,10 +23,13 @@
 
 #include "legacy/raytracing/tracing.hpp"
 
+#include <ctime>
+#include <chrono>
+
 using namespace std;
 
 // Parallel for-loop macros
-#define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](int start, int end){ for(int i = start; i < end; ++i)
+#define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](int start, int end){ for(int i = start; i < end; i++)
 #define PARALLEL_FOR_END()})
 
 
@@ -45,36 +39,22 @@ using namespace std;
 
 void render_loop_seq(const rt::screen& scr, const int width, const int height, const double dist,
     const rt::vector& screen_center, const vector<const object*>& obj_set, const vector<source>& light_set) {
-    
-    rt::color pixel_col;
-    rt::vector direct(0, 0, 0);
 
-    // Progress bar
-    printf("[..................................................]\r[");
-    int pct = 0;
-    int newpct = 0;
+    for (int i = 0; i < width; i++) {
+        for (int j = 0; j < height; j++) {
 
-    for (int i = 0; i < width; i++) { // i is the abscissa
-        for (int j = 0; j < height; j++) { //j is the ordinate
+        // const int i = width / 2;
+        // const int j = height / 2;
 
-            direct = rt::vector(i, j, dist) - screen_center;
-            ray r = ray(rt::vector(0, 0, 0), direct.unit(), rt::color::WHITE);
+            rt::vector direct = rt::vector(i, j, dist) - screen_center;
+            ray r = ray(rt::vector(0, 0, 0), direct.unit());
 
-            //pixel_col = raycast(*r, obj_set);
-            pixel_col = raytrace(r, obj_set, light_set);
+            //rt::color pixel_col = raycast(r, obj_set);
+            rt::color pixel_col = raytrace(r, obj_set, light_set);
 
             scr.set_pixel(i, j, pixel_col);
         }
-
-        // Progress bar
-        newpct = 50*(i+1) / width;
-        if (newpct > pct) {
-            pct = newpct;
-            printf("I");
-        }
     }
-    
-    printf("\n");
 }
 
 
@@ -85,41 +65,21 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
     
     std::mutex m;
 
-    // Progress bar
-    /*
-    printf("[..................................................]\r[");
-    int cpt = 0;
-    int pct = 0;
-    int newpct = 0;
-    */
-
     PARALLEL_FOR_BEGIN(width) {
-        rt::vector direct;
-        rt::color pixel_col;
 
         for (int j = 0; j < height; j++) {
 
-            direct = rt::vector(i, j, dist) - screen_center;
-            ray r = ray(rt::vector(0, 0, 0), direct.unit(), rt::color::WHITE);
+            rt::vector direct = rt::vector(i, j, dist) - screen_center;
+            ray r = ray(rt::vector(0, 0, 0), direct.unit());
 
-            // pixel_col = raycast(*r, obj_set);
-            pixel_col = raytrace(r, obj_set, light_set);
+            //rt::color pixel_col = raycast(r, obj_set);
+            rt::color pixel_col = raytrace(r, obj_set, light_set);
 
             m.lock();
             scr.set_pixel(i, j, pixel_col);
             m.unlock();
         }
-        
-        // Progress bar
-        /*m.lock();
-        cpt++;
-        newpct = 50*(cpt+1) / width;
-        if (newpct > pct) {
-            pct = newpct;
-            printf("I");
-        }
-        m.unlock();
-        */
+
     } PARALLEL_FOR_END();
 }
 
@@ -132,7 +92,7 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
 /* ********* MAIN FUNCTION ********* */
 
 
-int main(int argc, char *argv[]) {
+int main(int /*argc*/, char **/*argv*/) {
 
     const rt::color my_red(230, 15, 15);
     const rt::color my_green(15, 230, 15);
@@ -144,42 +104,32 @@ int main(int argc, char *argv[]) {
 
     /* Orientation of the space:
     negative x on the left, positive on the right
-    negative y on the top,  positive on the bottom (Be careful!!!)
+    negative y on the top,  positive on the bottom
     negative z behind the camera, positive in front of it
     */
 
     /* *************************** */
     /* Scene description */
 
-    unsigned int obj_counter = 0;
-
     // Spheres
 
     // Sphere 00
-    const sphere sph0(rt::vector(-400,0,1000), 240, rt::color::WHITE, obj_counter++);
+    const sphere sph0(rt::vector(-400,0,1000), 240, rt::color::WHITE);
     // Sphere 1
-    const sphere sph1(rt::vector( 400,0,1000), 240, rt::color::WHITE, obj_counter++);
-
-    // Array of the spheres in the scene
-    //vector<sphere> sphere_set {sph0, sph1};
-
-    /* *************************** */
+    const sphere sph1(rt::vector( 400,0,1000), 240, rt::color::WHITE);
 
     // Planes
 
     // Plane 0
-    const plane pln0(0, 1, 0, rt::vector(0, 240, 0), rt::color::WHITE, obj_counter++);
+    const plane pln0(0, 1, 0, rt::vector(0, 240, 0), rt::color::WHITE);
     // Plane 1
-    const plane pln1(0, 0, 1, rt::vector(0, 0, 2000), rt::color::WHITE, obj_counter++);
-
-    // Array of the planes in the scene
-    //vector<plane> plane_set {pln0, pln1};
+    const plane pln1(0, 0, 1, rt::vector(0, 0, 2000), rt::color::WHITE);
 
     /* Object set */
     /* Storing pointers allow the overridden methods send and intersect (from sphere, plane)
        to be executed instead of the base (object) one */
+    //const vector<const object*> obj_set {/*&sph0, &sph1,*/ &pln0, &pln1};
     const vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1};
-    
 
 
     /* *************************** */
@@ -207,8 +157,22 @@ int main(int argc, char *argv[]) {
     
     const rt::screen scr(width, height);
 
+    const long int t_init =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()
+        ).count();
+
     render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set);
     //render_loop_parallel(scr, width, height, dist, screen_center, obj_set, light_set);
+
+    const long int curr_t =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()
+        ).count();
+
+    const long int elapsed = curr_t - t_init;
+    
+    printf("%ld ms\n", elapsed);
     
     scr.update();
 
@@ -216,9 +180,3 @@ int main(int argc, char *argv[]) {
 
     return EXIT_SUCCESS;
 }
-
-/* Time for 1366x768 (in s):
-Seq:        8.12    8.37    8.35
-Parallel:   2.17    2.17    2.37
-Result: 3.7 times faster!
-*/
