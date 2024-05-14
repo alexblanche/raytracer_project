@@ -7,6 +7,7 @@ add_compile_options(-g -Wall -Wextra -Werror -O3)
 add_compile_options(-fdiagnostics-color)
 add_compile_options(-march=native)
 add_compile_options(-ffast-math)
+add_compile_options(-ltbb)
 
 # -I include/
 include_directories(include/)
@@ -16,6 +17,9 @@ set(SDL2_NO_MWINDOWS 1)
 
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
+
+find_package(TBB REQUIRED)
+include_directories(${TBB_INCLUDE_DIRS})
 
 # libmyraytracer.so
 set (libname raytracer)
@@ -104,6 +108,7 @@ add_executable(${legacy}
 
 target_link_libraries(${legacy}
 	${SDL2_LIBRARIES}
+	TBB::tbb
 )
 
 target_include_directories(${legacy}

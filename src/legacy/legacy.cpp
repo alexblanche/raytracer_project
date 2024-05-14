@@ -24,10 +24,16 @@
 #include <numeric>
 #include <execution>
 
+
 // Parallel for-loop macros
 #define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](int start, int end){ for(int i = start; i < end; i++)
 #define PARALLEL_FOR_END()})
 
+long int get_time () {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()
+        ).count();
+}
 
 /* ********** Render loop ********** */
 
@@ -36,6 +42,8 @@
 void render_loop_seq(const rt::screen& scr, const int width, const int height, const double& dist,
     const rt::vector& screen_center, const std::vector<const object*>& obj_set, const std::vector<source>& light_set) {
 
+    const long int init_time = get_time();
+    
     for (int i = 0; i < width; i++) {
         for (int j = 0; j < height; j++) {
 
@@ -47,6 +55,10 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
             scr.set_pixel(i, j, pixel_col);
         }
     }
+
+    const long int curr_time = get_time();
+    printf("Seq: %ld ms\n", curr_time - init_time);
+    fflush(stdout);
 }
 
 
@@ -55,6 +67,8 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
 void render_loop_parallel(const rt::screen& scr, const int width, const int height, const double& dist,
     const rt::vector& screen_center, const std::vector<const object*>& obj_set, const std::vector<source>& light_set) {
     
+    const long int init_time = get_time();
+
     std::mutex m;
 
     PARALLEL_FOR_BEGIN(width) {
@@ -81,33 +95,30 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
         m.unlock();
 
     } PARALLEL_FOR_END();
+
+    const long int curr_time = get_time();
+    printf("Parallel: %ld ms\n", curr_time - init_time);
+    fflush(stdout);
 }
 
 /* STL version */
-void render_loop_stl(const rt::screen& scr, const int width, const int height, const double& dist,
-    const rt::vector& screen_center, const std::vector<const object*>& obj_set, const std::vector<source>& light_set) {
+/* Requires package libtbb-dev */
+void render_loop_stl(const rt::screen& scr, const int width, const int height, /*const double& dist,
+    const rt::vector& screen_center, const std::vector<const object*>& obj_set, const std::vector<source>& light_set,*/
+    const std::vector<int>& indices, const std::function< rt::color(int const&) >& trace) {
 
-    auto trace = [&width, &dist, &screen_center, &obj_set, &light_set] (int const& i) {
-        const rt::vector direct = rt::vector(i % width, i / width, dist) - screen_center;
-        ray r = ray(rt::vector(0, 0, 0), direct.unit());
-        return raytrace(r, obj_set, light_set);
-    };
-    
-    std::vector<int> indices(width * height);
-    std::iota(indices.begin(), indices.end(), 0);
+    const long int init_time = get_time();
 
     std::vector<rt::color> data(width * height);
-    std::transform(std::execution::par, indices.begin(), indices.end(), data.begin(), trace);
+    std::transform(std::execution::par_unseq, indices.begin(), indices.end(), data.begin(), trace);
 
     for(int i = 0; i < width * height; i++) {
         scr.set_pixel(i % width, i / width, data.at(i));
     }
-}
 
-long int get_time () {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch()
-        ).count();
+    const long int curr_time = get_time();
+    printf("STL: %ld ms\n", curr_time - init_time);
+    fflush(stdout);
 }
         
 
@@ -180,17 +191,57 @@ int main(int /*argc*/, char **/*argv*/) {
     const rt::vector screen_center(width/2, height/2, 0);
     
     const rt::screen scr(width, height);
+    scr.update();
 
-    const long int time_init = get_time();
+    /* Benchmark */
+
+    /* Sequential */
+    const long int seq_time_init = get_time();
+    for (unsigned int i = 0; i < 10; i++) {
+        render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set);
+        scr.update();
+    }
+    const long int seq_curr_time = get_time();
+    printf("Total Seq time: %ld ms\n", seq_curr_time - seq_time_init);
+    fflush(stdout);
+
+    /* STL */
+    std::vector<int> indices(width * height);
+    std::iota(indices.begin(), indices.end(), 0);
+    const auto trace = [&width, &dist, &screen_center, &obj_set, &light_set] (int const& i) {
+        const rt::vector direct = rt::vector(i % width, i / width, dist) - screen_center;
+        ray r = ray(rt::vector(0, 0, 0), direct.unit());
+        return raytrace(r, obj_set, light_set);
+    };
+
+    const long int stl_time_init = get_time();
+    for (unsigned int i = 0; i < 10; i++) {
+        render_loop_stl(scr, width, height, /*dist, screen_center, obj_set, light_set,*/ indices, trace);
+        scr.update();
+    }
+    const long int stl_curr_time = get_time();
+    printf("Total STL time: %ld ms\n", stl_curr_time - stl_time_init);
+    fflush(stdout);
+
+    /* Parallel */
+    const long int par_time_init = get_time();
+    for (unsigned int i = 0; i < 10; i++) {
+        render_loop_parallel(scr, width, height, dist, screen_center, obj_set, light_set);
+        scr.update();
+    }
+    const long int par_curr_time = get_time();
+    printf("Total Parallel time: %ld ms\n", par_curr_time - par_time_init);
+    fflush(stdout);
+
+    // const long int time_init = get_time();
 
     //render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set);
     //render_loop_parallel(scr, width, height, dist, screen_center, obj_set, light_set);
-    render_loop_stl(scr, width, height, dist, screen_center, obj_set, light_set);
+    // render_loop_stl(scr, width, height, dist, screen_center, obj_set, light_set);
 
-    const long int curr_time = get_time();
-    
-    printf("%ld ms\n", curr_time - time_init);
-    fflush(stdout);
+    // const long int curr_time = get_time();
+    // printf("%ld ms\n", curr_time - time_init);
+    // fflush(stdout);
     
     scr.update();
 

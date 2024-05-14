@@ -40,6 +40,46 @@ using namespace std;
 
 /* ********** Render loop ********** */
 
+/* Sequential version */
+void render_loop_seq(vector<vector<rt::color>>& matrix,
+    scene& scene, const unsigned int number_of_bounces) {
+
+    for (int i = 0; i < scene.width; i++) {
+        for (int j = 0; j < scene.height; j++) {
+
+            ray r = scene.cam.depth_of_field_enabled ?
+                  scene.cam.gen_ray_dof(i, j, scene.rg)
+                : scene.cam.gen_ray_normal(i, j, ANTI_ALIASING, scene.rg);
+            const rt::color pixel_col = pathtrace(r, scene, number_of_bounces);
+
+            // Updating the color matrix
+            matrix.at(i).at(j) = matrix.at(i).at(j) + pixel_col;
+        }
+    }
+}
+
+/* Experimental STL version */
+/* Sequential version */
+void render_loop_stl(vector<vector<rt::color>>& matrix,
+    scene& scene, const unsigned int number_of_bounces) {
+
+    return;
+    // TODO
+    // for (int i = 0; i < scene.width; i++) {
+    //     for (int j = 0; j < scene.height; j++) {
+
+    //         ray r = scene.cam.depth_of_field_enabled ?
+    //               scene.cam.gen_ray_dof(i, j, scene.rg)
+    //             : scene.cam.gen_ray_normal(i, j, ANTI_ALIASING, scene.rg);
+    //         const rt::color pixel_col = pathtrace(r, scene, number_of_bounces);
+
+    //         // Updating the color matrix
+    //         matrix.at(i).at(j) = matrix.at(i).at(j) + pixel_col;
+    //     }
+    // }
+}
+
+
 /* Main render loop */
 void render_loop_parallel(vector<vector<rt::color>>& matrix,
     scene& scene, const unsigned int number_of_bounces) {
