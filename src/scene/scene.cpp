@@ -661,7 +661,7 @@ scene::~scene() {
 
     /* Recursive destruction of the bounding boxes */
     std::stack<const bounding*> bd_stack;
-    for (const bounding* bd : bounding_set) {
+    for (const bounding* const& bd : bounding_set) {
         bd_stack.push(bd);
     }
     while (not bd_stack.empty()) {
@@ -669,7 +669,7 @@ scene::~scene() {
         bd_stack.pop();
 
         std::vector<const bounding*> bd_children = bd->get_children();
-        for (const bounding* bd : bd_children) {
+        for (const bounding* const& bd : bd_children) {
             bd_stack.push(bd);
         }
         delete(bd);
@@ -725,7 +725,7 @@ hit scene::find_closest_object_bounding(ray& r) const {
     std::stack<const bounding*> bounding_stack;
 
     /* Pass through the set of first-level bounding boxes */
-    for (const bounding* bd : bounding_set) {
+    for (const bounding* const& bd : bounding_set) {
         bd->check_box(r, distance_to_closest, closest_obj, bounding_stack);
     }
 

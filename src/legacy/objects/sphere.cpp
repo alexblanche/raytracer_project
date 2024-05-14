@@ -46,19 +46,11 @@ double sphere::measure_distance(const ray& r) const {
         /* Two solutions: t1 = dv - sqrt(delta) and t2 = dv + sqrt(delta),
            If t1 >= 0, this means the ray originates from outside the sphere
            and the sphere is in front of the origin, and thus t1 is returned,
-           If t1 < 0 and t2 >= 0, this means the ray originates from inside the sphere,
-           and t2 is returned.
+           If t1 < 0 and t2 >= 0, this means the ray originates from inside the sphere.
            Otherwise, t1 < 0 and t2 < 0 means the sphere is behind the ray and is not hit. */
-        
-        const double sqrtdelta = sqrt(delta);
-        const double t1 = dv - sqrtdelta;
-        if (t1 >= 0) {
-            return t1;
-        }
-        else {
-            const double t2 = dv + sqrtdelta;
-            return (t2 >= 0) ? t2 : infinity;
-        }
+    
+        const double t1 = dv - sqrt(delta);
+        return (t1 >= 0) ? t1 : infinity;
     }
     else {
         return infinity;
@@ -74,6 +66,6 @@ hit sphere::compute_intersection(ray& r, const double& t) const {
     const rt::vector n = (p - position) / radius;
     
     const object* pt_obj = this;
-    ray* pt_ray = &r;
-    return hit(pt_ray, p, n, pt_obj);
+    
+    return hit(p, n, pt_obj);
 }

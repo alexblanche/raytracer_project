@@ -18,7 +18,6 @@ class object;
 
 class hit {
     private:
-        ray* generator;
         rt::vector point;
         rt::vector normal;
         const object* hit_object;
@@ -26,7 +25,7 @@ class hit {
 
     public:
         /* Main constructor */
-        hit(ray*& generator, const rt::vector& point, const rt::vector& normal, const object*& hit_object);
+        hit(const rt::vector& point, const rt::vector& normal, const object*& hit_object);
 
 
         /* Default constructor */

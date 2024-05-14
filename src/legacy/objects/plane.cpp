@@ -90,6 +90,6 @@ hit plane::compute_intersection(ray& r, const double& t) const {
     // The normal vector (a, b, c) is assumed to be a unit vector
 
     const object* pt_obj = this;
-    ray* pt_ray = &r;
-    return hit(pt_ray, p, get_normal(), pt_obj);
+
+    return hit(p, get_normal(), pt_obj);
 }

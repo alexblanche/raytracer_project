@@ -14,8 +14,8 @@
 /* Constructors */
 
 /* Main constructor */
-hit::hit(ray*& generator, const rt::vector& point, const rt::vector& normal, const object*& hit_object)
-    : generator(generator), point(point), normal(normal), hit_object(hit_object), is_hit_bool(true) {}
+hit::hit(const rt::vector& point, const rt::vector& normal, const object*& hit_object)
+    : point(point), normal(normal), hit_object(hit_object), is_hit_bool(true) {}
 
 
 /* Default constructor */

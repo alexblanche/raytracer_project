@@ -33,10 +33,10 @@ rt::color source::apply_obj(const hit& h, const std::vector<const object*>& obj_
     const ray reflected_ray(h.get_point(), to_the_light.unit());
 
     // Looking for an intersection with an object
-    for (const object* obj : obj_set) {
+    for (const object* const& obj : obj_set) {
         const double d = obj->measure_distance(reflected_ray);
 
-        if (d > 0.1 && d <= dist) {
+        if (d > 0.001 && d <= dist) {
             // d<=dist means the light is blocked by some object
             // d==0 when the object of contact is tested
             return rt::color::BLACK;

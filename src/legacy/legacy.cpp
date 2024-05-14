@@ -38,7 +38,6 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
             const rt::vector direct = rt::vector(i, j, dist) - screen_center;
             ray r = ray(rt::vector(0, 0, 0), direct.unit());
 
-            //rt::color pixel_col = raycast(r, obj_set);
             rt::color pixel_col = raytrace(r, obj_set, light_set);
 
             scr.set_pixel(i, j, pixel_col);
@@ -56,24 +55,36 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
 
     PARALLEL_FOR_BEGIN(width) {
 
+        rt::color output[height];
+
         for (int j = 0; j < height; j++) {
 
             const rt::vector direct = rt::vector(i, j, dist) - screen_center;
             ray r = ray(rt::vector(0, 0, 0), direct.unit());
 
-            //rt::color pixel_col = raycast(r, obj_set);
-            rt::color pixel_col = raytrace(r, obj_set, light_set);
+            //rt::color pixel_col = raytrace(r, obj_set, light_set);
+            output[j] = raytrace(r, obj_set, light_set);
 
-            m.lock();
-            scr.set_pixel(i, j, pixel_col);
-            m.unlock();
+            // m.lock();
+            // scr.set_pixel(i, j, pixel_col);
+            // m.unlock();
         }
+
+        m.lock();
+        for(int j = 0; j < height; j++) {
+            scr.set_pixel(i, j, output[j]);
+        }
+        m.unlock();
 
     } PARALLEL_FOR_END();
 }
 
-
-
+long int get_time () {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()
+        ).count();
+}
+        
 
 /* ********************************* */
 /* ********************************* */
@@ -145,22 +156,14 @@ int main(int /*argc*/, char **/*argv*/) {
     
     const rt::screen scr(width, height);
 
-    const long int t_init =
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch()
-        ).count();
+    const long int time_init = get_time();
 
     render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set);
     //render_loop_parallel(scr, width, height, dist, screen_center, obj_set, light_set);
 
-    const long int curr_t =
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch()
-        ).count();
-
-    const long int elapsed = curr_t - t_init;
+    const long int curr_time = get_time();
     
-    printf("%ld ms\n", elapsed);
+    printf("%ld ms\n", curr_time - time_init);
     fflush(stdout);
     
     scr.update();
