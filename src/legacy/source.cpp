@@ -6,6 +6,8 @@
 
 #include <iostream>
 
+#include <algorithm>
+
 /** The source class represents point-shaped light sources,
  * defined by their position and color.
  */
@@ -32,7 +34,8 @@ rt::color source::apply_obj(const hit& h, const std::vector<const object*>& obj_
 
     const ray reflected_ray(h.get_point(), to_the_light.unit());
 
-    // Looking for an intersection with an object
+    // Testing for an intersection with an object
+    /*
     for (const object* const& obj : obj_set) {
         const double d = obj->measure_distance(reflected_ray);
 
@@ -41,6 +44,16 @@ rt::color source::apply_obj(const hit& h, const std::vector<const object*>& obj_
             // d==0 when the object of contact is tested
             return rt::color::BLACK;
         }
+    }
+    */
+    auto it =
+        std::find_if(obj_set.begin(), obj_set.end(),
+            [&reflected_ray, &dist](const object* const& obj) {
+                const double d = obj->measure_distance(reflected_ray);
+                return d > 0.001 && d <= dist;
+            });
+    if (it != obj_set.end()) {
+        return rt::color::BLACK;
     }
 
     const rt::color hit_color = h.get_object()->get_color();

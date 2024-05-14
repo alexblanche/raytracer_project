@@ -20,6 +20,10 @@
 
 #include <chrono>
 
+#include <algorithm>
+#include <numeric>
+#include <execution>
+
 // Parallel for-loop macros
 #define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](int start, int end){ for(int i = start; i < end; i++)
 #define PARALLEL_FOR_END()})
@@ -77,6 +81,27 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
         m.unlock();
 
     } PARALLEL_FOR_END();
+}
+
+/* STL version */
+void render_loop_stl(const rt::screen& scr, const int width, const int height, const double& dist,
+    const rt::vector& screen_center, const std::vector<const object*>& obj_set, const std::vector<source>& light_set) {
+
+    auto trace = [&width, &dist, &screen_center, &obj_set, &light_set] (int const& i) {
+        const rt::vector direct = rt::vector(i % width, i / width, dist) - screen_center;
+        ray r = ray(rt::vector(0, 0, 0), direct.unit());
+        return raytrace(r, obj_set, light_set);
+    };
+    
+    std::vector<int> indices(width * height);
+    std::iota(indices.begin(), indices.end(), 0);
+
+    std::vector<rt::color> data(width * height);
+    std::transform(std::execution::par, indices.begin(), indices.end(), data.begin(), trace);
+
+    for(int i = 0; i < width * height; i++) {
+        scr.set_pixel(i % width, i / width, data.at(i));
+    }
 }
 
 long int get_time () {
@@ -158,8 +183,9 @@ int main(int /*argc*/, char **/*argv*/) {
 
     const long int time_init = get_time();
 
-    render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set);
+    //render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set);
     //render_loop_parallel(scr, width, height, dist, screen_center, obj_set, light_set);
+    render_loop_stl(scr, width, height, dist, screen_center, obj_set, light_set);
 
     const long int curr_time = get_time();
     
@@ -168,7 +194,7 @@ int main(int /*argc*/, char **/*argv*/) {
     
     scr.update();
 
-    while(not scr.wait_quit_event()) {}
+    scr.wait_quit_event();
 
     return EXIT_SUCCESS;
 }

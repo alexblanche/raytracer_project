@@ -8,6 +8,9 @@ const double infinity = real.infinity();
 #include "legacy/raytracing/application.hpp"
 #include <cstddef>
 
+#include <algorithm>
+// #include <execution>
+
 /* Tracing the ray */
 
 /* Test raycasting function:
@@ -43,25 +46,43 @@ rt::color raycast(const ray& r, const std::vector<const object*>& obj_set) {
     and returns the resulting color. */
 rt::color raytrace(ray& r, const std::vector<const object*>& obj_set, const std::vector<source>& light_set) {
 
-    double closest = infinity;
-    const object* closest_obj = NULL;
+    /*
+    // double closest = infinity;
+    // const object* closest_obj = NULL;
 
     // Looking for the closest object
     for (const object* const& obj : obj_set) {
 
         const double d = obj->measure_distance(r);
         
-        /* d is the distance between the origin of the ray and the
-           intersection point with the object */
+        // d is the distance between the origin of the ray and the
+        //    intersection point with the object
 
         if (d < closest) {
             closest = d;
             closest_obj = obj;
         }
     }
+    */
 
+    std::vector<double> distance_to_object(obj_set.size());
+    std::transform(
+        // std::execution::seq,
+        obj_set.begin(), obj_set.end(),
+        distance_to_object.begin(),
+        [&r](const object* const& obj) { return obj->measure_distance(r); }
+    );
+    
+    auto it = std::min_element(
+        // std::execution::seq,
+        distance_to_object.begin(), distance_to_object.end()
+    );
+    const unsigned int index_closest = std::distance(std::begin(distance_to_object), it);
+    const double dist = *it;
+    const object* closest_obj = obj_set.at(index_closest);
+    
     if (closest_obj != NULL) {
-        const hit h = closest_obj->compute_intersection(r, closest);
+        const hit h = closest_obj->compute_intersection(r, dist);
         return apply_lights_obj(h, obj_set, light_set);
     }
     else {
