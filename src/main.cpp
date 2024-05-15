@@ -58,8 +58,7 @@ void render_loop_seq(vector<vector<rt::color>>& matrix,
     }
 }
 
-/* Experimental STL version */
-/* Sequential version */
+/* Experimental STL version *
 void render_loop_stl(vector<vector<rt::color>>& matrix,
     scene& scene, const unsigned int number_of_bounces) {
 
@@ -78,6 +77,7 @@ void render_loop_stl(vector<vector<rt::color>>& matrix,
     //     }
     // }
 }
+*/
 
 
 /* Main render loop */
@@ -88,21 +88,31 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix,
 
     PARALLEL_FOR_BEGIN(scene.width) {
 
+        rt::color output[scene.height];
+
         for (int j = 0; j < scene.height; j++) {
 
             ray r = scene.cam.depth_of_field_enabled ?
                   scene.cam.gen_ray_dof(i, j, scene.rg)
                 : scene.cam.gen_ray_normal(i, j, ANTI_ALIASING, scene.rg);
-            const rt::color pixel_col = pathtrace(r, scene, number_of_bounces);
+            // const rt::color pixel_col = pathtrace(r, scene, number_of_bounces);
             
-            const rt::color current_color = matrix.at(i).at(j);
-            const rt::color new_color = current_color + pixel_col;
+            // const rt::color current_color = matrix.at(i).at(j);
+            // const rt::color new_color = current_color + pixel_col;
+
+            output[j] = pathtrace(r, scene, number_of_bounces);
 
             // Updating the color matrix
-            m.lock();
-            matrix.at(i).at(j) = new_color;
-            m.unlock();
+            // m.lock();
+            // matrix.at(i).at(j) = new_color;
+            // m.unlock();
         }
+
+        m.lock();
+        for(int j = 0; j < scene.height; j++) {
+            matrix.at(i).at(j) = matrix.at(i).at(j) + output[j];
+        }
+        m.unlock();
         
     } PARALLEL_FOR_END();
 }
@@ -200,7 +210,7 @@ int main(int argc, char *argv[]) {
     bool interactive = true;
     unsigned int target_number_of_rays = 0;
 
-    if (argc == 1) {
+    if (argc == 1 || atoi(argv[1]) == 0) {
         printf("Number of bounces: %u (default)\n", number_of_bounces);
     }
     else {

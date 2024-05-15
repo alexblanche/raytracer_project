@@ -18,7 +18,7 @@ set(SDL2_NO_MWINDOWS 1)
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
 
-find_package(TBB REQUIRED)
+find_package(TBB)
 include_directories(${TBB_INCLUDE_DIRS})
 
 # libmyraytracer.so
