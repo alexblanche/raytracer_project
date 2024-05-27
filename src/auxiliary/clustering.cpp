@@ -42,9 +42,9 @@ rt::vector compute_centroid(const std::vector<element>& elts) {
     double sum_z = 0;
 
     /* Computation of the dimensions of the object set */
-    for(unsigned int i = 0; i < elts.size(); i++) {
+    for (const element& elt : elts) {
         
-        const rt::vector pos = elts.at(i).get_position();
+        const rt::vector pos = elt.get_position();
         sum_x += pos.x;
         sum_y += pos.y;
         sum_z += pos.z;
@@ -58,10 +58,9 @@ rt::vector compute_centroid(const std::vector<element>& elts) {
 /* Auxiliary function that adds each element of old_group to one of the k vectors of new_group,
    according to which of the vectors of means they are the closest
    Returns true if there has been a change of group for at least one element */
-bool assign_to_closest(const std::vector<std::vector<element>>& old_group, std::vector<std::vector<element>>& new_group,
+bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std::vector<std::vector<element>>& new_groups,
     const std::vector<rt::vector>& means) {
 
-    
     
     // Former sequential version
     /*
@@ -93,15 +92,15 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_group, std::
 
 
     // Parallel version
-    const unsigned int nb_of_groups = old_group.size();
+    const unsigned int nb_of_groups = old_groups.size();
     
     mutex m;
 
     if (nb_of_groups == 1) {
         // First iteration (all elements in the first group)
-        PARALLEL_FOR_BEGIN(old_group.at(0).size()) {
+        PARALLEL_FOR_BEGIN(old_groups.at(0).size()) {
 
-            const element elt = old_group.at(0).at(n);
+            const element elt = old_groups.at(0).at(n);
             const rt::vector v = elt.get_position();
 
             unsigned int closest_index = 0;
@@ -115,7 +114,7 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_group, std::
                 }
             }
             m.lock();
-            new_group.at(closest_index).push_back(elt);
+            new_groups.at(closest_index).push_back(elt);
             m.unlock();
         } PARALLEL_FOR_END();
 
@@ -125,8 +124,8 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_group, std::
         // All other iterations, 
         bool change = false;
         PARALLEL_FOR_BEGIN(nb_of_groups) {
-            for (unsigned int i = 0; i < old_group.at(n).size(); i++) {
-                const element elt = old_group.at(n).at(i);
+            for (const element& elt : old_groups.at(n)) {
+
                 const rt::vector v = elt.get_position();
 
                 unsigned int closest_index = 0;
@@ -145,7 +144,7 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_group, std::
                 }
 
                 m.lock();
-                new_group.at(closest_index).push_back(elt);
+                new_groups.at(closest_index).push_back(elt);
                 m.unlock();
             }
         } PARALLEL_FOR_END();
@@ -195,9 +194,9 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
         means.at(i) = obj.at((int) (i * step)).get_position();
     }
     
-    std::vector<std::vector<element>> group(k);
-    assign_to_closest({obj}, group, means);
-    fill_empty_clusters(group);
+    std::vector<std::vector<element>> groups(k);
+    assign_to_closest({obj}, groups, means);
+    fill_empty_clusters(groups);
 
     unsigned int iterations = MAX_NUMBER_OF_ITERATIONS;
     bool change = true;
@@ -215,19 +214,19 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
 
         /* Updating the means */
         means.clear();
-        for (unsigned int i = 0; i < group.size(); i++) {
-            if (group.at(i).size() != 0) {
-                means.push_back(compute_centroid(group.at(i)));
+        for (std::vector<element> const& elts : groups) {
+            if (not elts.empty()) {
+                means.push_back(compute_centroid(elts));
             }
         }
 
         /* Re-assigning the objects to the right group */
-        std::vector<std::vector<element>> new_group(k);
-        change = assign_to_closest(group, new_group, means);
-        fill_empty_clusters(new_group);
+        std::vector<std::vector<element>> new_groups(k);
+        change = assign_to_closest(groups, new_groups, means);
+        fill_empty_clusters(new_groups);
 
-        group.clear();
-        group.swap(new_group);
+        groups.clear();
+        groups.swap(new_groups);
 
         if (change) {
             iterations--;
@@ -245,41 +244,44 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
         }
         fflush(stdout);
     }
-    
 
-    return group;
+    return groups;
 }
 
 /** Auxiliary conversion functions **/
 
-std::vector<element> get_element_vector(const std::vector<const object*>& obj) {
-    std::vector<element> elts(obj.size());
-    for (unsigned int i = 0; i < obj.size(); i++) {
-        elts.at(i) = element(obj.at(i));
+std::vector<element> get_element_vector(const std::vector<const object*>& objs) {
+    std::vector<element> elts;
+    elts.reserve(objs.size());
+    for (const object* const& obj : objs) {
+        elts.push_back(element(obj));
     }
     return elts;
 }
 
-std::vector<element> get_element_vector(const std::vector<const bounding*>& obj) {
-    std::vector<element> elts(obj.size());
-    for (unsigned int i = 0; i < obj.size(); i++) {
-        elts.at(i) = element(obj.at(i));
+std::vector<element> get_element_vector(const std::vector<const bounding*>& objs) {
+    std::vector<element> elts;
+    elts.reserve(objs.size());
+    for (const bounding* const& bd : objs) {
+        elts.push_back(element(bd));
     }
     return elts;
 }
 
 std::vector<const object*> get_object_vector(const std::vector<element>& elts) {
-    std::vector<const object*> obj(elts.size());
-    for (unsigned int i = 0; i < elts.size(); i++) {
-        obj.at(i) = elts.at(i).obj;
+    std::vector<const object*> obj;
+    obj.reserve(elts.size());
+    for (element const& elt : elts) {
+        obj.push_back(elt.obj);
     }
     return obj;
 }
 
 std::vector<const bounding*> get_bounding_vector(const std::vector<element>& elts) {
-    std::vector<const bounding*> bds(elts.size());
-    for (unsigned int i = 0; i < elts.size(); i++) {
-        bds.at(i) = elts.at(i).bd;
+    std::vector<const bounding*> bds;
+    bds.reserve(elts.size());
+    for (element const& elt : elts) {
+        bds.push_back(elt.bd);
     }
     return bds;
 }
@@ -352,10 +354,10 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
         std::vector<const bounding*> new_bd_nodes;
         
         unsigned int cpt = 0;
-        for (unsigned int i = 0; i < k; i++) {
+        for (std::vector<element> const& elts : groups) {
             
-            if (groups.at(i).size() != 0) {
-                new_bd_nodes.push_back(containing_bounding_any(get_bounding_vector(groups.at(i))));
+            if (not elts.empty()) {
+                new_bd_nodes.push_back(containing_bounding_any(get_bounding_vector(elts)));
                 cpt ++;
             }
         }

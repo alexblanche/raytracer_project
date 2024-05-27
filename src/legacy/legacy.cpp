@@ -79,13 +79,8 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
 
             const rt::vector direct = rt::vector(i, j, dist) - screen_center;
             ray r = ray(rt::vector(0, 0, 0), direct.unit());
-
-            //rt::color pixel_col = raytrace(r, obj_set, light_set);
             output[j] = raytrace(r, obj_set, light_set);
 
-            // m.lock();
-            // scr.set_pixel(i, j, pixel_col);
-            // m.unlock();
         }
 
         m.lock();
@@ -120,7 +115,7 @@ void render_loop_stl(const rt::screen& scr, const int width, const int height, /
     printf("STL: %ld ms\n", curr_time - init_time);
     fflush(stdout);
 }
-        
+
 
 /* ********************************* */
 /* ********************************* */

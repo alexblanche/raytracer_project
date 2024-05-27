@@ -1,5 +1,7 @@
 /* Program found at https://stackoverflow.com/a/49188371 */
 
+// #include <iostream>
+
 #include <algorithm>
 #ifdef __unix__
 #include <thread>
@@ -34,6 +36,8 @@ void parallel_for(unsigned nb_elements,
     unsigned batch_remainder = nb_elements % nb_threads;
 
     std::vector<std::thread> my_threads(nb_threads);
+
+    // printf("Parallel execution: %u threads, batch size = %u\n", nb_threads, batch_size);
 
     if(use_threads) {
         // Multithread execution
