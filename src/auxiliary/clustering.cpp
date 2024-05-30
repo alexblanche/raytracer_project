@@ -5,11 +5,14 @@
 #include "scene/objects/bounding.hpp"
 
 #include "parallel/parallel.h"
+/*
 #ifdef __unix__
 #include <mutex>
 #else
 #include "mingw.mutex.h"
 #endif
+*/
+#include <mutex>
 
 #include <stack>
 #include <queue>

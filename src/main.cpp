@@ -15,11 +15,14 @@
 
 #include "parallel/parallel.h"
 
+/*
 #ifdef __unix__
 #include <mutex>
 #else
 #include "mingw.mutex.h"
 #endif
+*/
+#include <mutex>
 
 #include "scene/scene.hpp"
 #include "scene/camera.hpp"

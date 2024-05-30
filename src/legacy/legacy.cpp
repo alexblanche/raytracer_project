@@ -12,17 +12,21 @@
 #include "legacy/raytracing/tracing.hpp"
 
 #include "parallel/parallel.h"
+/*
 #ifdef __unix__
 #include <mutex>
 #else
 #include "mingw.mutex.h"
 #endif
+*/
+#include <mutex>
+
 
 #include <chrono>
 
 #include <algorithm>
 #include <numeric>
-#include <execution>
+// #include <execution>
 
 
 // Parallel for-loop macros
@@ -97,9 +101,9 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
 }
 
 /* STL version */
-/* Requires package libtbb-dev */
-void render_loop_stl(const rt::screen& scr, const int width, const int height, /*const double& dist,
-    const rt::vector& screen_center, const std::vector<const object*>& obj_set, const std::vector<source>& light_set,*/
+/* Requires package libtbb-dev, and TBB::Tbb in the CMake file */
+/*
+void render_loop_stl(const rt::screen& scr, const int width, const int height,
     const std::vector<int>& indices, const std::function< rt::color(int const&) >& trace) {
 
     const long int init_time = get_time();
@@ -115,7 +119,7 @@ void render_loop_stl(const rt::screen& scr, const int width, const int height, /
     printf("STL: %ld ms\n", curr_time - init_time);
     fflush(stdout);
 }
-
+*/
 
 /* ********************************* */
 /* ********************************* */
@@ -201,6 +205,7 @@ int main(int /*argc*/, char **/*argv*/) {
     fflush(stdout);
 
     /* STL */
+    /*
     std::vector<int> indices(width * height);
     std::iota(indices.begin(), indices.end(), 0);
     const auto trace = [&width, &dist, &screen_center, &obj_set, &light_set] (int const& i) {
@@ -209,14 +214,16 @@ int main(int /*argc*/, char **/*argv*/) {
         return raytrace(r, obj_set, light_set);
     };
 
+    
     const long int stl_time_init = get_time();
     for (unsigned int i = 0; i < 10; i++) {
-        render_loop_stl(scr, width, height, /*dist, screen_center, obj_set, light_set,*/ indices, trace);
+        render_loop_stl(scr, width, height, indices, trace);
         scr.update();
     }
     const long int stl_curr_time = get_time();
     printf("Total STL time: %ld ms\n", stl_curr_time - stl_time_init);
     fflush(stdout);
+    */
 
     /* Parallel */
     const long int par_time_init = get_time();

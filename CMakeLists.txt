@@ -1,25 +1,24 @@
 cmake_minimum_required(VERSION 3.12)
 project(raytracer VERSION "0.0.1")
 
-set(CMAKE_CXX_STANDARD 17)
-add_compile_options(-std=c++17)
+set(CMAKE_CXX_STANDARD 23)
+add_compile_options(-std=c++23)
 add_compile_options(-Wall -Wextra -Werror -O3)
 add_compile_options(-fdiagnostics-color)
 add_compile_options(-march=native)
 add_compile_options(-ffast-math)
-add_compile_options(-ltbb)
 
-# -I include/
+# add_compile_options(-lSDL2 -lSDL2main)
+
 include_directories(include/)
 
 # Necessary to have the console be the stdout channel
 set(SDL2_NO_MWINDOWS 1)
 
 find_package(SDL2 REQUIRED)
+# message("SDL2_INCLUDE_DIRS : ${SDL2_INCLUDE_DIRS}")
+# message("SDL2_LIBRARIES : ${SDL2_LIBRARIES}")
 include_directories(${SDL2_INCLUDE_DIRS})
-
-find_package(TBB)
-include_directories(${TBB_INCLUDE_DIRS})
 
 # libmyraytracer.so
 set (libname raytracer)
@@ -108,7 +107,6 @@ add_executable(${legacy}
 
 target_link_libraries(${legacy}
 	${SDL2_LIBRARIES}
-	TBB::tbb
 )
 
 target_include_directories(${legacy}
