@@ -32,8 +32,7 @@ hit object::compute_intersection(ray& /*r*/, const double& /*t*/) const {
 }
 
 /* Writes the minimum and maximum coordinates of the object on the three axes */
-void object::min_max_coord(double& /*min_x*/, double& /*max_x*/,
-    double& /*min_y*/, double& /*max_y*/, double& /*min_z*/, double& /*max_z*/) const {
+min_max_coord object::get_min_max_coord() const {
 
-    return;
+    return min_max_coord();
 }

@@ -214,30 +214,31 @@ hit box::compute_intersection(ray& r, const double& t) const {
 }
 
 /* Minimum and maximum coordinates */
-void box::min_max_coord(double& min_x, double& max_x,
-    double& min_y, double& max_y, double& min_z, double& max_z) const {
+min_max_coord box::get_min_max_coord() const {
 
     // (n1 * a1x) has a positive .x, (n1 * (-a1x)) has a negative one
     const double a1x = n1.x >= 0 ? 1 : (-1);
     const double a2x = n2.x >= 0 ? 1 : (-1);
     const double a3x = n3.x >= 0 ? 1 : (-1);
 
-    max_x = (position + l1 * (a1x * n1) + l2 * (a2x * n2) + l3 * (a3x * n3)).x;
-    min_x = (position + l1 * ((- a1x) * n1) + l2 * ((- a2x) * n2) + l3 * ((- a3x) * n3)).x;
+    const double max_x = (position + l1 * (a1x * n1) + l2 * (a2x * n2) + l3 * (a3x * n3)).x;
+    const double min_x = (position + l1 * ((- a1x) * n1) + l2 * ((- a2x) * n2) + l3 * ((- a3x) * n3)).x;
 
     const double a1y = n1.y >= 0 ? 1 : (-1);
     const double a2y = n2.y >= 0 ? 1 : (-1);
     const double a3y = n3.y >= 0 ? 1 : (-1);
 
-    max_y = (position + l1 * (a1y * n1) + l2 * (a2y * n2) + l3 * (a3y * n3)).y;
-    min_y = (position + l1 * ((- a1y) * n1) + l2 * ((- a2y) * n2) + l3 * ((- a3y) * n3)).y;
+    const double max_y = (position + l1 * (a1y * n1) + l2 * (a2y * n2) + l3 * (a3y * n3)).y;
+    const double min_y = (position + l1 * ((- a1y) * n1) + l2 * ((- a2y) * n2) + l3 * ((- a3y) * n3)).y;
 
     const double a1z = n1.z >= 0 ? 1 : (-1);
     const double a2z = n2.z >= 0 ? 1 : (-1);
     const double a3z = n3.z >= 0 ? 1 : (-1);
 
-    max_z = (position + l1 * (a1z * n1) + l2 * (a2z * n2) + l3 * (a3z * n3)).z;
-    min_z = (position + l1 * ((- a1z) * n1) + l2 * ((- a2z) * n2) + l3 * ((- a3z) * n3)).z;
+    const double max_z = (position + l1 * (a1z * n1) + l2 * (a2z * n2) + l3 * (a3z * n3)).z;
+    const double min_z = (position + l1 * ((- a1z) * n1) + l2 * ((- a2z) * n2) + l3 * ((- a3z) * n3)).z;
+
+    return min_max_coord(min_x, max_x, min_y, max_y, min_z, max_z);
 }
 
 

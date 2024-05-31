@@ -208,18 +208,19 @@ hit triangle::compute_intersection(ray& r, const double& t) const {
 
 
 /* Minimum and maximum coordinates */
-void triangle::min_max_coord(double& min_x, double& max_x,
-    double& min_y, double& max_y, double& min_z, double& max_z) const {
+min_max_coord triangle::get_min_max_coord() const {
 
     const rt::vector p1 = position + v1;
     const rt::vector p2 = position + v2;
 
-    min_x = std::min(position.x, std::min(p1.x, p2.x));
-    max_x = std::max(position.x, std::max(p1.x, p2.x));
+    const double min_x = std::min(position.x, std::min(p1.x, p2.x));
+    const double max_x = std::max(position.x, std::max(p1.x, p2.x));
 
-    min_y = std::min(position.y, std::min(p1.y, p2.y));
-    max_y = std::max(position.y, std::max(p1.y, p2.y));
+    const double min_y = std::min(position.y, std::min(p1.y, p2.y));
+    const double max_y = std::max(position.y, std::max(p1.y, p2.y));
     
-    min_z = std::min(position.z, std::min(p1.z, p2.z));
-    max_z = std::max(position.z, std::max(p1.z, p2.z));
+    const double min_z = std::min(position.z, std::min(p1.z, p2.z));
+    const double max_z = std::max(position.z, std::max(p1.z, p2.z));
+
+    return min_max_coord(min_x, max_x, min_y, max_y, min_z, max_z);
 }

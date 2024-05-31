@@ -82,15 +82,16 @@ hit sphere::compute_intersection(ray& r, const double& t) const {
 
 
 /* Minimum and maximum coordinates */
-void sphere::min_max_coord(double& min_x, double& max_x,
-    double& min_y, double& max_y, double& min_z, double& max_z) const {
+min_max_coord sphere::get_min_max_coord() const {
     
-    min_x = position.x - radius;
-    max_x = position.x + radius;
+    const double min_x = position.x - radius;
+    const double max_x = position.x + radius;
 
-    min_y = position.y - radius;
-    max_y = position.y + radius;
+    const double min_y = position.y - radius;
+    const double max_y = position.y + radius;
 
-    min_z = position.z - radius;
-    max_z = position.z + radius;
+    const double min_z = position.z - radius;
+    const double max_z = position.z + radius;
+
+    return min_max_coord(min_x, max_x, min_y, max_y, min_z, max_z);
 }

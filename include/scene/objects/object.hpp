@@ -7,6 +7,25 @@
 
 #include <optional>
 
+/* Output struct from min_max_coord */
+struct min_max_coord {
+    double min_x, max_x, min_y, max_y, min_z, max_z;
+
+    min_max_coord(const double& min_x, const double& max_x,
+        const double& min_y, const double& max_y,
+        const double& min_z, const double& max_z)
+
+        : min_x(min_x), max_x(max_x),
+        min_y(min_y), max_y(max_y), 
+        min_z(min_z), max_z(max_z) {}
+
+    min_max_coord() {}
+};
+
+
+/* Main class for objects of a scene
+   Each object type is a derived class */
+
 class object {
     
     protected:
@@ -54,6 +73,5 @@ class object {
         virtual hit compute_intersection(ray& r, const double& t) const;
 
         /* Writes the minimum and maximum coordinates of the object on the three axes */
-        virtual void min_max_coord(double& min_x, double& max_x,
-            double& min_y, double& max_y, double& min_z, double& max_z) const;
+        virtual min_max_coord get_min_max_coord() const;
 };

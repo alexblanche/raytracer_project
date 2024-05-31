@@ -64,6 +64,5 @@ class quad : public polygon {
         hit compute_intersection(ray& r, const double& t) const;
 
         /* Minimum and maximum coordinates */
-        void min_max_coord(double& min_x, double& max_x,
-            double& min_y, double& max_y, double& min_z, double& max_z) const;
+        min_max_coord get_min_max_coord() const;
 };

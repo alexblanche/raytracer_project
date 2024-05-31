@@ -214,8 +214,9 @@ hit cylinder::compute_intersection(ray& r, const double& t) const {
 }
 
 /* Minimum and maximum coordinates */
-void cylinder::min_max_coord(double& min_x, double& max_x,
-    double& min_y, double& max_y, double& min_z, double& max_z) const {
+min_max_coord cylinder::get_min_max_coord() const {
+
+    double min_x, max_x, min_y, max_y, min_z, max_z;
     
     /* Exact solution is not trivial, so I leave a upper bound */
     if (direction.x >= 0) {
@@ -245,4 +246,5 @@ void cylinder::min_max_coord(double& min_x, double& max_x,
         min_z = position.z + length * direction.z - radius;
     }
 
+    return min_max_coord(min_x, max_x, min_y, max_y, min_z, max_z);
 }

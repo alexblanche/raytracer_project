@@ -172,15 +172,14 @@ const bounding* containing_bounding_any(const vector<const bounding*>& children)
 
         if (bd->get_b().has_value()) {
             
-            double x_min, x_max, y_min, y_max, z_min, z_max;
-            bd->get_b().value()->min_max_coord(x_min, x_max, y_min, y_max, z_min, z_max);
+            const min_max_coord mmc = bd->get_b().value()->get_min_max_coord();
 
-            if (x_max > max_x) { max_x = x_max; }
-            if (x_min < min_x) { min_x = x_min; }
-            if (y_max > max_y) { max_y = y_max; }
-            if (y_min < min_y) { min_y = y_min; }
-            if (z_max > max_z) { max_z = z_max; }
-            if (z_min < min_z) { min_z = z_min; }
+            if (mmc.max_x > max_x) { max_x = mmc.max_x; }
+            if (mmc.min_x < min_x) { min_x = mmc.min_x; }
+            if (mmc.max_y > max_y) { max_y = mmc.max_y; }
+            if (mmc.min_y < min_y) { min_y = mmc.min_y; }
+            if (mmc.max_z > max_z) { max_z = mmc.max_z; }
+            if (mmc.min_z < min_z) { min_z = mmc.min_z; }
         }
     }
 
@@ -208,15 +207,14 @@ const bounding* containing_objects(const std::vector<const object*>& objs) {
 
     /* Computation of the dimensions of the object set */
     for(const object* obj : objs) {
-        double x_min, x_max, y_min, y_max, z_min, z_max;
-        obj->min_max_coord(x_min, x_max, y_min, y_max, z_min, z_max);
+        const min_max_coord mmc = obj->get_min_max_coord();
 
-        if (x_max > max_x) {max_x = x_max;}
-        if (x_min < min_x) {min_x = x_min;}
-        if (y_max > max_y) {max_y = y_max;}
-        if (y_min < min_y) {min_y = y_min;}
-        if (z_max > max_z) {max_z = z_max;}
-        if (z_min < min_z) {min_z = z_min;}
+        if (mmc.max_x > max_x) { max_x = mmc.max_x; }
+        if (mmc.min_x < min_x) { min_x = mmc.min_x; }
+        if (mmc.max_y > max_y) { max_y = mmc.max_y; }
+        if (mmc.min_y < min_y) { min_y = mmc.min_y; }
+        if (mmc.max_z > max_z) { max_z = mmc.max_z; }
+        if (mmc.min_z < min_z) { min_z = mmc.min_z; }
     }
 
     const box* b = new box(

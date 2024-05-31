@@ -99,8 +99,8 @@ std::vector<ray> hit::random_reflect(const unsigned int n, randomgen& rg,
     // vector of random rays in the cone of angle theta_max to central_dir
     std::vector<ray> rays(n);
     for (unsigned int i = 0; i < n; i++) {
-        const double p = rands01.at(i);
-        const double phi = rands0twopi.at(i);
+        const double p = rands01[i];
+        const double phi = rands0twopi[i];
 
         /*
         theta = acos(1 - p(1 - cos(theta_max)))
@@ -109,7 +109,7 @@ std::vector<ray> hit::random_reflect(const unsigned int n, randomgen& rg,
         z = cos(theta)          = 1 - p(1-cos(theta_max))
         */
         const double cos_theta = 1 - p * (1-cos_theta_max);
-        rays.at(i) = ray(point,
+        rays[i] = ray(point,
               (cos(phi) * sqrt(1 - cos_theta * cos_theta)) * X
             + (sin(phi) * sqrt(1 - cos_theta * cos_theta)) * Y
             + cos_theta * central_dir);

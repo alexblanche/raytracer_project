@@ -270,19 +270,20 @@ hit quad::compute_intersection(ray& r, const double& t) const {
 }
 
 /* Minimum and maximum coordinates */
-void quad::min_max_coord(double& min_x, double& max_x,
-    double& min_y, double& max_y, double& min_z, double& max_z) const {
+min_max_coord quad::get_min_max_coord() const {
 
     const rt::vector p1 = position + v1;
     const rt::vector p2 = position + v2;
     const rt::vector p3 = position + v3;
 
-    min_x = std::min(position.x, std::min(p1.x, std::min(p2.x, p3.x)));
-    max_x = std::max(position.x, std::max(p1.x, std::max(p2.x, p3.x)));
+    const double min_x = std::min(position.x, std::min(p1.x, std::min(p2.x, p3.x)));
+    const double max_x = std::max(position.x, std::max(p1.x, std::max(p2.x, p3.x)));
 
-    min_y = std::min(position.y, std::min(p1.y, std::min(p2.y, p3.y)));
-    max_y = std::max(position.y, std::max(p1.y, std::max(p2.y, p3.y)));
+    const double min_y = std::min(position.y, std::min(p1.y, std::min(p2.y, p3.y)));
+    const double max_y = std::max(position.y, std::max(p1.y, std::max(p2.y, p3.y)));
     
-    min_z = std::min(position.z, std::min(p1.z, std::min(p2.z, p3.z)));
-    max_z = std::max(position.z, std::max(p1.z, std::max(p2.z, p3.z)));
+    const double min_z = std::min(position.z, std::min(p1.z, std::min(p2.z, p3.z)));
+    const double max_z = std::max(position.z, std::max(p1.z, std::max(p2.z, p3.z)));
+
+    return min_max_coord(min_x, max_x, min_y, max_y, min_z, max_z);
 }
