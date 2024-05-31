@@ -23,7 +23,7 @@ class bounding {
         bool is_terminal;
 
         /* Bounding box */
-        const box* const b;
+        const std::optional<const box*> b;
 
         /* If the node is terminal: indices of the objects contained in the box */
         std::vector<const object*> content;
@@ -52,7 +52,7 @@ class bounding {
 
         /* Accessors */
 
-        inline const box* get_b() const {
+        inline std::optional<const box*> get_b() const {
             return b;
         }
 
@@ -75,13 +75,13 @@ class bounding {
            in which case the two variables are overwritten)
         */
         void check_box(const ray& r,
-            double& distance_to_closest, const object*& closest_object,
+            double& distance_to_closest, std::optional<const object*>& closest_object,
             std::stack<const bounding*>& bounding_stack) const;
 
         /* Same as check_box, but the last child is stored in a pointer to avoid pushing and
            immediately popping on the stack */
         void check_box_next(const ray& r,
-            double& distance_to_closest, const object*& closest_object,
+            double& distance_to_closest, std::optional<const object*>& closest_object,
             std::stack<const bounding*>& bounding_stack,
             bool& bd_stored, const bounding*& next_bounding) const;
 };

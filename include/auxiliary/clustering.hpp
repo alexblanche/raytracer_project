@@ -9,37 +9,37 @@
 
 /* Struct containing either an object* or a bounding*, to make the clustering functions polymorphic */
 struct element {
-   const object* obj;
-   const bounding* bd;
+   std::optional<const object*> obj;
+   std::optional<const bounding*> bd;
 
    /* Constructors */
 
    element() {
-      obj = NULL;
-      bd = NULL;
+      obj = std::nullopt;
+      bd = std::nullopt;
    }
 
    element(const object* o) {
       obj = o;
-      bd = NULL;
+      bd = std::nullopt;
    }
 
    element(const bounding* b) {
-      obj = NULL;
+      obj = std::nullopt;
       bd = b;
    }
 
    /* Position accessor */
 
    inline rt::vector get_position() const {
-      if (obj != NULL) {
-         return obj->get_position();
+      if (obj.has_value()) {
+         return obj.value()->get_position();
       }
-      else if (bd->get_b() != NULL) {
-         return bd->get_b()->get_position();
+      else if (bd.value()->get_b().has_value()) {
+         return bd.value()->get_b().value()->get_position();
       }
       else {
-         return bd->get_content().at(0)->get_position();
+         return bd.value()->get_content()[0]->get_position();
       }
    }
 };

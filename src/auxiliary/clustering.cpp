@@ -256,7 +256,7 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
 std::vector<element> get_element_vector(const std::vector<const object*>& objs) {
     std::vector<element> elts;
     elts.reserve(objs.size());
-    for (const object* const& obj : objs) {
+    for (const object* obj : objs) {
         elts.push_back(element(obj));
     }
     return elts;
@@ -265,7 +265,7 @@ std::vector<element> get_element_vector(const std::vector<const object*>& objs) 
 std::vector<element> get_element_vector(const std::vector<const bounding*>& objs) {
     std::vector<element> elts;
     elts.reserve(objs.size());
-    for (const bounding* const& bd : objs) {
+    for (const bounding* bd : objs) {
         elts.push_back(element(bd));
     }
     return elts;
@@ -275,7 +275,7 @@ std::vector<const object*> get_object_vector(const std::vector<element>& elts) {
     std::vector<const object*> obj;
     obj.reserve(elts.size());
     for (element const& elt : elts) {
-        obj.push_back(elt.obj);
+        obj.push_back(elt.obj.value());
     }
     return obj;
 }
@@ -284,7 +284,7 @@ std::vector<const bounding*> get_bounding_vector(const std::vector<element>& elt
     std::vector<const bounding*> bds;
     bds.reserve(elts.size());
     for (element const& elt : elts) {
-        bds.push_back(elt.bd);
+        bds.push_back(elt.bd.value());
     }
     return bds;
 }
@@ -376,7 +376,7 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
     }
 
     if (nodes.size() == 1) {
-        return nodes.at(0).bd;
+        return nodes[0].bd.value();
     }
     else {
         return containing_bounding_any(get_bounding_vector(nodes));

@@ -688,7 +688,7 @@ scene::~scene() {
 hit scene::find_closest_object(ray& r) const {
     
     double distance_to_closest = infinity;
-    unsigned int closest_obj_index = -1;
+    std::optional<unsigned int> closest_obj_index = std::nullopt;
 
     // Looking for the closest object
     for (unsigned int i = 0; i < object_set.size(); i++) {
@@ -705,11 +705,11 @@ hit scene::find_closest_object(ray& r) const {
         }
     }
 
-    if (closest_obj_index == ((unsigned int) -1)) {
-        return hit();
+    if (closest_obj_index.has_value()) {
+        return object_set[closest_obj_index.value()]->compute_intersection(r, distance_to_closest);
     }
     else {
-        return object_set.at(closest_obj_index)->compute_intersection(r, distance_to_closest);
+        return hit();
     }
 }
 
@@ -723,7 +723,7 @@ hit scene::find_closest_object_bounding(ray& r) const {
      */
 
     double distance_to_closest = infinity;
-    const object* closest_obj = NULL;
+    std::optional<const object*> closest_obj = std::nullopt;
     std::stack<const bounding*> bounding_stack;
 
     /* Pass through the set of first-level bounding boxes */
@@ -752,8 +752,8 @@ hit scene::find_closest_object_bounding(ray& r) const {
     }
 
     /* Finally, return the hit corresponding to the closest object intersected by the ray */
-    if (closest_obj != NULL) {
-        return closest_obj->compute_intersection(r, distance_to_closest);
+    if (closest_obj.has_value()) {
+        return closest_obj.value()->compute_intersection(r, distance_to_closest);
     }
     else {
         return hit();
