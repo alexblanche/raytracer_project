@@ -30,10 +30,9 @@ void update_accumulators(const material& m, const object*& obj, const rt::vector
     if (update_color_materials) {
         if (obj->is_textured()) {
             // Only polygons (triangles and quads) can be textured (for now)
-            double l1, l2;
-            const bool lower_triangle = static_cast<const polygon*>(obj)->get_barycentric(hit_point, l1, l2);
+            const barycentric_info bary = static_cast<const polygon*>(obj)->get_barycentric(hit_point);
 
-            color_materials = color_materials * static_cast<const polygon*>(obj)->info.get_texture_color(l1, l2, lower_triangle, texture_set);
+            color_materials = color_materials * static_cast<const polygon*>(obj)->info.get_texture_color(bary, texture_set);
         }
         else {
             color_materials = color_materials * m.get_color();
@@ -131,9 +130,15 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
 
     for (unsigned int i = 0; i < bounce; i++) {
         
-        const hit h = bounding_method ? scene.find_closest_object_bounding(r) : scene.find_closest_object(r);
+        const std::optional<hit> opt_h =
+            bounding_method ?
+                scene.find_closest_object_bounding(r)
+                :
+                scene.find_closest_object(r);
 
-        if (h.object_hit()) {
+        if (opt_h.has_value()) {
+            
+            const hit h = opt_h.value();
             const object* obj = h.get_object();
             const material m = scene.material_set.at(obj->get_material_index());
 
@@ -142,11 +147,11 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
 
                 if (obj->is_textured()) {
                     // Only polygons (triangles and quads) can be textured (for now)
-                    double l1, l2;
-                    const bool lower_triangle = static_cast<const polygon*>(obj)->get_barycentric(h.get_point(), l1, l2);
+                    
+                    const barycentric_info bary = static_cast<const polygon*>(obj)->get_barycentric(h.get_point());
                     return
                         (color_materials *
-                            (static_cast<const polygon*>(obj)->info.get_texture_color(l1, l2, lower_triangle, scene.texture_set)
+                            (static_cast<const polygon*>(obj)->info.get_texture_color(bary, scene.texture_set)
                                 * m.get_emission_intensity())
                         )
                         + emitted_colors;

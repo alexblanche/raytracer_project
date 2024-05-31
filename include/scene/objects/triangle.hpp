@@ -59,9 +59,9 @@ class triangle : public polygon {
            (0 <= l1, l2 <= 1)
            The boolean return value is unused for triangles (only for quads).
         */
-        bool get_barycentric(const rt::vector& p, double& l1, double& l2) const;
+        barycentric_info get_barycentric(const rt::vector& p) const;
 
-        rt::vector get_interpolated_normal(const double& l1, const double& l2) const;
+        rt::vector get_interpolated_normal(const barycentric_info& bary) const;
 
         hit compute_intersection(ray& r, const double& t) const;
 

@@ -2,6 +2,8 @@
 
 #include "object.hpp"
 #include "scene/material/texture.hpp"
+#include "scene/material/barycentric.hpp"
+
 
 /* Virtual class derived from object, containing triangles and quads */
 
@@ -25,5 +27,5 @@ class polygon : public object {
         
         /* Writes the barycentric coordinates in variables l1, l2
            The boolean return value is used for determining the three points considered in quads */
-        virtual bool get_barycentric(const rt::vector& p, double& l1, double& l2) const = 0;
+        virtual barycentric_info get_barycentric(const rt::vector& p) const = 0;
 };

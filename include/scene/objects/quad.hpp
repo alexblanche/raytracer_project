@@ -57,9 +57,9 @@ class quad : public polygon {
            or
            p = position + l1 * v3 + l2 * v2 otherwise
         */
-        bool get_barycentric(const rt::vector& p, double& l1, double& l2) const;
+        barycentric_info get_barycentric(const rt::vector& p) const;
         
-        rt::vector get_interpolated_normal(const double& l1, const double& l2, const bool triangle) const;
+        rt::vector get_interpolated_normal(const barycentric_info& bary) const;
 
         hit compute_intersection(ray& r, const double& t) const;
 

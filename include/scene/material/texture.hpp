@@ -2,6 +2,15 @@
 
 #include <vector>
 #include "screen/color.hpp"
+#include "scene/material/barycentric.hpp"
+
+/* Struct representing UV-coordinates */
+struct uvcoord {
+    double u, v;
+    uvcoord(const double& u, const double& v)
+        : u(u), v(v) {}
+};
+
 
 /* Class representing texture data
 
@@ -38,7 +47,7 @@ class texture_info {
 
     private:
         /* Texture index in texture::set */
-        unsigned int texture_index;
+        size_t texture_index;
 
         /* Vector of UV coordinates (between 0 and 1)
            6 for a triangle (u0,v0,u1,v1,u2,v2) and 8 for a quad */
@@ -47,15 +56,14 @@ class texture_info {
     public:
         texture_info();
 
-        texture_info(unsigned int index, std::vector<double> uv_coordinates);
+        texture_info(size_t index, std::vector<double> uv_coordinates);
 
         /* Write in u, v the UV-coordinate of the barycenter associated with the barycentric coordinates l1, l2
         In the case of quads, the boolean lower_triangle indicates that the three points to
         consider are (u0, v0), (u1, v1), (u2, v2) or (u0, v0), (u3, v3), (u2, v2) (in this order) */
-        void get_barycenter(const double& l1, const double& l2, const bool lower_triangle,
-            double& u, double& v) const;
+        uvcoord get_barycenter(const barycentric_info& bary) const;
 
         /* Returns the color of the pixel associated with UV-coordinates u, v */
-        rt::color get_texture_color(const double& l1, const double& l2, const bool lower_triangle,
+        rt::color get_texture_color(const barycentric_info& bary,
             const std::vector<texture>& texture_set) const;
 };

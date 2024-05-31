@@ -188,64 +188,64 @@ std::optional<double> quad::measure_distance(const ray& r) const {
    or
    p = position + l1 * v3 + l2 * v2 otherwise
 */
-bool quad::get_barycentric(const rt::vector& p, double& l1, double& l2) const {
+barycentric_info quad::get_barycentric(const rt::vector& p) const {
 
     const rt::vector c = p - position;
     const double det12xy = v1.x * v2.y - v1.y * v2.x;
     if (abs(det12xy) > 0.00000001) {
         const double detv2cxy = c.x * v2.y - c.y * v2.x;
-        l1 = detv2cxy / det12xy;
-        l2 = (v1.x * c.y - v1.y * c.x) / det12xy;
+        const double l1 = detv2cxy / det12xy;
+        const double l2 = (v1.x * c.y - v1.y * c.x) / det12xy;
         if (l1 >= 0 && l2 >= 0 && l1 <= 1 && l1 + l2 <= 1) {
-            return true;
+            return barycentric_info(l1, l2, true);
         }
         else {
             const double det23 = v3.x * v2.y - v3.y * v2.x;
-            l1 = detv2cxy / det23;
-            l2 = (v3.x * c.y - v3.y * c.x) / det23;
-            return false;
+            const double l1 = detv2cxy / det23;
+            const double l2 = (v3.x * c.y - v3.y * c.x) / det23;
+            return barycentric_info(l1, l2, false);
         }
     }
     else {
         const double det12xz = v1.x * v2.z - v1.z * v2.x;
         if (abs(det12xz) > 0.00000001) {
             const double detv2cxz = c.x * v2.z - c.z * v2.x;
-            l1 = detv2cxz / det12xz;
-            l2 = (v1.x * c.z - v1.z * c.x) / det12xz;
+            const double l1 = detv2cxz / det12xz;
+            const double l2 = (v1.x * c.z - v1.z * c.x) / det12xz;
             if (l1 >= 0 && l2 >= 0 && l1 <= 1 && l1 + l2 <= 1) {
-                return true;
+                return barycentric_info(l1, l2, true);
             }
             else {
                 const double det23xz = v3.x * v2.z - v3.z * v2.x;
-                l1 = detv2cxz / det23xz;
-                l2 = (v3.x * c.z - v3.z * c.x) / det23xz;
-                return false;
+                const double l1 = detv2cxz / det23xz;
+                const double l2 = (v3.x * c.z - v3.z * c.x) / det23xz;
+                return barycentric_info(l1, l2, false);
             }
         }
         else {
             const double det12yz = v1.y * v2.z - v1.z * v2.y;
             const double detv2cyz = c.y * v2.z - c.z * v2.y;
-            l1 = detv2cyz / det12yz;
-            l2 = (v1.y * c.z - v1.z * c.y) / det12yz;
+            const double l1 = detv2cyz / det12yz;
+            const double l2 = (v1.y * c.z - v1.z * c.y) / det12yz;
             if (l1 >= 0 && l2 >= 0 && l1 <= 1 && l1 + l2 <= 1) {
-                return true;
+                return barycentric_info(l1, l2, true);
             }
             else {
                 const double det23yz = v3.y * v2.z - v3.z * v2.y;
-                l1 = detv2cyz / det23yz;
-                l2 = (v3.y * c.z - v3.z * c.y) / det23yz;
-                return false;
+                const double l1 = detv2cyz / det23yz;
+                const double l2 = (v3.y * c.z - v3.z * c.y) / det23yz;
+                return barycentric_info(l1, l2, false);
             }
         }
     }
 }
 
-rt::vector quad::get_interpolated_normal(const double& l1, const double& l2, const bool triangle) const {
-    if (triangle) {
-        return (((1 - l1 - l2) * vn0) + (l1 * vn1) + (l2 * vn2));
+rt::vector quad::get_interpolated_normal(const barycentric_info& bary) const {
+    if (bary.lower_triangle) {
+        return (((1 - bary.l1 - bary.l2) * vn0) + (bary.l1 * vn1) + (bary.l2 * vn2));
     }
     else {
-        return (((1 - l1 - l2) * vn0) + (l1 * vn3) + (l2 * vn2));
+        return (((1 - bary.l1 - bary.l2) * vn0) + (bary.l1 * vn3) + (bary.l2 * vn2));
     }
     
 }
@@ -261,13 +261,12 @@ hit quad::compute_intersection(ray& r, const double& t) const {
     const rt::vector p = r.get_origin() + t * r.get_direction();
 
     // Computation of the interpolated normal vector
-    double l1, l2;
-    bool triangle = get_barycentric(p, l1, l2);
+    barycentric_info bary = get_barycentric(p);
 
     const object* pt_obj = this;
     ray* pt_ray = &r;
     
-    return hit(pt_ray, p, get_interpolated_normal(l1, l2, triangle), pt_obj);
+    return hit(pt_ray, p, get_interpolated_normal(bary), pt_obj);
 }
 
 /* Minimum and maximum coordinates */

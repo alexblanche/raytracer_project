@@ -164,32 +164,33 @@ std::optional<double> triangle::measure_distance(const ray& r) const {
    p = position + l1 * v1 + l2 * v2
    (0 <= l1, l2 <= 1)
 */
-bool triangle::get_barycentric(const rt::vector& p, double& l1, double& l2) const {
+barycentric_info triangle::get_barycentric(const rt::vector& p) const {
 
     const rt::vector c = p - position;
     const double detxy = v1.x * v2.y - v1.y * v2.x;
     if (abs(detxy) > 0.00000001) {
-        l1 = (c.x * v2.y - c.y * v2.x) / detxy;
-        l2 = (v1.x * c.y - v1.y * c.x) / detxy;
+        const double l1 = (c.x * v2.y - c.y * v2.x) / detxy;
+        const double l2 = (v1.x * c.y - v1.y * c.x) / detxy;
+        return barycentric_info(l1, l2);
     }
     else {
         const double detxz = v1.x * v2.z - v1.z * v2.x;
         if (abs(detxz) > 0.00000001) {
-            l1 = (c.x * v2.z - c.z * v2.x) / detxz;
-            l2 = (v1.x * c.z - v1.z * c.x) / detxz;
+            const double l1 = (c.x * v2.z - c.z * v2.x) / detxz;
+            const double l2 = (v1.x * c.z - v1.z * c.x) / detxz;
+            return barycentric_info(l1, l2);
         }
         else {
             const double detyz = v1.y * v2.z - v1.z * v2.y;
-            l1 = (c.y * v2.z - c.z * v2.y) / detyz;
-            l2 = (v1.y * c.z - v1.z * c.y) / detyz;
+            const double l1 = (c.y * v2.z - c.z * v2.y) / detyz;
+            const double l2 = (v1.y * c.z - v1.z * c.y) / detyz;
+            return barycentric_info(l1, l2);
         }
     }
-
-    return true;
 }
 
-rt::vector triangle::get_interpolated_normal(const double& l1, const double& l2) const {
-    return (((1 - l1 - l2) * vn0) + (l1 * vn1) + (l2 * vn2));
+rt::vector triangle::get_interpolated_normal(const barycentric_info& bary) const {
+    return (((1 - bary.l1 - bary.l2) * vn0) + (bary.l1 * vn1) + (bary.l2 * vn2));
 }
 
 hit triangle::compute_intersection(ray& r, const double& t) const {
@@ -197,14 +198,12 @@ hit triangle::compute_intersection(ray& r, const double& t) const {
     const rt::vector p = r.get_origin() + t * r.get_direction();
 
     // Computation of the interpolated normal vector
-    double l1, l2;
-    get_barycentric(p, l1, l2);
-    // Also used to get the texture info (to be implemented here later)
+    const barycentric_info bary = get_barycentric(p);
 
     const object* pt_obj = this;
     ray* pt_ray = &r;
     
-    return hit(pt_ray, p, get_interpolated_normal(l1, l2), pt_obj);
+    return hit(pt_ray, p, get_interpolated_normal(bary), pt_obj);
 }
 
 

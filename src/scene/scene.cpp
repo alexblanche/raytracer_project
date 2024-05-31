@@ -663,7 +663,7 @@ scene::~scene() {
 
     /* Recursive destruction of the bounding boxes */
     std::stack<const bounding*> bd_stack;
-    for (const bounding* const& bd : bounding_set) {
+    for (const bounding* bd : bounding_set) {
         bd_stack.push(bd);
     }
     while (not bd_stack.empty()) {
@@ -671,7 +671,7 @@ scene::~scene() {
         bd_stack.pop();
 
         std::vector<const bounding*> bd_children = bd->get_children();
-        for (const bounding* const& bd : bd_children) {
+        for (const bounding* bd : bd_children) {
             bd_stack.push(bd);
         }
         delete(bd);
@@ -685,16 +685,16 @@ scene::~scene() {
 /*** Ray-scene intersection ***/
 
 /* Linear search through the objects of the scene */
-hit scene::find_closest_object(ray& r) const {
+std::optional<hit> scene::find_closest_object(ray& r) const {
     
     double distance_to_closest = infinity;
-    std::optional<unsigned int> closest_obj_index = std::nullopt;
+    std::optional<size_t> closest_obj_index = std::nullopt;
 
     // Looking for the closest object
-    for (unsigned int i = 0; i < object_set.size(); i++) {
+    for (size_t i = 0; i < object_set.size(); i++) {
         
         // We do not test the intersection with the object the rays is cast from
-        const std::optional<double> d = object_set.at(i)->measure_distance(r);
+        const std::optional<double> d = object_set[i]->measure_distance(r);
         
         /* d is the distance between the origin of the ray and the
            intersection point with the object */
@@ -709,12 +709,12 @@ hit scene::find_closest_object(ray& r) const {
         return object_set[closest_obj_index.value()]->compute_intersection(r, distance_to_closest);
     }
     else {
-        return hit();
+        return std::nullopt;
     }
 }
 
 /* Tree-search through the bounding boxes */
-hit scene::find_closest_object_bounding(ray& r) const {
+std::optional<hit> scene::find_closest_object_bounding(ray& r) const {
     /* For all the bounding boxes in bounding::set, we do the following:
        If the bounding box is terminal, look for the object of minimum distance.
        If it is internal, if the ray intersects the box, add its children to the bounding stack.
@@ -756,6 +756,6 @@ hit scene::find_closest_object_bounding(ray& r) const {
         return closest_obj.value()->compute_intersection(r, distance_to_closest);
     }
     else {
-        return hit();
+        return std::nullopt;
     }
 }
