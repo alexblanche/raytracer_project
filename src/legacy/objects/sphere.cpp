@@ -1,10 +1,6 @@
 #include "legacy/objects/sphere.hpp"
 #include <math.h>
 
-#include<limits>
-numeric_limits<double> realsph;
-const double infinity = realsph.infinity();
-
 
 /* Constructors */
 
@@ -22,7 +18,7 @@ sphere::sphere(const rt::vector& center, const double& radius, const rt::color& 
 /* Intersection determination */
 
 /* Calculates and returns the intersection value t */
-double sphere::measure_distance(const ray& r) const {
+std::optional<double> sphere::measure_distance(const ray& r) const {
     /*
       v is the vector from the origin of the ray to the center of the sphere.
       dir is the direction of the ray (|dir| = 1).
@@ -50,11 +46,11 @@ double sphere::measure_distance(const ray& r) const {
            Otherwise, t1 < 0 and t2 < 0 means the sphere is behind the ray and is not hit. */
     
         const double t1 = dv - sqrt(delta);
-        return (t1 >= 0) ? t1 : infinity;
+        if (t1 >= 0) {
+            return t1;
+        }
     }
-    else {
-        return infinity;
-    }
+    return std::nullopt;
 }
 
 /* Returns the hit corresponding with the given intersection value t */

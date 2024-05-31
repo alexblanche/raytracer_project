@@ -21,11 +21,10 @@ class hit {
         rt::vector point;
         rt::vector normal;
         const object* hit_object;
-        bool is_hit_bool;
 
     public:
         /* Main constructor */
-        hit(const rt::vector& point, const rt::vector& normal, const object*& hit_object);
+        hit(const rt::vector& point, const rt::vector& normal, const object* hit_object);
 
 
         /* Default constructor */
@@ -42,10 +41,6 @@ class hit {
 
         inline const object* get_object() const {
             return hit_object;
-        }
-
-        inline bool object_hit() const {
-            return is_hit_bool;
         }
 };
 

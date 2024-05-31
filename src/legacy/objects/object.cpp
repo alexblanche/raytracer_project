@@ -13,8 +13,8 @@ object::object(const rt::vector& position, const rt::color& col)
 
 /* Intersection determination */
 
-double object::measure_distance(const ray& /*r*/) const {
-    return 0;
+std::optional<double> object::measure_distance(const ray& /*r*/) const {
+    return std::nullopt;
 }
 
 hit object::compute_intersection(ray& /*r*/, const double& /*t*/) const {

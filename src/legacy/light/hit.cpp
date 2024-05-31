@@ -14,9 +14,9 @@
 /* Constructors */
 
 /* Main constructor */
-hit::hit(const rt::vector& point, const rt::vector& normal, const object*& hit_object)
-    : point(point), normal(normal), hit_object(hit_object), is_hit_bool(true) {}
+hit::hit(const rt::vector& point, const rt::vector& normal, const object* hit_object)
+    : point(point), normal(normal), hit_object(hit_object) {}
 
 
 /* Default constructor */
-hit::hit() : is_hit_bool(false) {}
+hit::hit() {}

@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include <algorithm>
+#include <optional>
 
 /** The source class represents point-shaped light sources,
  * defined by their position and color.
@@ -48,9 +49,11 @@ rt::color source::apply_obj(const hit& h, const std::vector<const object*>& obj_
     */
     auto it =
         std::find_if(obj_set.begin(), obj_set.end(),
-            [&reflected_ray, &dist](const object* const& obj) {
-                const double d = obj->measure_distance(reflected_ray);
-                return d > 0.001 && d <= dist;
+            [&reflected_ray, &dist](const object* obj) {
+                const std::optional<double> d = obj->measure_distance(reflected_ray);
+                return d.has_value()
+                    && d.value() > 0.001
+                    && d.value() <= dist;
             });
     if (it != obj_set.end()) {
         return rt::color::BLACK;

@@ -21,7 +21,6 @@
 */
 #include <mutex>
 
-
 #include <chrono>
 
 #include <algorithm>

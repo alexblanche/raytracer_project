@@ -22,7 +22,7 @@ class sphere : public object {
         
         /* Intersection determination */
 
-        double measure_distance(const ray& r) const;
+        std::optional<double> measure_distance(const ray& r) const;
 
         hit compute_intersection(ray& r, const double& t) const;
 };
