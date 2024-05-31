@@ -4,9 +4,7 @@
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
 
-#include<limits>
-numeric_limits<double> realpln;
-const double infinity = realpln.infinity();
+#include <optional>
 
 /* Constructors */
 
@@ -60,7 +58,7 @@ plane::plane(const double& pa, const double& pb, const double& pc, const rt::vec
 
 /* Intersection determination */
 
-double plane::measure_distance(const ray& r) const {
+std::optional<double> plane::measure_distance(const ray& r) const {
 
     /* Origin of the ray:    u   = (X, Y, Z)
        Direction of the ray: dir = (x, y, z)
@@ -82,7 +80,7 @@ double plane::measure_distance(const ray& r) const {
         return (- upln / pdt);
     }
     else {
-        return infinity;
+        return std::nullopt;
     }
 }
 

@@ -4,9 +4,7 @@
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
 
-#include<limits>
-numeric_limits<double> realtr;
-const double infinity = realtr.infinity();
+#include <optional>
 
 
 /* Constructors */
@@ -84,7 +82,7 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
 
 /* Intersection determination */
 
-double triangle::measure_distance(const ray& r) const {
+std::optional<double> triangle::measure_distance(const ray& r) const {
     const rt::vector u = r.get_origin();
     const rt::vector dir = r.get_direction();
 
@@ -97,7 +95,7 @@ double triangle::measure_distance(const ray& r) const {
     
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
     if (pdt * upln >= 0) {
-        return infinity;
+        return std::nullopt;
     }
 
     const double t = - upln / pdt;
@@ -124,11 +122,9 @@ double triangle::measure_distance(const ray& r) const {
         const double l1 = (c.x * v2.y - c.y * v2.x) / detxy;
         if (l1 >= 0 && l1 <= 1) {
             const double l2 = (v1.x * c.y - v1.y * c.x) / detxy;
-            return (l2 >= 0 && l1 + l2 <= 1) ?
-                t : infinity;
-        }
-        else {
-            return infinity;
+            if (l2 >= 0 && l1 + l2 <= 1) {
+                return t;
+            }
         }
     }
     else {
@@ -139,11 +135,9 @@ double triangle::measure_distance(const ray& r) const {
             const double l1xz = (c.x * v2.z - c.z * v2.x) / detxz;
             if (l1xz >= 0 && l1xz <= 1) {
                 const double l2xz = (v1.x * c.z - v1.z * c.x) / detxz;
-                return (l2xz >= 0 && l1xz + l2xz <= 1) ?
-                    t : infinity;
-            }
-            else {
-                return infinity;
+                if (l2xz >= 0 && l1xz + l2xz <= 1) {
+                    return t;
+                }
             }
         }
         else {
@@ -155,18 +149,15 @@ double triangle::measure_distance(const ray& r) const {
                 const double l1yz = (c.y * v2.z - c.z * v2.y) / detyz;
                 if (l1yz >= 0 && l1yz <= 1) {
                     const double l2yz = (v1.y * c.z - v1.z * c.y) / detyz;
-                    return (l2yz >= 0 && l1yz + l2yz <= 1) ?
-                        t : infinity;
+                    if (l2yz >= 0 && l1yz + l2yz <= 1) {
+                        return t;
+                    }
                 }
-                else {
-                    return infinity;
-                }
-            }
-            else {
-                return infinity;
             }
         }
     }
+
+    return std::nullopt;
 }
 
 /* Writes the barycentric coordinates in variables l1, l2:

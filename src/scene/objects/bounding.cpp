@@ -10,6 +10,8 @@
 numeric_limits<double> realbd;
 const double infinity = realbd.infinity();
 
+#include <optional>
+
 #include <stack>
 #include <vector>
 
@@ -58,9 +60,9 @@ void bounding::check_box(const ray& r,
         if (b == NULL || b->is_hit_by(r)) {
             for (unsigned int i = 0; i < content.size(); i++) {
                 const object* obj_i = content.at(i);
-                const double d = obj_i->measure_distance(r);
-                if (d < d_cl) {
-                    d_cl = d;
+                const std::optional<double> d = obj_i->measure_distance(r);
+                if (d.has_value() && d.value() < d_cl) {
+                    d_cl = d.value();
                     cl_obj = obj_i;
                 }
             }
@@ -89,9 +91,9 @@ void bounding::check_box_next(const ray& r,
         if (b == NULL || b->is_hit_by(r)) {
             for (unsigned int i = 0; i < content.size(); i++) {
                 const object* obj_i = content.at(i);
-                const double d = obj_i->measure_distance(r);
-                if (d < distance_to_closest) {
-                    distance_to_closest = d;
+                const std::optional<double> d = obj_i->measure_distance(r);
+                if (d.has_value() && d.value() < distance_to_closest) {
+                    distance_to_closest = d.value();
                     closest_object = obj_i;
                 }
             }

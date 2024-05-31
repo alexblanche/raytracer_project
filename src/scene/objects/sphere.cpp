@@ -3,9 +3,7 @@
 #include "scene/material/material.hpp"
 #include <math.h>
 
-#include<limits>
-numeric_limits<double> realsph;
-const double infinity = realsph.infinity();
+#include <optional>
 
 
 /* Constructors */
@@ -24,7 +22,7 @@ sphere::sphere(const rt::vector& center, const double& radius, const unsigned in
 /* Intersection determination */
 
 /* Calculates and returns the intersection value t */
-double sphere::measure_distance(const ray& r) const {
+std::optional<double> sphere::measure_distance(const ray& r) const {
     /*
       v is the vector from the origin of the ray to the center of the sphere.
       dir is the direction of the ray (|dir| = 1).
@@ -59,12 +57,13 @@ double sphere::measure_distance(const ray& r) const {
         }
         else {
             const double t2 = dv + sqrtdelta;
-            return (t2 >= 0) ? t2 : infinity;
+            if (t2 >= 0) {
+                return t2;
+            }
         }
     }
-    else {
-        return infinity;
-    }
+    
+    return std::nullopt;
 }
 
 /* Returns the hit corresponding with the given intersection value t */

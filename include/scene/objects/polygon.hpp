@@ -22,8 +22,6 @@ class polygon : public object {
             const texture_info& info)
             
             : object(position, material_index, true), info(info) {}
-
-
         
         /* Writes the barycentric coordinates in variables l1, l2
            The boolean return value is used for determining the three points considered in quads */

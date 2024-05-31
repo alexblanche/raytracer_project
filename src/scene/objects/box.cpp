@@ -1,12 +1,10 @@
 #include "scene/objects/box.hpp"
 
+#include <optional>
+
 #include "light/vector.hpp"
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
-
-#include<limits>
-numeric_limits<double> realbx;
-const double infinity = realbx.infinity();
 
 
 box::box() : object(), n1(rt::vector(1,0,0)), n2(rt::vector(0,1,0)), n3(rt::vector(0,0,1)), l1(100), l2(100), l3(100) {}
@@ -27,7 +25,7 @@ box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
 
 /* Intersection determination */
 
-double box::measure_distance(const ray& r) const {
+std::optional<double> box::measure_distance(const ray& r) const {
     /* For the face orthogonal to n1, we search for a t1 that satisfies:
        ((pos + a.l1.n1) - (u + t.dir) | n1) = 0 (if outside the box, a = -sign(dir|n1), if inside: a = sign(dir|n1))
        where u is the origin of the ray, and dir its direction,
@@ -79,7 +77,12 @@ double box::measure_distance(const ray& r) const {
         const double t1 = pmun1 / pdt1 + a * l1 / abspdt1;
         // Check that t1 gives a point inside the face
         if (abs(pmun2 - t1 * pdt2) <= l2 && abs(pmun3 - t1 * pdt3) <= l3) {
-            return t1 >= 0 ? t1 : infinity;
+            if (t1 >= 0) {
+                return t1;
+            }
+            else {
+                return std::nullopt;
+            }
         }
     }
 
@@ -87,7 +90,12 @@ double box::measure_distance(const ray& r) const {
     if (abspdt2 > 0.0000001) {
         const double t2 = pmun2 / pdt2 + a * l2 / abspdt2;
         if (abs(pmun1 - t2 * pdt1) <= l1 && abs(pmun3 - t2 * pdt3) <= l3) {
-            return t2 >= 0 ? t2 : infinity;
+            if (t2 >= 0) {
+                return t2;
+            }
+            else {
+                return std::nullopt;
+            }
         }
     }
 
@@ -99,8 +107,8 @@ double box::measure_distance(const ray& r) const {
         }
     }
 
-    return infinity;
-
+    return std::nullopt;
+}
     /** Original version */
     /*
     if (abs(pdt1) > 0.0000001) {
@@ -164,7 +172,6 @@ double box::measure_distance(const ray& r) const {
     
     return std::min(t1, std::min(t2, t3));
     */
-}
         
 hit box::compute_intersection(ray& r, const double& t) const {
     // Intersection point

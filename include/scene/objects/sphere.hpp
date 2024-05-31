@@ -6,6 +6,8 @@
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
 
+#include <optional>
+
 class sphere : public object {
     
     private:
@@ -23,7 +25,7 @@ class sphere : public object {
         
         /* Intersection determination */
 
-        double measure_distance(const ray& r) const;
+        std::optional<double> measure_distance(const ray& r) const;
 
         hit compute_intersection(ray& r, const double& t) const;
 

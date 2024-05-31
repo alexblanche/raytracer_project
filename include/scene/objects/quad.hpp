@@ -8,6 +8,8 @@
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
 
+#include <optional>
+
 class quad : public polygon {
     
     private:
@@ -47,7 +49,7 @@ class quad : public polygon {
 
         /* Intersection determination */
 
-        double measure_distance(const ray& r) const;
+        std::optional<double> measure_distance(const ray& r) const;
 
         /* Writes the barycentric coordinates in variables l1, l2, and returns the boolean lower_triangle:
            (0 <= l1, l2 <= 1)

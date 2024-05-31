@@ -4,9 +4,7 @@
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
 
-#include<limits>
-numeric_limits<double> realq;
-const double infinity = realq.infinity();
+#include <optional>
 
 
 /* Constructors */
@@ -82,7 +80,7 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
 
 /* Intersection determination */
 
-double quad::measure_distance(const ray& r) const {
+std::optional<double> quad::measure_distance(const ray& r) const {
     const rt::vector u = r.get_origin();
     const rt::vector dir = r.get_direction();
     
@@ -96,7 +94,7 @@ double quad::measure_distance(const ray& r) const {
     
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
     if (pdt * upln >= 0) {
-        return infinity;
+        return std::nullopt;
     }
 
     const double t = - upln / pdt;
@@ -128,12 +126,6 @@ double quad::measure_distance(const ray& r) const {
                 if (l2axy >= 0 && l1axy + l2axy <= 1) {
                     return t;
                 }
-                else {
-                    return infinity;
-                }
-            }
-            else {
-                return infinity;
             }
         }
     }
@@ -158,12 +150,6 @@ double quad::measure_distance(const ray& r) const {
                     if (l2axz >= 0 && l1axz + l2axz <= 1) {
                         return t;
                     }
-                    else {
-                        return infinity;
-                    }
-                }
-                else {
-                    return infinity;
                 }
             }
 		}
@@ -187,20 +173,13 @@ double quad::measure_distance(const ray& r) const {
                         if (l2ayz >= 0 && l1ayz + l2ayz <= 1) {
                             return t;
                         }
-                        else {
-                            return infinity;
-                        }
-                    }
-                    else {
-                        return infinity;
                     }
                 }
             }
-            else {
-                return infinity;
-            }
         }
     }
+
+    return std::nullopt;
 }
 
 /* Writes the barycentric coordinates in variables l1, l2, and returns the boolean lower_triangle:

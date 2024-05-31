@@ -21,6 +21,8 @@
 #include <string.h>
 #include <string>
 
+#include <optional>
+
 #include <limits>
 std::numeric_limits<double> real;
 const double infinity = real.infinity();
@@ -692,13 +694,13 @@ hit scene::find_closest_object(ray& r) const {
     for (unsigned int i = 0; i < object_set.size(); i++) {
         
         // We do not test the intersection with the object the rays is cast from
-        const double d = object_set.at(i)->measure_distance(r);
+        const std::optional<double> d = object_set.at(i)->measure_distance(r);
         
         /* d is the distance between the origin of the ray and the
            intersection point with the object */
 
-        if (d < distance_to_closest) {
-            distance_to_closest = d;
+        if (d.has_value() && d.value() < distance_to_closest) {
+            distance_to_closest = d.value();
             closest_obj_index = i;
         }
     }
