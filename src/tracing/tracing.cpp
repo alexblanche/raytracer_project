@@ -32,7 +32,7 @@ void update_accumulators(const material& m, const object*& obj, const rt::vector
             // Only polygons (triangles and quads) can be textured (for now)
             const barycentric_info bary = static_cast<const polygon*>(obj)->get_barycentric(hit_point);
 
-            color_materials = color_materials * static_cast<const polygon*>(obj)->info.get_texture_color(bary, texture_set);
+            color_materials = color_materials * static_cast<const polygon*>(obj)->info.value().get_texture_color(bary, texture_set);
         }
         else {
             color_materials = color_materials * m.get_color();
@@ -151,7 +151,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                     const barycentric_info bary = static_cast<const polygon*>(obj)->get_barycentric(h.get_point());
                     return
                         (color_materials *
-                            (static_cast<const polygon*>(obj)->info.get_texture_color(bary, scene.texture_set)
+                            (static_cast<const polygon*>(obj)->info.value().get_texture_color(bary, scene.texture_set)
                                 * m.get_emission_intensity())
                         )
                         + emitted_colors;

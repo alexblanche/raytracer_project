@@ -3,7 +3,6 @@
 #include "scene/objects/object.hpp"
 #include "scene/objects/bounding.hpp"
 
-
 #include "screen/color.hpp"
 #include "auxiliary/randomgen.hpp"
 

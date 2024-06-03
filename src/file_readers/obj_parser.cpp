@@ -35,38 +35,29 @@ void add_triangle(const std::vector<rt::vector>& vertex_set, const std::vector<r
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
    const rt::vector& shift, const double& scale,
-   const unsigned int& v1, const unsigned int& v2, const unsigned int& v3,
-   const unsigned int& vt1, const unsigned int& vt2, const unsigned int& vt3,
-   const unsigned int& vn1, const unsigned int& vn2, const unsigned int& vn3,
-   const unsigned int& current_texture_index, const unsigned int& current_material_index,
+   const size_t v1,  const size_t v2,  const size_t v3,
+   const size_t vt1, const size_t vt2, const size_t vt3,
+   const size_t vn1, const size_t vn2, const size_t vn3,
+   const size_t current_texture_index, const size_t current_material_index,
    const bool apply_texture) {
 
-   const texture_info info =
+   const std::optional<texture_info> info =
       apply_texture ?
                
-      texture_info(current_texture_index,
+      std::optional<texture_info>(texture_info(current_texture_index,
          {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
          uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
-         uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y})
+         uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y}))
       :
-      texture_info();
+      std::nullopt;
 
    const triangle* tr =
-      apply_texture ?
-
       new triangle(
          shift + scale * vertex_set[v1],
          shift + scale * vertex_set[v2],
          shift + scale * vertex_set[v3],
          normal_set[vn1], normal_set[vn2], normal_set[vn3],
-         current_material_index, info)
-      :
-      new triangle(
-         shift + scale * vertex_set[v1],
-         shift + scale * vertex_set[v2],
-         shift + scale * vertex_set[v3],
-         normal_set[vn1], normal_set[vn2], normal_set[vn3],
-         current_material_index);
+         current_material_index, info);
 
    obj_set.push_back(tr);
 
@@ -84,38 +75,29 @@ void add_triangle_subdiv(const std::vector<rt::vector>& vertex_set, const std::v
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
    const rt::vector& shift, const double& scale,
-   const unsigned int& vj, const unsigned int& vi, const rt::vector& final_v,
-   const unsigned int& vtj, const unsigned int& vti, const rt::vector& final_vt,
-   const unsigned int& vnj, const unsigned int& vni, const rt::vector& final_vn,
-   const unsigned int& current_texture_index, const unsigned int& current_material_index,
+   const size_t vj,  const size_t vi,  const rt::vector& final_v,
+   const size_t vtj, const size_t vti, const rt::vector& final_vt,
+   const size_t vnj, const size_t vni, const rt::vector& final_vn,
+   const size_t current_texture_index, const size_t current_material_index,
    const bool apply_texture) {
 
-   const texture_info info =
+   const std::optional<texture_info> info =
       apply_texture ?
 
-      texture_info(current_texture_index,
+      std::optional<texture_info>(texture_info(current_texture_index,
          {uv_coord_set[vtj].x, 1-uv_coord_set[vtj].y,
          uv_coord_set[vti].x, 1-uv_coord_set[vti].y,
-         final_vt.x, 1-final_vt.y})
+         final_vt.x, 1-final_vt.y}))
       :
-      texture_info();
+      std::nullopt;
 
    const triangle* tr =
-      apply_texture ?
-
       new triangle(
          shift + scale * vertex_set[vj],
          shift + scale * vertex_set[vi],
          shift + scale * final_v,
          normal_set[vnj], normal_set[vni], final_vn,
-         current_material_index, info)
-      :
-      new triangle(
-         shift + scale * vertex_set[vj],
-         shift + scale * vertex_set[vi],
-         shift + scale * final_v,
-         normal_set[vnj], normal_set[vni], final_vn,
-         current_material_index);
+         current_material_index, info);
 
    obj_set.push_back(tr);
 
@@ -133,41 +115,31 @@ void add_quad(const std::vector<rt::vector>& vertex_set, const std::vector<rt::v
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    unsigned int& number_of_polygons, unsigned int& number_of_quads,
    const rt::vector& shift, const double& scale,
-   const unsigned int& v1, const unsigned int& v2, const unsigned int& v3, const unsigned int& v4,
-   const unsigned int& vt1, const unsigned int& vt2, const unsigned int& vt3, const unsigned int& vt4,
-   const unsigned int& vn1, const unsigned int& vn2, const unsigned int& vn3, const unsigned int& vn4,
-   const unsigned int& current_texture_index, const unsigned int& current_material_index,
+   const size_t v1,  const size_t v2,  const size_t v3,  const size_t v4,
+   const size_t vt1, const size_t vt2, const size_t vt3, const size_t vt4,
+   const size_t vn1, const size_t vn2, const size_t vn3, const size_t vn4,
+   const size_t current_texture_index, const size_t current_material_index,
    const bool apply_texture) {
 
-   const texture_info info =
+   const std::optional<texture_info> info =
       apply_texture ?
 
-      texture_info(current_texture_index,
+      std::optional<texture_info>(texture_info(current_texture_index,
          {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
          uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
          uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y,
-         uv_coord_set[vt4].x,  1-uv_coord_set[vt4].y})
+         uv_coord_set[vt4].x,  1-uv_coord_set[vt4].y}))
       :
-      texture_info();
+      std::nullopt;
 
    const quad* q =
-      apply_texture ?
-                  
       new quad(
          shift + scale * vertex_set[v1],
          shift + scale * vertex_set[v2],
          shift + scale * vertex_set[v3],
          shift + scale * vertex_set[v4],
          normal_set[vn1], normal_set[vn2], normal_set[vn3], normal_set[vn4],
-         current_material_index, info)
-      :
-      new quad(
-         shift + scale * vertex_set[v1],
-         shift + scale * vertex_set[v2],
-         shift + scale * vertex_set[v3],
-         shift + scale * vertex_set[v4],
-         normal_set[vn1], normal_set[vn2], normal_set[vn3], normal_set[vn4],
-         current_material_index);
+         current_material_index, info);
 
    obj_set.push_back(q);
                
@@ -185,35 +157,27 @@ void add_triangle_no_normal(const std::vector<rt::vector>& vertex_set, const std
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
    const rt::vector& shift, const double& scale,
-   const unsigned int& v1, const unsigned int& v2, const unsigned int& v3,
-   const unsigned int& vt1, const unsigned int& vt2, const unsigned int& vt3,
-   const unsigned int& current_texture_index, const unsigned int& current_material_index,
+   const size_t v1,  const size_t v2,  const size_t v3,
+   const size_t vt1, const size_t vt2, const size_t vt3,
+   const size_t current_texture_index, const size_t current_material_index,
    const bool apply_texture) {
 
-   const texture_info info =
+   const std::optional<texture_info> info =
       apply_texture ?
                
-      texture_info(current_texture_index,
+      std::optional<texture_info>(texture_info(current_texture_index,
          {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
          uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
-         uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y})
+         uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y}))
       :
-      texture_info();
+      std::nullopt;
 
    const triangle* tr =
-      apply_texture ?
-
       new triangle(
          shift + scale * vertex_set[v1],
          shift + scale * vertex_set[v2],
          shift + scale * vertex_set[v3],
-         current_material_index, info)
-      :
-      new triangle(
-         shift + scale * vertex_set[v1],
-         shift + scale * vertex_set[v2],
-         shift + scale * vertex_set[v3],
-         current_material_index);
+         current_material_index, info);
 
    obj_set.push_back(tr);
 
@@ -230,35 +194,27 @@ void add_triangle_subdiv_no_normal(const std::vector<rt::vector>& vertex_set, co
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
    const rt::vector& shift, const double& scale,
-   const unsigned int& vj, const unsigned int& vi, const rt::vector& final_v,
-   const unsigned int& vtj, const unsigned int& vti, const rt::vector& final_vt,
-   const unsigned int& current_texture_index, const unsigned int& current_material_index,
+   const size_t vj,  const size_t vi,  const rt::vector& final_v,
+   const size_t vtj, const size_t vti, const rt::vector& final_vt,
+   const size_t current_texture_index, const size_t current_material_index,
    const bool apply_texture) {
 
-   const texture_info info =
+   const std::optional<texture_info> info =
       apply_texture ?
 
-      texture_info(current_texture_index,
+      std::optional<texture_info>(texture_info(current_texture_index,
          {uv_coord_set[vtj].x, 1-uv_coord_set[vtj].y,
          uv_coord_set[vti].x, 1-uv_coord_set[vti].y,
-         final_vt.x, 1-final_vt.y})
+         final_vt.x, 1-final_vt.y}))
       :
-      texture_info();
+      std::nullopt;
 
    const triangle* tr =
-      apply_texture ?
-
       new triangle(
          shift + scale * vertex_set[vj],
          shift + scale * vertex_set[vi],
          shift + scale * final_v,
-         current_material_index, info)
-      :
-      new triangle(
-         shift + scale * vertex_set[vj],
-         shift + scale * vertex_set[vi],
-         shift + scale * final_v,
-         current_material_index);
+         current_material_index, info);
 
    obj_set.push_back(tr);
 
@@ -275,38 +231,29 @@ void add_quad_no_normal(const std::vector<rt::vector>& vertex_set, const std::ve
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    unsigned int& number_of_polygons, unsigned int& number_of_quads,
    const rt::vector& shift, const double& scale,
-   const unsigned int& v1, const unsigned int& v2, const unsigned int& v3, const unsigned int& v4,
-   const unsigned int& vt1, const unsigned int& vt2, const unsigned int& vt3, const unsigned int& vt4,
-   const unsigned int& current_texture_index, const unsigned int& current_material_index,
+   const size_t v1,  const size_t v2,  const size_t v3,  const size_t v4,
+   const size_t vt1, const size_t vt2, const size_t vt3, const size_t vt4,
+   const size_t current_texture_index, const size_t current_material_index,
    const bool apply_texture) {
 
-   const texture_info info =
+   const std::optional<texture_info> info =
       apply_texture ?
 
-      texture_info(current_texture_index,
+      std::optional<texture_info>(texture_info(current_texture_index,
          {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
          uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
          uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y,
-         uv_coord_set[vt4].x,  1-uv_coord_set[vt4].y})
+         uv_coord_set[vt4].x,  1-uv_coord_set[vt4].y}))
       :
-      texture_info();
+      std::nullopt;
 
    const quad* q =
-      apply_texture ?
-                  
       new quad(
          shift + scale * vertex_set[v1],
          shift + scale * vertex_set[v2],
          shift + scale * vertex_set[v3],
          shift + scale * vertex_set[v4],
-         current_material_index, info)
-      :
-      new quad(
-         shift + scale * vertex_set[v1],
-         shift + scale * vertex_set[v2],
-         shift + scale * vertex_set[v3],
-         shift + scale * vertex_set[v4],
-         current_material_index);
+         current_material_index, info);
 
    obj_set.push_back(q);
                
@@ -326,15 +273,15 @@ void add_subdivided_polygon(FILE* file,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
    const rt::vector& shift, const double& scale,
-   const unsigned int& v1, const unsigned int& v2, const unsigned int& v3, const unsigned int& v4, const unsigned int& v5,
-   const unsigned int& vt1, const unsigned int& vt2, const unsigned int& vt3, const unsigned int& vt4, const unsigned int& vt5,
-   const unsigned int& vn1, const unsigned int& vn2, const unsigned int& vn3, const unsigned int& vn4, const unsigned int& vn5,
-   const unsigned int& current_texture_index, const unsigned int& current_material_index,
+   const size_t v1, const size_t v2, const size_t v3, const size_t v4, const size_t v5,
+   const size_t vt1, const size_t vt2, const size_t vt3, const size_t vt4, const size_t vt5,
+   const size_t vn1, const size_t vn2, const size_t vn3, const size_t vn4, const size_t vn5,
+   const size_t current_texture_index, const size_t current_material_index,
    bool apply_texture) {
    
-   std::stack<unsigned int> v_stack;
-   std::stack<unsigned int> vt_stack;
-   std::stack<unsigned int> vn_stack;
+   std::stack<size_t> v_stack;
+   std::stack<size_t> vt_stack;
+   std::stack<size_t> vn_stack;
    v_stack.push(v1);   v_stack.push(v2);   v_stack.push(v3);   v_stack.push(v4);   v_stack.push(v5);
    vt_stack.push(vt1); vt_stack.push(vt2); vt_stack.push(vt3); vt_stack.push(vt4); vt_stack.push(vt5);
    vn_stack.push(vn1); vn_stack.push(vn2); vn_stack.push(vn3); vn_stack.push(vn4); vn_stack.push(vn5);
@@ -385,26 +332,26 @@ void add_subdivided_polygon(FILE* file,
    final_vn = final_vn / cpt;
 
    // Keeping the last vertex in memory to form a triangle with the first vertex
-   const unsigned int last_v  = v_stack.top();
-   unsigned int last_vt = 0;
+   const size_t last_v  = v_stack.top();
+   size_t last_vt = 0;
    if (apply_texture) { last_vt = vt_stack.top(); }
-   const unsigned int last_vn = vn_stack.top();
+   const size_t last_vn = vn_stack.top();
 
    // Adding the new triangles having the new central vertex as a common vertex
-   for (unsigned int i = 0; i < cpt - 1; i++) {
-      const unsigned int vi = v_stack.top();
-      unsigned int vti = 0;
+   for (size_t i = 0; i < cpt - 1; i++) {
+      const size_t vi = v_stack.top();
+      size_t vti = 0;
       if (apply_texture) { vti = vt_stack.top(); }
-      const unsigned int vni = vn_stack.top();
+      const size_t vni = vn_stack.top();
 
       v_stack.pop();
       if (apply_texture) { vt_stack.pop(); }
       vn_stack.pop();
 
-      const unsigned int vj = v_stack.top();
-      unsigned int vtj = 0;
+      const size_t vj = v_stack.top();
+      size_t vtj = 0;
       if (apply_texture) { vtj = vt_stack.top(); }
-      const unsigned int vnj = vn_stack.top();
+      const size_t vnj = vn_stack.top();
 
       add_triangle_subdiv(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
          number_of_polygons, number_of_triangles,
@@ -426,13 +373,13 @@ void add_subdivided_polygon_no_normal(FILE* file,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
    const rt::vector& shift, const double& scale,
-   const unsigned int& v1, const unsigned int& v2, const unsigned int& v3, const unsigned int& v4, const unsigned int& v5,
-   const unsigned int& vt1, const unsigned int& vt2, const unsigned int& vt3, const unsigned int& vt4, const unsigned int& vt5,
-   const unsigned int& current_texture_index, const unsigned int& current_material_index,
+   const size_t v1,  const size_t v2,  const size_t v3,  const size_t v4,  const size_t v5,
+   const size_t vt1, const size_t vt2, const size_t vt3, const size_t vt4, const size_t vt5,
+   const size_t current_texture_index, const size_t current_material_index,
    bool apply_texture) {
    
-   std::stack<unsigned int> v_stack;
-   std::stack<unsigned int> vt_stack;
+   std::stack<size_t> v_stack;
+   std::stack<size_t> vt_stack;
    v_stack.push(v1);   v_stack.push(v2);   v_stack.push(v3);   v_stack.push(v4);   v_stack.push(v5);
    vt_stack.push(vt1); vt_stack.push(vt2); vt_stack.push(vt3); vt_stack.push(vt4); vt_stack.push(vt5);
 
@@ -473,21 +420,21 @@ void add_subdivided_polygon_no_normal(FILE* file,
    if (apply_texture) { final_vt = final_vt / cpt; }
 
    // Keeping the last vertex in memory to form a triangle with the first vertex
-   const unsigned int last_v  = v_stack.top();
-   unsigned int last_vt = 0;
+   const size_t last_v  = v_stack.top();
+   size_t last_vt = 0;
    if (apply_texture) { last_vt = vt_stack.top(); }
 
    // Adding the new triangles having the new central vertex as a common vertex
-   for (unsigned int i = 0; i < cpt - 1; i++) {
-      const unsigned int vi = v_stack.top();
-      unsigned int vti = 0;
+   for (size_t i = 0; i < cpt - 1; i++) {
+      const size_t vi = v_stack.top();
+      size_t vti = 0;
       if (apply_texture) { vti = vt_stack.top(); }
 
       v_stack.pop();
       if (apply_texture) { vt_stack.pop(); }
 
-      const unsigned int vj = v_stack.top();
-      unsigned int vtj = 0;
+      const size_t vj = v_stack.top();
+      size_t vtj = 0;
       if (apply_texture) { vtj = vt_stack.top(); }
 
       add_triangle_subdiv_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
@@ -518,7 +465,7 @@ void add_subdivided_polygon_no_normal(FILE* file,
    Returns true if the operation was successful
 */
 
-bool parse_obj_file(const char* file_name, const size_t default_texture_index,
+bool parse_obj_file(const char* file_name, const std::optional<size_t> default_texture_index,
    std::vector<const object*>& obj_set,
    std::vector<wrapper<material>>& material_wrapper_set,
    std::vector<wrapper<texture>>& texture_wrapper_set,
@@ -538,7 +485,7 @@ bool parse_obj_file(const char* file_name, const size_t default_texture_index,
 
    /* Extraction of the path to the .obj file, to be appended to relative paths of mtl and texture files */
    const string file_name_string = string(file_name);
-   const unsigned int last_slash = file_name_string.find_last_of("/\\");
+   const size_t last_slash = file_name_string.find_last_of("/\\");
    const string path = file_name_string.substr(0, last_slash + 1);
 
    /* Storage */
@@ -557,9 +504,9 @@ bool parse_obj_file(const char* file_name, const size_t default_texture_index,
    map<size_t, size_t> mt_assoc;
 
    size_t current_material_index = -1;
-   size_t current_texture_index = default_texture_index;
+   size_t current_texture_index = default_texture_index.value_or((size_t) (-1));
 
-   const bool default_texture_provided = default_texture_index != (unsigned int) -1;
+   const bool default_texture_provided = default_texture_index.value();
    bool apply_texture = default_texture_provided;
 
    /* Counters */
@@ -705,7 +652,7 @@ bool parse_obj_file(const char* file_name, const size_t default_texture_index,
                   apply_texture = true;
                }
                else {
-                  current_texture_index = default_texture_index;
+                  current_texture_index = default_texture_index.value_or((size_t) (-1));
                   apply_texture = default_texture_provided;
                }
             }

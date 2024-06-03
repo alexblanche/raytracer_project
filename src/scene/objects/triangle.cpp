@@ -10,48 +10,10 @@
 /* Constructors */
 
 triangle::triangle() : normal(rt::vector()), v1(rt::vector()), v2(rt::vector()), d(0) {}
-        
-// Constructor from three points
+
+// Constructor from three points without vertex normals
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, 
-    const unsigned int material_index)
-
-    : polygon(p0, material_index) {
-
-    v1 = p1 - p0;
-    v2 = p2 - p0;
-    const rt::vector n = (v1 ^ v2);
-    normal = n.unit();
-    vn0 = normal;
-    vn1 = normal;
-    vn2 = normal;
-    d = - (normal | p0);
-
-    // printf("TRIANGLE (from 3 points):\n");
-    // printf("p0 = (%lf, %lf, %lf), v1 = (%lf, %lf, %lf), v2 = (%lf, %lf, %lf)\n",
-    //     p0.x, p0.y, p0.z, v1.x, v1.y, v1.z, v2.x, v2.y, v2.z);
-    // printf("vn0 = (%lf, %lf, %lf), vn1 = (%lf, %lf, %lf), vn2 = (%lf, %lf, %lf)\n",
-    //     vn0.x, vn0.y, vn0.z, vn1.x, vn1.y, vn1.z, vn2.x, vn2.y, vn2.z);
-    // printf("normal = (%lf, %lf, %lf)\n", normal.x, normal.y, normal.z);
-    // printf("d = %lf\n", d);
-}
-
-// Constructor from three points with vertex normals
-triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
-    const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
-    const unsigned int material_index)
-
-    : polygon(p0, material_index), vn0(vn0.unit()), vn1(vn1.unit()), vn2(vn2.unit()) {
-    
-    v1 = p1 - p0;
-    v2 = p2 - p0;
-    const rt::vector n = (v1 ^ v2);
-    normal = n.unit();
-    d = - (normal | p0);
-}
-
-// Constructors for textured triangles
-triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, 
-    const unsigned int material_index, const texture_info& info)
+    const size_t material_index, const std::optional<texture_info>& info)
 
     : polygon(p0, material_index, info) {
 
@@ -65,9 +27,10 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     d = - (normal | p0);
 }
 
+// Constructor from three points with vertex normals
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
     const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
-    const unsigned int material_index, const texture_info& info)
+    const size_t material_index, const std::optional<texture_info>& info)
 
     : polygon(p0, material_index, info), vn0(vn0.unit()), vn1(vn1.unit()), vn2(vn2.unit()) {
     

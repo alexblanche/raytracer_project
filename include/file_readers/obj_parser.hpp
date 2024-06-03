@@ -9,6 +9,8 @@
 
 #include "file_readers/parsing_wrappers.hpp"
 
+#include <optional>
+
 /* Wavefront .obj file parser */
 /* Only handles .obj files made up of triangles and quads, for now.
    In the future, maybe split polygons with >= 5 sides into triangles */
@@ -25,7 +27,7 @@
    
    Returns true if the operation was successful
 */
-bool parse_obj_file(const char* file_name, const size_t default_texture_index,
+bool parse_obj_file(const char* file_name, const std::optional<size_t> default_texture_index,
    std::vector<const object*>& obj_set,
    std::vector<wrapper<material>>& material_wrapper_set,
    std::vector<wrapper<texture>>& texture_wrapper_set,

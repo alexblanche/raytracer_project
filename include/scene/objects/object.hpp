@@ -33,7 +33,7 @@ class object {
         rt::vector position;
 
         /* Index of the material in the material_set vector of the scene */
-        const unsigned int material_index;
+        const size_t material_index;
 
         /* True if the object is textured (only allowed when it is a triangle or quad) */
         const bool textured;
@@ -46,9 +46,9 @@ class object {
 
         object();
 
-        object(const rt::vector& pos, const unsigned int material_index);
+        object(const rt::vector& pos, const size_t material_index);
 
-        object(const rt::vector& pos, const unsigned int material_index, const bool textured);
+        object(const rt::vector& pos, const size_t material_index, const bool textured);
 
         /* Accessors */
 

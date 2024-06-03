@@ -19,8 +19,8 @@
 #include "file_readers/parsing_wrappers.hpp"
 
 /* Declaration of the wrapper counters */
-template <> size_t wrapper<material>::counter = 0;
-template <> size_t wrapper<texture>::counter = 0;
+template<> size_t wrapper<material>::counter = 0;
+template<> size_t wrapper<texture>::counter = 0;
 
 /*** Scene description parsing ***/
 
@@ -474,27 +474,14 @@ std::optional<unique_ptr<scene>> parse_scene_descriptor(const char* file_name) {
                 const std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, true);
                 if (m_index.has_value()) {
                 
-                    if (info.has_value()) {
-                        const triangle* tr = new triangle(rt::vector(x0, y0, z0),
-                            rt::vector(x1, y1, z1),
-                            rt::vector(x2, y2, z2),
-                            m_index.value(), info.value());
-                        object_set.push_back(tr);
+                    const triangle* tr = new triangle(rt::vector(x0, y0, z0),
+                        rt::vector(x1, y1, z1),
+                        rt::vector(x2, y2, z2),
+                        m_index.value(), info);
+                    object_set.push_back(tr);
                             
-                        if (bounding_enabled) {
-                            other_content.push_back(tr);
-                        }
-                    }
-                    else {
-                        const triangle* tr = new triangle(rt::vector(x0, y0, z0),
-                            rt::vector(x1, y1, z1),
-                            rt::vector(x2, y2, z2),
-                            m_index.value());
-                        object_set.push_back(tr);
-                            
-                        if (bounding_enabled) {
-                            other_content.push_back(tr);
-                        }
+                    if (bounding_enabled) {
+                        other_content.push_back(tr);
                     }
                 }
                 else {
@@ -518,29 +505,15 @@ std::optional<unique_ptr<scene>> parse_scene_descriptor(const char* file_name) {
                 if (m_index.has_value()) {
                 
                     const std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, false);
-                    if (info.has_value()) {
-                        const quad* q = new quad(rt::vector(x0, y0, z0),
-                            rt::vector(x1, y1, z1),
-                            rt::vector(x2, y2, z2),
-                            rt::vector(x3, y3, z3),
-                            m_index.value(), info.value());
-                        object_set.push_back(q);
+                    const quad* q = new quad(rt::vector(x0, y0, z0),
+                        rt::vector(x1, y1, z1),
+                        rt::vector(x2, y2, z2),
+                        rt::vector(x3, y3, z3),
+                        m_index.value(), info);
+                    object_set.push_back(q);
                             
-                        if (bounding_enabled) {
-                            other_content.push_back(q);
-                        }
-                    }
-                    else {
-                        const quad* q = new quad(rt::vector(x0, y0, z0),
-                            rt::vector(x1, y1, z1),
-                            rt::vector(x2, y2, z2),
-                            rt::vector(x3, y3, z3),
-                            m_index.value());
-                        object_set.push_back(q);
-                            
-                        if (bounding_enabled) {
-                            other_content.push_back(q);
-                        }
+                    if (bounding_enabled) {
+                        other_content.push_back(q);
                     }
                 }
                 else {

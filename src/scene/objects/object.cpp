@@ -6,14 +6,14 @@
 /* Constructors */
 
 object::object()
-    : position(rt::vector()), material_index((unsigned int) -1),
+    : position(rt::vector()), material_index((size_t) -1),
       textured(false) {}
 
-object::object(const rt::vector& position, const unsigned int material_index)
+object::object(const rt::vector& position, const size_t material_index)
     : position(position), material_index(material_index),
       textured(false) {}
 
-object::object(const rt::vector& position, const unsigned int material_index, const bool textured)
+object::object(const rt::vector& position, const size_t material_index, const bool textured)
     : position(position), material_index(material_index),
       textured(textured) {}
 
