@@ -140,7 +140,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
             
             const hit h = opt_h.value();
             const object* obj = h.get_object();
-            const material m = scene.material_set.at(obj->get_material_index());
+            const material m = scene.material_set[obj->get_material_index()];
 
             /* Full-intensity light source reached */
             if (m.get_emission_intensity() >= 1) {

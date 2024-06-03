@@ -24,11 +24,11 @@ bool export_raw(const char* file_name, const unsigned int number_of_rays, std::v
         return false;
     }
     
-    const unsigned int width = matrix.size();
-    const unsigned int height = matrix.at(0).size();
+    const size_t width = matrix.size();
+    const size_t height = matrix[0].size();
 
     const int ret0 = fprintf(file, "width:%u height:%u number_of_rays:%u\n",
-        width, height, number_of_rays);
+        (unsigned int) width, (unsigned int) height, number_of_rays);
 
     if (ret0 < 0) {
         printf("Writing error at first line of %s\n", file_name);
@@ -36,12 +36,12 @@ bool export_raw(const char* file_name, const unsigned int number_of_rays, std::v
         return false;
     }
 
-    for(unsigned int j = 0; j < height; j++) {
-        for(unsigned int i = 0; i < width; i++) {
-            rt::color c = matrix.at(i).at(j);
+    for(size_t j = 0; j < height; j++) {
+        for(size_t i = 0; i < width; i++) {
+            rt::color c = matrix[i][j];
             const int ret = fprintf(file, "%lf %lf %lf\n", c.get_red(), c.get_green(), c.get_blue());
             if (ret < 0) {
-                printf("Writing error at color line %u of %s\n", width*j + i, file_name);
+                printf("Writing error at color line %u of %s\n", (unsigned int) (width*j + i), file_name);
                 fclose(file);
                 return false;
             }
@@ -89,7 +89,7 @@ std::vector<std::vector<rt::color>>& read_raw(const char* file_name, unsigned in
                 success = false;
                 return *matrix;
             }
-            (*matrix).at(i).at(j) = rt::color(r, g, b);
+            (*matrix)[i][j] = rt::color(r, g, b);
         }
     }
 
@@ -165,7 +165,7 @@ bool combine_raw(const char* dest_bmp_name, const char* dest_raw_name, const int
                     fclose(file);
                     return false;
                 }
-                matrix.at(i).at(j) = matrix.at(i).at(j) + rt::color(r, g, b);
+                matrix[i][j] = matrix[i][j] + rt::color(r, g, b);
             }    
         }
         fclose(file);

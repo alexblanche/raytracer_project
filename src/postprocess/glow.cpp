@@ -50,14 +50,21 @@ struct pixel {
     }
 };
 
+/* Struct containing the normalized color and the intensity */
+struct normalized {
+    rt::color normalized_color;
+    double intensity;
 
-/* Returns the normalized color (without saturation to white), and writes the intensity in the given variable */
-rt::color get_normalized_color(const rt::color& col, const unsigned int number_of_rays,
-    double& intensity) {
+    normalized(const rt::color& col, const double& intensity)
+        : normalized_color(col), intensity(intensity) {}
+};
+
+/* Returns the normalized color (without saturation to white) and its intensity */
+normalized get_normalized_color(const rt::color& col, const unsigned int number_of_rays) {
 
     const double max = std::max(col.get_red(), std::max(col.get_green(), col.get_blue()));
-    intensity = max / (255 * number_of_rays);
-    return (col * (255/max));
+    const double intensity = max / (255 * number_of_rays);
+    return normalized(col * (255/max), intensity);
 }
 
 /* Extracts the saturated pixels of the image */
@@ -67,16 +74,16 @@ std::vector<std::vector<rt::color>> extract_bright_pixels(const std::vector<std:
     /* The glow effect is disabled when light intensity is below 4 */
     const double thresh = 255 * number_of_rays * std::max(4.0, threshold);
 
-    const unsigned int width = image.size();
-    const unsigned int height = image.at(0).size();
+    const size_t width = image.size();
+    const size_t height = image[0].size();
     std::vector<std::vector<rt::color>> bright_pixels(width, std::vector<rt::color>(height));
     
-    for(unsigned int i = 0; i < width; i++) {
-        for (unsigned int j = 0; j < height; j++) {
-            const rt::color col = image.at(i).at(j);
+    for(size_t i = 0; i < width; i++) {
+        for (size_t j = 0; j < height; j++) {
+            const rt::color col = image[i][j];
             const double max = std::max(col.get_red(), std::max(col.get_green(), col.get_blue()));
             if (max > thresh) {
-                bright_pixels.at(i).at(j) = col;
+                bright_pixels[i][j] = col;
             }
         }
     }
@@ -92,7 +99,7 @@ void blur_pixel(std::vector<std::vector<pixel>>& glow_image,
     const double& glow_intensity) {
 
     const int width = glow_image.size();
-    const int height = glow_image.at(0).size();
+    const int height = glow_image[0].size();
 
     const double std_dev_sq = glow_intensity * intensity * intensity;
 
@@ -102,10 +109,10 @@ void blur_pixel(std::vector<std::vector<pixel>>& glow_image,
     for(int i = std::max((int) -radius, -a); i < std::min((int) radius, width - a); i++) {
         for(int j = std::max((int) -radius, -b); j < std::min((int) radius, height - b); j++) {
 
-            if (bright_pixels.at(i + a).at(j + b) == rt::color::BLACK) {
+            if (bright_pixels[i + a][j + b] == rt::color::BLACK) {
 
                 const double gaussian = exp(div * (i * i + j * j));
-                glow_image.at(i + a).at(j + b).add(normalized_color, gaussian);
+                glow_image[i + a][j + b].add(normalized_color, gaussian);
             }
         }
     }
@@ -115,19 +122,18 @@ void blur_pixel(std::vector<std::vector<pixel>>& glow_image,
 std::vector<std::vector<pixel>> generate_glow(const std::vector<std::vector<rt::color>>& bright_pixels,
     const unsigned int number_of_rays, const double& glow_intensity) {
     
-    const unsigned int width = bright_pixels.size();
-    const unsigned int height = bright_pixels.at(0).size();
+    const size_t width = bright_pixels.size();
+    const size_t height = bright_pixels[0].size();
     std::vector<std::vector<pixel>> glow(width, std::vector<pixel>(height));
 
     printf("0 / %u", width);
     fflush(stdout);
 
-    for (unsigned int i = 0; i < width; i++) {
-        for (unsigned int j = 0; j < height; j++) {
-            if (not (bright_pixels.at(i).at(j) == rt::color::BLACK)) {
-                double intensity;
-                const rt::color normalized_color = get_normalized_color(bright_pixels.at(i).at(j), number_of_rays, intensity);
-                blur_pixel(glow, bright_pixels, i, j, normalized_color, intensity, glow_intensity);
+    for (size_t i = 0; i < width; i++) {
+        for (size_t j = 0; j < height; j++) {
+            if (not (bright_pixels[i][j] == rt::color::BLACK)) {
+                const normalized nc = get_normalized_color(bright_pixels[i][j], number_of_rays);
+                blur_pixel(glow, bright_pixels, i, j, nc.normalized_color, nc.intensity, glow_intensity);
             }
         }
         printf("\r%u / %u", i+1, width);
@@ -150,13 +156,13 @@ std::vector<std::vector<rt::color>> apply_glow(const std::vector<std::vector<rt:
     std::vector<std::vector<rt::color>> bright_pixels = extract_bright_pixels(image, number_of_rays, threshold);
     std::vector<std::vector<pixel>> glow_image = generate_glow(bright_pixels, number_of_rays, glow_intensity);
 
-    const unsigned int width = image.size();
-    const unsigned int height = image.at(0).size();
+    const size_t width = image.size();
+    const size_t height = image[0].size();
     std::vector<std::vector<rt::color>> output_image(width, std::vector<rt::color>(height));
 
-    for (unsigned int i = 0; i < width; i++) {
-        for (unsigned int j = 0; j < height; j++) {
-            output_image.at(i).at(j) = glow_image.at(i).at(j).superimpose(image.at(i).at(j), number_of_rays, threshold);
+    for (size_t i = 0; i < width; i++) {
+        for (size_t j = 0; j < height; j++) {
+            output_image[i][j] = glow_image[i][j].superimpose(image[i][j], number_of_rays, threshold);
         }
     }
 

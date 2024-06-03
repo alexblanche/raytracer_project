@@ -69,16 +69,16 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
     /*
     bool change = false;
     for (unsigned int n = 0; n < old_group.size(); n++) {
-        for (unsigned int i = 0; i < old_group.at(n).size(); i++) {
+        for (unsigned int i = 0; i < old_group[n].size(); i++) {
 
-            const element elt = old_group.at(n).at(i);
+            const element elt = old_group[n][i];
             const rt::vector v = elt.get_position();
 
             unsigned int closest_index = 0;
-            double distance_to_closest = (means.at(0) - v).normsq();
+            double distance_to_closest = (means[0] - v).normsq();
 
             for (unsigned int m = 1; m < means.size(); m++) {
-                const double d = (means.at(m) - v).normsq();
+                const double d = (means[m] - v).normsq();
                 if(d < distance_to_closest) {
                     distance_to_closest = d;
                     closest_index = m;
@@ -88,7 +88,7 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
             if (closest_index != n) {
                 change = true;
             }
-            new_group.at(closest_index).push_back(elt);
+            new_group[closest_index].push_back(elt);
         }
     }
     */
@@ -101,23 +101,23 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
 
     if (nb_of_groups == 1) {
         // First iteration (all elements in the first group)
-        PARALLEL_FOR_BEGIN(old_groups.at(0).size()) {
+        PARALLEL_FOR_BEGIN(old_groups[0].size()) {
 
-            const element elt = old_groups.at(0).at(n);
+            const element elt = old_groups[0][n];
             const rt::vector v = elt.get_position();
 
             unsigned int closest_index = 0;
-            double distance_to_closest = (means.at(0) - v).normsq();
+            double distance_to_closest = (means[0] - v).normsq();
 
             for (unsigned int m = 1; m < means.size(); m++) {
-                const double d = (means.at(m) - v).normsq();
+                const double d = (means[m] - v).normsq();
                 if(d < distance_to_closest) {
                     distance_to_closest = d;
                     closest_index = m;
                 }
             }
             m.lock();
-            new_groups.at(closest_index).push_back(elt);
+            new_groups[closest_index].push_back(elt);
             m.unlock();
         } PARALLEL_FOR_END();
 
@@ -127,15 +127,15 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
         // All other iterations, 
         bool change = false;
         PARALLEL_FOR_BEGIN(nb_of_groups) {
-            for (const element& elt : old_groups.at(n)) {
+            for (element const& elt : old_groups[n]) {
 
                 const rt::vector v = elt.get_position();
 
                 unsigned int closest_index = 0;
-                double distance_to_closest = (means.at(0) - v).normsq();
+                double distance_to_closest = (means[0] - v).normsq();
 
                 for (unsigned int m = 1; m < means.size(); m++) {
-                    const double d = (means.at(m) - v).normsq();
+                    const double d = (means[m] - v).normsq();
                     if(d < distance_to_closest) {
                         distance_to_closest = d;
                         closest_index = m;
@@ -147,7 +147,7 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
                 }
 
                 m.lock();
-                new_groups.at(closest_index).push_back(elt);
+                new_groups[closest_index].push_back(elt);
                 m.unlock();
             }
         } PARALLEL_FOR_END();
@@ -160,7 +160,7 @@ void fill_empty_clusters(std::vector<std::vector<element>>& groups) {
     std::stack<unsigned int> empty_groups;
     std::queue<unsigned int> non_empty_groups;
     for(unsigned int n = 0; n < groups.size(); n++) {
-        if (groups.at(n).size() == 0) {
+        if (groups[n].empty()) {
             empty_groups.push(n);
         }
         else {
@@ -172,12 +172,12 @@ void fill_empty_clusters(std::vector<std::vector<element>>& groups) {
         const unsigned int empty = empty_groups.top();
         const unsigned int non_empty = non_empty_groups.front();
         
-        groups.at(empty).push_back(groups.at(non_empty).back());
-        groups.at(non_empty).pop_back();
+        groups[empty].push_back(groups[non_empty].back());
+        groups[non_empty].pop_back();
         empty_groups.pop();
 
         non_empty_groups.pop();
-        if (groups.at(non_empty).size() != 0) {
+        if (not groups[non_empty].empty()) {
             non_empty_groups.push(non_empty);
         }
     }
@@ -194,7 +194,7 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
     const double step = std::max((double) (obj.size() / k), 1.0);
 
     for (unsigned int i = 0; i < std::min((unsigned int) obj.size(), k); i++) {
-        means.at(i) = obj.at((int) (i * step)).get_position();
+        means[i] = obj[(int) (i * step)].get_position();
     }
     
     std::vector<std::vector<element>> groups(k);
@@ -336,8 +336,8 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
     /* Creating terminal nodes */
     std::vector<const bounding*> term_nodes;
     for (unsigned int i = 0; i < k; i++) {
-        if (groups.at(i).size() != 0) {
-            term_nodes.push_back(containing_objects(get_object_vector(groups.at(i))));
+        if (not groups[i].empty()) {
+            term_nodes.push_back(containing_objects(get_object_vector(groups[i])));
             cpt ++;
         }
     }
@@ -416,8 +416,8 @@ void display_hierarchy_properties(const bounding* bd0) {
             }
             else {
                 arity = bd->get_children().size();
-                for (unsigned int j = 0; j < arity; j++) {
-                    next_bds.push(bd->get_children().at(j));
+                for (size_t j = 0; j < arity; j++) {
+                    next_bds.push(bd->get_children()[j]);
                 }
             }
             if (arity > max) {max = arity;}

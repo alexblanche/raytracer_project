@@ -41,10 +41,9 @@ ray camera::gen_ray(const int i, const int j) const {
 /* Returns the ray that goes toward the pixel i,j of the screen in average,
    following a normal distribution around to center of the pixel, with given stardard deviation */
 ray camera::gen_ray_normal(const int i, const int j, const double& std_dev, randomgen& rg) const {
-    double shift_x, shift_y;
-    rg.random_pair_normal(0, std_dev, shift_x, shift_y);
-    rt::vector dir = (mhalf_fovw + (((double) i) + shift_x) * di) * to_the_right
-        + (mhalf_fovh + (((double) j) + shift_y) * dj) * to_the_bottom
+    std::pair<double, double> shift = rg.random_pair_normal(0, std_dev);
+    rt::vector dir = (mhalf_fovw + (((double) i) + shift.first) * di) * to_the_right
+        + (mhalf_fovh + (((double) j) + shift.second) * dj) * to_the_bottom
         + distance * direction;
     return ray(origin, dir.unit());
 }

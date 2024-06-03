@@ -37,31 +37,10 @@ void render_loop_seq(vector<vector<rt::color>>& matrix,
             const rt::color pixel_col = pathtrace(r, scene, number_of_bounces);
 
             // Updating the color matrix
-            matrix.at(i).at(j) = matrix.at(i).at(j) + pixel_col;
+            matrix[i][j] = matrix[i][j] + pixel_col;
         }
     }
 }
-
-/* Experimental STL version *
-void render_loop_stl(vector<vector<rt::color>>& matrix,
-    scene& scene, const unsigned int number_of_bounces) {
-
-    return;
-    // TODO
-    // for (int i = 0; i < scene.width; i++) {
-    //     for (int j = 0; j < scene.height; j++) {
-
-    //         ray r = scene.cam.depth_of_field_enabled ?
-    //               scene.cam.gen_ray_dof(i, j, scene.rg)
-    //             : scene.cam.gen_ray_normal(i, j, ANTI_ALIASING, scene.rg);
-    //         const rt::color pixel_col = pathtrace(r, scene, number_of_bounces);
-
-    //         // Updating the color matrix
-    //         matrix.at(i).at(j) = matrix.at(i).at(j) + pixel_col;
-    //     }
-    // }
-}
-*/
 
 
 /* Main render loop */
@@ -81,20 +60,20 @@ void render_loop_parallel(vector<vector<rt::color>>& matrix,
                 : scene.cam.gen_ray_normal(i, j, ANTI_ALIASING, scene.rg);
             // const rt::color pixel_col = pathtrace(r, scene, number_of_bounces);
             
-            // const rt::color current_color = matrix.at(i).at(j);
+            // const rt::color current_color = matrix[i][j];
             // const rt::color new_color = current_color + pixel_col;
 
             output[j] = pathtrace(r, scene, number_of_bounces);
 
             // Updating the color matrix
             // m.lock();
-            // matrix.at(i).at(j) = new_color;
+            // matrix[i][j] = new_color;
             // m.unlock();
         }
 
         m.lock();
         for(int j = 0; j < scene.height; j++) {
-            matrix.at(i).at(j) = matrix.at(i).at(j) + output[j];
+            matrix[i][j] = matrix[i][j] + output[j];
         }
         m.unlock();
         
@@ -111,7 +90,7 @@ void render_loop_parallel_time(vector<vector<rt::color>>& matrix,
     mutex m;
     float cpt = 0;
     float x = 100.0 / (((double) scene.width) * ((double) scene.height));
-    const long int t_init = time(NULL);
+    const long int t_init = time(0);
 
     PARALLEL_FOR_BEGIN(scene.width) {
 
@@ -122,19 +101,19 @@ void render_loop_parallel_time(vector<vector<rt::color>>& matrix,
                 : scene.cam.gen_ray_normal(i, j, ANTI_ALIASING, scene.rg);
             const rt::color pixel_col = pathtrace(r, scene, number_of_bounces);
             
-            const rt::color current_color = matrix.at(i).at(j);
+            const rt::color current_color = matrix[i][j];
             const rt::color new_color = current_color + pixel_col;
 
             // Updating the color matrix
             m.lock();
             cpt += 1;
-            matrix.at(i).at(j) = new_color;
+            matrix[i][j] = new_color;
             m.unlock();
         }
 
         if (time_all) {
             m.lock();
-            const long int curr_time = time(NULL);
+            const long int curr_time = time(0);
             const long int elapsed = curr_time - t_init;
             const double estimated_time = ((double) elapsed) * 100.0 / (cpt * x);
             printf("%f / 100, ", cpt * x);
@@ -145,14 +124,21 @@ void render_loop_parallel_time(vector<vector<rt::color>>& matrix,
         
     } PARALLEL_FOR_END();
 
-    const long int curr_time = time(NULL);
+    const long int curr_time = time(0);
     const long int elapsed = curr_time - t_init;
-    if (elapsed < 60) {
-        printf("\nTotal rendering time: %ld seconds\n", elapsed);
+    if (time_all) {
+        printf("\nTotal rendering time: ");
     }
     else {
-        printf("\nTotal rendering time: %ld seconds = %d minutes %d seconds\n",
-            elapsed, (int) (((float) elapsed) / 60.0), ((int) elapsed) % 60);
+        printf("\nRendering time: ");
+    }
+    
+    if (elapsed < 60) {
+        printf("%ld seconds\n", elapsed);
+    }
+    else {
+        printf("%ld seconds = %d minutes %d seconds\n",
+            elapsed, (int) (((float) elapsed) / 60.0f), ((int) elapsed) % 60);
     }
 }
 

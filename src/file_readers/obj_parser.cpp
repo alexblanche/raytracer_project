@@ -42,9 +42,9 @@ void add_triangle(const std::vector<rt::vector>& vertex_set, const std::vector<r
       apply_texture ?
                
       texture_info(current_texture_index,
-         {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-         uv_coord_set.at(vt2).x,  1-uv_coord_set.at(vt2).y,
-         uv_coord_set.at(vt3).x,  1-uv_coord_set.at(vt3).y})
+         {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
+         uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
+         uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y})
       :
       texture_info();
 
@@ -52,17 +52,17 @@ void add_triangle(const std::vector<rt::vector>& vertex_set, const std::vector<r
       apply_texture ?
 
       new triangle(
-         shift + scale * vertex_set.at(v1),
-         shift + scale * vertex_set.at(v2),
-         shift + scale * vertex_set.at(v3),
-         normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
+         shift + scale * vertex_set[v1],
+         shift + scale * vertex_set[v2],
+         shift + scale * vertex_set[v3],
+         normal_set[vn1], normal_set[vn2], normal_set[vn3],
          current_material_index, info)
       :
       new triangle(
-         shift + scale * vertex_set.at(v1),
-         shift + scale * vertex_set.at(v2),
-         shift + scale * vertex_set.at(v3),
-         normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3),
+         shift + scale * vertex_set[v1],
+         shift + scale * vertex_set[v2],
+         shift + scale * vertex_set[v3],
+         normal_set[vn1], normal_set[vn2], normal_set[vn3],
          current_material_index);
 
    obj_set.push_back(tr);
@@ -91,8 +91,8 @@ void add_triangle_subdiv(const std::vector<rt::vector>& vertex_set, const std::v
       apply_texture ?
 
       texture_info(current_texture_index,
-         {uv_coord_set.at(vtj).x, 1-uv_coord_set.at(vtj).y,
-         uv_coord_set.at(vti).x, 1-uv_coord_set.at(vti).y,
+         {uv_coord_set[vtj].x, 1-uv_coord_set[vtj].y,
+         uv_coord_set[vti].x, 1-uv_coord_set[vti].y,
          final_vt.x, 1-final_vt.y})
       :
       texture_info();
@@ -101,17 +101,17 @@ void add_triangle_subdiv(const std::vector<rt::vector>& vertex_set, const std::v
       apply_texture ?
 
       new triangle(
-         shift + scale * vertex_set.at(vj),
-         shift + scale * vertex_set.at(vi),
+         shift + scale * vertex_set[vj],
+         shift + scale * vertex_set[vi],
          shift + scale * final_v,
-         normal_set.at(vnj), normal_set.at(vni), final_vn,
+         normal_set[vnj], normal_set[vni], final_vn,
          current_material_index, info)
       :
       new triangle(
-         shift + scale * vertex_set.at(vj),
-         shift + scale * vertex_set.at(vi),
+         shift + scale * vertex_set[vj],
+         shift + scale * vertex_set[vi],
          shift + scale * final_v,
-         normal_set.at(vnj), normal_set.at(vni), final_vn,
+         normal_set[vnj], normal_set[vni], final_vn,
          current_material_index);
 
    obj_set.push_back(tr);
@@ -140,10 +140,10 @@ void add_quad(const std::vector<rt::vector>& vertex_set, const std::vector<rt::v
       apply_texture ?
 
       texture_info(current_texture_index,
-         {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-         uv_coord_set.at(vt2).x,  1-uv_coord_set.at(vt2).y,
-         uv_coord_set.at(vt3).x,  1-uv_coord_set.at(vt3).y,
-         uv_coord_set.at(vt4).x,  1-uv_coord_set.at(vt4).y})
+         {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
+         uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
+         uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y,
+         uv_coord_set[vt4].x,  1-uv_coord_set[vt4].y})
       :
       texture_info();
 
@@ -151,19 +151,19 @@ void add_quad(const std::vector<rt::vector>& vertex_set, const std::vector<rt::v
       apply_texture ?
                   
       new quad(
-         shift + scale * vertex_set.at(v1),
-         shift + scale * vertex_set.at(v2),
-         shift + scale * vertex_set.at(v3),
-         shift + scale * vertex_set.at(v4),
-         normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3), normal_set.at(vn4),
+         shift + scale * vertex_set[v1],
+         shift + scale * vertex_set[v2],
+         shift + scale * vertex_set[v3],
+         shift + scale * vertex_set[v4],
+         normal_set[vn1], normal_set[vn2], normal_set[vn3], normal_set[vn4],
          current_material_index, info)
       :
       new quad(
-         shift + scale * vertex_set.at(v1),
-         shift + scale * vertex_set.at(v2),
-         shift + scale * vertex_set.at(v3),
-         shift + scale * vertex_set.at(v4),
-         normal_set.at(vn1), normal_set.at(vn2), normal_set.at(vn3), normal_set.at(vn4),
+         shift + scale * vertex_set[v1],
+         shift + scale * vertex_set[v2],
+         shift + scale * vertex_set[v3],
+         shift + scale * vertex_set[v4],
+         normal_set[vn1], normal_set[vn2], normal_set[vn3], normal_set[vn4],
          current_material_index);
 
    obj_set.push_back(q);
@@ -191,9 +191,9 @@ void add_triangle_no_normal(const std::vector<rt::vector>& vertex_set, const std
       apply_texture ?
                
       texture_info(current_texture_index,
-         {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-         uv_coord_set.at(vt2).x,  1-uv_coord_set.at(vt2).y,
-         uv_coord_set.at(vt3).x,  1-uv_coord_set.at(vt3).y})
+         {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
+         uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
+         uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y})
       :
       texture_info();
 
@@ -201,15 +201,15 @@ void add_triangle_no_normal(const std::vector<rt::vector>& vertex_set, const std
       apply_texture ?
 
       new triangle(
-         shift + scale * vertex_set.at(v1),
-         shift + scale * vertex_set.at(v2),
-         shift + scale * vertex_set.at(v3),
+         shift + scale * vertex_set[v1],
+         shift + scale * vertex_set[v2],
+         shift + scale * vertex_set[v3],
          current_material_index, info)
       :
       new triangle(
-         shift + scale * vertex_set.at(v1),
-         shift + scale * vertex_set.at(v2),
-         shift + scale * vertex_set.at(v3),
+         shift + scale * vertex_set[v1],
+         shift + scale * vertex_set[v2],
+         shift + scale * vertex_set[v3],
          current_material_index);
 
    obj_set.push_back(tr);
@@ -236,8 +236,8 @@ void add_triangle_subdiv_no_normal(const std::vector<rt::vector>& vertex_set, co
       apply_texture ?
 
       texture_info(current_texture_index,
-         {uv_coord_set.at(vtj).x, 1-uv_coord_set.at(vtj).y,
-         uv_coord_set.at(vti).x, 1-uv_coord_set.at(vti).y,
+         {uv_coord_set[vtj].x, 1-uv_coord_set[vtj].y,
+         uv_coord_set[vti].x, 1-uv_coord_set[vti].y,
          final_vt.x, 1-final_vt.y})
       :
       texture_info();
@@ -246,14 +246,14 @@ void add_triangle_subdiv_no_normal(const std::vector<rt::vector>& vertex_set, co
       apply_texture ?
 
       new triangle(
-         shift + scale * vertex_set.at(vj),
-         shift + scale * vertex_set.at(vi),
+         shift + scale * vertex_set[vj],
+         shift + scale * vertex_set[vi],
          shift + scale * final_v,
          current_material_index, info)
       :
       new triangle(
-         shift + scale * vertex_set.at(vj),
-         shift + scale * vertex_set.at(vi),
+         shift + scale * vertex_set[vj],
+         shift + scale * vertex_set[vi],
          shift + scale * final_v,
          current_material_index);
 
@@ -281,10 +281,10 @@ void add_quad_no_normal(const std::vector<rt::vector>& vertex_set, const std::ve
       apply_texture ?
 
       texture_info(current_texture_index,
-         {uv_coord_set.at(vt1).x, 1-uv_coord_set.at(vt1).y,
-         uv_coord_set.at(vt2).x,  1-uv_coord_set.at(vt2).y,
-         uv_coord_set.at(vt3).x,  1-uv_coord_set.at(vt3).y,
-         uv_coord_set.at(vt4).x,  1-uv_coord_set.at(vt4).y})
+         {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
+         uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
+         uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y,
+         uv_coord_set[vt4].x,  1-uv_coord_set[vt4].y})
       :
       texture_info();
 
@@ -292,17 +292,17 @@ void add_quad_no_normal(const std::vector<rt::vector>& vertex_set, const std::ve
       apply_texture ?
                   
       new quad(
-         shift + scale * vertex_set.at(v1),
-         shift + scale * vertex_set.at(v2),
-         shift + scale * vertex_set.at(v3),
-         shift + scale * vertex_set.at(v4),
+         shift + scale * vertex_set[v1],
+         shift + scale * vertex_set[v2],
+         shift + scale * vertex_set[v3],
+         shift + scale * vertex_set[v4],
          current_material_index, info)
       :
       new quad(
-         shift + scale * vertex_set.at(v1),
-         shift + scale * vertex_set.at(v2),
-         shift + scale * vertex_set.at(v3),
-         shift + scale * vertex_set.at(v4),
+         shift + scale * vertex_set[v1],
+         shift + scale * vertex_set[v2],
+         shift + scale * vertex_set[v3],
+         shift + scale * vertex_set[v4],
          current_material_index);
 
    obj_set.push_back(q);
@@ -337,9 +337,9 @@ void add_subdivided_polygon(FILE* file,
    vn_stack.push(vn1); vn_stack.push(vn2); vn_stack.push(vn3); vn_stack.push(vn4); vn_stack.push(vn5);
 
    unsigned int cpt = 5;
-   rt::vector final_v  = vertex_set.at(v1)    + vertex_set.at(v2)    + vertex_set.at(v3)    + vertex_set.at(v4)    + vertex_set.at(v5);
-   rt::vector final_vt = uv_coord_set.at(vt1) + uv_coord_set.at(vt2) + uv_coord_set.at(vt3) + uv_coord_set.at(vt4) + uv_coord_set.at(vt5);
-   rt::vector final_vn = normal_set.at(vn1)   + normal_set.at(vn2)   + normal_set.at(vn3)   + normal_set.at(vn4)   + normal_set.at(vn5);
+   rt::vector final_v  = vertex_set[v1]    + vertex_set[v2]    + vertex_set[v3]    + vertex_set[v4]    + vertex_set[v5];
+   rt::vector final_vt = uv_coord_set[vt1] + uv_coord_set[vt2] + uv_coord_set[vt3] + uv_coord_set[vt4] + uv_coord_set[vt5];
+   rt::vector final_vn = normal_set[vn1]   + normal_set[vn2]   + normal_set[vn3]   + normal_set[vn4]   + normal_set[vn5];
             
    // Reading triplets until the end of the line
    char c = fgetc(file);
@@ -367,9 +367,9 @@ void add_subdivided_polygon(FILE* file,
       if (apply_texture) { vt_stack.push(vti); }
       vn_stack.push(vni);
 
-      final_v = final_v + vertex_set.at(vi);
-      if (apply_texture) { final_vt = final_vt + uv_coord_set.at(vti); }
-      final_vn = final_vn + normal_set.at(vni);
+      final_v = final_v + vertex_set[vi];
+      if (apply_texture) { final_vt = final_vt + uv_coord_set[vti]; }
+      final_vn = final_vn + normal_set[vni];
       cpt ++;
 
       c = fgetc(file);
@@ -434,8 +434,8 @@ void add_subdivided_polygon_no_normal(FILE* file,
    vt_stack.push(vt1); vt_stack.push(vt2); vt_stack.push(vt3); vt_stack.push(vt4); vt_stack.push(vt5);
 
    unsigned int cpt = 5;
-   rt::vector final_v  = vertex_set.at(v1)    + vertex_set.at(v2)    + vertex_set.at(v3)    + vertex_set.at(v4)    + vertex_set.at(v5);
-   rt::vector final_vt = uv_coord_set.at(vt1) + uv_coord_set.at(vt2) + uv_coord_set.at(vt3) + uv_coord_set.at(vt4) + uv_coord_set.at(vt5);
+   rt::vector final_v  = vertex_set[v1]    + vertex_set[v2]    + vertex_set[v3]    + vertex_set[v4]    + vertex_set[v5];
+   rt::vector final_vt = uv_coord_set[vt1] + uv_coord_set[vt2] + uv_coord_set[vt3] + uv_coord_set[vt4] + uv_coord_set[vt5];
 
    // Reading triplets until the end of the line
    char c = fgetc(file);
@@ -457,8 +457,8 @@ void add_subdivided_polygon_no_normal(FILE* file,
       v_stack.push(vi);
       if (apply_texture) { vt_stack.push(vti); }
 
-      final_v = final_v + vertex_set.at(vi);
-      if (apply_texture) { final_vt = final_vt + uv_coord_set.at(vti); }
+      final_v = final_v + vertex_set[vi];
+      if (apply_texture) { final_vt = final_vt + uv_coord_set[vti]; }
       cpt ++;
 
       c = fgetc(file);
@@ -687,7 +687,7 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
          /* Looking up the material name in the vector of already declared material names */
          unsigned int vindex = -1;
          for (unsigned int i = 0; i < material_names.size(); i++) {
-            if (material_names.at(i).compare(m_name) == 0) {
+            if (material_names[i].compare(m_name) == 0) {
                vindex = i;
                break;
             }
@@ -754,8 +754,8 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             /* Sometimes quads are made up of 4 non-coplanar vertices
                When it is the case, we split the quad in two triangles */
 
-            const rt::vector n12 = ((vertex_set.at(v2) - vertex_set.at(v1)) ^ (vertex_set.at(v3) - vertex_set.at(v1))).unit();
-            const rt::vector n23 = ((vertex_set.at(v3) - vertex_set.at(v1)) ^ (vertex_set.at(v4) - vertex_set.at(v1))).unit();
+            const rt::vector n12 = ((vertex_set[v2] - vertex_set[v1]) ^ (vertex_set[v3] - vertex_set[v1])).unit();
+            const rt::vector n23 = ((vertex_set[v3] - vertex_set[v1]) ^ (vertex_set[v4] - vertex_set[v1])).unit();
             
             /* The value 1.0E-7 is chosen empirically: it seems to remove all visible glitches by splitting a small number of quads */
             /* History: for the stool, 1.0E-6 is sufficient, but leaves visible glitches on the "Porsche 2016" test model. 1.0E-7 removes them. */
@@ -809,8 +809,8 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                }
                else if (ret2 == 3) {
                   // Quad with no texture and normal
-                  const rt::vector n12 = ((vertex_set.at(v2) - vertex_set.at(v1)) ^ (vertex_set.at(v3) - vertex_set.at(v1))).unit();
-                  const rt::vector n23 = ((vertex_set.at(v3) - vertex_set.at(v1)) ^ (vertex_set.at(v4) - vertex_set.at(v1))).unit();
+                  const rt::vector n12 = ((vertex_set[v2] - vertex_set[v1]) ^ (vertex_set[v3] - vertex_set[v1])).unit();
+                  const rt::vector n23 = ((vertex_set[v3] - vertex_set[v1]) ^ (vertex_set[v4] - vertex_set[v1])).unit();
                   
                   if ((n12 - n23).normsq() > 1.0E-7) {
                      // Splitting into triangles with no texture and normal
@@ -855,8 +855,8 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
                }
                else if (ret2 == 7) {
                   // Untextured quad
-                  const rt::vector n12 = ((vertex_set.at(v2) - vertex_set.at(v1)) ^ (vertex_set.at(v3) - vertex_set.at(v1))).unit();
-                  const rt::vector n23 = ((vertex_set.at(v3) - vertex_set.at(v1)) ^ (vertex_set.at(v4) - vertex_set.at(v1))).unit();
+                  const rt::vector n12 = ((vertex_set[v2] - vertex_set[v1]) ^ (vertex_set[v3] - vertex_set[v1])).unit();
+                  const rt::vector n23 = ((vertex_set[v3] - vertex_set[v1]) ^ (vertex_set[v4] - vertex_set[v1])).unit();
                   
                   if ((n12 - n23).normsq() > 1.0E-7) {
                      // Splitting into two untextured triangles
@@ -903,8 +903,8 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
             }
             else if (ret2 == 6) {
                // Quad with no normal
-               const rt::vector n12 = ((vertex_set.at(v2) - vertex_set.at(v1)) ^ (vertex_set.at(v3) - vertex_set.at(v1))).unit();
-               const rt::vector n23 = ((vertex_set.at(v3) - vertex_set.at(v1)) ^ (vertex_set.at(v4) - vertex_set.at(v1))).unit();
+               const rt::vector n12 = ((vertex_set[v2] - vertex_set[v1]) ^ (vertex_set[v3] - vertex_set[v1])).unit();
+               const rt::vector n23 = ((vertex_set[v3] - vertex_set[v1]) ^ (vertex_set[v4] - vertex_set[v1])).unit();
                   
                if ((n12 - n23).normsq() > 1.0E-7) {
                   // Splitting into two triangles with no normal
@@ -950,7 +950,7 @@ bool parse_obj_file(const char* file_name, const unsigned int default_texture_in
 
       /* Setting the final bounding */
       if (children.size() == 1) {
-         output_bd = children.at(0);
+         output_bd = children[0];
       }
       else {
          output_bd = containing_bounding_any(children);

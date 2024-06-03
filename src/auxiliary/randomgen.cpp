@@ -28,8 +28,8 @@ std::vector<double> randomgen::random_double_array(const unsigned int n, const d
     std::uniform_real_distribution<double> unif(0, m);
     
     std::vector<double> rands(n);
-    for (unsigned int i = 0; i < n; i++) {
-        rands.at(i) = unif(eng);
+    for (size_t i = 0; i < n; i++) {
+        rands[i] = unif(eng);
     }
     return rands;
 }
@@ -43,12 +43,11 @@ double randomgen::random_double_normal(const double& m, const double& std_dev) {
     return distribution(eng);
 }
 
-/* Writes in x, y two random doubles chosen according to a normal distribution
+/* Returns two random doubles chosen according to a normal distribution
    of mean m and standard deviation std_dev */
-void randomgen::random_pair_normal(const double& m, const double& std_dev, double& x, double& y) {
+std::pair<double, double> randomgen::random_pair_normal(const double& m, const double& std_dev) {
     update_seed();
     std::default_random_engine eng (seed);
     std::normal_distribution<double> distribution(m, std_dev);
-    x = distribution(eng);
-    y = distribution(eng);
+    return std::pair(distribution(eng), distribution(eng));
 }

@@ -9,7 +9,7 @@ std::vector<std::vector<rt::color>> blur (const std::vector<std::vector<rt::colo
     const unsigned int range) {
         
     const int width = image.size();
-    const int height = image.at(0).size();
+    const int height = image[0].size();
 
     std::vector<std::vector<rt::color>> blurred_image(width, std::vector<rt::color>(height));
     const int halfrange = range / 2;
@@ -26,14 +26,14 @@ std::vector<std::vector<rt::color>> blur (const std::vector<std::vector<rt::colo
 
             for (int x = -halfrange; x < halfrange+1; x++) {
                 for (int y = -halfrange; y < halfrange+1; y++) {
-                    const rt::color col = image.at(i+x).at(j+y);
+                    const rt::color col = image[i+x][j+y];
                     r += col.get_red();
                     g += col.get_green();
                     b += col.get_blue();
                 }
             }
 
-            blurred_image.at(i).at(j) = rt::color(r / rangesq, g / rangesq, b / rangesq);
+            blurred_image[i][j] = rt::color(r / rangesq, g / rangesq, b / rangesq);
         }
     }
 
@@ -50,7 +50,7 @@ std::vector<std::vector<rt::color>> blur (const std::vector<std::vector<rt::colo
             for (int x = -halfrange; x < halfrange+1; x++) {
                 if (i + x >= 0) {
                     for (int y = -halfrange; y < halfrange+1; y++) {
-                        const rt::color col = image.at(i+x).at(j+y);
+                        const rt::color col = image[i+x][j+y];
                         r += col.get_red();
                         g += col.get_green();
                         b += col.get_blue();
@@ -59,7 +59,7 @@ std::vector<std::vector<rt::color>> blur (const std::vector<std::vector<rt::colo
                 }
             }
 
-            blurred_image.at(i).at(j) = rt::color(r / cpt, g / cpt, b / cpt);
+            blurred_image[i][j] = rt::color(r / cpt, g / cpt, b / cpt);
         }
     }
 
@@ -74,7 +74,7 @@ std::vector<std::vector<rt::color>> blur (const std::vector<std::vector<rt::colo
             for (int x = -halfrange; x < halfrange+1; x++) {
                 if (i + x < width) {
                     for (int y = -halfrange; y < halfrange+1; y++) {
-                        const rt::color col = image.at(i+x).at(j+y);
+                        const rt::color col = image[i+x][j+y];
                         r += col.get_red();
                         g += col.get_green();
                         b += col.get_blue();
@@ -83,7 +83,7 @@ std::vector<std::vector<rt::color>> blur (const std::vector<std::vector<rt::colo
                 }
             }
 
-            blurred_image.at(i).at(j) = rt::color(r / cpt, g / cpt, b / cpt);
+            blurred_image[i][j] = rt::color(r / cpt, g / cpt, b / cpt);
         }
     }
 
@@ -99,7 +99,7 @@ std::vector<std::vector<rt::color>> blur (const std::vector<std::vector<rt::colo
                 if (j + y >= 0) {
                     for (int x = -halfrange; x < halfrange+1; x++) {
                         if (i + x >= 0 && i + x < width) {
-                            const rt::color col = image.at(i+x).at(j+y);
+                            const rt::color col = image[i+x][j+y];
                             r += col.get_red();
                             g += col.get_green();
                             b += col.get_blue();
@@ -109,7 +109,7 @@ std::vector<std::vector<rt::color>> blur (const std::vector<std::vector<rt::colo
                 }
             }
 
-            blurred_image.at(i).at(j) = rt::color(r / cpt, g / cpt, b / cpt);
+            blurred_image[i][j] = rt::color(r / cpt, g / cpt, b / cpt);
         }
     }
 
@@ -125,7 +125,7 @@ std::vector<std::vector<rt::color>> blur (const std::vector<std::vector<rt::colo
                 if (j + y < height) {
                     for (int x = -halfrange; x < halfrange+1; x++) {
                         if (i + x >= 0 && i + x < width) {
-                            const rt::color col = image.at(i+x).at(j+y);
+                            const rt::color col = image[i+x][j+y];
                             r += col.get_red();
                             g += col.get_green();
                             b += col.get_blue();
@@ -135,7 +135,7 @@ std::vector<std::vector<rt::color>> blur (const std::vector<std::vector<rt::colo
                 }
             }
 
-            blurred_image.at(i).at(j) = rt::color(r / cpt, g / cpt, b / cpt);
+            blurred_image[i][j] = rt::color(r / cpt, g / cpt, b / cpt);
         }
     }
 

@@ -2,10 +2,16 @@
 
 #include <vector>
 #include "screen/color.hpp"
+#include <optional>
 
-/* Writes in the variables the width and height of the .bmp image contained in file_name
-   Returns true if the operation was successful */
-bool read_bmp_size(const char* file_name, int& width, int& height);
+struct dimensions {
+   int width, height;
+   dimensions(const int width, const int height)
+      : width(width), height(height) {}
+};
+
+/* Returns the width and height of the .bmp image contained in file_name */
+std::optional<dimensions> read_bmp_size(const char* file_name);
 
 /* Extracts the data from the given .bmp file: stores the width and height in the provided
    references, and returns a matrix of width rows and height columns containing colors

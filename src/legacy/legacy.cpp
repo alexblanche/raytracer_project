@@ -111,7 +111,7 @@ void render_loop_stl(const rt::screen& scr, const int width, const int height,
     std::transform(std::execution::par_unseq, indices.begin(), indices.end(), data.begin(), trace);
 
     for(int i = 0; i < width * height; i++) {
-        scr.set_pixel(i % width, i / width, data.at(i));
+        scr.set_pixel(i % width, i / width, data[i]);
     }
 
     const long int curr_time = get_time();

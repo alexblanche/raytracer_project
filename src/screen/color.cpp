@@ -119,13 +119,12 @@ namespace rt {
 
 	/* Adds all the colors of the given color vector */
 	color add_col_vect(const std::vector<color>& color_set) {
-		const unsigned int n = color_set.size();
+		
 		double r = 0;
 		double g = 0;
 		double b = 0;
 
-		for (unsigned int i = 0; i < n; i++) {
-			const rt::color c = color_set.at(i);
+		for (rt::color const& c : color_set) {
 
 			r += c.get_red();
 			g += c.get_green();
@@ -146,8 +145,7 @@ namespace rt {
 		double g = 0;
 		double b = 0;
 
-		for (unsigned int i = 0; i < n; i++) {
-			const rt::color c = color_set.at(i);
+		for (rt::color const& c : color_set) {
 
 			r += c.get_red();
 			g += c.get_green();

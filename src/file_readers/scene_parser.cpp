@@ -81,7 +81,7 @@ std::optional<unsigned int> get_material(FILE* file, std::vector<string>& mat_na
 
         std::optional<unsigned int> vindex = std::nullopt;
         for (unsigned int i = 0; i < mat_names.size(); i++) {
-            if (mat_names.at(i).compare(vname) == 0) {
+            if (mat_names[i].compare(vname) == 0) {
                 vindex = i;
                 break;
             }
@@ -122,7 +122,7 @@ std::optional<texture_info> parse_texture_info(FILE* file,
 
         std::optional<unsigned int> vindex = std::nullopt;
         for (unsigned int i = 0; i < texture_names.size(); i++) {
-            if (texture_names.at(i).compare(t_name) == 0) {
+            if (texture_names[i].compare(t_name) == 0) {
                 vindex = i;
                 break;
             }
@@ -581,7 +581,7 @@ std::optional<unique_ptr<scene>> parse_scene_descriptor(const char* file_name) {
                 if (strcmp(t_name, "none") != 0) {
                     /* Looking up the texture name in the vector of already declared texture names */
                     for (unsigned int i = 0; i < texture_names.size(); i++) {
-                        if (texture_names.at(i).compare(t_name) == 0) {
+                        if (texture_names[i].compare(t_name) == 0) {
                             t_index = i;
                             break;
                         }
