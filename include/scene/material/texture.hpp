@@ -30,6 +30,8 @@ class texture {
 
         /* Constructors */
 
+        texture();
+
         /* Default constructor */
         texture(const int width, const int height, const std::vector<std::vector<rt::color>>& data);
 

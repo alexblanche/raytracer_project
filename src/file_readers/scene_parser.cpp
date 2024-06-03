@@ -16,6 +16,12 @@
 
 #include <stdexcept>
 
+#include "file_readers/parsing_wrappers.hpp"
+
+/* Declaration of the wrapper counters */
+template <> size_t wrapper<material>::counter = 0;
+template <> size_t wrapper<texture>::counter = 0;
+
 /*** Scene description parsing ***/
 
 /* Auxiliary function: returns a material from a description file */
@@ -42,12 +48,13 @@ std::optional<material> parse_material(FILE* file) {
         refl_color = true;
     }
 
-    return material(rt::color(r, g, b), rt::color(er, eg, eb), refl, em_int, spec_p, refl_color, transp, scattering, refr_i);;
+    return material(rt::color(r, g, b), rt::color(er, eg, eb), refl, em_int, spec_p, refl_color, transp, scattering, refr_i);
 }
+
 
 /* Auxiliary function: parses the name of a material and returns its index in material_set,
    or parses a new material, stores it in material_set and returns its index */
-std::optional<unsigned int> get_material(FILE* file, std::vector<string>& mat_names, std::vector<material>& material_set) {
+std::optional<size_t> get_material(FILE* file, std::vector<wrapper<material>>& material_wrapper_set) {
     const long int position = ftell(file);
 
     const char firstchar = fgetc(file);
@@ -56,10 +63,9 @@ std::optional<unsigned int> get_material(FILE* file, std::vector<string>& mat_na
         const std::optional<material> m = parse_material(file);
 
         if (m.has_value()) {
-            const unsigned int m_i = material_set.size();
-            material_set.push_back(m.value());
-            mat_names.push_back("@@@rt_custom_material@@@"); // Soon: optional name in a struct {name, material}
-            return m_i;
+            const wrapper<material> mat_wrap = wrapper<material>(m.value());
+            material_wrapper_set.push_back(mat_wrap);
+            return mat_wrap.index;
         }
         else {
             return std::nullopt;
@@ -79,13 +85,15 @@ std::optional<unsigned int> get_material(FILE* file, std::vector<string>& mat_na
             return std::nullopt;
         }
 
-        std::optional<unsigned int> vindex = std::nullopt;
-        for (unsigned int i = 0; i < mat_names.size(); i++) {
-            if (mat_names[i].compare(vname) == 0) {
-                vindex = i;
+        std::optional<size_t> vindex = std::nullopt;
+        
+        for (wrapper<material> const& mat_wrap : material_wrapper_set) {
+            if (mat_wrap.name.has_value() && mat_wrap.name.value().compare(vname) == 0) {
+                vindex = mat_wrap.index;
                 break;
             }
         }
+
         if (vindex.has_value()) {
             return vindex;
         }
@@ -101,7 +109,7 @@ std::optional<unsigned int> get_material(FILE* file, std::vector<string>& mat_na
    is_triangle is true if the object is a triangle (in this case, 3 uv points are parsed),
    and false if it is a quad (4 uv points are parsed) */
 std::optional<texture_info> parse_texture_info(FILE* file,
-    const std::vector<string>& texture_names, bool is_triangle) {
+    const std::vector<wrapper<texture>>& texture_wrapper_set, const bool is_triangle) {
 
     const long int position = ftell(file);
     char keyword[8];
@@ -120,13 +128,14 @@ std::optional<texture_info> parse_texture_info(FILE* file,
             return std::nullopt;
         }
 
-        std::optional<unsigned int> vindex = std::nullopt;
-        for (unsigned int i = 0; i < texture_names.size(); i++) {
-            if (texture_names[i].compare(t_name) == 0) {
-                vindex = i;
+        std::optional<size_t> vindex = std::nullopt;
+        for (wrapper<texture> const& txt_wrap : texture_wrapper_set) {
+            if (txt_wrap.name.has_value() && txt_wrap.name.value().compare(t_name) == 0) {
+                vindex = txt_wrap.index;
                 break;
             }
         }
+
         if (not vindex.has_value()) {
             printf("Error, texture %s not found\n", t_name);
             return std::nullopt;
@@ -288,18 +297,20 @@ std::optional<unique_ptr<scene>> parse_scene_descriptor(const char* file_name) {
         std::vector<const object*> object_set;
 
         /* Material storage */
-        /* The name of the material is stored at index i of mat_names, and the associated material at index i of mat_content.
-        Each new declared material is appended to these vectors. */
-        std::vector<string> mat_names = {"diffuse", "mirror", "glass", "water"};
+        std::vector<wrapper<material>> material_wrapper_set;
+        const wrapper<material> diffuse = wrapper<material>(material::DIFFUSE, "diffuse");
+        material_wrapper_set.push_back(diffuse);
+        const wrapper<material> mirror = wrapper<material>(material::MIRROR, "mirror");
+        material_wrapper_set.push_back(mirror);
+        const wrapper<material> glass = wrapper<material>(material::GLASS, "glass");
+        material_wrapper_set.push_back(glass);
+        const wrapper<material> water = wrapper<material>(material::WATER, "water");
+        material_wrapper_set.push_back(water);
 
-        std::vector<material> material_set = {material::DIFFUSE, material::MIRROR, material::GLASS, material::WATER};
+        std::vector<wrapper<texture>> texture_wrapper_set;
         
-
-        /* Texture storage */
-        /* The name of the texture is stored at index i of texture_names, and the associated texture at index i of texture_set */
-        std::vector<string> texture_names;
-
-        std::vector<texture> texture_set;
+        wrapper<material>::init();
+        wrapper<texture>::init();
 
         std::vector<const bounding*> bounding_set;
 
@@ -340,8 +351,7 @@ std::optional<unique_ptr<scene>> parse_scene_descriptor(const char* file_name) {
 
                 const std::optional<material> m = parse_material(file);
                 if (m.has_value()) {
-                    mat_names.push_back(m_name);
-                    material_set.push_back(m.value());
+                    material_wrapper_set.push_back(wrapper<material>(m.value(), m_name));
                 }
                 else {
                     throw std::runtime_error("Material parsing error");
@@ -358,10 +368,12 @@ std::optional<unique_ptr<scene>> parse_scene_descriptor(const char* file_name) {
                 }
                 t_name.resize(strlen(t_name.data()));
                 
-                texture_names.push_back(t_name);
                 bool parsing_successful;
-                texture_set.push_back(
-                    texture(tfile_name, parsing_successful)
+                texture_wrapper_set.push_back(
+                    wrapper<texture>(
+                        texture(tfile_name, parsing_successful),
+                        t_name
+                    )
                 );
 
                 if (parsing_successful) {
@@ -384,7 +396,7 @@ std::optional<unique_ptr<scene>> parse_scene_descriptor(const char* file_name) {
                 if (ret != 4) {
                     throw std::runtime_error("Parsing error in scene constructor (sphere declaration)");
                 }
-                const std::optional<unsigned int> m_index = get_material(file, mat_names, material_set);
+                const std::optional<size_t> m_index = get_material(file, material_wrapper_set);
                 if (m_index.has_value()) {
                     const sphere* sph = new sphere(rt::vector(x, y, z), r, m_index.value());
                     object_set.push_back(sph);
@@ -407,7 +419,7 @@ std::optional<unique_ptr<scene>> parse_scene_descriptor(const char* file_name) {
                 if (ret != 6) {
                     throw std::runtime_error("Parsing error in scene constructor (plane declaration)");
                 }
-                const std::optional<unsigned int> m_index = get_material(file, mat_names, material_set);
+                const std::optional<size_t> m_index = get_material(file, material_wrapper_set);
                 if (m_index.has_value()) {
                     const plane* pln = new plane(nx, ny, nz, rt::vector(px, py, pz), m_index.value());
                     object_set.push_back(pln);
@@ -431,7 +443,7 @@ std::optional<unique_ptr<scene>> parse_scene_descriptor(const char* file_name) {
                 if (ret != 12) {
                     throw std::runtime_error("Parsing error in scene constructor (box declaration)");
                 }
-                const std::optional<unsigned int> m_index = get_material(file, mat_names, material_set);
+                const std::optional<size_t> m_index = get_material(file, material_wrapper_set);
                 if (m_index.has_value()) {
                     const box* bx = new box(rt::vector(cx, cy, cz),
                         rt::vector(n1x, n1y, n1z).unit(),
@@ -458,8 +470,8 @@ std::optional<unique_ptr<scene>> parse_scene_descriptor(const char* file_name) {
                 if (ret != 9) {
                     throw std::runtime_error("Parsing error in scene constructor (triangle declaration)");
                 }
-                const std::optional<unsigned int> m_index = get_material(file, mat_names, material_set);
-                const std::optional<texture_info> info = parse_texture_info(file, texture_names, true);
+                const std::optional<size_t> m_index = get_material(file, material_wrapper_set);
+                const std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, true);
                 if (m_index.has_value()) {
                 
                     if (info.has_value()) {
@@ -501,11 +513,11 @@ std::optional<unique_ptr<scene>> parse_scene_descriptor(const char* file_name) {
                 if (ret != 12) {
                     throw std::runtime_error("Parsing error in scene constructor (quad declaration)");
                 }
-                const std::optional<unsigned int> m_index = get_material(file, mat_names, material_set);
+                const std::optional<size_t> m_index = get_material(file, material_wrapper_set);
 
                 if (m_index.has_value()) {
                 
-                    const std::optional<texture_info> info = parse_texture_info(file, texture_names, false);
+                    const std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, false);
                     if (info.has_value()) {
                         const quad* q = new quad(rt::vector(x0, y0, z0),
                             rt::vector(x1, y1, z1),
@@ -545,7 +557,7 @@ std::optional<unique_ptr<scene>> parse_scene_descriptor(const char* file_name) {
                 if (ret != 8) {
                     throw std::runtime_error("Parsing error in scene constructor (cylinder declaration)");
                 }
-                const std::optional<unsigned int> m_index = get_material(file, mat_names, material_set);
+                const std::optional<size_t> m_index = get_material(file, material_wrapper_set);
 
                 if (m_index.has_value()) {
 
@@ -576,26 +588,26 @@ std::optional<unique_ptr<scene>> parse_scene_descriptor(const char* file_name) {
                 }
 
                 
-                unsigned int t_index = -1;
+                std::optional<size_t> t_index = std::nullopt;
 
                 if (strcmp(t_name, "none") != 0) {
                     /* Looking up the texture name in the vector of already declared texture names */
-                    for (unsigned int i = 0; i < texture_names.size(); i++) {
-                        if (texture_names[i].compare(t_name) == 0) {
-                            t_index = i;
+                    for (wrapper<texture> const& txt_wrap : texture_wrapper_set) {
+                        if (txt_wrap.name.has_value() && txt_wrap.name.value().compare(t_name) == 0) {
+                            t_index = txt_wrap.index;
                             break;
                         }
                     }
                 
-                    if (t_index == ((unsigned int) -1)) {
+                    if (not t_index.has_value()) {
                         printf("Error, texture %s not found\n", t_name);
                         throw std::runtime_error("Texture not found");
                     }
                 }
 
                 const bounding* output_bd;
-                const bool parsing_successful = parse_obj_file(ofile_name, t_index, object_set,
-                    mat_names, material_set, texture_names, texture_set,
+                const bool parsing_successful = parse_obj_file(ofile_name, t_index.value(), object_set,
+                    material_wrapper_set, texture_wrapper_set,
                     scale, rt::vector(sx, sy, sz),
                     bounding_enabled, polygons_per_bounding, output_bd);
 
@@ -623,6 +635,18 @@ std::optional<unique_ptr<scene>> parse_scene_descriptor(const char* file_name) {
         if (file != NULL) {
             fclose(file);
         }
+
+        // Creation of the final structures
+        std::vector<material> material_set(wrapper<material>::counter);
+        for (wrapper<material> const& mat_wrap : material_wrapper_set) {
+            material_set[mat_wrap.index] = mat_wrap.content;
+        }
+        
+        std::vector<texture> texture_set(wrapper<texture>::counter);
+        for (wrapper<texture> const& txt_wrap : texture_wrapper_set) {
+            texture_set[txt_wrap.index] = txt_wrap.content;
+        }
+
         
         return make_unique<scene>(
             object_set, bounding_set, texture_set, material_set,

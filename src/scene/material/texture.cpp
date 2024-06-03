@@ -7,6 +7,8 @@
 
 /* Constructors */
 
+texture::texture() {}
+
 /* Default constructor */
 texture::texture(const int width, const int height, const std::vector<std::vector<rt::color>>& data)
     : width(width), height(height), data(data),

@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 
+#include "file_readers/parsing_wrappers.hpp"
 
 /* Wavefront .obj file parser */
 /* Only handles .obj files made up of triangles and quads, for now.
@@ -24,10 +25,10 @@
    
    Returns true if the operation was successful
 */
-bool parse_obj_file(const char* file_name, const unsigned int default_texture_index,
+bool parse_obj_file(const char* file_name, const size_t default_texture_index,
    std::vector<const object*>& obj_set,
-   std::vector<string>& material_names, std::vector<material>& material_set,
-   std::vector<string>& texture_names, std::vector<texture>& texture_set,
+   std::vector<wrapper<material>>& material_wrapper_set,
+   std::vector<wrapper<texture>>& texture_wrapper_set,
    const double& scale, const rt::vector& shift,
    const bool bounding_enabled, const unsigned int polygons_per_bounding,
    const bounding*& output_bd);
