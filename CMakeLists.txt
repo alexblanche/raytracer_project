@@ -42,6 +42,7 @@ add_library(${libname} SHARED
 	src/scene/objects/cylinder.cpp
 	src/tracing/tracing.cpp
 	src/scene/camera.cpp
+	src/file_readers/scene_parser.cpp
 	src/scene/scene.cpp
 	src/file_readers/bmp_reader.cpp
 	src/file_readers/raw_data.cpp

@@ -54,8 +54,8 @@ class scene {
             const camera& cam,
             const unsigned int polygons_per_bounding);
 
-        /* Constructor from an external file */
-        scene(const char* file_name, bool& creation_successful);
+        /* For testing purposes: copy constructor */
+        scene(const scene& sc);
 
         ~scene();
 

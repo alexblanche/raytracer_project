@@ -1,35 +1,16 @@
 #include <iostream>
-#include <fstream>
 #include <cstdlib>
-#include <stdlib.h>
-#include <vector>
 #include <ctime>
 
-#include "screen/color.hpp"
-#include "scene/material/material.hpp"
-#include "screen/screen.hpp"
-#include "light/ray.hpp"
-
-#include "scene/objects/object.hpp"
-#include "scene/objects/bounding.hpp"
-
 #include "parallel/parallel.h"
-
-/*
-#ifdef __unix__
-#include <mutex>
-#else
-#include "mingw.mutex.h"
-#endif
-*/
 #include <mutex>
 
-#include "scene/scene.hpp"
-#include "scene/camera.hpp"
+#include "screen/screen.hpp"
 #include "tracing/tracing.hpp"
 
 #include "file_readers/raw_data.hpp"
 #include "file_readers/bmp_reader.hpp"
+#include "file_readers/scene_parser.hpp"
 
 using namespace std;
 
@@ -251,22 +232,23 @@ int main(int argc, char *argv[]) {
        negative y to the top,  positive y to the bottom (/!\)
        negative z toward the camera, positive x forward
     */
-    
-    bool parsing_successful;
-    scene scene("../scene.txt", parsing_successful);
 
-    if (not parsing_successful) {
+    std::optional<unique_ptr<scene>> scene_opt = parse_scene_descriptor("../scene.txt");
+    
+    if (not scene_opt.has_value()) {
         printf("Scene creation failed\n");
         return EXIT_FAILURE;
     }
 
-    printf("Number of objects: %u\n", (unsigned int) scene.object_set.size());
+    unique_ptr<scene> scene = move(scene_opt.value());
+
+    printf("Number of objects: %u\n", (unsigned int) scene->object_set.size());
 
 
     /**************************************************************************/
 
     /* Definition of the matrix in which we will write the image */
-    vector<vector<rt::color>> matrix(scene.width, vector<rt::color>(scene.height));
+    vector<vector<rt::color>> matrix(scene->width, vector<rt::color>(scene->height));
 
 
     /* Generating an image of target_number_of_rays rays */
@@ -278,7 +260,7 @@ int main(int argc, char *argv[]) {
         fflush(stdout);
         
         for (unsigned int i = 0; i < target_number_of_rays; i++) {
-            render_loop_parallel(matrix, scene, number_of_bounces);
+            render_loop_parallel(matrix, *scene, number_of_bounces);
             if (target_number_of_rays <= 10 || i % 10 == 9) {
                 printf("\r%u / %u", i+1, target_number_of_rays);
                 fflush(stdout);
@@ -311,10 +293,10 @@ int main(int argc, char *argv[]) {
     fflush(stdout);
 
     if (time_enabled) {
-        render_loop_parallel_time(matrix, scene, number_of_bounces, time_all);
+        render_loop_parallel_time(matrix, *scene, number_of_bounces, time_all);
     }
     else {
-        render_loop_parallel(matrix, scene, number_of_bounces);
+        render_loop_parallel(matrix, *scene, number_of_bounces);
     }
     
     // rt::screen* scr = new rt::screen(scene.width, scene.height);
@@ -328,10 +310,10 @@ int main(int argc, char *argv[]) {
     for (unsigned int number_of_rays = 2; number_of_rays <= MAX_RAYS; number_of_rays++) {
 
         if (time_enabled) {
-            render_loop_parallel_time(matrix, scene, number_of_bounces, time_all);
+            render_loop_parallel_time(matrix, *scene, number_of_bounces, time_all);
         }
         else {
-            render_loop_parallel(matrix, scene, number_of_bounces);
+            render_loop_parallel(matrix, *scene, number_of_bounces);
         }
 
         printf("\rNumber of rays per pixel: %u", number_of_rays);
@@ -353,8 +335,8 @@ int main(int argc, char *argv[]) {
             }
             */
             
-            const rt::screen* scr = new rt::screen(scene.width, scene.height);
-            scr->copy(matrix, scene.width, scene.height, number_of_rays);
+            const rt::screen* scr = new rt::screen(scene->width, scene->height);
+            scr->copy(matrix, scene->width, scene->height, number_of_rays);
             scr->update();
             int key;
             do {

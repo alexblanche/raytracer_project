@@ -3,13 +3,6 @@
 // #include <iostream>
 
 #include <algorithm>
-/*
-#ifdef __unix__
-#include <thread>
-#else
-#include "mingw.thread.h"
-#endif
-*/
 #include <thread>
 
 #include <functional>
