@@ -23,7 +23,7 @@ class cylinder : public object {
 
         cylinder(const rt::vector& origin, const rt::vector& direction,
             const double& radius, const double& length,
-            const unsigned int material_index);
+            const size_t material_index);
 
         /* Accessors */
 

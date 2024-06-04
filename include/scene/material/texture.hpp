@@ -4,6 +4,8 @@
 #include "screen/color.hpp"
 #include "scene/material/barycentric.hpp"
 
+#include <iostream>
+
 /* Struct representing UV-coordinates */
 struct uvcoord {
     double u, v;
@@ -43,6 +45,40 @@ class texture {
 
         /* Returns the color stored in data at UV-coordinates u, v between 0 and 1 times width, height */
         rt::color get_color(const double& u, const double& v) const;
+
+        ~texture() {
+            printf("Destruction of a texture (width = %d, height = %d)\n", width, height);
+        }
+        
+        /*
+        texture(const texture& tx)
+            :
+            width(tx.width),
+            height(tx.height),
+            data(tx.data),
+            width_minus_one(tx.width_minus_one),
+            height_minus_one(tx.height_minus_one) {
+            
+            printf("Copying a texture\n");
+        }
+
+        texture& operator=(const texture& tx) {
+            printf("Assigning a texture\n");
+            const int width = tx.width;
+            const int height = tx.height;
+            const std::vector<std::vector<rt::color>> data = tx.data;
+            texture* txt = new texture(width, height, data);
+            printf("(returning)\n");
+            return *txt;
+        }
+        */
+        texture(const texture&) = delete;
+
+        texture& operator=(const texture&) = delete;
+
+        texture(texture&&) = default;
+
+        texture& operator=(texture&&) = default;
 };
 
 class texture_info {
@@ -58,7 +94,7 @@ class texture_info {
     public:
         texture_info();
 
-        texture_info(size_t index, std::vector<double> uv_coordinates);
+        texture_info(size_t index, std::vector<double>&& uv_coordinates);
 
         /* Write in u, v the UV-coordinate of the barycenter associated with the barycentric coordinates l1, l2
         In the case of quads, the boolean lower_triangle indicates that the three points to

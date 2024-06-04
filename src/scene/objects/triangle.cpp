@@ -9,7 +9,7 @@
 
 /* Constructors */
 
-triangle::triangle() : normal(rt::vector()), v1(rt::vector()), v2(rt::vector()), d(0) {}
+triangle::triangle() {}
 
 // Constructor from three points without vertex normals
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, 
@@ -41,7 +41,10 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     d = - (normal | p0);
 }
 
-
+/* Returns the barycenter of the triangle */
+rt::vector triangle::get_barycenter() const {
+    return (position + (v1 + v2) / 3);
+}
 
 /* Intersection determination */
 
@@ -186,4 +189,13 @@ min_max_coord triangle::get_min_max_coord() const {
     const double max_z = std::max(position.z, std::max(p1.z, p2.z));
 
     return min_max_coord(min_x, max_x, min_y, max_y, min_z, max_z);
+}
+
+/* Prints the triangle */
+void triangle::print() const {
+    printf("p0 = (%lf, %lf, %lf), ", position.x, position.y, position.z);
+    rt::vector p1 = position + v1;
+    printf("p1 = (%lf, %lf, %lf), ", p1.x, p1.y, p1.z);
+    rt::vector p2 = position + v2;
+    printf("p2 = (%lf, %lf, %lf)\n", p2.x, p2.y, p2.z);
 }

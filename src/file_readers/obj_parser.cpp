@@ -355,14 +355,20 @@ void add_subdivided_polygon(FILE* file,
 
       add_triangle_subdiv(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
          number_of_polygons, number_of_triangles,
-         shift, scale, vj, vi, final_v, vtj, vti, final_vt, vnj, vni, final_vn,
+         shift, scale,
+         vj, vi, final_v,
+         vtj, vti, final_vt,
+         vnj, vni, final_vn,
          current_texture_index, current_material_index, apply_texture);
    }
             
    // Adding the last triangle
    add_triangle_subdiv(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
       number_of_polygons, number_of_triangles,
-      shift, scale, last_v, v1, final_v, last_vt, vt1, final_vt, last_vn, vn1, final_vn,
+      shift, scale,
+      last_v, v1, final_v,
+      last_vt, vt1, final_vt,
+      last_vn, vn1, final_vn,
       current_texture_index, current_material_index, apply_texture);
 }
 
@@ -439,14 +445,18 @@ void add_subdivided_polygon_no_normal(FILE* file,
 
       add_triangle_subdiv_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
          number_of_polygons, number_of_triangles,
-         shift, scale, vj, vi, final_v, vtj, vti, final_vt,
+         shift, scale,
+         vj, vi, final_v,
+         vtj, vti, final_vt,
          current_texture_index, current_material_index, apply_texture);
    }
             
    // Adding the last triangle
    add_triangle_subdiv_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
       number_of_polygons, number_of_triangles,
-      shift, scale, last_v, v1, final_v, last_vt, vt1, final_vt,
+      shift, scale,
+      last_v, v1, final_v,
+      last_vt, vt1, final_vt,
       current_texture_index, current_material_index, apply_texture);
 }
 
@@ -685,7 +695,10 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
 
                add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
                   number_of_polygons, number_of_triangles,
-                  shift, scale, v1, v2, v3, vt1, vt2, vt3, vn1, vn2, vn3,
+                  shift, scale,
+                  v1, v2, v3,
+                  vt1, vt2, vt3,
+                  vn1, vn2, vn3,
                   current_texture_index, current_material_index, apply_texture);
                
             }
@@ -706,12 +719,18 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
 
                   add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
                      number_of_polygons, number_of_triangles,
-                     shift, scale, v1, v2, v3, vt1, vt2, vt3, vn1, vn2, vn3,
+                     shift, scale,
+                     v1, v2, v3,
+                     vt1, vt2, vt3,
+                     vn1, vn2, vn3,
                      current_texture_index, current_material_index, apply_texture);
 
                   add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
                      number_of_polygons, number_of_triangles,
-                     shift, scale, v1, v3, v4, vt1, vt3, vt4, vn1, vn3, vn4,
+                     shift, scale,
+                     v1, v3, v4,
+                     vt1, vt3, vt4,
+                     vn1, vn3, vn4,
                      current_texture_index, current_material_index, apply_texture);
                }
                else {
@@ -719,7 +738,10 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
                   
                   add_quad(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
                      number_of_polygons, number_of_quads,
-                     shift, scale, v1, v2, v3, v4, vt1, vt2, vt3, vt4, vn1, vn2, vn3, vn4,
+                     shift, scale,
+                     v1, v2, v3, v4,
+                     vt1, vt2, vt3, vt4,
+                     vn1, vn2, vn3, vn4,
                      current_texture_index, current_material_index, apply_texture);
                }
             }
@@ -728,7 +750,10 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
 
                add_subdivided_polygon(file, vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
                   number_of_polygons, number_of_triangles,
-                  shift, scale, v1, v2, v3, v4, v5, vt1, vt2, vt3, vt4, vt5, vn1, vn2, vn3, vn4, vn5,
+                  shift, scale,
+                  v1, v2, v3, v4, v5,
+                  vt1, vt2, vt3, vt4, vt5,
+                  vn1, vn2, vn3, vn4, vn5,
                   current_texture_index, current_material_index, apply_texture);
             }
             else if (ret == 1) {
@@ -745,7 +770,9 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
                      // Triangle with no texture and normal
                      add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
                         number_of_polygons, number_of_triangles,
-                        shift, scale, v1, v2, v3, 0, 0, 0,
+                        shift, scale,
+                        v1, v2, v3,
+                        0, 0, 0,
                         0, current_material_index, false);
                   }
                   else if (ret2 == 3) {
@@ -757,19 +784,25 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
                         // Splitting into triangles with no texture and normal
                         add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
                            number_of_polygons, number_of_triangles,
-                           shift, scale, v1, v2, v3, 0, 0, 0,
+                           shift, scale,
+                           v1, v2, v3,
+                           0, 0, 0,
                            0, current_material_index, false);
 
                         add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
                            number_of_polygons, number_of_triangles,
-                           shift, scale, v1, v3, v4, 0, 0, 0,
+                           shift, scale,
+                           v1, v3, v4,
+                           0, 0, 0,
                            0, current_material_index, false);
                      }
                      else {
                         // Keeping the quad with no texture and normal
                         add_quad_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
                            number_of_polygons, number_of_quads,
-                           shift, scale, v1, v2, v3, v4, 0, 0, 0, 0,
+                           shift, scale,
+                           v1, v2, v3, v4,
+                           0, 0, 0, 0,
                            0, current_material_index, false);
                      }
                   }
@@ -777,7 +810,9 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
                      // Untextured polygon with more than 5 sides
                      add_subdivided_polygon_no_normal(file, vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
                         number_of_polygons, number_of_triangles,
-                        shift, scale, v1, v2, v3, v4, v5, 0, 0, 0, 0, 0,
+                        shift, scale,
+                        v1, v2, v3, v4, v5,
+                        0, 0, 0, 0, 0,
                         0, current_material_index, false);
                   }
                }
@@ -791,7 +826,10 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
                      // Untextured triangle
                      add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
                         number_of_polygons, number_of_triangles,
-                        shift, scale, v1, v2, v3, 0, 0, 0, vn1, vn2, vn3,
+                        shift, scale,
+                        v1, v2, v3,
+                        0, 0, 0,
+                        vn1, vn2, vn3,
                         0, current_material_index, false);
                   }
                   else if (ret2 == 7) {
@@ -803,19 +841,28 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
                         // Splitting into two untextured triangles
                         add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
                            number_of_polygons, number_of_triangles,
-                           shift, scale, v1, v2, v3, 0, 0, 0, vn1, vn2, vn3,
+                           shift, scale,
+                           v1, v2, v3,
+                           0, 0, 0,
+                           vn1, vn2, vn3,
                            0, current_material_index, false);
 
                         add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
                            number_of_polygons, number_of_triangles,
-                           shift, scale, v1, v3, v4, 0, 0, 0, vn1, vn3, vn4,
+                           shift, scale,
+                           v1, v3, v4,
+                           0, 0, 0,
+                           vn1, vn3, vn4,
                            0, current_material_index, false);
                      }
                      else {
                         // Keeping the untextured quad
                         add_quad(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
                            number_of_polygons, number_of_quads,
-                           shift, scale, v1, v2, v3, v4, 0, 0, 0, 0, vn1, vn2, vn3, vn4,
+                           shift, scale,
+                           v1, v2, v3, v4,
+                           0, 0, 0, 0,
+                           vn1, vn2, vn3, vn4,
                            0, current_material_index, false);
                      }
                   }
@@ -823,7 +870,10 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
                      // Untextured polygon with more than 5 sides
                      add_subdivided_polygon(file, vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
                         number_of_polygons, number_of_triangles,
-                        shift, scale, v1, v2, v3, v4, v5, 0, 0, 0, 0, 0, vn1, vn2, vn3, vn4, vn5,
+                        shift, scale,
+                        v1, v2, v3, v4, v5,
+                        0, 0, 0, 0, 0,
+                        vn1, vn2, vn3, vn4, vn5,
                         0, current_material_index, false);
                   }
                }
@@ -839,7 +889,9 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
                   // Triangle with no normal
                   add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
                      number_of_polygons, number_of_triangles,
-                     shift, scale, v1, v2, v3, vt1, vt2, vt3,
+                     shift, scale,
+                     v1, v2, v3,
+                     vt1, vt2, vt3,
                      current_texture_index, current_material_index, apply_texture);
                }
                else if (ret2 == 6) {
@@ -851,19 +903,25 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
                      // Splitting into two triangles with no normal
                      add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
                         number_of_polygons, number_of_triangles,
-                        shift, scale, v1, v2, v3, vt1, vt2, vt3,
+                        shift, scale,
+                        v1, v2, v3,
+                        vt1, vt2, vt3,
                         current_texture_index, current_material_index, apply_texture);
 
                      add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
                         number_of_polygons, number_of_triangles,
-                        shift, scale, v1, v3, v4, vt1, vt3, vt4,
+                        shift, scale,
+                        v1, v3, v4,
+                        vt1, vt3, vt4,
                         current_texture_index, current_material_index, apply_texture);
                   }
                   else {
                      // Keeping the quad with no normal
                      add_quad_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
                         number_of_polygons, number_of_quads,
-                        shift, scale, v1, v2, v3, v4, vt1, vt2, vt3, vt4,
+                        shift, scale,
+                        v1, v2, v3, v4,
+                        vt1, vt2, vt3, vt4,
                         current_texture_index, current_material_index, apply_texture);
                   }
                }
@@ -871,7 +929,9 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
                   // Polygon with more than 5 sides with no normal
                   add_subdivided_polygon_no_normal(file, vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
                      number_of_polygons, number_of_triangles,
-                     shift, scale, v1, v2, v3, v4, v5, vt1, vt2, vt3, vt4, vt5,
+                     shift, scale,
+                     v1, v2, v3, v4, v5,
+                     vt1, vt2, vt3, vt4, vt5,
                      current_texture_index, current_material_index, apply_texture);
                }
             }

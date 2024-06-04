@@ -70,6 +70,14 @@ class material {
             const rt::color& ka, const rt::color& kd, const rt::color& ks, const rt::color& ke,
             const double& ni, const double& d, const unsigned int illum);
 
+        material(const material&) = delete;
+
+        material& operator=(const material&) = delete;
+
+        material(material&&) = default;
+
+        material& operator=(material&&) = default;
+
 
         /* Accessors */
 

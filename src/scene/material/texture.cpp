@@ -7,16 +7,24 @@
 
 /* Constructors */
 
-texture::texture() {}
+texture::texture()  {
+    printf("Creating of an empty texture\n");
+}
 
 /* Default constructor */
 texture::texture(const int width, const int height, const std::vector<std::vector<rt::color>>& data)
     : width(width), height(height), data(data),
-        width_minus_one((double) (width - 1)), height_minus_one((double) (height - 1)) {}
+        width_minus_one((double) (width - 1)), height_minus_one((double) (height - 1)) {
+
+    printf("Creating of a texture from the main constructor\n");
+}
 
 /* Constructor from a .bmp file
    Writes true in parsing_successful if the operation was successful */
 texture::texture(const char* file_name, bool& parsing_successful) {
+
+    printf("Creating of a texture from a file\n");
+
     const std::optional<dimensions> dims = read_bmp_size(file_name);
     if (dims.has_value()) {
         width = dims.value().width;
@@ -49,8 +57,8 @@ rt::color texture::get_color(const double& u, const double& v) const {
 texture_info::texture_info()
     : texture_index((size_t) -1), uv_coordinates({}) {}
 
-texture_info::texture_info(size_t texture_index, std::vector<double> uv_coordinates)
-    : texture_index(texture_index), uv_coordinates(uv_coordinates) {}
+texture_info::texture_info(size_t texture_index, std::vector<double>&& uv_coordinates)
+    : texture_index(texture_index), uv_coordinates(std::move(uv_coordinates)) {}
 
 /* Texturing */
 

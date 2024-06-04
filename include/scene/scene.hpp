@@ -54,8 +54,15 @@ class scene {
             const camera& cam,
             const unsigned int polygons_per_bounding);
 
-        /* For testing purposes: copy constructor */
-        scene(const scene& sc);
+        /* For testing purposes: forbidding copy */
+        scene(const scene& sc) = delete;
+
+        scene& operator=(const scene& sc) = delete;
+
+        /* Only move operations allowed */
+        scene(scene&& sc) = default;
+
+        scene& operator=(scene&& sc) = default;
 
         ~scene();
 

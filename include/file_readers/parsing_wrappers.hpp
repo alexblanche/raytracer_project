@@ -13,14 +13,14 @@ struct wrapper {
 
     static size_t counter;
 
-    wrapper(const T& t, const std::string& name)
-        : content(t), name(name), index(counter) {
+    wrapper(T&& t, const std::string& name)
+        : content(std::move(t)), name(name), index(counter) {
 
         counter ++;
     }
 
-    wrapper(const T& t)
-        : content(t), name(std::nullopt), index(counter) {
+    wrapper(T&& t)
+        : content(std::move(t)), name(std::nullopt), index(counter) {
 
         counter ++;
     }
@@ -29,6 +29,15 @@ struct wrapper {
     static void init() {
         counter = 0;
     }
+
+    wrapper(const wrapper& sc) = delete;
+
+    wrapper& operator=(const wrapper& sc) = delete;
+
+    /* Only move operations allowed */
+    wrapper(wrapper&& sc) = default;
+
+    wrapper& operator=(wrapper&& sc) = default;
 };
 
 /* The counters are declared in scene_parser.cpp, and initialized at the beginning of each scene parsing */

@@ -126,11 +126,11 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
                     throw std::runtime_error("(illum)");
                 }
 
-                const material m(ns, rt::color(ka_r, ka_g, ka_b), rt::color(kd_r, kd_g, kd_b),
+                material m(ns, rt::color(ka_r, ka_g, ka_b), rt::color(kd_r, kd_g, kd_b),
                         rt::color(ks_r, ks_g, ks_b), rt::color(ke_r, ke_g, ke_b),
                         ni, d, illum);
-                const wrapper<material> mat_wrap = wrapper<material>(m, m_name);
-                material_wrapper_set.push_back(mat_wrap);
+                const wrapper<material> mat_wrap = wrapper<material>(std::move(m), m_name);
+                material_wrapper_set.push_back(std::move(mat_wrap));
 
                 /* Test for associated texture */
                 char tfile_name[513];
@@ -141,11 +141,10 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
                     // const unsigned int texture_index = texture_set.size();
 
                     bool parsing_successful;
-                    const wrapper<texture> txt_wrap =
-                        wrapper<texture>(
-                            texture((path + std::string(tfile_name)).data(), parsing_successful)
-                        );
-                    texture_wrapper_set.push_back(txt_wrap);
+                    texture txt = texture((path + std::string(tfile_name)).data(), parsing_successful);
+                    texture_wrapper_set.emplace_back(
+                        std::move(txt)
+                    );
 
                     if (parsing_successful) {
                         printf("\rmtl_parser: %s texture loaded\n", tfile_name);
@@ -156,7 +155,7 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
                         throw std::runtime_error("(texture reading)");
                     }
 
-                    mt_assoc[mat_wrap.index] = txt_wrap.index;
+                    mt_assoc[mat_wrap.index] = texture_wrapper_set[texture_wrapper_set.size()-1].index;
                 }
                 // else: texture omitted
             }

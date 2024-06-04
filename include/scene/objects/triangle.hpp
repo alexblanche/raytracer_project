@@ -41,6 +41,9 @@ class triangle : public polygon {
             const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
             const size_t material_index, const std::optional<texture_info>& info);
 
+        /* Returns the barycenter of the triangle */
+        rt::vector get_barycenter() const;
+
 
         /* Intersection determination */
 
@@ -60,4 +63,7 @@ class triangle : public polygon {
 
         /* Minimum and maximum coordinates */
         min_max_coord get_min_max_coord() const;
+
+        /* Prints the triangle */
+        void print() const;
 };

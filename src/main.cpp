@@ -21,6 +21,8 @@ using namespace std;
 #define MAX_RAYS 1000
 #define ANTI_ALIASING 0.3
 
+#include "scene/objects/polygon.hpp"
+
 
 /* ********** Render loop ********** */
 
@@ -219,22 +221,52 @@ int main(int argc, char *argv[]) {
        negative z toward the camera, positive x forward
     */
 
-    std::optional<unique_ptr<scene>> scene_opt = parse_scene_descriptor("../scene.txt");
+    std::optional<scene> scene_opt = parse_scene_descriptor("../scene.txt");
     
     if (not scene_opt.has_value()) {
         printf("Scene creation failed\n");
         return EXIT_FAILURE;
     }
 
-    unique_ptr<scene> scene = move(scene_opt.value());
+    scene scene = std::move(scene_opt.value());
 
-    printf("Number of objects: %u\n", (unsigned int) scene->object_set.size());
+    printf("Number of objects: %u\n", (unsigned int) scene.object_set.size());
+    
+
+    /************************************
+    // Debugging polygons
+
+    rt::vector orig(-2, 5, 8);
+    bool at_least_one_faulty = false;
+    for (const object* obj : scene->object_set) {
+        if (obj->is_textured()) {
+            const rt::vector bary = static_cast<const polygon*>(obj)->get_barycenter();
+            const rt::vector dir = (bary - orig).unit();
+            ray r(orig, dir);
+            const std::optional<double> d = obj->measure_distance(r);
+            if (not d.has_value()) {
+                printf("FAULTY\n");
+                // faulty polygon
+                static_cast<const polygon*>(obj)->print();
+                at_least_one_faulty = true;
+            }
+        }
+    }
+    if (at_least_one_faulty) {
+        return EXIT_SUCCESS;
+    }
+    else {
+        printf("No faulty polygon\n");
+    }
+
+    ************************************/
+
 
 
     /**************************************************************************/
 
     /* Definition of the matrix in which we will write the image */
-    vector<vector<rt::color>> matrix(scene->width, vector<rt::color>(scene->height));
+    vector<vector<rt::color>> matrix(scene.width, vector<rt::color>(scene.height));
 
 
     /* Generating an image of target_number_of_rays rays */
@@ -246,7 +278,7 @@ int main(int argc, char *argv[]) {
         fflush(stdout);
         
         for (unsigned int i = 0; i < target_number_of_rays; i++) {
-            render_loop_parallel(matrix, *scene, number_of_bounces);
+            render_loop_parallel(matrix, scene, number_of_bounces);
             if (target_number_of_rays <= 10 || i % 10 == 9) {
                 printf("\r%u / %u", i+1, target_number_of_rays);
                 fflush(stdout);
@@ -279,10 +311,10 @@ int main(int argc, char *argv[]) {
     fflush(stdout);
 
     if (time_enabled) {
-        render_loop_parallel_time(matrix, *scene, number_of_bounces, time_all);
+        render_loop_parallel_time(matrix, scene, number_of_bounces, time_all);
     }
     else {
-        render_loop_parallel(matrix, *scene, number_of_bounces);
+        render_loop_parallel(matrix, scene, number_of_bounces);
     }
     
     // rt::screen* scr = new rt::screen(scene.width, scene.height);
@@ -296,10 +328,10 @@ int main(int argc, char *argv[]) {
     for (unsigned int number_of_rays = 2; number_of_rays <= MAX_RAYS; number_of_rays++) {
 
         if (time_enabled) {
-            render_loop_parallel_time(matrix, *scene, number_of_bounces, time_all);
+            render_loop_parallel_time(matrix, scene, number_of_bounces, time_all);
         }
         else {
-            render_loop_parallel(matrix, *scene, number_of_bounces);
+            render_loop_parallel(matrix, scene, number_of_bounces);
         }
 
         printf("\rNumber of rays per pixel: %u", number_of_rays);
@@ -321,8 +353,8 @@ int main(int argc, char *argv[]) {
             }
             */
             
-            const rt::screen* scr = new rt::screen(scene->width, scene->height);
-            scr->copy(matrix, scene->width, scene->height, number_of_rays);
+            const rt::screen* scr = new rt::screen(scene.width, scene.height);
+            scr->copy(matrix, scene.width, scene.height, number_of_rays);
             scr->update();
             int key;
             do {

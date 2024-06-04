@@ -31,11 +31,6 @@ scene::scene(const std::vector<const object*>& object_set,
     background(background), width(width), height(height),
     cam(cam), rg(randomgen()), polygons_per_bounding(polygons_per_bounding) {}
 
-/** For testing purposes: ensuring no copies are made */
-/* Copy constructor */
-scene::scene(const scene& /*sc*/) {
-    printf("Copying scene /!\\\n");
-}
 
 
 /*********************************************************************/
