@@ -39,5 +39,3 @@ struct wrapper {
 
     wrapper& operator=(wrapper&& sc) = default;
 };
-
-/* The counters are declared in scene_parser.cpp, and initialized at the beginning of each scene parsing */

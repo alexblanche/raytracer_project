@@ -42,12 +42,12 @@ namespace rt {
 			 * Destructor. Decrements the initialized
 			 * counter and closes the screen only if it goes to 0.
 			 */
-			virtual ~screen();
+			~screen();
 
 			/**
 			 * Flushes the buffer to the screen
 			 */
-			virtual void update() const;
+			void update() const;
 
 			/****************************************************************************************************/
 			/** Event processing **/
@@ -81,7 +81,7 @@ namespace rt {
 			 * Copies the rt::color matrix onto the screen, by averaging the number_of_rays colors per pixel
 			*/
 			void copy(std::vector<std::vector<rt::color>>& matrix,
-				const unsigned int width, const unsigned int height,
+				const size_t width, const size_t height,
 				const unsigned int number_of_rays) const;
 
 			/**
@@ -89,7 +89,7 @@ namespace rt {
 			 * and applying a square root to each component to increase the brightness
 			*/
 			void copy_gamma_corrected(std::vector<std::vector<rt::color>>& matrix,
-				const unsigned int width, const unsigned int height,
+				const size_t width, const size_t height,
 				const unsigned int number_of_rays) const;
 	};
 

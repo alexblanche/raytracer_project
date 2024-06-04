@@ -40,7 +40,7 @@ void update_accumulators(const material& m, const object*& obj, const rt::vector
     }
 }
 
-/* Auxiliary function that applies a bias of 0.001 times the normal to the ray position,
+/* Auxiliary function that applies a bias of 1.0E-6 times the normal to the ray position,
    outward the surface contact point if outward_bias is true (so in the direction of the normal),
    inward otherwise (in the opposite direction to the normal) */
 void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& normal,

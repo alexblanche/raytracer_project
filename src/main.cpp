@@ -230,36 +230,7 @@ int main(int argc, char *argv[]) {
 
     scene scene = std::move(scene_opt.value());
 
-    printf("Number of objects: %u\n", (unsigned int) scene.object_set.size());
-    
-
-    /************************************
-    // Debugging polygons
-
-    rt::vector orig(-2, 5, 8);
-    bool at_least_one_faulty = false;
-    for (const object* obj : scene->object_set) {
-        if (obj->is_textured()) {
-            const rt::vector bary = static_cast<const polygon*>(obj)->get_barycenter();
-            const rt::vector dir = (bary - orig).unit();
-            ray r(orig, dir);
-            const std::optional<double> d = obj->measure_distance(r);
-            if (not d.has_value()) {
-                printf("FAULTY\n");
-                // faulty polygon
-                static_cast<const polygon*>(obj)->print();
-                at_least_one_faulty = true;
-            }
-        }
-    }
-    if (at_least_one_faulty) {
-        return EXIT_SUCCESS;
-    }
-    else {
-        printf("No faulty polygon\n");
-    }
-
-    ************************************/
+    printf("Number of objects: %lu\n", scene.object_set.size());
 
 
 
@@ -316,10 +287,6 @@ int main(int argc, char *argv[]) {
     else {
         render_loop_parallel(matrix, scene, number_of_bounces);
     }
-    
-    // rt::screen* scr = new rt::screen(scene.width, scene.height);
-    // scr->copy(matrix, scene.width, scene.height, 1);
-    // scr->update();
 
     printf("\r                                                   ");
     printf("\rNumber of rays per pixel: 1");
@@ -338,30 +305,15 @@ int main(int argc, char *argv[]) {
         fflush(stdout);
 
         if (number_of_rays % 10 == 0) {
-
-            /*
-            string file_name = "image00";
-            file_name[5] = '0' + (char) ((number_of_rays / 100) % 10);
-            file_name[6] = '0' + (char) ((number_of_rays / 10) % 10);
-            const bool success = export_raw(file_name.data(), number_of_rays, matrix);
-            if (success) {
-                printf(" (Saved after %u rays as %s)", number_of_rays, file_name.data());
-            }
-            else {
-                printf("\nExport failed\n");
-                return EXIT_FAILURE;
-            }
-            */
             
-            const rt::screen* scr = new rt::screen(scene.width, scene.height);
-            scr->copy(matrix, scene.width, scene.height, number_of_rays);
-            scr->update();
+            const rt::screen scr(scene.width, scene.height);
+            scr.copy(matrix, scene.width, scene.height, number_of_rays);
+            scr.update();
             int key;
             do {
-                key = scr->wait_keyboard_event();
+                key = scr.wait_keyboard_event();
             }
             while (key == 0);
-            delete(scr);
             switch (key) {
                 case 1:
                     /* Esc or the window exit "X" clicked */

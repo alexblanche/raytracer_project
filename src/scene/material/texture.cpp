@@ -8,7 +8,7 @@
 /* Constructors */
 
 texture::texture() {
-    printf("Creating of an empty texture\n");
+    // printf("Creation of an empty texture\n");
 }
 
 /* Default constructor */
@@ -16,14 +16,14 @@ texture::texture(const int width, const int height, const std::vector<std::vecto
     : width(width), height(height), data(data),
         width_minus_one((double) (width - 1)), height_minus_one((double) (height - 1)) {
 
-    printf("Creating of a texture from the main constructor\n");
+    // printf("Creation of a texture from the main constructor\n");
 }
 
 /* Constructor from a .bmp file
    Writes true in parsing_successful if the operation was successful */
 texture::texture(const char* file_name, bool& parsing_successful) {
 
-    printf("Creating of a texture from a file\n");
+    // printf("Creation of a texture from a file\n");
 
     const std::optional<dimensions> dims = read_bmp_size(file_name);
     if (dims.has_value()) {

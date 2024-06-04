@@ -29,6 +29,8 @@ namespace rt {
 		
 		: image(width, height) {
 
+		printf("a\n");
+
 		if(initialized == 0) {
 			if(SDL_Init( SDL_INIT_VIDEO ) == -1) {
 				std::cerr << "Cannot initialize SDL : "
@@ -36,7 +38,7 @@ namespace rt {
 				exit(-1);
 			}
 			signal(SIGINT, sigint_handler);
-		};
+		}
 		initialized += 1;
 	}
 
@@ -141,11 +143,11 @@ namespace rt {
 	 * Copies the rt::color matrix onto the screen, by averaging the number_of_rays colors per pixel
 	*/
 	void screen::copy(std::vector<std::vector<rt::color>>& matrix,
-		const unsigned int width, const unsigned int height,
+		const size_t width, const size_t height,
 		const unsigned int number_of_rays) const {
 			
-		for (unsigned int i = 0; i < width; i++) {
-			for (unsigned int j = 0; j < height; j++) {
+		for (size_t i = 0; i < width; i++) {
+			for (size_t j = 0; j < height; j++) {
 				const rt::color& pixel_col = matrix[i][j];
 				// Maxed values
 				const double r = std::min(pixel_col.get_red()   / number_of_rays, 255.0);
@@ -161,11 +163,11 @@ namespace rt {
 	 * and applying a square root to each component to increase the brightness
 	*/
 	void screen::copy_gamma_corrected(std::vector<std::vector<rt::color>>& matrix,
-		const unsigned int width, const unsigned int height,
+		const size_t width, const size_t height,
 		const unsigned int number_of_rays) const {
 			
-		for (unsigned int i = 0; i < width; i++) {
-			for (unsigned int j = 0; j < height; j++) {
+		for (size_t i = 0; i < width; i++) {
+			for (size_t j = 0; j < height; j++) {
 				const rt::color& pixel_col = matrix[i][j];
 				// Maxed values
 				const double r = std::min(pixel_col.get_red()   / number_of_rays, 255.0);

@@ -47,7 +47,7 @@ class texture {
         rt::color get_color(const double& u, const double& v) const;
 
         ~texture() {
-            printf("Destruction of a texture (width = %d, height = %d)\n", width, height);
+            // printf("Destruction of a texture (width = %d, height = %d, data = %lu)\n", width, height, data.size());
         }
         
         /*

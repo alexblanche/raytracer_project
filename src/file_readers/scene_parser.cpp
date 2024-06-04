@@ -18,9 +18,6 @@
 
 #include "file_readers/parsing_wrappers.hpp"
 
-/* Declaration of the wrapper counters */
-// template<> size_t wrapper<material>::counter = 0;
-// template<> size_t wrapper<texture>::counter = 0;
 
 /*** Scene description parsing ***/
 
@@ -158,7 +155,7 @@ std::optional<texture_info> parse_texture_info(FILE* file,
                 return std::nullopt;
             }
 
-            return texture_info (vindex.value(), {u0, v0, u1, v1, u2, v2, u3, v3});
+            return texture_info(vindex.value(), {u0, v0, u1, v1, u2, v2, u3, v3});
         }
     }
     else {
@@ -372,8 +369,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 t_name.resize(strlen(t_name.data()));
                 
                 bool parsing_successful;
-                texture txtr = texture(tfile_name, parsing_successful);
-                texture_wrapper_set.emplace_back(std::move(txtr), t_name);
+                texture_wrapper_set.emplace_back(texture(tfile_name, parsing_successful), t_name);
 
                 if (parsing_successful) {
                     printf("%s texture loaded\n", tfile_name);
@@ -616,15 +612,11 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         for (wrapper<material>& mat_wrap : material_wrapper_set) {
             material_set[mat_wrap.index] = std::move(mat_wrap.content);
         }
-
-        printf("Adding textures to the final set\n");
         
         std::vector<texture> texture_set(wrapper<texture>::counter);
         for (wrapper<texture>& txt_wrap : texture_wrapper_set) {
             texture_set[txt_wrap.index] = std::move(txt_wrap.content);
         }
-        
-        printf("Creating the unique pointer to the scene\n");
         
         std::optional<scene> scene_opt;
         scene_opt.emplace(std::move(object_set), std::move(bounding_set), std::move(texture_set), std::move(material_set),

@@ -18,7 +18,7 @@ namespace rt {
 	/**
 	 * Default constructor. Builds a black color.
 	 */
-	color::color() : red(0), green(0), blue(0) /*, alpha(255)*/ {}
+	color::color() : red(0), green(0), blue(0) {}
 
 	/**
 	 * Copy constructor.
@@ -27,7 +27,6 @@ namespace rt {
 	 	red   = c.get_red();
 	 	green = c.get_green();
 	 	blue  = c.get_blue();
-	// 	//alpha = c.get_alpha();
 	}
 
 	/**
@@ -35,14 +34,8 @@ namespace rt {
 	 * Alpha is set to 255.
 	 */
 	color::color(const double& r, const double& g, const double& b)
-		: red(r), green(g), blue(b) /*, alpha(255)*/ {}
+		: red(r), green(g), blue(b) {}
 
-
-	/**
-	 * Builds a color from its red, green, blue and alpha components.
-	 */
-	// color::color(const double r, const double g, const double b, const double a)
-	// 	: red(r), green(g), blue(b), alpha(a) {}
 	
 	/**
 	 * Assignment by copy
@@ -60,17 +53,7 @@ namespace rt {
 		return (c.get_red()   == get_red())
 			&& (c.get_green() == get_green())
 			&& (c.get_blue()  == get_blue());
-			// && (c.get_alpha() == get_alpha());
 	}
-
-	/**
-	 * Cast operator to int.
-	 * Represents the color as a int, with
-	 * red being the most significant byte.
-	*/
-	// color::operator int() const {
-	// 	return 256*(256*(256*get_red() + get_green()) + get_blue()) + get_alpha();
-	// }
 
 	/**
 	 * Scaling operator.
@@ -87,9 +70,6 @@ namespace rt {
 	 */
 	color color::operator+(const color& c) const {
 		return color(
-			// std::min(get_red()   + c.get_red(),   255.0),
-			// std::min(get_green() + c.get_green(), 255.0),
-			// std::min(get_blue()  + c.get_blue(),  255.0));
 			get_red()   + c.get_red(),
 			get_green() + c.get_green(),
 			get_blue()  + c.get_blue());
@@ -115,8 +95,6 @@ namespace rt {
 			get_blue() 	/ x);
 	}
 
-
-
 	/* Adds all the colors of the given color vector */
 	color add_col_vect(const std::vector<color>& color_set) {
 		
@@ -131,9 +109,9 @@ namespace rt {
 			b += c.get_blue();
 		}
 
-		if (r > 255) {r = 255;}
-		if (g > 255) {g = 255;}
-		if (b > 255) {b = 255;}
+		if (r > 255) { r = 255; }
+		if (g > 255) { g = 255; }
+		if (b > 255) { b = 255; }
 
 		return rt::color(r, g, b);
 	}
