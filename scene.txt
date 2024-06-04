@@ -1,4 +1,4 @@
-resolution width:192 height:108
+resolution width:1920 height:1080
 camera position:(-2, 5, 8) direction:(0.2, -0.4, -1) rightdir:(1, 0, 0.2) fov_width:3 distance:3
 background_color 190 235 255
 polygons_per_bounding 1

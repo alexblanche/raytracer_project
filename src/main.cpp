@@ -212,6 +212,11 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    // This screen causes the next one to initialize before crashing
+    // const rt::screen scr0(200, 300);
+    // scr0.update();
+    // scr0.wait_quit_event();
+
     /* *************************** */
     /* Scene description */
     
@@ -228,10 +233,9 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    scene scene = std::move(scene_opt.value());
+    scene& scene = scene_opt.value();
 
     printf("Number of objects: %lu\n", scene.object_set.size());
-
 
 
     /**************************************************************************/

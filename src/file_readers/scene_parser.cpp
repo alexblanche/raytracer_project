@@ -290,11 +290,6 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
 
         */
 
-        // std::vector<material> material_set;
-        // std::vector<std::string> material_names;
-        // std::vector<texture> texture_set;
-        // std::vector<std::string> texture_names;
-
 
         std::vector<const object*> object_set;
 
@@ -307,7 +302,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
 
         std::vector<wrapper<texture>> texture_wrapper_set;
         // texture copies should be avoided as much as possible
-        texture_wrapper_set.reserve(10);
+        // texture_wrapper_set.reserve(10);
         
         wrapper<material>::init();
         wrapper<texture>::init();

@@ -55,14 +55,14 @@ class scene {
             const unsigned int polygons_per_bounding);
 
         /* For testing purposes: forbidding copy */
-        scene(const scene& sc) = delete;
+        scene(const scene&) = delete;
 
-        scene& operator=(const scene& sc) = delete;
+        scene& operator=(const scene&) = delete;
 
         /* Only move operations allowed */
-        scene(scene&& sc) = default;
+        scene(scene&&) = default;
 
-        scene& operator=(scene&& sc) = default;
+        scene& operator=(scene&&) = default;
 
         ~scene();
 
