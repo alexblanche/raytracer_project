@@ -129,8 +129,8 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
                 material m(ns, rt::color(ka_r, ka_g, ka_b), rt::color(kd_r, kd_g, kd_b),
                         rt::color(ks_r, ks_g, ks_b), rt::color(ke_r, ke_g, ke_b),
                         ni, d, illum);
-                const wrapper<material> mat_wrap = wrapper<material>(std::move(m), m_name);
-                material_wrapper_set.push_back(std::move(mat_wrap));
+                material_wrapper_set.emplace_back(std::move(m), m_name);
+                const size_t m_i = material_wrapper_set[material_wrapper_set.size()-1].index;
 
                 /* Test for associated texture */
                 char tfile_name[513];
@@ -145,6 +145,7 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
                     texture_wrapper_set.emplace_back(
                         std::move(txt)
                     );
+                    const size_t t_i = texture_wrapper_set[texture_wrapper_set.size()-1].index;
 
                     if (parsing_successful) {
                         printf("\rmtl_parser: %s texture loaded\n", tfile_name);
@@ -155,7 +156,7 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
                         throw std::runtime_error("(texture reading)");
                     }
 
-                    mt_assoc[mat_wrap.index] = texture_wrapper_set[texture_wrapper_set.size()-1].index;
+                    mt_assoc[m_i] = t_i;
                 }
                 // else: texture omitted
             }

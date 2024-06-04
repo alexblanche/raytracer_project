@@ -1,7 +1,7 @@
 resolution width:1920 height:1080
 camera position:(-2, 5, 8) direction:(0.2, -0.4, -1) rightdir:(1, 0, 0.2) fov_width:3 distance:3
 background_color 190 235 255
-polygons_per_bounding 0
+polygons_per_bounding 1
 
 material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:2 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 

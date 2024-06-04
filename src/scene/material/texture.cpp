@@ -7,7 +7,7 @@
 
 /* Constructors */
 
-texture::texture()  {
+texture::texture() {
     printf("Creating of an empty texture\n");
 }
 

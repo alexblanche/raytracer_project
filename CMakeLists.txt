@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.12)
 project(raytracer VERSION "0.0.1")
 
-set(CMAKE_CXX_STANDARD 23)
-add_compile_options(-std=c++23)
+SET (CMAKE_CXX_COMPILER "/usr/bin/clang++-15")
+
+set(CMAKE_CXX_STANDARD 20)
+add_compile_options(-std=c++20)
 add_compile_options(-Wall -Wextra -Werror -O3)
 add_compile_options(-fdiagnostics-color)
 add_compile_options(-march=native)

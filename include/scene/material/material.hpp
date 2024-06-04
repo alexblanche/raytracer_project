@@ -45,10 +45,10 @@ class material {
     public:
 
         /* Mirror surface */
-        static const material DIFFUSE;
-        static const material MIRROR;
-        static const material GLASS;
-        static const material WATER;
+        static material DIFFUSE;
+        static material MIRROR;
+        static material GLASS;
+        static material WATER;
 
 
         /* Constructors */

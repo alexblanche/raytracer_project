@@ -18,16 +18,16 @@ std::numeric_limits<double> real;
 const double infinity = real.infinity();
 
 
-scene::scene(const std::vector<const object*>& object_set,
+scene::scene(std::vector<const object*>&& object_set,
     const std::vector<const bounding*>& bounding_set,
-    const std::vector<texture>& texture_set,
-    const std::vector<material>& material_set,
+    std::vector<texture>&& texture_set,
+    std::vector<material>&& material_set,
     const rt::color& background,
     const int width, const int height,
     const camera& cam,
     const unsigned int polygons_per_bounding)
 
-    : object_set(object_set), bounding_set(bounding_set), texture_set(texture_set), material_set(material_set),
+    : object_set(std::move(object_set)), bounding_set(bounding_set), texture_set(std::move(texture_set)), material_set(std::move(material_set)),
     background(background), width(width), height(height),
     cam(cam), rg(randomgen()), polygons_per_bounding(polygons_per_bounding) {}
 

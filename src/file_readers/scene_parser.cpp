@@ -19,8 +19,8 @@
 #include "file_readers/parsing_wrappers.hpp"
 
 /* Declaration of the wrapper counters */
-template<> size_t wrapper<material>::counter = 0;
-template<> size_t wrapper<texture>::counter = 0;
+// template<> size_t wrapper<material>::counter = 0;
+// template<> size_t wrapper<texture>::counter = 0;
 
 /*** Scene description parsing ***/
 
@@ -63,9 +63,8 @@ std::optional<size_t> get_material(FILE* file, std::vector<wrapper<material>>& m
         std::optional<material> m = parse_material(file);
 
         if (m.has_value()) {
-            const wrapper<material> mat_wrap(std::move(m.value()));
-            material_wrapper_set.push_back(mat_wrap);
-            return mat_wrap.index;
+            material_wrapper_set.emplace_back(std::move(m.value()));
+            return material_wrapper_set[material_wrapper_set.size()-1].index;
         }
         else {
             return std::nullopt;
@@ -304,10 +303,10 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
 
         /* Material storage */
         std::vector<wrapper<material>> material_wrapper_set;
-        material_wrapper_set.emplace_back(material::DIFFUSE, "diffuse");
-        material_wrapper_set.emplace_back(material::MIRROR, "mirror");
-        material_wrapper_set.emplace_back(material::GLASS, "glass");
-        material_wrapper_set.emplace_back(material::WATER, "water");
+        material_wrapper_set.emplace_back(std::move(material::DIFFUSE), "diffuse");
+        material_wrapper_set.emplace_back(std::move(material::MIRROR), "mirror");
+        material_wrapper_set.emplace_back(std::move(material::GLASS), "glass");
+        material_wrapper_set.emplace_back(std::move(material::WATER), "water");
 
         std::vector<wrapper<texture>> texture_wrapper_set;
         // texture copies should be avoided as much as possible
@@ -353,7 +352,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 }
                 m_name.resize(strlen(m_name.data()));
 
-                const std::optional<material> m = parse_material(file);
+                std::optional<material> m = parse_material(file);
                 if (m.has_value()) {
                     material_wrapper_set.emplace_back(std::move(m.value()), m_name);
                 }
@@ -373,14 +372,8 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 t_name.resize(strlen(t_name.data()));
                 
                 bool parsing_successful;
-                printf("a\n");
-                // texture_wrapper_set.emplace_back(
-                //     texture(tfile_name, parsing_successful),
-                //     t_name
-                // );
-                const texture txtr = texture(tfile_name, parsing_successful);
+                texture txtr = texture(tfile_name, parsing_successful);
                 texture_wrapper_set.emplace_back(std::move(txtr), t_name);
-                printf("b\n");
 
                 if (parsing_successful) {
                     printf("%s texture loaded\n", tfile_name);
@@ -620,8 +613,8 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
 
         // Creation of the final structures
         std::vector<material> material_set(wrapper<material>::counter);
-        for (wrapper<material> const& mat_wrap : material_wrapper_set) {
-            material_set[mat_wrap.index] = mat_wrap.content;
+        for (wrapper<material>& mat_wrap : material_wrapper_set) {
+            material_set[mat_wrap.index] = std::move(mat_wrap.content);
         }
 
         printf("Adding textures to the final set\n");

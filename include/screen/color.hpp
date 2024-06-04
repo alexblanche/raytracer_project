@@ -62,68 +62,68 @@ namespace rt {
 			/**
 			 * Assignment by copy
 			 */
-			virtual void operator=(const color& c);
+			void operator=(const color& c);
 
 			/**
 			 * Sets the red component.
 			 */
-			virtual inline void set_red(double r) {
+			inline void set_red(double r) {
 				red = r;
 			}
 
 			/**
 			 * Returns the red component.
 			 */
-			virtual inline double get_red() const {
+			inline double get_red() const {
 				return red;
 			}
 
 			/**
 			 * Sets the green component.
 			 */
-			virtual inline void set_green(double g) {
+			inline void set_green(double g) {
 				green = g;
 			}
 
 			/**
 			 * Returns the green component.
 			 */
-			virtual inline double get_green() const {
+			inline double get_green() const {
 				return green;
 			}
 
 			/**
 			 * Sets the blue component.
 			 */
-			virtual inline void set_blue(double b) {
+			inline void set_blue(double b) {
 				blue = b;
 			}
 
 			/**
 			 * Returns the blue component.
 			 */
-			virtual inline double get_blue() const {
+			inline double get_blue() const {
 				return blue;
 			}
 
 			/**
 			 * Sets the alpha component.
 			 */
-			// virtual inline void set_alpha(double a) {
+			// inline void set_alpha(double a) {
 			// 	alpha = a;
 			// }
 
 			/**
 			 * Returns the alpha component.
 			 */
-			// virtual inline unsigned int get_alpha() const {
+			// inline unsigned int get_alpha() const {
 			// 	return alpha;
 			// }
 
 			/**
 			 * Comparison operator.
 			 */
-			virtual bool operator==(const color& c) const;
+			bool operator==(const color& c) const;
 
 			/**
 			 * Cast operator to int.
@@ -135,27 +135,27 @@ namespace rt {
 			/**
 			 * Scaling operator.
 			 */
-			virtual color operator*(const double x) const;
+			color operator*(const double x) const;
 
 			/**
 			 * Addition operator.
 			 */
-			virtual color operator+(const color& c) const;
+			color operator+(const color& c) const;
 
 			/**
 	 		* Product operator.
 	 		*/
-			virtual color operator*(const color& c) const;
+			color operator*(const color& c) const;
 
 			/**
 			 * Division operator.
 			 */
-			virtual color operator/(const double x) const;
+			color operator/(const double x) const;
 
 			/**
 			 * Maxing out color components at 255.
 			 */
-			virtual color max_out() const;
+			color max_out() const;
 	};
 
 	/* Adds all the colors of the given color vector */

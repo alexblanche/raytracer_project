@@ -45,10 +45,10 @@ class scene {
         /* Constructor */
 
         /* Main constructor */
-        scene(const std::vector<const object*>& object_set,
+        scene(std::vector<const object*>&& object_set,
             const std::vector<const bounding*>& bounding_set,
-            const std::vector<texture>& texture_set,
-            const std::vector<material>& material_set,
+            std::vector<texture>&& texture_set,
+            std::vector<material>&& material_set,
             const rt::color& background,
             const int width, const int height,
             const camera& cam,

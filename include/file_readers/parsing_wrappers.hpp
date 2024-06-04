@@ -11,7 +11,7 @@ struct wrapper {
     std::optional<std::string> name;
     size_t index;
 
-    static size_t counter;
+    static inline size_t counter = 0;
 
     wrapper(T&& t, const std::string& name)
         : content(std::move(t)), name(name), index(counter) {
