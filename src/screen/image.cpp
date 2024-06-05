@@ -16,11 +16,8 @@ namespace rt {
 	 * Main constructor. Builds an image from its dimensions.
 	 */
 	image::image(int width, int height)	{
-		printf("\nb width = %d, height = %d\n", width, height);
 		SDL_CreateWindowAndRenderer(width, height, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE, &window, &renderer);
-		printf("c\n");
 		SDL_RenderSetLogicalSize(renderer, width, height);
-		printf("d\n");
 	}
 
 	/**

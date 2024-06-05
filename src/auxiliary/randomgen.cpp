@@ -21,7 +21,7 @@ double randomgen::random_double(const double& m) {
 }
 
 /* Returns an array of n random doubles between 0 and m */
-std::vector<double> randomgen::random_double_array(const unsigned int n, const double& m) {
+std::vector<double> randomgen::random_double_array(const size_t n, const double& m) {
     update_seed();
     std::default_random_engine eng (seed);
 

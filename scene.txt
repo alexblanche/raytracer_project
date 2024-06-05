@@ -1,16 +1,26 @@
-resolution width:1920 height:1080
-camera position:(-2, 5, 8) direction:(0.2, -0.4, -1) rightdir:(1, 0, 0.2) fov_width:3 distance:3
+resolution width:800 height:600
+camera position:(0, 5, 2.5) direction:(0, -0.8, -1) rightdir:(1, 0, 0) fov_width:1.5 distance:1
 background_color 190 235 255
 polygons_per_bounding 1
 
 material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:2 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+material red_light (color:(255, 255, 255) emitted_color:(255, 0, 0) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+material blue_light (color:(255, 255, 255) emitted_color:(0, 0, 255) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+material green_light (color:(255, 255, 255) emitted_color:(0, 255, 0) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+material yellow_light (color:(255, 255, 255) emitted_color:(255, 255, 0) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+
+quad (-4, 10, 10) (-4, 10, 0) (4, 10, 0) (4, 10, 10) material:white_light
 
 load_texture wood_floor ../../../raytracer_project/texture_assets/parquet.bmp
 load_texture stool_wood ../../../raytracer_project/3d_models/stool/Textures/wooden_stool_texture(F).bmp
 material Wooden_stool_texture (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0.8 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-load_obj ../../../raytracer_project/3d_models/stool/Obj_folder/wooden_stool.obj (texture:stool_wood shift:(0,0,0) scale:1)
+load_obj ../../../raytracer_project/3d_models/stool/stool_parts/Top_of_stool_Cylinder.obj (texture:stool_wood shift:(0,0,0) scale:1)
 
-quad (-4, 10, 10) (-4, 10, 0) (4, 10, 0) (4, 10, 10) material:white_light
+quad (-10,0,10) (-10,0,-10) (10,0,-10) (10,0,10) material:diffuse
+# material:Wooden_stool_texture texture:(wood_floor (0,0) (0,1) (1,1) (1,0))
 
-quad (-20,0,10) (-20,0,-50) (40,0,-50) (40,0,10) material:Wooden_stool_texture texture:(wood_floor (0,0) (0,1) (1,1) (1,0))
+# 3753 4498 5219 4189
+# sphere center:(0.36, 3.848471, 1.55) radius:0.02 material:red_light
+# sphere center:(0.36, 3.848471, 1.6) radius:0.02 material:green_light
+# sphere center:(0, 3.848471, 1.4) radius:0.02 material:blue_light

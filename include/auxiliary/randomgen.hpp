@@ -17,7 +17,7 @@ class randomgen {
         double random_double(const double& m);
 
         /* Returns an array of n random doubles between 0 and m */
-        std::vector<double> random_double_array(const unsigned int n, const double& m);
+        std::vector<double> random_double_array(const size_t n, const double& m);
 
         /* Returns a random double chosen according to a normal distribution
            of mean m and standard deviation std_dev */

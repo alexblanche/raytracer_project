@@ -180,7 +180,7 @@ bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data,
     const unsigned int width = data.size();
     const unsigned int height = data[0].size();
     bool padding = false;
-    unsigned int vp = (3*width) % 4;
+    size_t vp = (3*width) % 4;
     if (vp != 0) {
         padding = true;
         vp = 4 - vp;
@@ -210,9 +210,9 @@ bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data,
         const unsigned int file_size = 14 + 40 + 3 * width * height + vp * height;
         ret = fprintf(file, "%c%c%c%c",
             file_size % 256,
-            (file_size / 256) % 256,
-            (file_size / (256 * 256)) % 256,
-            (file_size / (256 * 256 * 256)) % 256
+            (file_size << 8) % 256,
+            (file_size << 16) % 256,
+            (file_size << 24) % 256
         );
         HANDLE_ERROR
 
@@ -305,17 +305,19 @@ bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data,
 
         for (size_t j = 0; j < height; j++) {
             for (size_t i = 0; i < width; i++) {
-                rt::color c = data[i][height - j - 1];
-                const char r = (char) std::min(c.get_red() / n, 255.0);
+                const rt::color& c = data[i][height - j - 1];
+                const char r = (char) std::min(c.get_red()   / n, 255.0);
                 const char g = (char) std::min(c.get_green() / n, 255.0);
-                const char b = (char) std::min(c.get_blue() / n, 255.0);
+                const char b = (char) std::min(c.get_blue()  / n, 255.0);
                 ret = fprintf(file, "%c%c%c", b, g, r);
                 HANDLE_ERROR
             }
             /* Writing p bytes '0' of padding */
             if (padding) {
                 ret = fwrite((void*) padding_zeroes, p, 1, file);
-                if (ret != 1) {fclose(file); printf("Writing error in file %s\n", file_name); return false;}
+                if (ret != 1) {
+                    throw std::runtime_error("");
+                }
             }
         }
 

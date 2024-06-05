@@ -29,8 +29,6 @@ namespace rt {
 		
 		: image(width, height) {
 
-		printf("a\n");
-
 		if(initialized == 0) {
 			if(SDL_Init( SDL_INIT_VIDEO ) == -1) {
 				std::cerr << "Cannot initialize SDL : "

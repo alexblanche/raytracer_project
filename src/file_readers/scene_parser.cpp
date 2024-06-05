@@ -293,6 +293,9 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
 
         std::vector<const object*> object_set;
 
+        wrapper<material>::init();
+        wrapper<texture>::init();
+
         /* Material storage */
         std::vector<wrapper<material>> material_wrapper_set;
         material_wrapper_set.emplace_back(std::move(material::DIFFUSE), "diffuse");
@@ -301,11 +304,6 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         material_wrapper_set.emplace_back(std::move(material::WATER), "water");
 
         std::vector<wrapper<texture>> texture_wrapper_set;
-        // texture copies should be avoided as much as possible
-        // texture_wrapper_set.reserve(10);
-        
-        wrapper<material>::init();
-        wrapper<texture>::init();
 
         std::vector<const bounding*> bounding_set;
 
