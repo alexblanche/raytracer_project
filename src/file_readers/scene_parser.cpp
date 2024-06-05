@@ -570,7 +570,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 }
 
                 const bounding* output_bd;
-                const bool parsing_successful = parse_obj_file(ofile_name, t_index.value(), object_set,
+                const bool parsing_successful = parse_obj_file(ofile_name, t_index, object_set,
                     material_wrapper_set, texture_wrapper_set,
                     scale, rt::vector(sx, sy, sz),
                     bounding_enabled, polygons_per_bounding, output_bd);
@@ -599,6 +599,18 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         if (file != NULL) {
             fclose(file);
         }
+
+        printf("material_wrapper_set contains %lu materials\n", material_wrapper_set.size());
+        for(wrapper<material> const& mat_wrap : material_wrapper_set) {
+            if (mat_wrap.name.has_value()) {
+                printf("%s\n", mat_wrap.name.value().data());
+            }
+            else {
+                printf("(unnamed)\n");
+            }
+        }
+
+
 
         // Creation of the final structures
         std::vector<material> material_set(wrapper<material>::counter);

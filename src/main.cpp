@@ -238,6 +238,11 @@ int main(int argc, char *argv[]) {
     printf("Number of objects: %lu\n", scene.object_set.size());
 
 
+    printf("Number of material: %lu\n", scene.material_set.size());
+    for (material const& m : scene.material_set) {
+        printf("material: %lf %lf\n", m.get_reflectivity(), m.get_specular_proba());
+    }
+
     /**************************************************************************/
 
     /* Definition of the matrix in which we will write the image */

@@ -141,10 +141,8 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
                     // const unsigned int texture_index = texture_set.size();
 
                     bool parsing_successful;
-                    texture txt = texture((path + std::string(tfile_name)).data(), parsing_successful);
-                    texture_wrapper_set.emplace_back(
-                        std::move(txt)
-                    );
+                    texture txt((path + std::string(tfile_name)).data(), parsing_successful);
+                    texture_wrapper_set.emplace_back(std::move(txt));
                     const size_t t_i = texture_wrapper_set[texture_wrapper_set.size()-1].index;
 
                     if (parsing_successful) {

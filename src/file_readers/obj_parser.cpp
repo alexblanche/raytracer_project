@@ -13,7 +13,6 @@
 numeric_limits<double> realobj;
 const double infinity = realobj.infinity();
 
-#include <stdio.h>
 #include <string.h>
 #include <string>
 
@@ -516,7 +515,7 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
    size_t current_material_index = -1;
    size_t current_texture_index = default_texture_index.value_or((size_t) (-1));
 
-   const bool default_texture_provided = default_texture_index.value();
+   const bool default_texture_provided = default_texture_index.has_value();
    bool apply_texture = default_texture_provided;
 
    /* Counters */
@@ -554,12 +553,9 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
          /* New group definition
             If bounding_enabled is true, the current content vector of polygons
             is placed in a box that is added to the children vector */
-         if (bounding_enabled && (strcmp(s, "o") == 0 || strcmp(s, "g") == 0) && content.size() != 0) {
+         if (bounding_enabled && (strcmp(s, "o") == 0 || strcmp(s, "g") == 0) && not content.empty()) {
 
-            // First method: put the whole group in one bounding
-            // const bounding* bd = containing_objects(content);
-
-            // Second method: create a bounding hierarchy containing all the nodes
+            // Create a bounding hierarchy containing all the nodes
             /* Heuristic: each group is a depth 1 node in the global bounding box hierarchy */
             const bounding* bd = create_bounding_hierarchy(content, polygons_per_bounding);
             if (DISPLAY_HIERARCHY) {
