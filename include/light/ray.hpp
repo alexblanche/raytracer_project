@@ -13,6 +13,7 @@ using namespace std;
 */
 
 class ray {
+    
     protected:
         rt::vector origin;
 

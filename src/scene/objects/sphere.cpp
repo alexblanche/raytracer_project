@@ -12,7 +12,7 @@ sphere::sphere() {
     radius = 0;
 }
 
-sphere::sphere(const rt::vector& center, const double& radius, const unsigned int material_index)
+sphere::sphere(const rt::vector& center, const real& radius, const size_t material_index)
 
     : object(center, material_index), radius(radius) {}
 
@@ -22,7 +22,7 @@ sphere::sphere(const rt::vector& center, const double& radius, const unsigned in
 /* Intersection determination */
 
 /* Calculates and returns the intersection value t */
-std::optional<double> sphere::measure_distance(const ray& r) const {
+std::optional<real> sphere::measure_distance(const ray& r) const {
     /*
       v is the vector from the origin of the ray to the center of the sphere.
       dir is the direction of the ray (|dir| = 1).
@@ -36,13 +36,13 @@ std::optional<double> sphere::measure_distance(const ray& r) const {
     const rt::vector v = position - r.get_origin();
     const rt::vector dir = r.get_direction(); // the direction is assumed to be a unit vector
 
-    const double nv2 = v.normsq();
-    const double dv = (dir | v);
+    const real nv2 = v.normsq();
+    const real dv = (dir | v);
 
-    const double delta = dv * dv + radius * radius - nv2;
+    const real delta = dv * dv + radius * radius - nv2;
     // delta is actually the discriminant divided by 4
 
-    if (delta >= 0) {
+    if (delta >= 0.0f) {
         /* Two solutions: t1 = dv - sqrt(delta) and t2 = dv + sqrt(delta),
            If t1 >= 0, this means the ray originates from outside the sphere
            and the sphere is in front of the origin, and thus t1 is returned,
@@ -50,14 +50,14 @@ std::optional<double> sphere::measure_distance(const ray& r) const {
            and t2 is returned.
            Otherwise, t1 < 0 and t2 < 0 means the sphere is behind the ray and is not hit. */
         
-        const double sqrtdelta = sqrt(delta);
-        const double t1 = dv - sqrtdelta;
-        if (t1 >= 0) {
+        const real sqrtdelta = sqrt(delta);
+        const real t1 = dv - sqrtdelta;
+        if (t1 >= 0.0f) {
             return t1;
         }
         else {
-            const double t2 = dv + sqrtdelta;
-            if (t2 >= 0) {
+            const real t2 = dv + sqrtdelta;
+            if (t2 >= 0.0f) {
                 return t2;
             }
         }
@@ -67,7 +67,7 @@ std::optional<double> sphere::measure_distance(const ray& r) const {
 }
 
 /* Returns the hit corresponding with the given intersection value t */
-hit sphere::compute_intersection(ray& r, const double& t) const {
+hit sphere::compute_intersection(ray& r, const real& t) const {
 
     // Intersection point
     const rt::vector u = r.get_origin();
@@ -84,14 +84,14 @@ hit sphere::compute_intersection(ray& r, const double& t) const {
 /* Minimum and maximum coordinates */
 min_max_coord sphere::get_min_max_coord() const {
     
-    const double min_x = position.x - radius;
-    const double max_x = position.x + radius;
+    const real min_x = position.x - radius;
+    const real max_x = position.x + radius;
 
-    const double min_y = position.y - radius;
-    const double max_y = position.y + radius;
+    const real min_y = position.y - radius;
+    const real max_y = position.y + radius;
 
-    const double min_z = position.z - radius;
-    const double max_z = position.z + radius;
+    const real min_z = position.z - radius;
+    const real max_z = position.z + radius;
 
     return min_max_coord(min_x, max_x, min_y, max_y, min_z, max_z);
 }

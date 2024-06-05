@@ -22,7 +22,7 @@ class quad : public polygon {
         */
 
         rt::vector normal, v1, v2, v3, vn0, vn1, vn2, vn3;
-        double d;
+        real d;
 
     public:
 
@@ -44,7 +44,7 @@ class quad : public polygon {
 
         /* Intersection determination */
 
-        std::optional<double> measure_distance(const ray& r) const;
+        std::optional<real> measure_distance(const ray& r) const;
 
         /* Writes the barycentric coordinates in variables l1, l2, and returns the boolean lower_triangle:
            (0 <= l1, l2 <= 1)
@@ -56,7 +56,7 @@ class quad : public polygon {
         
         rt::vector get_interpolated_normal(const barycentric_info& bary) const;
 
-        hit compute_intersection(ray& r, const double& t) const;
+        hit compute_intersection(ray& r, const real& t) const;
 
         /* Minimum and maximum coordinates */
         min_max_coord get_min_max_coord() const;

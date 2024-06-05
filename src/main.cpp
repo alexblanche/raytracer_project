@@ -19,7 +19,7 @@ using namespace std;
 #define PARALLEL_FOR_END()})
 
 #define MAX_RAYS 1000
-#define ANTI_ALIASING 0.3
+#define ANTI_ALIASING 0.3f
 
 #include "scene/objects/polygon.hpp"
 
@@ -91,7 +91,7 @@ void render_loop_parallel_time(vector<vector<rt::color>>& matrix,
     
     mutex m;
     float cpt = 0;
-    float x = 100.0 / (((double) scene.width) * ((double) scene.height));
+    float x = 100.0f / (((float) scene.width) * ((float) scene.height));
     const long int t_init = time(0);
 
     PARALLEL_FOR_BEGIN(scene.width) {
@@ -117,7 +117,7 @@ void render_loop_parallel_time(vector<vector<rt::color>>& matrix,
             m.lock();
             const long int curr_time = time(0);
             const long int elapsed = curr_time - t_init;
-            const double estimated_time = ((double) elapsed) * 100.0 / (cpt * x);
+            const float estimated_time = ((float) elapsed) * 100.0f / (cpt * x);
             printf("%f / 100, ", cpt * x);
             printf("Time elapsed: %ld seconds, Estimated total time: %d seconds = %d minutes %d seconds\n",
                 elapsed, (int) estimated_time, (int) (estimated_time / 60.0), ((int) estimated_time) % 60);

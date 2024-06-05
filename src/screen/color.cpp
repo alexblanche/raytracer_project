@@ -9,11 +9,11 @@ namespace rt {
 	 * four components: red, green, blue and alpha (RGBA).
 	 */
 
-	const color color::WHITE = color(255,255,255);
-	const color color::BLACK = color(0,0,0);
-	const color color::BLUE  = color(0,0,255);
-	const color color::GREEN = color(0,255,0);
-	const color color::RED   = color(255,0,0);
+	const color color::WHITE = color(255, 255, 255);
+	const color color::BLACK = color(0, 0, 0);
+	const color color::BLUE  = color(0, 0, 255);
+	const color color::GREEN = color(0, 255, 0);
+	const color color::RED   = color(255, 0, 0);
 
 	/**
 	 * Default constructor. Builds a black color.
@@ -33,7 +33,7 @@ namespace rt {
 	 * Builds a color from its red, green and blue components.
 	 * Alpha is set to 255.
 	 */
-	color::color(const double& r, const double& g, const double& b)
+	color::color(const real& r, const real& g, const real& b)
 		: red(r), green(g), blue(b) {}
 
 	
@@ -58,7 +58,7 @@ namespace rt {
 	/**
 	 * Scaling operator.
 	 */
-	color color::operator*(const double x) const {
+	color color::operator*(const real& x) const {
 		return color(
 			x * get_red(),
 			x * get_green(),
@@ -88,7 +88,7 @@ namespace rt {
 	/**
 	 * Division by a scalar operator.
 	 */
-	color color::operator/(const double x) const {
+	color color::operator/(const real& x) const {
 		return color(
 			get_red() 	/ x,
 			get_green() / x,
@@ -98,12 +98,11 @@ namespace rt {
 	/* Adds all the colors of the given color vector */
 	color add_col_vect(const std::vector<color>& color_set) {
 		
-		double r = 0;
-		double g = 0;
-		double b = 0;
+		real r = 0;
+		real g = 0;
+		real b = 0;
 
 		for (rt::color const& c : color_set) {
-
 			r += c.get_red();
 			g += c.get_green();
 			b += c.get_blue();
@@ -118,13 +117,12 @@ namespace rt {
 
 	/* Returns the average of all the colors of the given color vector */
 	color average_col_vect(const std::vector<color>& color_set) {
-		const unsigned int n = color_set.size();
-		double r = 0;
-		double g = 0;
-		double b = 0;
+		const real n = color_set.size();
+		real r = 0;
+		real g = 0;
+		real b = 0;
 
 		for (rt::color const& c : color_set) {
-
 			r += c.get_red();
 			g += c.get_green();
 			b += c.get_blue();
@@ -137,9 +135,9 @@ namespace rt {
 	 * Maxing out color components at 255.
 	 */
 	color color::max_out() const {
-		const double maxed_red   = std::min(red,   255.0);
-		const double maxed_green = std::min(green, 255.0);
-		const double maxed_blue  = std::min(blue,  255.0);
+		const real maxed_red   = std::min(red,   (real) 255.0f);
+		const real maxed_green = std::min(green, (real) 255.0f);
+		const real maxed_blue  = std::min(blue,  (real) 255.0f);
 		return rt::color(maxed_red, maxed_green, maxed_blue);
 	}
 }

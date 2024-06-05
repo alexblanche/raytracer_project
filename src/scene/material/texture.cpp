@@ -14,7 +14,7 @@ texture::texture() {
 /* Default constructor */
 texture::texture(const int width, const int height, const std::vector<std::vector<rt::color>>& data)
     : width(width), height(height), data(data),
-        width_minus_one((double) (width - 1)), height_minus_one((double) (height - 1)) {
+        width_minus_one((real) (width - 1)), height_minus_one((real) (height - 1)) {
 
     // printf("Creation of a texture from the main constructor\n");
 }
@@ -31,8 +31,8 @@ texture::texture(const char* file_name, bool& parsing_successful) {
         height = dims.value().height;
         data = std::vector<std::vector<rt::color>>(width, std::vector<rt::color>(height));
         const bool read_bmp_success = read_bmp(file_name, data);
-        width_minus_one = (double) (width - 1);
-        height_minus_one = (double) (height - 1);
+        width_minus_one = (real) (width - 1);
+        height_minus_one = (real) (height - 1);
         parsing_successful = read_bmp_success;
     }
     else {
@@ -45,7 +45,7 @@ texture::texture(const char* file_name, bool& parsing_successful) {
 /* Accessor */
 
 /* Returns the color stored in data at UV-coordinates u, v between 0 and 1 times width, height */
-rt::color texture::get_color(const double& u, const double& v) const {
+rt::color texture::get_color(const real& u, const real& v) const {
     return data[(int) (u * width_minus_one)][(int) (v * height_minus_one)];
 }
 
@@ -57,7 +57,7 @@ rt::color texture::get_color(const double& u, const double& v) const {
 texture_info::texture_info()
     : texture_index((size_t) -1), uv_coordinates({}) {}
 
-texture_info::texture_info(size_t texture_index, std::vector<double>&& uv_coordinates)
+texture_info::texture_info(size_t texture_index, std::vector<real>&& uv_coordinates)
     : texture_index(texture_index), uv_coordinates(std::move(uv_coordinates)) {}
 
 /* Texturing */
@@ -69,14 +69,14 @@ uvcoord texture_info::get_barycenter(const barycentric_info& bary) const {
 
     if (uv_coordinates.size() == 6 || bary.lower_triangle) {
         // Triangles or Quads with (u0, v0), (u1, v1), (u2, v2) considered
-        const double u = (1 - bary.l1 - bary.l2) * uv_coordinates[0] + bary.l1 * uv_coordinates[2] + bary.l2 * uv_coordinates[4];
-        const double v = (1 - bary.l1 - bary.l2) * uv_coordinates[1] + bary.l1 * uv_coordinates[3] + bary.l2 * uv_coordinates[5];
+        const real u = (1.0f - bary.l1 - bary.l2) * uv_coordinates[0] + bary.l1 * uv_coordinates[2] + bary.l2 * uv_coordinates[4];
+        const real v = (1.0f - bary.l1 - bary.l2) * uv_coordinates[1] + bary.l1 * uv_coordinates[3] + bary.l2 * uv_coordinates[5];
         return uvcoord(u, v);
     }
     else {
         // Quads with (u0, v0), (u3, v3), (u2, v2) (in this order) considered
-        const double u = (1 - bary.l1 - bary.l2) * uv_coordinates[0] + bary.l1 * uv_coordinates[6] + bary.l2 * uv_coordinates[4];
-        const double v = (1 - bary.l1 - bary.l2) * uv_coordinates[1] + bary.l1 * uv_coordinates[7] + bary.l2 * uv_coordinates[5];
+        const real u = (1.0f - bary.l1 - bary.l2) * uv_coordinates[0] + bary.l1 * uv_coordinates[6] + bary.l2 * uv_coordinates[4];
+        const real v = (1.0f - bary.l1 - bary.l2) * uv_coordinates[1] + bary.l1 * uv_coordinates[7] + bary.l2 * uv_coordinates[5];
         return uvcoord(u, v);
     }
 }

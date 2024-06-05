@@ -38,7 +38,7 @@ class object {
         // These four functions are overridden by derived classes
 
         /* Intersection determination */
-        virtual std::optional<double> measure_distance(const ray& r) const;
+        virtual std::optional<real> measure_distance(const ray& r) const;
 
-        virtual hit compute_intersection(ray& r, const double& t) const;
+        virtual hit compute_intersection(ray& r, const real& t) const;
 };

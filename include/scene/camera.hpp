@@ -21,21 +21,21 @@ class camera {
 
         /* World space dimensions of the field of view: width and height */
         /* Unused: only the pre-computed mhalf_fovw, mhalf_fovh */
-        /* double fov_w;
-        double fov_h; */
+        /* real fov_w;
+        real fov_h; */
         
         /* World space distance to the screen */
-        double distance;
+        real distance;
 
         /* Pre-computation: step for i and j in world space */
-        double di;
-        double dj;
-        double mhalf_fovw;
-        double mhalf_fovh;
+        real di;
+        real dj;
+        real mhalf_fovw;
+        real mhalf_fovh;
 
         /* Depth of field */
-        double focal_length;
-        double aperture;
+        real focal_length;
+        real aperture;
 
 
     public:
@@ -45,20 +45,20 @@ class camera {
         camera();
 
         camera(const rt::vector& origin, const rt::vector& direction, const rt::vector& to_the_right,
-            const double& fov_w, const double& fov_h, const double& dist,
+            const real& fov_w, const real& fov_h, const real& dist,
             const int width, const int height);
 
         camera(const rt::vector& origin, const rt::vector& direction, const rt::vector& to_the_right,
-            const double& fov_w, const double& fov_h, const double& dist,
+            const real& fov_w, const real& fov_h, const real& dist,
             const int width, const int height,
-            const double& focal_length, const double& aperture);
+            const real& focal_length, const real& aperture);
 
         /* Returns the ray that goes toward the pixel i,j of the screen */
         ray gen_ray(const int i, const int j) const;
 
         /* Returns the ray that goes toward the pixel i,j of the screen in average,
            following a normal distribution around to center of the pixel, with given stardard deviation */
-        ray gen_ray_normal(const int i, const int j, const double& std_dev, randomgen& rg) const;
+        ray gen_ray_normal(const int i, const int j, const real& std_dev, randomgen& rg) const;
 
         /* Returns the ray that goes toward the pixel i,j of the screen, with depth of field */
         ray gen_ray_dof(const int i, const int j, randomgen& rg) const;

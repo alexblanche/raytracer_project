@@ -13,7 +13,7 @@ using namespace std;
 
 ray::ray(const rt::vector& o, const rt::vector& d)
     : origin(o), direction(d) {
-        inv_dir = rt::vector(1/d.x, 1/d.y, 1/d.z);
+        inv_dir = rt::vector(1.0f / d.x, 1.0f / d.y, 1.0f / d.z);
         abs_inv_dir = rt::vector(abs(inv_dir.x), abs(inv_dir.y), abs(inv_dir.z));
     }
 
@@ -22,6 +22,6 @@ ray::ray() {}
 
 void ray::set_direction(const rt::vector& d) {
     direction = d;
-    inv_dir = rt::vector(1/d.x, 1/d.y, 1/d.z);
+    inv_dir = rt::vector(1.0f / d.x, 1.0f / d.y, 1.0f / d.z);
     abs_inv_dir = rt::vector(abs(inv_dir.x), abs(inv_dir.y), abs(inv_dir.z));
 }

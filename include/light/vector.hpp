@@ -14,6 +14,8 @@
  */
 #pragma once
 
+#include "screen/color.hpp"
+
 namespace rt {
 	
 	/**
@@ -23,12 +25,12 @@ namespace rt {
 	 */
 	struct vector {
 		
-		double x, y ,z;
+		real x, y ,z;
 	
 		// Constructors
 		vector() : x(0), y(0), z(0) {}
 
-		vector(const double& a, const double& b, const double& c) : x(a), y(b), z(c) {}
+		vector(const real& a, const real& b, const real& c) : x(a), y(b), z(c) {}
 
 		/**
 		 * Comparison
@@ -55,17 +57,17 @@ namespace rt {
 		 * Scalar product
 		 * ((a,b,c) | (d,e,f)) = ad + be + cf
 		 */
-		double operator|(const vector& other) const;
+		real operator|(const vector& other) const;
 
 		/**
 		 * Returns the norm of the vector
 		 */
-		double norm() const;
+		real norm() const;
 
 		/**
 		 * Returns the squared norm of the vector (x^2+y^2+z^2)
 		 */
-		double normsq() const;
+		real normsq() const;
 
 		/**
 		 * return a vector of the same direction but of norm 1
@@ -77,19 +79,19 @@ namespace rt {
 	 * Left multiplication with a scalar
 	 * x * (a,b,c) = (xa,xb,xc)
 	 */
-	vector operator*(const double& x, const vector& v);
+	vector operator*(const real& x, const vector& v);
 
 	/**
 	 * Right multiplication with a scalar
 	 * (a,b,c) * x = (ax,bx,cx)
 	 */
-	vector operator*(const vector& v, const double& x);
+	vector operator*(const vector& v, const real& x);
 
 	/**
 	 * Division by a scalar
 	 * (a,b,c) / x = (a/x, b/x, c/x)
 	 */
-	vector operator/(const vector& v, const double& a);
+	vector operator/(const vector& v, const real& a);
 }
 
 

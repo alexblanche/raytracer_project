@@ -7,9 +7,9 @@ plane::plane() : a(0), b(0), c(0), d(0) {}
 
 /* Main constructor */
 /* A plane (P) of equation (P): ax + by + cz + d = 0
- defined by 4 doubles a,b,c,d */
+ defined by 4 reals a,b,c,d */
 /* The normal vector (a, b, c) is a unit vector */
-plane::plane(const double& pa, const double& pb, const double& pc, const double& pd,
+plane::plane(const real& pa, const real& pb, const real& pc, const real& pd,
     const rt::color& col)
     
     : object(rt::vector(), col) {
@@ -36,7 +36,7 @@ plane::plane(const double& pa, const double& pb, const double& pc, const double&
 }
 
 /* Constructor of a plane of normal vector (a,b,c) and touching the point v */
-plane::plane(const double& pa, const double& pb, const double& pc, const rt::vector& position,
+plane::plane(const real& pa, const real& pb, const real& pc, const rt::vector& position,
     const rt::color& col)
 
     : object(position, col) {
@@ -52,7 +52,7 @@ plane::plane(const double& pa, const double& pb, const double& pc, const rt::vec
 
 /* Intersection determination */
 
-std::optional<double> plane::measure_distance(const ray& r) const {
+std::optional<real> plane::measure_distance(const ray& r) const {
 
     /* Origin of the ray:    u   = (X, Y, Z)
        Direction of the ray: dir = (x, y, z)
@@ -65,8 +65,8 @@ std::optional<double> plane::measure_distance(const ray& r) const {
     */
 
     const rt::vector n = get_normal();
-    const double pdt = (n | r.get_direction()); // ax + by + cz
-    const double upln = (n | r.get_origin()) + d; // aX + bY + cZ + d
+    const real pdt = (n | r.get_direction()); // ax + by + cz
+    const real upln = (n | r.get_origin()) + d; // aX + bY + cZ + d
     
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
     
@@ -78,7 +78,7 @@ std::optional<double> plane::measure_distance(const ray& r) const {
     }
 }
 
-hit plane::compute_intersection(ray& r, const double& t) const {
+hit plane::compute_intersection(ray& r, const real& t) const {
 
     // Intersection point
     const rt::vector p = r.get_origin() + t * r.get_direction();

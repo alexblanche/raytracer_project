@@ -12,42 +12,42 @@ void randomgen::update_seed() {
     seed = seed * 337 + 511;
 }
 
-/* Returns a random double between 0 and m */
-double randomgen::random_double(const double& m) {
+/* Returns a random real between 0 and m */
+real randomgen::random_real(const real& m) {
     update_seed();
     std::default_random_engine eng (seed);
-    std::uniform_real_distribution<double> unif(0, m);
+    std::uniform_real_distribution<real> unif(0, m);
     return unif(eng);
 }
 
-/* Returns an array of n random doubles between 0 and m */
-std::vector<double> randomgen::random_double_array(const size_t n, const double& m) {
+/* Returns an array of n random reals between 0 and m */
+std::vector<real> randomgen::random_real_array(const size_t n, const real& m) {
     update_seed();
     std::default_random_engine eng (seed);
 
-    std::uniform_real_distribution<double> unif(0, m);
+    std::uniform_real_distribution<real> unif(0, m);
     
-    std::vector<double> rands(n);
+    std::vector<real> rands(n);
     for (size_t i = 0; i < n; i++) {
         rands[i] = unif(eng);
     }
     return rands;
 }
 
-/* Returns a random double chosen according to a normal distribution
+/* Returns a random real chosen according to a normal distribution
    of mean m and standard deviation std_dev */
-double randomgen::random_double_normal(const double& m, const double& std_dev) {
+real randomgen::random_real_normal(const real& m, const real& std_dev) {
     update_seed();
     std::default_random_engine eng (seed);
-    std::normal_distribution<double> distribution(m, std_dev);
+    std::normal_distribution<real> distribution(m, std_dev);
     return distribution(eng);
 }
 
-/* Returns two random doubles chosen according to a normal distribution
+/* Returns two random reals chosen according to a normal distribution
    of mean m and standard deviation std_dev */
-std::pair<double, double> randomgen::random_pair_normal(const double& m, const double& std_dev) {
+std::pair<real, real> randomgen::random_pair_normal(const real& m, const real& std_dev) {
     update_seed();
     std::default_random_engine eng (seed);
-    std::normal_distribution<double> distribution(m, std_dev);
+    std::normal_distribution<real> distribution(m, std_dev);
     return std::pair(distribution(eng), distribution(eng));
 }

@@ -8,8 +8,8 @@
 
 /* Struct representing UV-coordinates */
 struct uvcoord {
-    double u, v;
-    uvcoord(const double& u, const double& v)
+    real u, v;
+    uvcoord(const real& u, const real& v)
         : u(u), v(v) {}
 };
 
@@ -26,7 +26,7 @@ class texture {
     private:
         int width, height;
         std::vector<std::vector<rt::color>> data;
-        double width_minus_one, height_minus_one;
+        real width_minus_one, height_minus_one;
 
     public:      
 
@@ -44,7 +44,7 @@ class texture {
         /* Accessor */
 
         /* Returns the color stored in data at UV-coordinates u, v between 0 and 1 times width, height */
-        rt::color get_color(const double& u, const double& v) const;
+        rt::color get_color(const real& u, const real& v) const;
 
         ~texture() {
             // printf("Destruction of a texture (width = %d, height = %d, data = %lu)\n", width, height, data.size());
@@ -89,12 +89,12 @@ class texture_info {
 
         /* Vector of UV coordinates (between 0 and 1)
            6 for a triangle (u0,v0,u1,v1,u2,v2) and 8 for a quad */
-        std::vector<double> uv_coordinates;
+        std::vector<real> uv_coordinates;
 
     public:
         texture_info();
 
-        texture_info(size_t index, std::vector<double>&& uv_coordinates);
+        texture_info(size_t index, std::vector<real>&& uv_coordinates);
 
         /* Write in u, v the UV-coordinate of the barycenter associated with the barycentric coordinates l1, l2
         In the case of quads, the boolean lower_triangle indicates that the three points to

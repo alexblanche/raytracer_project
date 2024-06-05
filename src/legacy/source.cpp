@@ -36,30 +36,20 @@ rt::color source::apply_obj(const hit& h, const std::vector<const object*>& obj_
     const ray reflected_ray(h.get_point(), to_the_light.unit());
 
     // Testing for an intersection with an object
-    /*
-    for (const object* const& obj : obj_set) {
-        const double d = obj->measure_distance(reflected_ray);
-
-        if (d > 0.001 && d <= dist) {
-            // d<=dist means the light is blocked by some object
-            // d==0 when the object of contact is tested
-            return rt::color::BLACK;
-        }
-    }
-    */
+    
     auto it =
         std::find_if(obj_set.begin(), obj_set.end(),
             [&reflected_ray, &dist](const object* obj) {
                 const std::optional<double> d = obj->measure_distance(reflected_ray);
                 return d.has_value()
-                    && d.value() > 0.001
-                    && d.value() <= dist;
+                    && d.value() < dist
+                    && d.value() > 0.001;
             });
     if (it != obj_set.end()) {
         return rt::color::BLACK;
     }
 
-    const rt::color hit_color = h.get_object()->get_color();
+    const rt::color& hit_color = h.get_object()->get_color();
 
     /* normal is oriented outward the object, and position - h.get_point() is oriented toward the light source,
        so cos_hit < 0 means the object is on the far side, cos_hit > 0 means the light hits the object. */
@@ -70,9 +60,9 @@ rt::color source::apply_obj(const hit& h, const std::vector<const object*>& obj_
         return rt::color::BLACK;
     }
     else {
-        const double r = (color.get_red()   * hit_color.get_red())   * cos_hit / 255 ;
-        const double g = (color.get_green() * hit_color.get_green()) * cos_hit / 255 ;
-        const double b = (color.get_blue()  * hit_color.get_blue())  * cos_hit / 255 ;
+        const double r = (color.get_red()   * hit_color.get_red())   * cos_hit / 255.0 ;
+        const double g = (color.get_green() * hit_color.get_green()) * cos_hit / 255.0 ;
+        const double b = (color.get_blue()  * hit_color.get_blue())  * cos_hit / 255.0 ;
         return rt::color(r, g, b);
     }    
 }

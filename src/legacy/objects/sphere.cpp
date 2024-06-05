@@ -8,7 +8,7 @@ sphere::sphere() {
     radius = 0;
 }
 
-sphere::sphere(const rt::vector& center, const double& radius, const rt::color& col)
+sphere::sphere(const rt::vector& center, const real& radius, const rt::color& col)
 
     : object(center, col), radius(radius) {}
 
@@ -18,7 +18,7 @@ sphere::sphere(const rt::vector& center, const double& radius, const rt::color& 
 /* Intersection determination */
 
 /* Calculates and returns the intersection value t */
-std::optional<double> sphere::measure_distance(const ray& r) const {
+std::optional<real> sphere::measure_distance(const ray& r) const {
     /*
       v is the vector from the origin of the ray to the center of the sphere.
       dir is the direction of the ray (|dir| = 1).
@@ -32,10 +32,10 @@ std::optional<double> sphere::measure_distance(const ray& r) const {
     const rt::vector v = position - r.get_origin();
     const rt::vector dir = r.get_direction(); // the direction is assumed to be a unit vector
 
-    const double nv2 = v.normsq();
-    const double dv = (dir | v);
+    const real nv2 = v.normsq();
+    const real dv = (dir | v);
 
-    const double delta = dv * dv + radius * radius - nv2;
+    const real delta = dv * dv + radius * radius - nv2;
     // delta is actually the discriminant divided by 4
 
     if (delta >= 0) {
@@ -45,7 +45,7 @@ std::optional<double> sphere::measure_distance(const ray& r) const {
            If t1 < 0 and t2 >= 0, this means the ray originates from inside the sphere.
            Otherwise, t1 < 0 and t2 < 0 means the sphere is behind the ray and is not hit. */
     
-        const double t1 = dv - sqrt(delta);
+        const real t1 = dv - sqrt(delta);
         if (t1 >= 0) {
             return t1;
         }
@@ -54,7 +54,7 @@ std::optional<double> sphere::measure_distance(const ray& r) const {
 }
 
 /* Returns the hit corresponding with the given intersection value t */
-hit sphere::compute_intersection(ray& r, const double& t) const {
+hit sphere::compute_intersection(ray& r, const real& t) const {
 
     // Intersection point
     const rt::vector p = r.get_origin() + t * r.get_direction();

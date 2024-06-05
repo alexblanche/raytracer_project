@@ -9,11 +9,11 @@
 
 /* Output struct from min_max_coord */
 struct min_max_coord {
-    double min_x, max_x, min_y, max_y, min_z, max_z;
+    real min_x, max_x, min_y, max_y, min_z, max_z;
 
-    min_max_coord(const double& min_x, const double& max_x,
-        const double& min_y, const double& max_y,
-        const double& min_z, const double& max_z)
+    min_max_coord(const real& min_x, const real& max_x,
+        const real& min_y, const real& max_y,
+        const real& min_z, const real& max_z)
 
         : min_x(min_x), max_x(max_x),
         min_y(min_y), max_y(max_y), 
@@ -68,9 +68,9 @@ class object {
         // These four functions are overridden by derived classes
 
         /* Intersection determination */
-        virtual std::optional<double> measure_distance(const ray& r) const;
+        virtual std::optional<real> measure_distance(const ray& r) const;
 
-        virtual hit compute_intersection(ray& r, const double& t) const;
+        virtual hit compute_intersection(ray& r, const real& t) const;
 
         /* Writes the minimum and maximum coordinates of the object on the three axes */
         virtual min_max_coord get_min_max_coord() const;

@@ -14,8 +14,8 @@
 #include <optional>
 
 #include <limits>
-std::numeric_limits<double> real;
-const double infinity = real.infinity();
+std::numeric_limits<real> realscene;
+const real infinity = realscene.infinity();
 
 
 scene::scene(std::vector<const object*>&& object_set,
@@ -69,14 +69,14 @@ scene::~scene() {
 /* Linear search through the objects of the scene */
 std::optional<hit> scene::find_closest_object(ray& r) const {
     
-    double distance_to_closest = infinity;
+    real distance_to_closest = infinity;
     std::optional<size_t> closest_obj_index = std::nullopt;
 
     // Looking for the closest object
     for (size_t i = 0; i < object_set.size(); i++) {
         
         // We do not test the intersection with the object the rays is cast from
-        const std::optional<double> d = object_set[i]->measure_distance(r);
+        const std::optional<real> d = object_set[i]->measure_distance(r);
         
         /* d is the distance between the origin of the ray and the
            intersection point with the object */
@@ -104,7 +104,7 @@ std::optional<hit> scene::find_closest_object_bounding(ray& r) const {
        Finally, compute the hit associated with the object of minimum distance.
      */
 
-    double distance_to_closest = infinity;
+    real distance_to_closest = infinity;
     std::optional<const object*> closest_obj = std::nullopt;
     std::stack<const bounding*> bounding_stack;
 

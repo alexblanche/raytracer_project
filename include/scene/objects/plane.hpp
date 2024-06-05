@@ -12,10 +12,10 @@ class plane : public object {
     
     private:
 
-        double a, b, c, d;
+        real a, b, c, d;
 
         /* A plane (P) of equation (P): ax + by + cz + d = 0
-         defined by 4 doubles a,b,c,d */
+         defined by 4 reals a,b,c,d */
 
     public:
 
@@ -23,10 +23,10 @@ class plane : public object {
 
         plane();
         
-        plane(const double& sa, const double& sb, const double& sc, const double& sd,
+        plane(const real& sa, const real& sb, const real& sc, const real& sd,
             const unsigned int material_index);
         
-        plane(const double& a, const double& b, const double& c, const rt::vector& position,
+        plane(const real& a, const real& b, const real& c, const rt::vector& position,
             const unsigned int material_index);
 
         /* Accessors */
@@ -38,7 +38,7 @@ class plane : public object {
 
         /* Intersection determination */
 
-        std::optional<double> measure_distance(const ray& r) const;
+        std::optional<real> measure_distance(const ray& r) const;
         
-        hit compute_intersection(ray& r, const double& t) const;
+        hit compute_intersection(ray& r, const real& t) const;
 };

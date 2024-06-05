@@ -61,21 +61,21 @@ namespace rt {
 	 * Scalar product
 	 * ((a,b,c) | (d,e,f)) = ad + be + cf
 	 */
-	double vector::operator|(const vector& other) const {
+	real vector::operator|(const vector& other) const {
 		return (x*other.x + y*other.y + z*other.z);
 	}
 
 	/**
 	 * Returns the norm of the vector
 	 */
-	double vector::norm() const {
+	real vector::norm() const {
 		return std::sqrt(x*x + y*y + z*z);
 	}
 
 	/**
 	 * Returns the squared norm of the vector (x^2+y^2+z^2)
 	 */
-	double vector::normsq() const {
+	real vector::normsq() const {
 		return x*x + y*y + z*z;
 	}
 
@@ -83,7 +83,7 @@ namespace rt {
 	 * return a vector of the same direction but of norm 1
 	 */
 	vector vector::unit() const {
-		const double n = norm();
+		const real n = norm();
 		return vector(x/n, y/n, z/n);
 	}
 
@@ -91,7 +91,7 @@ namespace rt {
 	 * Left multiplication with a scalar
 	 * x * (a,b,c) = (xa,xb,xc)
 	 */
-	vector operator*(const double& a, const vector& v) {
+	vector operator*(const real& a, const vector& v) {
 		return vector(a*v.x, a*v.y, a*v.z);
 	}
 
@@ -99,7 +99,7 @@ namespace rt {
 	 * Right multiplication with a scalar
 	 * (a,b,c) * x = (ax,bx,cx)
 	 */
-	vector operator*(const vector& v, const double& a) {
+	vector operator*(const vector& v, const real& a) {
 		return vector(a*v.x, a*v.y, a*v.z);
 	}
 
@@ -107,7 +107,7 @@ namespace rt {
 	 * Division by a scalar
 	 * (a,b,c) / x = (a/x, b/x, c/x)
 	 */
-	vector operator/(const vector& v, const double& a) {
+	vector operator/(const vector& v, const real& a) {
 		return vector(v.x / a, v.y / a, v.z / a);
 	}
 }

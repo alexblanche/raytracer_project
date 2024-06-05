@@ -148,9 +148,9 @@ namespace rt {
 			for (size_t j = 0; j < height; j++) {
 				const rt::color& pixel_col = matrix[i][j];
 				// Maxed values
-				const double r = std::min(pixel_col.get_red()   / number_of_rays, 255.0);
-				const double g = std::min(pixel_col.get_green() / number_of_rays, 255.0);
-				const double b = std::min(pixel_col.get_blue()  / number_of_rays, 255.0);
+				const real r = std::min(pixel_col.get_red()   / number_of_rays, (real) 255.0f);
+				const real g = std::min(pixel_col.get_green() / number_of_rays, (real) 255.0f);
+				const real b = std::min(pixel_col.get_blue()  / number_of_rays, (real) 255.0f);
 				set_pixel(i, j, rt::color(r, g, b));
 			}
 		}
@@ -168,13 +168,13 @@ namespace rt {
 			for (size_t j = 0; j < height; j++) {
 				const rt::color& pixel_col = matrix[i][j];
 				// Maxed values
-				const double r = std::min(pixel_col.get_red()   / number_of_rays, 255.0);
-				const double g = std::min(pixel_col.get_green() / number_of_rays, 255.0);
-				const double b = std::min(pixel_col.get_blue()  / number_of_rays, 255.0);
+				const real r = std::min(pixel_col.get_red()   / number_of_rays, (real) 255.0f);
+				const real g = std::min(pixel_col.get_green() / number_of_rays, (real) 255.0f);
+				const real b = std::min(pixel_col.get_blue()  / number_of_rays, (real) 255.0f);
 				// Gamma corrected values
-				const double gamma_corrected_r = 255 * sqrt(r / 255.0);
-            	const double gamma_corrected_g = 255 * sqrt(g / 255.0);
-            	const double gamma_corrected_b = 255 * sqrt(b / 255.0);
+				const real gamma_corrected_r = 255.0f * sqrt(r / 255.0f);
+            	const real gamma_corrected_g = 255.0f * sqrt(g / 255.0f);
+            	const real gamma_corrected_b = 255.0f * sqrt(b / 255.0f);
 				set_pixel(i, j, rt::color(gamma_corrected_r, gamma_corrected_g, gamma_corrected_b));
 			}
 		}

@@ -145,7 +145,10 @@ std::optional<texture_info> parse_texture_info(FILE* file,
                 return std::nullopt;
             }
 
-            return texture_info(vindex.value(), {u0, v0, u1, v1, u2, v2});
+            return texture_info(vindex.value(),
+                {static_cast<real>(u0), static_cast<real>(v0),
+                static_cast<real>(u1), static_cast<real>(v1),
+                static_cast<real>(u2), static_cast<real>(v2)});
         }
         else {
             const int ret3 = fscanf(file, " (%lf,%lf) (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
@@ -155,7 +158,11 @@ std::optional<texture_info> parse_texture_info(FILE* file,
                 return std::nullopt;
             }
 
-            return texture_info(vindex.value(), {u0, v0, u1, v1, u2, v2, u3, v3});
+            return texture_info(vindex.value(),
+                {static_cast<real>(u0), static_cast<real>(v0),
+                static_cast<real>(u1), static_cast<real>(v1),
+                static_cast<real>(u2), static_cast<real>(v2),
+                static_cast<real>(u3), static_cast<real>(v3)});
         }
     }
     else {
@@ -212,7 +219,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
             depth_of_field_enabled = false;
         }
 
-        double fovh = fovw * ((double) height) / ((double) width);
+        real fovh = fovw * ((real) height) / ((real) width);
 
         camera cam;
         

@@ -19,6 +19,6 @@ std::optional<dimensions> read_bmp_size(const char* file_name);
 bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data);
 
 /* Writes the data into a .bmp file with the given name
-   The value (double) of each component of each color of data is divided by number_of_rays before being written in the file
+   The value (real) of each component of each color of data is divided by number_of_rays before being written in the file
    Returns true if the operation was successful */
 bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data, const unsigned int number_of_rays);

@@ -13,7 +13,7 @@ class cylinder : public object {
     private:
 
         rt::vector direction;
-        double radius, length;
+        real radius, length;
 
     public:
 
@@ -22,7 +22,7 @@ class cylinder : public object {
         cylinder();
 
         cylinder(const rt::vector& origin, const rt::vector& direction,
-            const double& radius, const double& length,
+            const real& radius, const real& length,
             const size_t material_index);
 
         /* Accessors */
@@ -31,19 +31,19 @@ class cylinder : public object {
             return position;
         }
 
-        inline double get_radius() const {
+        inline real get_radius() const {
             return radius;
         }
 
-        inline double get_length() const {
+        inline real get_length() const {
             return length;
         }
         
         /* Intersection determination */
 
-        std::optional<double> measure_distance(const ray& r) const;
+        std::optional<real> measure_distance(const ray& r) const;
 
-        hit compute_intersection(ray& r, const double& t) const;
+        hit compute_intersection(ray& r, const real& t) const;
 
         /* Minimum and maximum coordinates */
         min_max_coord get_min_max_coord() const;

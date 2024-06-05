@@ -11,13 +11,13 @@ box::box() : object(), n1(rt::vector(1,0,0)), n2(rt::vector(0,1,0)), n3(rt::vect
         
 /* The vector n3 is taken as the cross product of n1 and n2 */
 box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
-            const double& l1, const double& l2, const double& l3, const size_t material_index)
+            const real& l1, const real& l2, const real& l3, const size_t material_index)
     
     : object(center, material_index), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1/2), l2(l2/2), l3(l3/2) {}
 
 /* The vector n3 is taken as the cross product of n1 and n2 */
 box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
-            const double& l1, const double& l2, const double& l3)
+            const real& l1, const real& l2, const real& l3)
     
     : object(center, (size_t) (-1)), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1/2), l2(l2/2), l3(l3/2) {}
 
@@ -25,7 +25,7 @@ box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
 
 /* Intersection determination */
 
-std::optional<double> box::measure_distance(const ray& r) const {
+std::optional<real> box::measure_distance(const ray& r) const {
     /* For the face orthogonal to n1, we search for a t1 that satisfies:
        ((pos + a.l1.n1) - (u + t.dir) | n1) = 0 (if outside the box, a = -sign(dir|n1), if inside: a = sign(dir|n1))
        where u is the origin of the ray, and dir its direction,
@@ -58,26 +58,26 @@ std::optional<double> box::measure_distance(const ray& r) const {
      * **/
 
     const rt::vector pmu = position - r.get_origin();
-    const double pmun1 = (pmu | n1);
-    const double pmun2 = (pmu | n2);
-    const double pmun3 = (pmu | n3);
+    const real pmun1 = (pmu | n1);
+    const real pmun2 = (pmu | n2);
+    const real pmun3 = (pmu | n3);
 
     // Factor that depends on whether u is outside or inside the box
-    const double a = (abs(pmun1) <= l1 && abs(pmun2) <= l2 && abs(pmun3) <= l3) ?
-        /* inside */ 1 :
-        /* outside */ -1;
+    const real a = (abs(pmun1) <= l1 && abs(pmun2) <= l2 && abs(pmun3) <= l3) ?
+        /* inside */ 1.0f :
+        /* outside */ -1.0f;
 
-    const double pdt1 = (dir | n1);
-    const double pdt2 = (dir | n2);
-    const double pdt3 = (dir | n3);
+    const real pdt1 = (dir | n1);
+    const real pdt2 = (dir | n2);
+    const real pdt3 = (dir | n3);
 
-    const double abspdt1 = abs(pdt1);
-    if (abspdt1 > 0.0000001) {
+    const real abspdt1 = abs(pdt1);
+    if (abspdt1 > 0.0000001f) {
         // Determination of t1
-        const double t1 = pmun1 / pdt1 + a * l1 / abspdt1;
+        const real t1 = pmun1 / pdt1 + a * l1 / abspdt1;
         // Check that t1 gives a point inside the face
         if (abs(pmun2 - t1 * pdt2) <= l2 && abs(pmun3 - t1 * pdt3) <= l3) {
-            if (t1 >= 0) {
+            if (t1 >= 0.0f) {
                 return t1;
             }
             else {
@@ -86,11 +86,11 @@ std::optional<double> box::measure_distance(const ray& r) const {
         }
     }
 
-    const double abspdt2 = abs(pdt2);
-    if (abspdt2 > 0.0000001) {
-        const double t2 = pmun2 / pdt2 + a * l2 / abspdt2;
+    const real abspdt2 = abs(pdt2);
+    if (abspdt2 > 0.0000001f) {
+        const real t2 = pmun2 / pdt2 + a * l2 / abspdt2;
         if (abs(pmun1 - t2 * pdt1) <= l1 && abs(pmun3 - t2 * pdt3) <= l3) {
-            if (t2 >= 0) {
+            if (t2 >= 0.0f) {
                 return t2;
             }
             else {
@@ -99,10 +99,10 @@ std::optional<double> box::measure_distance(const ray& r) const {
         }
     }
 
-    const double abspdt3 = abs(pdt3);
-    if (abspdt3 > 0.0000001) {
-        const double t3 = pmun3 / pdt3 + a * l3 / abspdt3;
-        if (t3 >= 0 && abs(pmun1 - t3 * pdt1) <= l1 && abs(pmun2 - t3 * pdt2) <= l2) {
+    const real abspdt3 = abs(pdt3);
+    if (abspdt3 > 0.0000001f) {
+        const real t3 = pmun3 / pdt3 + a * l3 / abspdt3;
+        if (t3 >= 0.0f && abs(pmun1 - t3 * pdt1) <= l1 && abs(pmun2 - t3 * pdt2) <= l2) {
             return t3;
         }
     }
@@ -111,16 +111,16 @@ std::optional<double> box::measure_distance(const ray& r) const {
 }
     /** Original version */
     /*
-    if (abs(pdt1) > 0.0000001) {
+    if (abs(pdt1) > 0.0000001f) {
         // Determination of t1
         const rt::vector c1 = position - (l1 * pdt1 / abs(pdt1)) * n1;
         t1 = ((c1 - u) | n1) / pdt1;
 
         // Check that t1 gives a point inside the face
         const rt::vector p = c1 - u - (t1 * dir);
-        const double checkpdt2 = (p | n2);
+        const real checkpdt2 = (p | n2);
         if (abs(checkpdt2) <= l2) {
-            const double checkpdt3 = (p | n3);
+            const real checkpdt3 = (p | n3);
             if (abs(checkpdt3) <= l3) {
                 t1 = infinity;
             }
@@ -132,14 +132,14 @@ std::optional<double> box::measure_distance(const ray& r) const {
         if (t1 < 0) { return infinity; }
     }
 
-    if (abs(pdt2) > 0.0000001) {
+    if (abs(pdt2) > 0.0000001f) {
         const rt::vector c2 = position - (l2 * pdt2/ abs(pdt2)) * n2;
         t2 = ((c2 - u) | n2) / pdt2;
     
         const rt::vector p = c2 - u - (t2 * dir);
-        const double checkpdt1 = (p | n1);
+        const real checkpdt1 = (p | n1);
         if (abs(checkpdt1) <= l1) {
-            const double checkpdt3 = (p | n3);
+            const real checkpdt3 = (p | n3);
             if (abs(checkpdt3) <= l3) {
                 t2 = infinity;
             }
@@ -151,14 +151,14 @@ std::optional<double> box::measure_distance(const ray& r) const {
         if (t2 < 0) { return infinity; }
     }
 
-    if (abs(pdt3) > 0.0000001) {
+    if (abs(pdt3) > 0.0000001f) {
         const rt::vector c3 = position - (l3 * pdt3/ abs(pdt3)) * n3;
         t3 = ((c3 - u) | n3) / pdt3;
         
         const rt::vector p = c3 - u - (t3 * dir);
-        const double checkpdt1 = (p | n1);
+        const real checkpdt1 = (p | n1);
         if (abs(checkpdt1) <= l1) {
-            const double checkpdt2 = (p | n2);
+            const real checkpdt2 = (p | n2);
             if (abs(checkpdt2) <= l2) {
                 t3 = infinity;
             }
@@ -173,7 +173,7 @@ std::optional<double> box::measure_distance(const ray& r) const {
     return std::min(t1, std::min(t2, t3));
     */
         
-hit box::compute_intersection(ray& r, const double& t) const {
+hit box::compute_intersection(ray& r, const real& t) const {
     // Intersection point
     const rt::vector u = r.get_origin();
     const rt::vector p = u + t * r.get_direction();
@@ -186,24 +186,24 @@ hit box::compute_intersection(ray& r, const double& t) const {
     const object* pt_obj = this;
     ray* pt_ray = &r;
 
-    const double pdt1 = (v | n1);
-    if (abs(pdt1 - l1) < 0.0000001) {
+    const real pdt1 = (v | n1);
+    if (abs(pdt1 - l1) < 0.0000001f) {
         return hit(pt_ray, p, n1, pt_obj);
     }
-    else if (abs(pdt1 + l1) < 0.0000001) {
+    else if (abs(pdt1 + l1) < 0.0000001f) {
         return hit(pt_ray, p, (-1)*n1, pt_obj);
     }
     else {
-        const double pdt2 = (v | n2);
-        if (abs(pdt2 - l2) < 0.0000001) {
+        const real pdt2 = (v | n2);
+        if (abs(pdt2 - l2) < 0.0000001f) {
             return hit(pt_ray, p, n2, pt_obj);
         }
-        else if (abs(pdt2 + l2) < 0.0000001) {
-            return hit(pt_ray, p,(-1)*n2, pt_obj);
+        else if (abs(pdt2 + l2) < 0.0000001f) {
+            return hit(pt_ray, p, (-1)*n2, pt_obj);
         }
         else {
-            const double pdt3 = (v | n3);
-            if (abs(pdt3 - l3) < 0.0000001) {
+            const real pdt3 = (v | n3);
+            if (abs(pdt3 - l3) < 0.0000001f) {
                 return hit(pt_ray, p, n3, pt_obj);
             }
             else {
@@ -217,26 +217,26 @@ hit box::compute_intersection(ray& r, const double& t) const {
 min_max_coord box::get_min_max_coord() const {
 
     // (n1 * a1x) has a positive .x, (n1 * (-a1x)) has a negative one
-    const double a1x = n1.x >= 0 ? 1 : (-1);
-    const double a2x = n2.x >= 0 ? 1 : (-1);
-    const double a3x = n3.x >= 0 ? 1 : (-1);
+    const real a1x = n1.x >= 0 ? 1 : (-1);
+    const real a2x = n2.x >= 0 ? 1 : (-1);
+    const real a3x = n3.x >= 0 ? 1 : (-1);
 
-    const double max_x = (position + l1 * (a1x * n1) + l2 * (a2x * n2) + l3 * (a3x * n3)).x;
-    const double min_x = (position + l1 * ((- a1x) * n1) + l2 * ((- a2x) * n2) + l3 * ((- a3x) * n3)).x;
+    const real max_x = (position + l1 * (a1x * n1) + l2 * (a2x * n2) + l3 * (a3x * n3)).x;
+    const real min_x = (position + l1 * ((- a1x) * n1) + l2 * ((- a2x) * n2) + l3 * ((- a3x) * n3)).x;
 
-    const double a1y = n1.y >= 0 ? 1 : (-1);
-    const double a2y = n2.y >= 0 ? 1 : (-1);
-    const double a3y = n3.y >= 0 ? 1 : (-1);
+    const real a1y = n1.y >= 0 ? 1 : (-1);
+    const real a2y = n2.y >= 0 ? 1 : (-1);
+    const real a3y = n3.y >= 0 ? 1 : (-1);
 
-    const double max_y = (position + l1 * (a1y * n1) + l2 * (a2y * n2) + l3 * (a3y * n3)).y;
-    const double min_y = (position + l1 * ((- a1y) * n1) + l2 * ((- a2y) * n2) + l3 * ((- a3y) * n3)).y;
+    const real max_y = (position + l1 * (a1y * n1) + l2 * (a2y * n2) + l3 * (a3y * n3)).y;
+    const real min_y = (position + l1 * ((- a1y) * n1) + l2 * ((- a2y) * n2) + l3 * ((- a3y) * n3)).y;
 
-    const double a1z = n1.z >= 0 ? 1 : (-1);
-    const double a2z = n2.z >= 0 ? 1 : (-1);
-    const double a3z = n3.z >= 0 ? 1 : (-1);
+    const real a1z = n1.z >= 0 ? 1 : (-1);
+    const real a2z = n2.z >= 0 ? 1 : (-1);
+    const real a3z = n3.z >= 0 ? 1 : (-1);
 
-    const double max_z = (position + l1 * (a1z * n1) + l2 * (a2z * n2) + l3 * (a3z * n3)).z;
-    const double min_z = (position + l1 * ((- a1z) * n1) + l2 * ((- a2z) * n2) + l3 * ((- a3z) * n3)).z;
+    const real max_z = (position + l1 * (a1z * n1) + l2 * (a2z * n2) + l3 * (a3z * n3)).z;
+    const real min_z = (position + l1 * ((- a1z) * n1) + l2 * ((- a2z) * n2) + l3 * ((- a3z) * n3)).z;
 
     return min_max_coord(min_x, max_x, min_y, max_y, min_z, max_z);
 }
@@ -253,34 +253,34 @@ bool box::is_hit_by(const ray& r) const {
     // See measure_distance
 
     const rt::vector u = r.get_origin();
-    const double pmux = position.x - u.x;
-    const double pmuy = position.y - u.y;
-    const double pmuz = position.z - u.z;
+    const real pmux = position.x - u.x;
+    const real pmuy = position.y - u.y;
+    const real pmuz = position.z - u.z;
     
     if (abs(pmux) <= l1 && abs(pmuy) <= l2 && abs(pmuz) <= l3) {
         // u is inside the box
         return true;
     }
 
-    if (dir.x != 0) {
+    if (dir.x != 0.0f) {
         // Determination of t1
-        const double t1 = pmux * inv_dir.x - l1 * abs_inv_dir.x;
+        const real t1 = pmux * inv_dir.x - l1 * abs_inv_dir.x;
         // Check that t1 gives a point inside the face
         if (abs(pmuy - t1 * dir.y) <= l2 && abs(pmuz - t1 * dir.z) <= l3) {
-            return (t1 >= 0);
+            return (t1 >= 0.0f);
         }
     }
 
-    if (dir.y != 0) {
-        const double t2 = pmuy * inv_dir.y - l2 * abs_inv_dir.y;
+    if (dir.y != 0.0f) {
+        const real t2 = pmuy * inv_dir.y - l2 * abs_inv_dir.y;
         if (abs(pmux - t2 * dir.x) <= l1 && abs(pmuz - t2 * dir.z) <= l3) {
-            return (t2 >= 0);
+            return (t2 >= 0.0f);
         }
     }
 
-    if (dir.z != 0) {
-        const double t3 = pmuz * inv_dir.z - l3 * abs_inv_dir.z;
-        return (t3 >= 0 && abs(pmux - t3 * dir.x) <= l1 && abs(pmuy - t3 * dir.y) <= l2);
+    if (dir.z != 0.0f) {
+        const real t3 = pmuz * inv_dir.z - l3 * abs_inv_dir.z;
+        return (t3 >= 0.0f && abs(pmux - t3 * dir.x) <= l1 && abs(pmuy - t3 * dir.y) <= l2);
     }
 
     return false;

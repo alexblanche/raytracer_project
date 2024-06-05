@@ -7,8 +7,8 @@
 #include "scene/material/material.hpp"
 
 #include<limits>
-numeric_limits<double> realbd;
-const double infinity = realbd.infinity();
+numeric_limits<real> realbd;
+const real infinity = realbd.infinity();
 
 #include <optional>
 
@@ -50,17 +50,17 @@ bounding::bounding(const box* b, const std::vector<const bounding*>& children)
    in which case the two variables are overwritten)
 */
 void bounding::check_box(const ray& r,
-    double& distance_to_closest, std::optional<const object*>& closest_object,
+    real& distance_to_closest, std::optional<const object*>& closest_object,
     std::stack<const bounding*>& bounding_stack) const {
 
-    double d_cl = distance_to_closest;
+    real d_cl = distance_to_closest;
     std::optional<const object*> cl_obj = closest_object;
 
     if (is_terminal) {
         if (not b.has_value() || b.value()->is_hit_by(r)) {
             
             for (const object* obj : content) {
-                const std::optional<double> d = obj->measure_distance(r);
+                const std::optional<real> d = obj->measure_distance(r);
                 if (d.has_value() && d.value() < d_cl) {
                     d_cl = d.value();
                     cl_obj = obj;
@@ -84,7 +84,7 @@ void bounding::check_box(const ray& r,
 /* Same as check_box, but the last child is stored in a pointer to avoid pushing and
    immediately popping on the stack */
 void bounding::check_box_next(const ray& r,
-    double& distance_to_closest, std::optional<const object*>& closest_object,
+    real& distance_to_closest, std::optional<const object*>& closest_object,
     std::stack<const bounding*>& bounding_stack,
     bool& bd_stored, const bounding*& next_bounding) const {
 
@@ -92,7 +92,7 @@ void bounding::check_box_next(const ray& r,
         if (not b.has_value() || b.value()->is_hit_by(r)) {
 
             for (const object* obj : content) {
-                const std::optional<double> d = obj->measure_distance(r);
+                const std::optional<real> d = obj->measure_distance(r);
                 if (d.has_value() && d.value() < distance_to_closest) {
                     distance_to_closest = d.value();
                     closest_object = obj;
@@ -125,12 +125,12 @@ void bounding::check_box_next(const ray& r,
 const bounding* containing_bounding_two(const bounding*& bd0, const bounding*& bd1) {
     const box* const b0 = bd0->get_b().value();
     const box* const b1 = bd1->get_b().value();
-    const double bd0l1 = b0->get_l1();
-    const double bd0l2 = b0->get_l2();
-    const double bd0l3 = b0->get_l3();
-    const double bd1l1 = b1->get_l1();
-    const double bd1l2 = b1->get_l2();
-    const double bd1l3 = b1->get_l3();
+    const real bd0l1 = b0->get_l1();
+    const real bd0l2 = b0->get_l2();
+    const real bd0l3 = b0->get_l3();
+    const real bd1l1 = b1->get_l1();
+    const real bd1l2 = b1->get_l2();
+    const real bd1l3 = b1->get_l3();
 
     const rt::vector pos0 = b0->get_position();
     const rt::vector pos1 = b1->get_position();
@@ -160,12 +160,12 @@ const bounding* containing_bounding_any(const vector<const bounding*>& children)
         return children[0];
     }
 
-    double min_x = infinity;
-    double max_x = -infinity;
-    double min_y = infinity;
-    double max_y = -infinity;
-    double min_z = infinity;
-    double max_z = -infinity;
+    real min_x = infinity;
+    real max_x = -infinity;
+    real min_y = infinity;
+    real max_y = -infinity;
+    real min_z = infinity;
+    real max_z = -infinity;
 
     /* Computation of the dimensions of the object set */
     for(const bounding* bd : children) {
@@ -184,7 +184,7 @@ const bounding* containing_bounding_any(const vector<const bounding*>& children)
     }
 
     const box* b = new box(
-        rt::vector((max_x + min_x) / 2, (max_y + min_y) / 2, (max_z + min_z) / 2),
+        rt::vector((max_x + min_x) / 2.0f, (max_y + min_y) / 2.0f, (max_z + min_z) / 2.0f),
         rt::vector(1, 0, 0), rt::vector(0, 1, 0),
         max_x - min_x,
         max_y - min_y,
@@ -198,12 +198,12 @@ const bounding* containing_bounding_any(const vector<const bounding*>& children)
    containing the (finite) objects whose indices are in the obj vector */
 const bounding* containing_objects(const std::vector<const object*>& objs) {
 
-    double min_x = infinity;
-    double max_x = -infinity;
-    double min_y = infinity;
-    double max_y = -infinity;
-    double min_z = infinity;
-    double max_z = -infinity;
+    real min_x = infinity;
+    real max_x = -infinity;
+    real min_y = infinity;
+    real max_y = -infinity;
+    real min_z = infinity;
+    real max_z = -infinity;
 
     /* Computation of the dimensions of the object set */
     for(const object* obj : objs) {
@@ -218,7 +218,7 @@ const bounding* containing_objects(const std::vector<const object*>& objs) {
     }
 
     const box* b = new box(
-        rt::vector((max_x + min_x) / 2, (max_y + min_y) / 2, (max_z + min_z) / 2),
+        rt::vector((max_x + min_x) / 2.0f, (max_y + min_y) / 2.0f, (max_z + min_z) / 2.0f),
         rt::vector(1, 0, 0), rt::vector(0, 1, 0),
         max_x - min_x,
         max_y - min_y,

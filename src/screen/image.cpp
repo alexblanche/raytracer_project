@@ -49,9 +49,9 @@ namespace rt {
 	 * Sets a pixel to a given color.
 	 */
 	void image::set_pixel(int x, int y, const color& c) const {
-		if(x < 0 || y < 0 || x >= width() || y >= height()) {
-			return;
-		}
+		// if(x < 0 || y < 0 || x >= width() || y >= height()) {
+		// 	return;
+		// }
 		Uint8 r = c.get_red();
 		Uint8 g = c.get_green();
 		Uint8 b = c.get_blue();

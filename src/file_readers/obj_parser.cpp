@@ -10,8 +10,8 @@
 #include "file_readers/mtl_parser.hpp"
 
 #include<limits>
-numeric_limits<double> realobj;
-const double infinity = realobj.infinity();
+numeric_limits<real> realobj;
+const real infinity = realobj.infinity();
 
 #include <string.h>
 #include <string>
@@ -33,7 +33,7 @@ void add_triangle(const std::vector<rt::vector>& vertex_set, const std::vector<r
    const std::vector<rt::vector>& normal_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
-   const rt::vector& shift, const double& scale,
+   const rt::vector& shift, const real& scale,
    const size_t v1,  const size_t v2,  const size_t v3,
    const size_t vt1, const size_t vt2, const size_t vt3,
    const size_t vn1, const size_t vn2, const size_t vn3,
@@ -73,7 +73,7 @@ void add_triangle_subdiv(const std::vector<rt::vector>& vertex_set, const std::v
    const std::vector<rt::vector>& normal_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
-   const rt::vector& shift, const double& scale,
+   const rt::vector& shift, const real& scale,
    const size_t vj,  const size_t vi,  const rt::vector& final_v,
    const size_t vtj, const size_t vti, const rt::vector& final_vt,
    const size_t vnj, const size_t vni, const rt::vector& final_vn,
@@ -113,7 +113,7 @@ void add_quad(const std::vector<rt::vector>& vertex_set, const std::vector<rt::v
    const std::vector<rt::vector>& normal_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    unsigned int& number_of_polygons, unsigned int& number_of_quads,
-   const rt::vector& shift, const double& scale,
+   const rt::vector& shift, const real& scale,
    const size_t v1,  const size_t v2,  const size_t v3,  const size_t v4,
    const size_t vt1, const size_t vt2, const size_t vt3, const size_t vt4,
    const size_t vn1, const size_t vn2, const size_t vn3, const size_t vn4,
@@ -155,7 +155,7 @@ void add_quad(const std::vector<rt::vector>& vertex_set, const std::vector<rt::v
 void add_triangle_no_normal(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
-   const rt::vector& shift, const double& scale,
+   const rt::vector& shift, const real& scale,
    const size_t v1,  const size_t v2,  const size_t v3,
    const size_t vt1, const size_t vt2, const size_t vt3,
    const size_t current_texture_index, const size_t current_material_index,
@@ -192,7 +192,7 @@ void add_triangle_no_normal(const std::vector<rt::vector>& vertex_set, const std
 void add_triangle_subdiv_no_normal(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
-   const rt::vector& shift, const double& scale,
+   const rt::vector& shift, const real& scale,
    const size_t vj,  const size_t vi,  const rt::vector& final_v,
    const size_t vtj, const size_t vti, const rt::vector& final_vt,
    const size_t current_texture_index, const size_t current_material_index,
@@ -229,7 +229,7 @@ void add_triangle_subdiv_no_normal(const std::vector<rt::vector>& vertex_set, co
 void add_quad_no_normal(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    unsigned int& number_of_polygons, unsigned int& number_of_quads,
-   const rt::vector& shift, const double& scale,
+   const rt::vector& shift, const real& scale,
    const size_t v1,  const size_t v2,  const size_t v3,  const size_t v4,
    const size_t vt1, const size_t vt2, const size_t vt3, const size_t vt4,
    const size_t current_texture_index, const size_t current_material_index,
@@ -271,7 +271,7 @@ void add_subdivided_polygon(FILE* file,
    const std::vector<rt::vector>& normal_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
-   const rt::vector& shift, const double& scale,
+   const rt::vector& shift, const real& scale,
    const size_t v1, const size_t v2, const size_t v3, const size_t v4, const size_t v5,
    const size_t vt1, const size_t vt2, const size_t vt3, const size_t vt4, const size_t vt5,
    const size_t vn1, const size_t vn2, const size_t vn3, const size_t vn4, const size_t vn5,
@@ -377,7 +377,7 @@ void add_subdivided_polygon_no_normal(FILE* file,
    const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
-   const rt::vector& shift, const double& scale,
+   const rt::vector& shift, const real& scale,
    const size_t v1,  const size_t v2,  const size_t v3,  const size_t v4,  const size_t v5,
    const size_t vt1, const size_t vt2, const size_t vt3, const size_t vt4, const size_t vt5,
    const size_t current_texture_index, const size_t current_material_index,
@@ -478,7 +478,7 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
    std::vector<const object*>& obj_set,
    std::vector<wrapper<material>>& material_wrapper_set,
    std::vector<wrapper<texture>>& texture_wrapper_set,
-   const double& scale, const rt::vector& shift,
+   const real& scale, const rt::vector& shift,
    const bool bounding_enabled, const unsigned int polygons_per_bounding,
    const bounding*& output_bd) {
 
@@ -525,7 +525,7 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
    unsigned int number_of_polygons = 0;
 
    /* Max dimensions */
-   double min_x = infinity,
+   real min_x = infinity,
       min_y = infinity,
       min_z = infinity,
       max_x = -infinity,
@@ -613,8 +613,8 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
                }
                else {
                   // Stupid case in some garbage obj files...
-                  const double nu = (u >= 0) ? 1 : ((u <= (-1)) ? 0 : 1 + u);
-                  const double nv = (v >= 0) ? 1 : ((v <= (-1)) ? 0 : 1 + v);
+                  const real nu = (u >= 0) ? 1 : ((u <= (-1)) ? 0 : 1 + u);
+                  const real nv = (v >= 0) ? 1 : ((v <= (-1)) ? 0 : 1 + v);
                   uv_coord_set.push_back(rt::vector(nu, nv, 0));
                }
             }

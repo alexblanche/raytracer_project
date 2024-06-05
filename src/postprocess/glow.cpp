@@ -126,7 +126,7 @@ std::vector<std::vector<pixel>> generate_glow(const std::vector<std::vector<rt::
     const size_t height = bright_pixels[0].size();
     std::vector<std::vector<pixel>> glow(width, std::vector<pixel>(height));
 
-    printf("0 / %u", width);
+    printf("0 / %lu", width);
     fflush(stdout);
 
     for (size_t i = 0; i < width; i++) {
@@ -136,7 +136,7 @@ std::vector<std::vector<pixel>> generate_glow(const std::vector<std::vector<rt::
                 blur_pixel(glow, bright_pixels, i, j, nc.normalized_color, nc.intensity, glow_intensity);
             }
         }
-        printf("\r%u / %u", i+1, width);
+        printf("\r%lu / %lu", i+1, width);
         fflush(stdout);
     }
     printf("\n");
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
         return EXIT_SUCCESS;
     }
     else if (argc > 3) {
-        for (unsigned int i = 1; i <= 3; i += 2) {
+        for (size_t i = 1; i <= 3; i += 2) {
             if (strcmp(argv[i], "-threshold") == 0) {
                 threshold = atof(argv[i+1]);
             }
@@ -204,10 +204,9 @@ int main(int argc, char* argv[]) {
     fflush(stdout);
 
     unsigned int number_of_rays;
-    bool success;
-    std::vector<std::vector<rt::color>>& image = read_raw(argv[input_arg], number_of_rays, success);
+    std::optional<std::vector<std::vector<rt::color>>> image = read_raw(argv[input_arg], number_of_rays);
     
-    if (not success) {
+    if (not image.has_value()) {
         printf("Error reading file %s\n", argv[input_arg]);
         return EXIT_SUCCESS;
     }
@@ -215,7 +214,7 @@ int main(int argc, char* argv[]) {
     printf("\rThreshold: %lf, glow intensity: %lf\nApplying glow...\n", threshold, glow_intensity);
     fflush(stdout);
 
-    std::vector<std::vector<rt::color>> postprocessed_image = apply_glow(image, number_of_rays, threshold, glow_intensity);
+    std::vector<std::vector<rt::color>> postprocessed_image = apply_glow(image.value(), number_of_rays, threshold, glow_intensity);
 
     printf("Done.\n");
 

@@ -23,11 +23,11 @@ object::object(const rt::vector& position, const size_t material_index, const bo
 
 /* Intersection determination */
 
-std::optional<double> object::measure_distance(const ray& /*r*/) const {
+std::optional<real> object::measure_distance(const ray& /*r*/) const {
     return std::nullopt;
 }
 
-hit object::compute_intersection(ray& /*r*/, const double& /*t*/) const {
+hit object::compute_intersection(ray& /*r*/, const real& /*t*/) const {
     return hit();
 }
 

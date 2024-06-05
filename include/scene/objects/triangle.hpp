@@ -24,7 +24,7 @@ class triangle : public polygon {
         */
 
         rt::vector normal, v1, v2, vn0, vn1, vn2;
-        double d;
+        real d;
 
     public:
 
@@ -47,7 +47,7 @@ class triangle : public polygon {
 
         /* Intersection determination */
 
-        std::optional<double> measure_distance(const ray& r) const;
+        std::optional<real> measure_distance(const ray& r) const;
 
         /* Writes the barycentric coordinates in variables l1, l2:
            p = position + l1 * v1 + l2 * v2
@@ -58,7 +58,7 @@ class triangle : public polygon {
 
         rt::vector get_interpolated_normal(const barycentric_info& bary) const;
 
-        hit compute_intersection(ray& r, const double& t) const;
+        hit compute_intersection(ray& r, const real& t) const;
 
 
         /* Minimum and maximum coordinates */

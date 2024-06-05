@@ -14,9 +14,12 @@
  */
 #pragma once
 
+// Type alias for floating-point numerical values
+using real = float;
+
 #include <vector>
 
-namespace rt {
+namespace rt  {
 
 	/**
 	 * The color class represents a color through its
@@ -25,7 +28,7 @@ namespace rt {
 	class color {
 		private:
 			/* Red, green blue and alpha components */
-			double red, green, blue;//, alpha; 
+			real red, green, blue; 
 
 		public:
 
@@ -52,12 +55,7 @@ namespace rt {
 			 * Builds a color from its red, green and blue components.
 			 * Alpha is set to 255.
 			 */
-			color(const double& r, const double& g, const double& b);
-
-			/**
-			 * Builds a color from its red, green, blue and alpha components.
-			 */
-			//color(unsigned int r, unsigned int g, unsigned int b, unsigned int a);
+			color(const real& r, const real& g, const real& b);
 
 			/**
 			 * Assignment by copy
@@ -67,58 +65,44 @@ namespace rt {
 			/**
 			 * Sets the red component.
 			 */
-			inline void set_red(double r) {
+			inline void set_red(const real& r) {
 				red = r;
 			}
 
 			/**
 			 * Returns the red component.
 			 */
-			inline double get_red() const {
+			inline real get_red() const {
 				return red;
 			}
 
 			/**
 			 * Sets the green component.
 			 */
-			inline void set_green(double g) {
+			inline void set_green(const real& g) {
 				green = g;
 			}
 
 			/**
 			 * Returns the green component.
 			 */
-			inline double get_green() const {
+			inline real get_green() const {
 				return green;
 			}
 
 			/**
 			 * Sets the blue component.
 			 */
-			inline void set_blue(double b) {
+			inline void set_blue(const real& b) {
 				blue = b;
 			}
 
 			/**
 			 * Returns the blue component.
 			 */
-			inline double get_blue() const {
+			inline real get_blue() const {
 				return blue;
 			}
-
-			/**
-			 * Sets the alpha component.
-			 */
-			// inline void set_alpha(double a) {
-			// 	alpha = a;
-			// }
-
-			/**
-			 * Returns the alpha component.
-			 */
-			// inline unsigned int get_alpha() const {
-			// 	return alpha;
-			// }
 
 			/**
 			 * Comparison operator.
@@ -126,16 +110,9 @@ namespace rt {
 			bool operator==(const color& c) const;
 
 			/**
-			 * Cast operator to int.
-			 * Represents the color as a int, with
-			 * red being the most significant byte.
-			*/
-			// virtual operator int() const;
-
-			/**
 			 * Scaling operator.
 			 */
-			color operator*(const double x) const;
+			color operator*(const real& x) const;
 
 			/**
 			 * Addition operator.
@@ -150,7 +127,7 @@ namespace rt {
 			/**
 			 * Division operator.
 			 */
-			color operator/(const double x) const;
+			color operator/(const real& x) const;
 
 			/**
 			 * Maxing out color components at 255.

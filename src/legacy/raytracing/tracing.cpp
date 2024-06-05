@@ -1,7 +1,7 @@
 #include "light/ray.hpp"
 #include <limits>
-std::numeric_limits<double> real;
-const double infinity = real.infinity();
+std::numeric_limits<real> realtracing;
+const real infinity = realtracing.infinity();
 #include "screen/color.hpp"
 #include "legacy/source.hpp"
 #include "legacy/objects/object.hpp"
@@ -18,12 +18,12 @@ const double infinity = real.infinity();
 /*
 rt::color raycast(const ray& r, const std::vector<const object*>& obj_set) {
     
-    double closest = infinity;
+    real closest = infinity;
     int closest_index = -1;
 
     for (unsigned int i = 0; i < obj_set.size(); i++) {
 
-        const double d = obj_set.at(i)->measure_distance(r);
+        const real d = obj_set.at(i)->measure_distance(r);
         //  d is the distance between the origin of the ray and the
         //    intersection point with the object
         if (d < closest) {
@@ -48,7 +48,7 @@ rt::color raytrace(ray& r, const std::vector<const object*>& obj_set, const std:
 
     /* Unneccessarily complicated */
     /*
-    std::vector<double> distance_to_object(obj_set.size());
+    std::vector<real> distance_to_object(obj_set.size());
     std::transform(
         // std::execution::seq,
         obj_set.begin(), obj_set.end(),
@@ -62,7 +62,7 @@ rt::color raytrace(ray& r, const std::vector<const object*>& obj_set, const std:
     );
 
     const unsigned int index_closest = std::distance(std::begin(distance_to_object), it);
-    const double dist = *it;
+    const real dist = *it;
     const object* closest_obj = obj_set[index_closest];
     
     if (closest_obj != NULL) {
@@ -75,12 +75,12 @@ rt::color raytrace(ray& r, const std::vector<const object*>& obj_set, const std:
     }
     */
 
-    double dist_to_closest = infinity;
+    real dist_to_closest = infinity;
     std::optional<const object*> closest_obj = std::nullopt;
 
     for (const object* obj : obj_set) {
 
-        const std::optional<double> d = obj->measure_distance(r);
+        const std::optional<real> d = obj->measure_distance(r);
         if (d.has_value() && d.value() < dist_to_closest) {
             dist_to_closest = d.value();
             closest_obj = obj;

@@ -42,16 +42,18 @@ long int get_time () {
 
 /* Sequential version */
 
-void render_loop_seq(const rt::screen& scr, const int width, const int height, const double& dist,
-    const rt::vector& screen_center, const std::vector<const object*>& obj_set, const std::vector<source>& light_set) {
+void render_loop_seq(const rt::screen& scr, const int width, const int height, const real& dist,
+    const rt::vector& screen_center, const std::vector<const object*>& obj_set, const std::vector<source>& light_set,
+    long int& time) {
 
     const long int init_time = get_time();
+    const rt::vector zero = rt::vector(0, 0, 0);
     
     for (int i = 0; i < width; i++) {
         for (int j = 0; j < height; j++) {
 
-            const rt::vector direct = rt::vector(i, j, dist) - screen_center;
-            ray r = ray(rt::vector(0, 0, 0), direct.unit());
+            const rt::vector direct = (rt::vector(i - screen_center.x, j - screen_center.y, dist)).unit();
+            ray r = ray(zero, direct);
 
             rt::color pixel_col = raytrace(r, obj_set, light_set);
 
@@ -60,17 +62,21 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
     }
 
     const long int curr_time = get_time();
-    printf("Seq: %ld ms\n", curr_time - init_time);
-    fflush(stdout);
+    const long int time_elapsed = curr_time - init_time;
+    time += time_elapsed;
+    // printf("Seq: %ld ms\n", time_elapsed);
+    // fflush(stdout);
 }
 
 
 /* Parallel version */
 
-void render_loop_parallel(const rt::screen& scr, const int width, const int height, const double& dist,
-    const rt::vector& screen_center, const std::vector<const object*>& obj_set, const std::vector<source>& light_set) {
+void render_loop_parallel(const rt::screen& scr, const int width, const int height, const real& dist,
+    const rt::vector& screen_center, const std::vector<const object*>& obj_set, const std::vector<source>& light_set,
+    long int& time) {
     
     const long int init_time = get_time();
+    const rt::vector zero = rt::vector(0, 0, 0);
 
     std::mutex m;
 
@@ -80,8 +86,8 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
 
         for (int j = 0; j < height; j++) {
 
-            const rt::vector direct = rt::vector(i, j, dist) - screen_center;
-            ray r = ray(rt::vector(0, 0, 0), direct.unit());
+            const rt::vector direct = (rt::vector(i - screen_center.x, j - screen_center.y, dist)).unit();
+            ray r = ray(zero, direct);
             output[j] = raytrace(r, obj_set, light_set);
 
         }
@@ -95,30 +101,12 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
     } PARALLEL_FOR_END();
 
     const long int curr_time = get_time();
-    printf("Parallel: %ld ms\n", curr_time - init_time);
-    fflush(stdout);
+    const long int time_elapsed = curr_time - init_time;
+    time += time_elapsed;
+    // printf("Parallel: %ld ms\n", time_elapsed);
+    // fflush(stdout);
 }
 
-/* STL version */
-/* Requires package libtbb-dev, and TBB::Tbb in the CMake file */
-/*
-void render_loop_stl(const rt::screen& scr, const int width, const int height,
-    const std::vector<int>& indices, const std::function< rt::color(int const&) >& trace) {
-
-    const long int init_time = get_time();
-
-    std::vector<rt::color> data(width * height);
-    std::transform(std::execution::par_unseq, indices.begin(), indices.end(), data.begin(), trace);
-
-    for(int i = 0; i < width * height; i++) {
-        scr.set_pixel(i % width, i / width, data[i]);
-    }
-
-    const long int curr_time = get_time();
-    printf("STL: %ld ms\n", curr_time - init_time);
-    fflush(stdout);
-}
-*/
 
 /* ********************************* */
 /* ********************************* */
@@ -181,7 +169,7 @@ int main(int /*argc*/, char **/*argv*/) {
     // Screen
     const int width = 1920;
     const int height = 1080;
-    const double dist = 400; // Distance between the camera and the image
+    const real dist = 400; // Distance between the camera and the image
 
     // The camera is supposed to be on the origin of the space: (0,0,0)
     
@@ -193,56 +181,37 @@ int main(int /*argc*/, char **/*argv*/) {
 
     /* Benchmark */
 
+    const size_t number_of_renders = 10;
+
+    long int total_time = 0;
+
     /* Sequential */
+    render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set, total_time);
+    scr.update();
+    total_time = 0;
     const long int seq_time_init = get_time();
-    for (unsigned int i = 0; i < 10; i++) {
-        render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set);
+    for (size_t i = 0; i < number_of_renders; i++) {
+        render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set, total_time);
         scr.update();
     }
     const long int seq_curr_time = get_time();
     printf("Total Seq time: %ld ms\n", seq_curr_time - seq_time_init);
+    printf("Average time: %d ms\n", (int) ((double) total_time / number_of_renders));
     fflush(stdout);
-
-    /* STL */
-    /*
-    std::vector<int> indices(width * height);
-    std::iota(indices.begin(), indices.end(), 0);
-    const auto trace = [&width, &dist, &screen_center, &obj_set, &light_set] (int const& i) {
-        const rt::vector direct = rt::vector(i % width, i / width, dist) - screen_center;
-        ray r = ray(rt::vector(0, 0, 0), direct.unit());
-        return raytrace(r, obj_set, light_set);
-    };
-
-    
-    const long int stl_time_init = get_time();
-    for (unsigned int i = 0; i < 10; i++) {
-        render_loop_stl(scr, width, height, indices, trace);
-        scr.update();
-    }
-    const long int stl_curr_time = get_time();
-    printf("Total STL time: %ld ms\n", stl_curr_time - stl_time_init);
-    fflush(stdout);
-    */
 
     /* Parallel */
     const long int par_time_init = get_time();
-    for (unsigned int i = 0; i < 10; i++) {
-        render_loop_parallel(scr, width, height, dist, screen_center, obj_set, light_set);
+    render_loop_parallel(scr, width, height, dist, screen_center, obj_set, light_set, total_time);
+    scr.update();
+    total_time = 0;
+    for (size_t i = 0; i < number_of_renders; i++) {
+        render_loop_parallel(scr, width, height, dist, screen_center, obj_set, light_set, total_time);
         scr.update();
     }
     const long int par_curr_time = get_time();
     printf("Total Parallel time: %ld ms\n", par_curr_time - par_time_init);
+    printf("Average time: %d ms\n", (int) ((double) total_time / number_of_renders));
     fflush(stdout);
-
-    // const long int time_init = get_time();
-
-    //render_loop_seq(scr, width, height, dist, screen_center, obj_set, light_set);
-    //render_loop_parallel(scr, width, height, dist, screen_center, obj_set, light_set);
-    // render_loop_stl(scr, width, height, dist, screen_center, obj_set, light_set);
-
-    // const long int curr_time = get_time();
-    // printf("%ld ms\n", curr_time - time_init);
-    // fflush(stdout);
     
     scr.update();
 

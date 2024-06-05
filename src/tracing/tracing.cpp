@@ -8,7 +8,7 @@
 #include "scene/material/texture.hpp"
 #include <stack>
 
-#define PI 3.14159265358979323846
+#define PI 3.14159265358979323846f
 
 
 /* ******************************************************************** */
@@ -46,23 +46,23 @@ void update_accumulators(const material& m, const object*& obj, const rt::vector
 void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& normal,
     const bool inward, const bool outward_bias) {
 
-    r.set_origin(hit_point + ((inward == outward_bias) ? 1.0E-6*normal : (-1.0E-6)*normal));
+    r.set_origin(hit_point + ((inward == outward_bias) ? (1.0E-6f)*normal : (-1.0E-6f)*normal));
 }
 
 
 /* Auxiliary function that handles the specular reflective case */
-void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const double& reflectivity, const bool inward) {
+void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real& reflectivity, const bool inward) {
 
     const rt::vector central_dir = h.get_central_reflected_direction(reflectivity, inward);
                     
     // Direction according to Lambert's cosine law
-    if (reflectivity >= 1) {
+    if (reflectivity >= 1.0f) {
         r.set_direction(central_dir);
     }
     else {
         r.set_direction(
             (central_dir +
-                ((1 - reflectivity) * h.random_direction(rg, central_dir, PI))
+                ((1.0f - reflectivity) * h.random_direction(rg, central_dir, PI))
             ).unit()
         );
     }
@@ -76,7 +76,7 @@ void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const double&
 void diffuse_case(ray& r, const hit& h, randomgen& rg, const bool inward) {
 
     const rt::vector normal = h.get_normal();
-    r.set_direction(((inward ? normal : (-1) * normal) + h.random_direction(rg, normal, PI)).unit());
+    r.set_direction(((inward ? normal : (-1.0f) * normal) + h.random_direction(rg, normal, PI)).unit());
 
     /* Apply the bias outward the surface */
     apply_bias(r, h.get_point(), normal, inward, true);
@@ -84,9 +84,9 @@ void diffuse_case(ray& r, const hit& h, randomgen& rg, const bool inward) {
 
 
 /* Auxiliary function that handles the refractive case */
-void refractive_case(ray& r, const hit& h, randomgen& rg, const double& scattering,
-    const rt::vector& vx, const double& sin_theta_2_sq, const bool inward,
-    double& refr_index, const double& next_refr_i) {
+void refractive_case(ray& r, const hit& h, randomgen& rg, const real& scattering,
+    const rt::vector& vx, const real& sin_theta_2_sq, const bool inward,
+    real& refr_index, const real& next_refr_i) {
 
     /* Setting the refracted direction */
     r.set_direction(
@@ -122,8 +122,8 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
     rt::color color_materials = rt::color::WHITE;
     rt::color emitted_colors = rt::color::BLACK;
     
-    double refr_index = 1;
-    std::stack<double> refr_stack;
+    real refr_index = 1.0f;
+    std::stack<real> refr_stack;
 
     const bool bounding_method = scene.polygons_per_bounding != 0;
 
@@ -143,7 +143,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
             const material& m = scene.material_set[obj->get_material_index()];
 
             /* Full-intensity light source reached */
-            if (m.get_emission_intensity() >= 1) {
+            if (m.get_emission_intensity() >= 1.0f) {
 
                 if (obj->is_textured()) {
                     // Only polygons (triangles and quads) can be textured (for now)
@@ -165,13 +165,13 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                or reflected in three ways: specularly, diffusely, or in the case of total internal reflection,
                when the ray hits a surface of lower refraction index at an angle greater than the critical angle.
             */
-            const double inward = (r.get_direction() | h.get_normal()) <= 0;
+            const real inward = (r.get_direction() | h.get_normal()) <= 0.0f;
 
-            if (m.get_transparency() == 0) {
+            if (m.get_transparency() == 0.0f) {
                 /* Diffuse or specular reflection */
 
                 /* Testing whether the ray is reflected specularly or diffusely */
-                if (scene.rg.random_double(1) <= m.get_specular_proba()) {
+                if (scene.rg.random_real(1.0f) <= m.get_specular_proba()) {
                     
                     /* Specular bounce */
 
@@ -194,9 +194,9 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
 	               Kr is the probability that the ray is reflected, Kt the probability that the ray is transmitted */
 
                 /* Computation of the new refraction index */
-                const double next_refr_i = inward ? m.get_refraction_index() : (refr_stack.empty() ? 1 : refr_stack.top());
+                const real next_refr_i = inward ? m.get_refraction_index() : (refr_stack.empty() ? 1.0f : refr_stack.top());
                 if (inward) {
-                    if (refr_index != 1) {
+                    if (refr_index != 1.0f) {
                         refr_stack.push(refr_index);
                     }
                 }
@@ -205,14 +205,14 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                 }
 
                 /* Pre-computation of the refracted direction */
-                double sin_theta_2_sq;
+                real sin_theta_2_sq;
                 const rt::vector vx = h.get_sin_refracted(refr_index, next_refr_i, sin_theta_2_sq);
 
                 /* Computation of the Fresnel coefficient */
-                // const double kr = inward ? h.get_fresnel(sin_theta_2_sq, refr_index, next_refr_i) : 0;
-                const double kr = inward ? h.get_schlick(refr_index, next_refr_i) : 0;
+                // const real kr = inward ? h.get_fresnel(sin_theta_2_sq, refr_index, next_refr_i) : 0.0f;
+                const real kr = inward ? h.get_schlick(refr_index, next_refr_i) : 0.0f;
 	
-                if (inward && scene.rg.random_double(1) * m.get_transparency() <= kr) {
+                if (inward && scene.rg.random_real(1) * m.get_transparency() <= kr) {
                 
                     /* The ray is reflected */
                     
@@ -225,7 +225,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                     /* The ray is transmitted */
 
                     /* Determination of whether the ray is transmitted (refracted) or in total interal reflection */
-                    if (sin_theta_2_sq >= 1) {
+                    if (sin_theta_2_sq >= 1.0f) {
                         /* Total internal reflection */
 
                         specular_reflective_case(r, h, scene.rg, m.get_reflectivity(), inward);

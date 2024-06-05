@@ -9,7 +9,7 @@ class sphere : public object {
     
     private:
 
-        double radius;
+        real radius;
 
     public:
 
@@ -17,12 +17,12 @@ class sphere : public object {
         
         sphere();
 
-        sphere(const rt::vector& center, const double& radius, const rt::color& col);
+        sphere(const rt::vector& center, const real& radius, const rt::color& col);
 
         
         /* Intersection determination */
 
-        std::optional<double> measure_distance(const ray& r) const;
+        std::optional<real> measure_distance(const ray& r) const;
 
-        hit compute_intersection(ray& r, const double& t) const;
+        hit compute_intersection(ray& r, const real& t) const;
 };
