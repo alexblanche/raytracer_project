@@ -210,9 +210,9 @@ bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data,
         const unsigned int file_size = 14 + 40 + 3 * width * height + vp * height;
         ret = fprintf(file, "%c%c%c%c",
             file_size % 256,
-            (file_size << 8) % 256,
-            (file_size << 16) % 256,
-            (file_size << 24) % 256
+            (file_size >> 8) % 256,
+            (file_size >> 16) % 256,
+            (file_size >> 24) % 256
         );
         HANDLE_ERROR
 
@@ -233,18 +233,18 @@ bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data,
         /* 4 bytes: Width */
         ret = fprintf(file, "%c%c%c%c",
             width % 256,
-            (width << 8) % 256,
-            (width << 16) % 256,
-            (width << 24) % 256
+            (width >> 8) % 256,
+            (width >> 16) % 256,
+            (width >> 24) % 256
         );
         HANDLE_ERROR
 
         /* 4 bytes: Height */
         ret = fprintf(file, "%c%c%c%c",
             height % 256,
-            (height << 8) % 256,
-            (height << 16) % 256,
-            (height << 24) % 256
+            (height >> 8) % 256,
+            (height >> 16) % 256,
+            (height >> 24) % 256
         );
         HANDLE_ERROR
 
@@ -265,9 +265,9 @@ bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data,
         const unsigned int data_size = 3 * width * height + vp * height;
         ret = fprintf(file, "%c%c%c%c",
             data_size % 256,
-            (data_size << 8) % 256,
-            (data_size << 16) % 256,
-            (data_size << 24) % 256
+            (data_size >> 8) % 256,
+            (data_size >> 16) % 256,
+            (data_size >> 24) % 256
         );
         HANDLE_ERROR
 

@@ -600,16 +600,6 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
             fclose(file);
         }
 
-        printf("material_wrapper_set contains %lu materials\n", material_wrapper_set.size());
-        for(wrapper<material> const& mat_wrap : material_wrapper_set) {
-            if (mat_wrap.name.has_value()) {
-                printf("%s\n", mat_wrap.name.value().data());
-            }
-            else {
-                printf("(unnamed)\n");
-            }
-        }
-
 
 
         // Creation of the final structures

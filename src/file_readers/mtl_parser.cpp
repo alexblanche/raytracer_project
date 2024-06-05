@@ -126,19 +126,31 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
                     throw std::runtime_error("(illum)");
                 }
 
-                material m(ns, rt::color(ka_r, ka_g, ka_b), rt::color(kd_r, kd_g, kd_b),
+                /* Looking for a material with the same name */
+                bool already_exists = false;
+                for(wrapper<material> const& mat_wrap : material_wrapper_set) {
+                    if (mat_wrap.name.has_value() && mat_wrap.name.value().compare(m_name) == 0) {
+                        printf("Duplicate material %s ignored\n", m_name.data());
+                        already_exists = true;
+                        break;
+                    }
+                }
+
+                if (not already_exists) {
+                    material m(ns, rt::color(ka_r, ka_g, ka_b), rt::color(kd_r, kd_g, kd_b),
                         rt::color(ks_r, ks_g, ks_b), rt::color(ke_r, ke_g, ke_b),
                         ni, d, illum);
-                material_wrapper_set.emplace_back(std::move(m), m_name);
+                    material_wrapper_set.emplace_back(std::move(m), m_name);
+                }
+                
                 const size_t m_i = material_wrapper_set[material_wrapper_set.size()-1].index;
 
                 /* Test for associated texture */
                 char tfile_name[513];
                 char c;
                 ret = fscanf(file, "map_K%c %512s\n", &c, tfile_name);
-                if (ret == 2) {
+                if (ret == 2 && not already_exists) {
                     // Texture loading
-                    // const unsigned int texture_index = texture_set.size();
 
                     bool parsing_successful;
                     texture txt((path + std::string(tfile_name)).data(), parsing_successful);
