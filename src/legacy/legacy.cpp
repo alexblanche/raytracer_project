@@ -12,20 +12,12 @@
 #include "legacy/raytracing/tracing.hpp"
 
 #include "parallel/parallel.h"
-/*
-#ifdef __unix__
-#include <mutex>
-#else
-#include "mingw.mutex.h"
-#endif
-*/
 #include <mutex>
 
 #include <chrono>
 
 #include <algorithm>
 #include <numeric>
-// #include <execution>
 
 
 // Parallel for-loop macros

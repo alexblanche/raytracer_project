@@ -20,6 +20,10 @@ find_package(SDL2 REQUIRED)
 # message("SDL2_LIBRARIES : ${SDL2_LIBRARIES}")
 include_directories(${SDL2_INCLUDE_DIRS})
 
+##################################################################
+### Main path-tracer
+##################################################################
+
 # libmyraytracer.so
 set (libname raytracer)
 add_library(${libname} SHARED
@@ -69,6 +73,10 @@ target_link_libraries(${main_name}
 	${libname}
 )
 
+##################################################################
+### Merger and postprocess
+##################################################################
+
 
 # Executable that combines an array of raw data files into a bmp file
 set(merger_name merge)
@@ -87,6 +95,10 @@ add_executable(${glow}
 	src/file_readers/bmp_reader.cpp
 	src/postprocess/glow.cpp
 )
+
+##################################################################
+### Legacy raytracer
+##################################################################
 
 # Legacy raytracer (first version, 2014)
 set(legacy legacy_raytracer)
@@ -111,6 +123,24 @@ target_link_libraries(${legacy}
 )
 
 target_include_directories(${legacy}
+	PUBLIC
+		${SDL2_INCLUDE_DIRS}
+)
+
+##################################################################
+### Test sky dome
+##################################################################
+
+add_executable(sky
+	src/screen/color.cpp
+	src/screen/image.cpp
+	src/screen/screen.cpp
+	src/sky/test_sky.cpp
+)
+target_link_libraries(sky
+	${SDL2_LIBRARIES}
+)
+target_include_directories(sky
 	PUBLIC
 		${SDL2_INCLUDE_DIRS}
 )
