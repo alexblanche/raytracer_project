@@ -70,7 +70,7 @@ std::optional<real> plane::measure_distance(const ray& r) const {
     
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
     
-    if (pdt * upln < 0) {
+    if (pdt * upln < 0.0f) {
         return (- upln / pdt);
     }
     else {

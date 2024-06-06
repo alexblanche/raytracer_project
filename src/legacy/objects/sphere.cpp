@@ -38,7 +38,7 @@ std::optional<real> sphere::measure_distance(const ray& r) const {
     const real delta = dv * dv + radius * radius - nv2;
     // delta is actually the discriminant divided by 4
 
-    if (delta >= 0) {
+    if (delta >= 0.0f) {
         /* Two solutions: t1 = dv - sqrt(delta) and t2 = dv + sqrt(delta),
            If t1 >= 0, this means the ray originates from outside the sphere
            and the sphere is in front of the origin, and thus t1 is returned,
@@ -46,7 +46,7 @@ std::optional<real> sphere::measure_distance(const ray& r) const {
            Otherwise, t1 < 0 and t2 < 0 means the sphere is behind the ray and is not hit. */
     
         const real t1 = dv - sqrt(delta);
-        if (t1 >= 0) {
+        if (t1 >= 0.0f) {
             return t1;
         }
     }

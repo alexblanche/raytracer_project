@@ -15,11 +15,9 @@
 /* Defines the new materials from the mtl file file_name,
    places their name in material_names, and places the materials in material_set
 
-    - When a texture is loaded with map_Ka / Kd, it is placed in texture_set (like in the scene parser)
+    When a texture is loaded with map_Ka / Kd, it is placed in texture_set (like in the scene parser)
       and the association table is updated with a new pair (m_index, t_index) so that each material created
       with index m_index must have the texture t_index
-    - Textures are loaded each time without checking for duplicates, because I assume that it does not happen often
-      (otherwise I need a table to remember the already loaded texture's file names)
 
    Returns true if the operation was successful */
 
@@ -130,7 +128,7 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
                 bool already_exists = false;
                 for(wrapper<material> const& mat_wrap : material_wrapper_set) {
                     if (mat_wrap.name.has_value() && mat_wrap.name.value().compare(m_name) == 0) {
-                        printf("Duplicate material %s ignored\n", m_name.data());
+                        printf("\rDuplicate material %s ignored\n", m_name.data());
                         already_exists = true;
                         break;
                     }

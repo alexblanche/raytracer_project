@@ -47,7 +47,7 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
     long int& time) {
 
     const long int init_time = get_time();
-    const rt::vector zero = rt::vector(0, 0, 0);
+    const rt::vector zero = rt::vector(0.0f, 0.0f, 0.0f);
     
     for (int i = 0; i < width; i++) {
         for (int j = 0; j < height; j++) {
@@ -76,7 +76,7 @@ void render_loop_parallel(const rt::screen& scr, const int width, const int heig
     long int& time) {
     
     const long int init_time = get_time();
-    const rt::vector zero = rt::vector(0, 0, 0);
+    const rt::vector zero = rt::vector(0.0f, 0.0f, 0.0f);
 
     std::mutex m;
 
@@ -133,14 +133,10 @@ int main(int /*argc*/, char **/*argv*/) {
     /* *************************** */
     /* Scene description */
 
-    // Spheres
-
-    // Sphere 00
+    // Sphere 0
     const sphere sph0(rt::vector(-400,0,1000), 240, rt::color::WHITE);
     // Sphere 1
     const sphere sph1(rt::vector( 400,0,1000), 240, rt::color::WHITE);
-
-    // Planes
 
     // Plane 0
     const plane pln0(0, -1, 0, rt::vector(0, 240, 0), rt::color::WHITE);

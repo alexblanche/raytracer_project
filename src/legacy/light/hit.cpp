@@ -3,8 +3,6 @@
 #include "legacy/objects/object.hpp"
 #include <cmath>
 
-#define TWOPI 6.2831853071795862
-
 /** The hit class contains the information
  * of a ray hitting a surface: the ray in question,
  * the point of contact, the normal of the surface at

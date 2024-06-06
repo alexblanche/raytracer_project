@@ -5,7 +5,7 @@
 
 #include <cmath>
 
-#define TWOPI 6.2831853071795862
+#define TWOPI 6.2831853071795862f
 
 /** The hit class contains the information
  * of a ray hitting a surface: the ray in question,

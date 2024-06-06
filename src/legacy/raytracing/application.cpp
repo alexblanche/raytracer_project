@@ -20,7 +20,7 @@ rt::color apply_lights_obj(const hit& h,
     const rt::color sum =
         std::transform_reduce(
             light_set.begin(), light_set.end(),
-            rt::color(0, 0, 0),
+            rt::color(0.0f, 0.0f, 0.0f),
             sum_colors,
             apply
         );
