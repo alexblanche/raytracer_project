@@ -235,7 +235,7 @@ int main(int argc, char *argv[]) {
 
     scene& scene = scene_opt.value();
 
-    printf("Number of objects: %lu\n", scene.object_set.size());
+    printf("Number of objects: %zu\n", scene.object_set.size());
 
 
     /**************************************************************************/

@@ -13,16 +13,37 @@
 
 /* Attempt at a real-time skydome */
 
-void update_screen(rt::screen& scr, rt::color& col) {
-    scr.clear();
-    scr.fill_rect(0, 0, scr.width()-1, scr.height()-1, col);
-    // scr.update();
-}
-
+/* Returns the current time in milliseconds */
 uint64_t get_time() {
     return duration_cast< std::chrono::milliseconds >(
         std::chrono::system_clock::now().time_since_epoch()
     ).count();
+}
+
+struct mouse_pos {
+    int x;
+    int y;
+
+    void set(int mx, int my) {
+        x = mx;
+        y = my;
+    }
+};
+
+void update_screen(rt::screen& scr, const rt::color& bg_col, const rt::color& cursor_col, mouse_pos& mouse) {
+    scr.clear();
+    scr.fill_rect(0, 0, scr.width()-1, scr.height()-1, bg_col);
+    //SDL_GetMouseState(&mouse.x, &mouse.y);
+    scr.draw_line(
+        mouse.x - 8, mouse.y,
+        mouse.x + 8, mouse.y,
+        cursor_col
+    );
+    scr.draw_line(
+        mouse.x, mouse.y - 8,
+        mouse.x, mouse.y + 8,
+        cursor_col
+    );
 }
 
 int main(int, char**) {
@@ -41,14 +62,23 @@ int main(int, char**) {
     */
 
     /* Screen dimensions */
-    int width = 1366, height = 768;
+    //int width = 1366, height = 768;
+    int width = 1920, height = 1080;
 
     rt::screen scr(width, height);
+    
 
-    rt::color col(0, 0, 0);
+    mouse_pos mouse;
+    mouse.set(scr.width()/2, scr.height()/2);
+
+    const rt::color bg_col(0, 0, 0);
+    const rt::color cursor_col(255, 0, 0);
+    update_screen(scr, bg_col, cursor_col, mouse);
 
     bool stop = false;
 
+    /*
+    // Fade from black to red
     std::function<void(void)> func =
         [&] () {
 
@@ -63,28 +93,83 @@ int main(int, char**) {
         stop = true;
         m.unlock();
     };
+    */
+
+    
+    std::function<void(void)> func =
+        [&] () {
+        
+        SDL_Event event;
+        while(SDL_WaitEvent(&event)) {
+            /*
+            switch(event.type) {
+                case SDL_MOUSEMOTION:
+                    mouse.set(event.motion.x, event.motion.y);
+                    break;
+                case SDL_QUIT:
+                case SDL_KEYDOWN:
+                    if (event.type == SDL_QUIT ||
+                        (event.type == SDL_KEYDOWN && event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)) {
+                        stop = true;
+                        return;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            */
+                
+            if (event.type == SDL_MOUSEMOTION) {
+                mouse.set(event.motion.x, event.motion.y);
+            }
+            else if (event.type == SDL_QUIT ||
+                (event.type == SDL_KEYDOWN && event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)) {
+                stop = true;
+                return;
+            }
+        }
+    };
 
     std::thread th(func);
     
-    // func();
 
     const uint64_t time_init = get_time();
     uint64_t last_update_time = time_init;
 
-    unsigned int cpt = 0;
+    unsigned int frame_cpt = 0;
     
+    /* Update loop */
+
     while (not stop) {
         const uint64_t time = get_time();
-        if (time - last_update_time >= 16) {
-            last_update_time = time;
+
+        /*
+        SDL_Event event;
+        while(SDL_PollEvent(&event)) {
+                
+            if (event.type == SDL_MOUSEMOTION) {
+                mouse.set(event.motion.x, event.motion.y);
+            }
+            else if (event.type == SDL_QUIT ||
+                (event.type == SDL_KEYDOWN && event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)) {
+                stop = true;
+                break;
+            }
+        }
+        */
+
+        /* Update every 16ms, to target 60fps */
+        if (time - last_update_time >= 1000 / 60) {
+            update_screen(scr, bg_col, cursor_col, mouse);
             scr.update();
-            cpt ++;
+            last_update_time = time;
+            frame_cpt ++;
         }
     }
 
     const uint64_t curr_time = get_time();
 
-    std::cout << "Average fps: " << (1000.0 * cpt) / (curr_time - time_init) << std::endl;
+    std::cout << "Average fps: " << (1000.0 * frame_cpt) / (curr_time - time_init) << std::endl;
 
     th.join();
 

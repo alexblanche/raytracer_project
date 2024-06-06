@@ -16,7 +16,10 @@ namespace rt {
 	 * Main constructor. Builds an image from its dimensions.
 	 */
 	image::image(int width, int height)	{
-		SDL_CreateWindowAndRenderer(width, height, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE, &window, &renderer);
+		//SDL_CreateWindowAndRenderer(width, height, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE, &window, &renderer);
+		window = SDL_CreateWindow("Raytracer_project", 10, 10, width, height, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
+		renderer = SDL_CreateRenderer(window, (-1), SDL_RENDERER_ACCELERATED);
+		SDL_RenderSetVSync(renderer, 0); // 1 = Enable VSync, 0 = Disable
 		SDL_RenderSetLogicalSize(renderer, width, height);
 	}
 

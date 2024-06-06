@@ -45,7 +45,7 @@ bool export_raw(const char* file_name, const unsigned int number_of_rays, std::v
                 rt::color c = matrix[i][j];
                 const int ret = fprintf(file, "%lf %lf %lf\n", c.get_red(), c.get_green(), c.get_blue());
                 if (ret < 0) {
-                    printf("Writing error at color line %lu of %s\n", width*j + i, file_name);
+                    printf("Writing error at color line %zu of %s\n", width*j + i, file_name);
                     throw std::runtime_error("");
                 }
             }
@@ -90,7 +90,7 @@ std::optional<std::vector<std::vector<rt::color>>> read_raw(const char* file_nam
                 double r, g, b;
                 const int ret = fscanf(file, "%lf %lf %lf\n", &r, &g, &b);
                 if (ret < 0) {
-                    printf("Reading error at color line %lu of file %s\n", width*j + i, file_name);
+                    printf("Reading error at color line %zu of file %s\n", width*j + i, file_name);
                     throw std::runtime_error("");
                 }
                 matrix[i][j] = rt::color(r, g, b);
@@ -169,7 +169,7 @@ bool combine_raw(const char* dest_bmp_name, const char* dest_raw_name, const int
                 double r, g, b;
                 const int ret = fscanf(file, "%lf %lf %lf\n", &r, &g, &b);
                 if (ret < 0) {
-                    printf("Reading error at color line %lu of file %s\n", width*j + i, source_file_names[k]);
+                    printf("Reading error at color line %zu of file %s\n", width*j + i, source_file_names[k]);
                     fclose(file);
                     return false;
                 }
