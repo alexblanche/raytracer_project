@@ -4,12 +4,12 @@
 #include "screen/screen.hpp"
 
 #include <algorithm>
-#include <thread>
-#include <mutex>
-#include <functional>
+// #include <thread>
+// #include <mutex>
+// #include <functional>
 #include <chrono>
 
-#include<unistd.h>
+// #include<unistd.h>
 
 /* Attempt at a real-time skydome */
 
@@ -96,41 +96,41 @@ int main(int, char**) {
     */
 
     
-    std::function<void(void)> func =
-        [&] () {
+    // std::function<void(void)> func =
+    //     [&] () {
         
-        SDL_Event event;
-        while(SDL_WaitEvent(&event)) {
-            /*
-            switch(event.type) {
-                case SDL_MOUSEMOTION:
-                    mouse.set(event.motion.x, event.motion.y);
-                    break;
-                case SDL_QUIT:
-                case SDL_KEYDOWN:
-                    if (event.type == SDL_QUIT ||
-                        (event.type == SDL_KEYDOWN && event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)) {
-                        stop = true;
-                        return;
-                    }
-                    break;
-                default:
-                    break;
-            }
-            */
+    //     SDL_Event event;
+    //     while(SDL_WaitEvent(&event)) {
+    //         /*
+    //         switch(event.type) {
+    //             case SDL_MOUSEMOTION:
+    //                 mouse.set(event.motion.x, event.motion.y);
+    //                 break;
+    //             case SDL_QUIT:
+    //             case SDL_KEYDOWN:
+    //                 if (event.type == SDL_QUIT ||
+    //                     (event.type == SDL_KEYDOWN && event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)) {
+    //                     stop = true;
+    //                     return;
+    //                 }
+    //                 break;
+    //             default:
+    //                 break;
+    //         }
+    //         */
                 
-            if (event.type == SDL_MOUSEMOTION) {
-                mouse.set(event.motion.x, event.motion.y);
-            }
-            else if (event.type == SDL_QUIT ||
-                (event.type == SDL_KEYDOWN && event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)) {
-                stop = true;
-                return;
-            }
-        }
-    };
+    //         if (event.type == SDL_MOUSEMOTION) {
+    //             mouse.set(event.motion.x, event.motion.y);
+    //         }
+    //         else if (event.type == SDL_QUIT ||
+    //             (event.type == SDL_KEYDOWN && event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)) {
+    //             stop = true;
+    //             return;
+    //         }
+    //     }
+    // };
 
-    std::thread th(func);
+    // std::thread th(func);
     
 
     const uint64_t time_init = get_time();
@@ -143,7 +143,6 @@ int main(int, char**) {
     while (not stop) {
         const uint64_t time = get_time();
 
-        /*
         SDL_Event event;
         while(SDL_PollEvent(&event)) {
                 
@@ -156,7 +155,6 @@ int main(int, char**) {
                 break;
             }
         }
-        */
 
         /* Update every 16ms, to target 60fps */
         if (time - last_update_time >= 1000 / 60) {
@@ -171,7 +169,7 @@ int main(int, char**) {
 
     std::cout << "Average fps: " << (1000.0 * frame_cpt) / (curr_time - time_init) << std::endl;
 
-    th.join();
+    // th.join();
 
     return EXIT_SUCCESS;
 }
