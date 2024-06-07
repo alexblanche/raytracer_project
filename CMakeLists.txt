@@ -9,7 +9,6 @@ add_compile_options(-Wall -Wextra -Werror -O3)
 add_compile_options(-fdiagnostics-color)
 add_compile_options(-march=native)
 add_compile_options(-ffast-math)
-add_compile_options(-pthread)
 
 include_directories(include/)
 
@@ -134,6 +133,7 @@ target_include_directories(${legacy}
 
 add_executable(sky
 	src/screen/color.cpp
+	src/file_readers/bmp_reader.cpp
 	src/screen/image.cpp
 	src/screen/screen.cpp
 	src/sky/test_sky.cpp

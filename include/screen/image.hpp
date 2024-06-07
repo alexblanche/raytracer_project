@@ -27,7 +27,8 @@ namespace rt {
 	 */
 	class image	{
 		
-		protected:
+		public:
+		// protected:
 			
 			SDL_Window* window;
 			SDL_Renderer* renderer;
@@ -39,7 +40,7 @@ namespace rt {
 			 */
 			image();
 
-		public:
+		// public:
 
 			/**
 			 * Main constructor. Builds an image from its dimensions.
