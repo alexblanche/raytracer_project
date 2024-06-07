@@ -84,10 +84,14 @@ int main(int, char**) {
 
     std::cout << "Screen created" << std::endl;
 
-    const unsigned int nbpix = 4 * dims.value().width * dims.value().height;
+    const unsigned int depth = 3;
+
+    const unsigned int nbpix = depth * dims.value().width * dims.value().height;
     std::vector<char> pixels(nbpix);
 
-    std::cout << "Pixel vector created" << std::endl;
+    // std::cout << "Pixel vector created" << std::endl;
+
+    // const uint64_t time_init_render = get_time();
     
     for (int j = 0; j < dims.value().height; j++) { 
         for (int i = 0; i < dims.value().width; i++) {
@@ -95,32 +99,32 @@ int main(int, char**) {
             char r = c.get_red();
             char g = c.get_green();
             char b = c.get_blue();
-            const int index = 4 * (j * dims.value().width + i);
+            const int index = depth * (j * dims.value().width + i);
             pixels[index]     = b;
             pixels[index + 1] = g;
             pixels[index + 2] = r;
-            pixels[index + 3] = 255;
+            // pixels[index + 3] = 255;
         }
     }
 
-    std::cout << "Pixels created" << std::endl;
+    // std::cout << "Pixels created" << std::endl;
 
     SDL_Surface* surface = SDL_CreateRGBSurfaceFrom((void*) pixels.data(),
             dims.value().width,
             dims.value().height,
-            32,
-            sizeof(char),
+            8 * depth, // depth bytes per pixel (in bits)
+            depth * dims.value().width, // depth * width
             0, 0, 0, 0);
     if (surface == NULL) {
         std::cout << "Error" << std::endl;
         return EXIT_FAILURE;
     }
 
-    std::cout << "Surface created" << std::endl;
+    // std::cout << "Surface created" << std::endl;
 
     SDL_Texture* texture = SDL_CreateTextureFromSurface(scr.renderer, surface);
 
-    std::cout << "Texture created" << std::endl;
+    // std::cout << "Texture created" << std::endl;
 
     SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_NONE);
     
@@ -136,20 +140,32 @@ int main(int, char**) {
     dstrect.w = scr.width();
     dstrect.h = scr.height();
 
-    std::cout << "Rectangles created" << std::endl;
+    // std::cout << "Rectangles created" << std::endl;
 
     SDL_RenderClear(scr.renderer);
 
     SDL_RenderCopy(scr.renderer, texture, &srcrect, &dstrect);
-    std::cout << "Render copy" << std::endl;
+    // std::cout << "Render copy" << std::endl;
 
     SDL_RenderPresent(scr.renderer);
 
-    std::cout << "Render present" << std::endl;
+    // const uint64_t time_render = get_time();
+    // std::cout << "Time to render: " << time_render - time_init_render
+    //     << " = " << 1000.0 / (time_render - time_init_render) << " fps" << std::endl;
+
+    // std::cout << "Render present" << std::endl;
+
+    SDL_Texture* txt = SDL_CreateTexture(scr.renderer, SDL_PIXELFORMAT_BGR24, SDL_TEXTUREACCESS_STREAMING, scr.width(), scr.height());
 
     SDL_Event event;
     const uint64_t time_init = get_time();
     unsigned int frame_cpt = 0;
+    char* texture_pixels;
+    int texture_pitch;
+    const float ratio_x = ((float) (matrix.size() - 1)) / (scr.width()-1);
+    const float ratio_y = ((float) (matrix[0].size() - 1)) / (scr.height()-1);
+    char* orig_pixels = (char*) surface->pixels;
+
     while(true) {
         while(SDL_PollEvent(&event)) {
                     
@@ -160,8 +176,34 @@ int main(int, char**) {
                 return EXIT_SUCCESS;
             }
         }
+
+        // Render new frame
+        SDL_LockTexture(txt, NULL, (void**) &texture_pixels, &texture_pitch);
+        for (int j = 0; j < scr.height(); j++) {
+            const int index_j = ratio_y * j;
+            for (int i = 0; i < scr.width(); i++) {
+                /*
+                rt::color& c = matrix[(int) (ratio_x * i)][index_j];
+                char r = c.get_red();
+                char g = c.get_green();
+                char b = c.get_blue();
+                const int index = 3 * (j * scr.width() + i);
+                texture_pixels[index]     = r;
+                texture_pixels[index + 1] = g;
+                texture_pixels[index + 2] = b;
+                */
+
+                // The spherical projection will be done with this index_source(i, j)
+                const int index_source = 3 * (index_j * dims.value().width + ((int) (ratio_x * i)));
+                const int index = 3 * (j * scr.width() + i);
+                texture_pixels[index]     = orig_pixels[index_source];
+                texture_pixels[index + 1] = orig_pixels[index_source + 1];
+                texture_pixels[index + 2] = orig_pixels[index_source + 2];
+            }
+        }
+        SDL_UnlockTexture(txt);
         SDL_RenderClear(scr.renderer);
-        SDL_RenderCopy(scr.renderer, texture, &srcrect, &dstrect);
+        SDL_RenderCopy(scr.renderer, txt, &srcrect, &dstrect);
         SDL_RenderPresent(scr.renderer);
         frame_cpt ++;
     }
