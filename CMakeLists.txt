@@ -136,6 +136,7 @@ add_executable(sky
 	src/file_readers/bmp_reader.cpp
 	src/screen/image.cpp
 	src/screen/screen.cpp
+	src/light/vector.cpp
 	src/sky/test_sky.cpp
 )
 target_link_libraries(sky
