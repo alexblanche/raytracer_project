@@ -37,9 +37,12 @@ struct mouse_pos {
 
     // xr and yr are relative positions
     void set(int xr, int yr) {
+        // Mouse to the right = decreasing theta
         theta -= xr / width;
+        // Mouse to the top = increasing phi
         phi += yr / height;
 
+        // theta is circular in [-PI, PI]
         if (theta > PI) {
             theta -= 2 * PI;
         }
@@ -47,6 +50,7 @@ struct mouse_pos {
             theta += 2 * PI;
         }
         
+        // phi is capped between -PI/2 and PI/2
         if (phi > PI / 2) {
             phi = PI / 2;
         }
@@ -94,7 +98,7 @@ struct screen_axes {
         screen_x_axis.x = sintheta;
         screen_x_axis.z = costheta;
         screen_y_axis.x = -sinphi * costheta;
-        screen_y_axis.y = costheta;
+        screen_y_axis.y = cos(phi);
         screen_y_axis.z = sinphi * sintheta;
     }
 };
@@ -134,6 +138,9 @@ struct spherical {
     // Returns the world space spherical coordinates (theta, phi) of the point of cartesian coordinates (x, y, z)
     // (assuming sqrt(x*x + y*y + z*z) < 1)
     spherical(const rt::vector& u) {
+        
+        // First version
+        /*
         if (u.x == 0) {
             theta = PI / 2;
         }
@@ -142,6 +149,43 @@ struct spherical {
         }
 
         phi = asin(u.y) + PI/2;
+        */
+
+        // Attempt at preventing overflow
+        /*
+        if (phi > PI / 2) {
+            phi = PI - phi;
+            theta += PI;
+        }
+        else if (phi < -PI / 2) {
+            phi = - PI - phi;
+            theta += PI;
+        }
+
+        if (theta > PI) {
+            theta -= 2 * PI;
+        }
+        else if (theta < -PI) {
+            theta += 2 * PI;
+        }
+        */
+
+        if (u.x > 0) {
+            theta = atan(u.z / u.x) + PI/2;
+        }
+        else if (u.x < 0) {
+            if (u.z > 0) {
+                theta = atan(u.z / u.x) + 3 * PI/2;
+            }
+            else {
+                theta = atan(u.z / u.x) - PI/2;
+            }
+        }
+        else {
+            theta = PI/2;
+        }
+
+        phi = asin(u.y / u.norm()) + PI/2;
     }
 };
 
@@ -150,7 +194,9 @@ struct spherical {
 int main(int, char**) {
 
     /* Skydome texture */
-    const char* file_name = "../../../raytracer_project/sky/dome/field.bmp";
+    const char* file_name =
+        //"../../../raytracer_project/sky/dome/test.bmp";
+        "../../../raytracer_project/sky/dome/field.bmp";
 
     std::optional<dimensions> dims = read_bmp_size(file_name);
     if (not dims.has_value()) {
@@ -243,8 +289,8 @@ int main(int, char**) {
     const int half_scr_width = scr.width() / 2;
     const int half_scr_height = scr.height() / 2;
 
-    const float fov_x = 0.1;  // 2pi * 0.25 = pi / 2
-    const float fov_y = 0.2;  // pi * 0.5 = pi / 2
+    const float fov_x = 0.15;
+    const float fov_y = 0.15;
 
     screen_axes axes;
 
@@ -252,7 +298,7 @@ int main(int, char**) {
     const float y_step = fov_y * PI / half_scr_height;
 
     // Scaling factor to convert [-pi/2, pi/2] to [0, img_width-1] or [0, img_height-1]
-    const float img_scale_x = (img_width - 1) / PI;
+    const float img_scale_x = (img_width - 1) / (2 * PI);
     const float img_scale_y = (img_height - 1) / PI;
 
     while(true) {
@@ -271,28 +317,32 @@ int main(int, char**) {
             }
         }
 
-        // std::cout << "Drawing frame..." << std::endl;
+        // std::cout << "Theta = " << mouse.theta << "; Phi = " << mouse.phi << std::endl;
 
         // Render a new frame
+
+        // Pre-computation of the cartesian coordinates of the pixel in world space
         const rt::vector center = get_center(fov_x, mouse.theta, mouse.phi);
         axes.set(mouse.theta, mouse.phi);
 
         SDL_LockTexture(txt, NULL, (void**) &texture_pixels, &texture_pitch);
         for (int j = 0; j < scr.height(); j++) {
 
+            // Pre-computation of the cartesian coordinates of the pixel in world space
             const rt::vector y_component = axes.screen_y_axis * (j - half_scr_height) * y_step;
-            
-            // std::cout << "j = " << j << std::endl;
+            const rt::vector pre_cartesian = center + y_component;
 
             for (int i = 0; i < scr.width(); i++) {
-
-                // std::cout << "i = " << i << "; ";
-
+                
+                // Determining the cartesian coordinates of the pixel in world space
                 const rt::vector x_component = axes.screen_x_axis * (i - half_scr_width) * x_step;
-                const rt::vector cartesian = center + x_component + y_component;
+                const rt::vector cartesian = pre_cartesian + x_component;
+                // Converting the coordinates into spherical coordinates in world space
                 const spherical sph(cartesian);
 
+                // Reading the pixel of the image corresponding to the spherical coordinates of the pixel in world space
                 const int index_src = index_source(sph.theta * img_scale_x, sph.phi * img_scale_y, ratio_x, img_width);
+                // Copying its color onto the screen
                 const int index = 3 * (j * scr.width() + i);
                 texture_pixels[index]     = orig_pixels[index_src];
                 texture_pixels[index + 1] = orig_pixels[index_src + 1];
