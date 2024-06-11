@@ -37,21 +37,21 @@ struct mouse_pos {
 
     // xr and yr are relative positions
     void set(int xr, int yr) {
-        theta += xr / width;
+        theta -= xr / width;
         phi += yr / height;
 
-        if (theta > 1) {
-            theta -= 1;
+        if (theta > PI) {
+            theta -= 2 * PI;
         }
-        else if (theta < 0) {
-            theta += 1;
+        else if (theta < -PI) {
+            theta += 2 * PI;
         }
         
-        if (phi > 1) {
-            phi = 1;
+        if (phi > PI / 2) {
+            phi = PI / 2;
         }
-        else if (phi < 0) {
-            phi = 0;
+        else if (phi < -PI / 2) {
+            phi = -PI / 2;
         }
     }
 };
@@ -113,18 +113,18 @@ rt::vector get_center(const float& fov_x, const float& theta, const float& phi) 
 }
 
 // Returns the world space cartesian coordinates of the pixel of coordinates (i, j) (in screen space)
-rt::vector get_cartesian(screen_axes& axes,
-    const float& fov_x, const float& fov_y, const int scr_width, const int scr_height,
-    const float& theta, const float& phi, const int i, const int j) {
+// rt::vector get_cartesian(screen_axes& axes,
+//     const float& fov_x, const float& fov_y, const int scr_width, const int scr_height,
+//     const float& theta, const float& phi, const int i, const int j) {
 
-    const rt::vector center = get_center(fov_x, theta, phi);
-    axes.set(theta, phi);
-    const int i0 = scr_width / 2;
-    const int j0 = scr_height / 2;
-    return center
-        + axes.screen_x_axis * (i - i0) * (fov_x * PI / i0)  // atomic horizontal angle: fov_x * pi / (width / 2)
-        + axes.screen_y_axis * (j0 - j) * (fov_y * PI / j0); // atomic vertical angle: fov_y * pi / (height / 2)
-}
+//     const rt::vector center = get_center(fov_x, theta, phi);
+//     axes.set(theta, phi);
+//     const int i0 = scr_width / 2;
+//     const int j0 = scr_height / 2;
+//     return center
+//         + axes.screen_x_axis * (i - i0) * (fov_x * PI / i0)  // atomic horizontal angle: fov_x * pi / (width / 2)
+//         + axes.screen_y_axis * (j0 - j) * (fov_y * PI / j0); // atomic vertical angle: fov_y * pi / (height / 2)
+// }
 
 // Struct for spherical coordinates
 struct spherical {
@@ -138,10 +138,10 @@ struct spherical {
             theta = PI / 2;
         }
         else {
-            theta = atan(u.z / u.x);
+            theta = atan(u.z / u.x) + PI/2;
         }
 
-        phi = asin(u.y);
+        phi = asin(u.y) + PI/2;
     }
 };
 
@@ -238,15 +238,22 @@ int main(int, char**) {
     char* orig_pixels = (char*) surface->pixels;
 
     const int img_width = dims.value().width;
-    // const int img_height = dims.value().height;
+    const int img_height = dims.value().height;
 
     const int half_scr_width = scr.width() / 2;
     const int half_scr_height = scr.height() / 2;
 
-    const float fov_x = 0.25; // 2pi * 0.25 = pi / 2
-    const float fov_y = 0.5;  // pi * 0.5 = pi / 2
+    const float fov_x = 0.1;  // 2pi * 0.25 = pi / 2
+    const float fov_y = 0.2;  // pi * 0.5 = pi / 2
 
     screen_axes axes;
+
+    const float x_step = fov_x * PI / half_scr_width;
+    const float y_step = fov_y * PI / half_scr_height;
+
+    // Scaling factor to convert [-pi/2, pi/2] to [0, img_width-1] or [0, img_height-1]
+    const float img_scale_x = (img_width - 1) / PI;
+    const float img_scale_y = (img_height - 1) / PI;
 
     while(true) {
         while(SDL_PollEvent(&event)) {
@@ -264,6 +271,8 @@ int main(int, char**) {
             }
         }
 
+        // std::cout << "Drawing frame..." << std::endl;
+
         // Render a new frame
         const rt::vector center = get_center(fov_x, mouse.theta, mouse.phi);
         axes.set(mouse.theta, mouse.phi);
@@ -271,20 +280,26 @@ int main(int, char**) {
         SDL_LockTexture(txt, NULL, (void**) &texture_pixels, &texture_pitch);
         for (int j = 0; j < scr.height(); j++) {
 
-            const rt::vector y_component = axes.screen_y_axis * (half_scr_height - j) * (fov_y * PI / half_scr_height);
+            const rt::vector y_component = axes.screen_y_axis * (j - half_scr_height) * y_step;
+            
+            // std::cout << "j = " << j << std::endl;
 
             for (int i = 0; i < scr.width(); i++) {
 
-                const rt::vector x_component = axes.screen_x_axis * (i - half_scr_width) * (fov_x * PI / half_scr_width);
+                // std::cout << "i = " << i << "; ";
+
+                const rt::vector x_component = axes.screen_x_axis * (i - half_scr_width) * x_step;
                 const rt::vector cartesian = center + x_component + y_component;
                 const spherical sph(cartesian);
 
-                const int index_src = index_source(sph.theta * (scr.width()-1) / 2*PI, sph.phi * (scr.height()-1) / 2*PI, ratio_x, img_width);
+                const int index_src = index_source(sph.theta * img_scale_x, sph.phi * img_scale_y, ratio_x, img_width);
                 const int index = 3 * (j * scr.width() + i);
                 texture_pixels[index]     = orig_pixels[index_src];
                 texture_pixels[index + 1] = orig_pixels[index_src + 1];
                 texture_pixels[index + 2] = orig_pixels[index_src + 2];
             }
+
+            // std::cout << std::endl;
         }
         SDL_UnlockTexture(txt);
         SDL_RenderClear(scr.renderer);
