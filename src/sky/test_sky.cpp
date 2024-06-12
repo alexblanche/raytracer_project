@@ -16,6 +16,7 @@
 #include "light/vector.hpp"
 
 #define PI 3.14159265359f
+#define PIOVER2 1.57079632679f
 
 /* Prototype: attempt at a real-time skydome, to be cleaned-up later */
 
@@ -51,16 +52,17 @@ struct mouse_pos {
         }
         
         // phi is capped between -PI/2 and PI/2
-        if (phi > PI / 2) {
-            phi = PI / 2;
+        if (phi > PIOVER2) {
+            phi = PIOVER2 - 1e-07f;
         }
-        else if (phi < -PI / 2) {
-            phi = -PI / 2;
+        else if (phi < -PIOVER2) {
+            phi = -PIOVER2 + 1e-07f;;
         }
     }
 };
 
-void update_screen(rt::screen& scr, std::vector<std::vector<rt::color>>& image, mouse_pos& /*mouse*/) {
+/*
+void update_screen(rt::screen& scr, std::vector<std::vector<rt::color>>& image, mouse_pos&) { //mouse) {
     scr.clear();
     const float ratio_x = ((float) image.size()) / (scr.width()-1);
     const float ratio_y = ((float) image[0].size()) / (scr.height()-1);
@@ -70,14 +72,22 @@ void update_screen(rt::screen& scr, std::vector<std::vector<rt::color>>& image, 
         }
     }
 }
+*/
 
 // Index of the pixel in the original texture corresponding to the index i, j of the screen
-int index_source (const int i, const int j, const float& ratio_x, const int img_width) {
+/*
+int index_source (const int i, const int j, const float& ratio_x, const float& ratio_y, const int img_width) {
+
+    // const int a = 3 * (((int) (1 * j)) * img_width + ((int) (ratio_x * i)));
+    // if (a < 0 || a >= (22118400-2)) {
+    //     // std::cout << "Index overflow " << a << std::endl;
+    //     return 0;
+    // }
 
     // Copying the image onto the screen
-    return 3 * (j * img_width + ((int) (ratio_x * i)));
+    return 3 * (j * img_width + ((int) (1 * i)));
 }
-
+*/
 
 /** Trigonometry calculations **/
 
@@ -127,7 +137,7 @@ rt::vector get_center(const float& fov_x, const float& theta, const float& phi) 
 //     const int j0 = scr_height / 2;
 //     return center
 //         + axes.screen_x_axis * (i - i0) * (fov_x * PI / i0)  // atomic horizontal angle: fov_x * pi / (width / 2)
-//         + axes.screen_y_axis * (j0 - j) * (fov_y * PI / j0); // atomic vertical angle: fov_y * pi / (height / 2)
+//         + axes.screen_y_axis * (j - j0) * (fov_y * PI / j0); // atomic vertical angle: fov_y * pi / (height / 2)
 // }
 
 // Struct for spherical coordinates
@@ -138,54 +148,18 @@ struct spherical {
     // Returns the world space spherical coordinates (theta, phi) of the point of cartesian coordinates (x, y, z)
     // (assuming sqrt(x*x + y*y + z*z) < 1)
     spherical(const rt::vector& u) {
-        
-        // First version
-        /*
-        if (u.x == 0) {
-            theta = PI / 2;
-        }
-        else {
-            theta = atan(u.z / u.x) + PI/2;
-        }
-
-        phi = asin(u.y) + PI/2;
-        */
-
-        // Attempt at preventing overflow
-        /*
-        if (phi > PI / 2) {
-            phi = PI - phi;
-            theta += PI;
-        }
-        else if (phi < -PI / 2) {
-            phi = - PI - phi;
-            theta += PI;
-        }
-
-        if (theta > PI) {
-            theta -= 2 * PI;
-        }
-        else if (theta < -PI) {
-            theta += 2 * PI;
-        }
-        */
 
         if (u.x > 0) {
-            theta = atan(u.z / u.x) + PI/2;
+            theta = atanf(u.z / u.x) + 3.0f * PIOVER2;
         }
         else if (u.x < 0) {
-            if (u.z > 0) {
-                theta = atan(u.z / u.x) + 3 * PI/2;
-            }
-            else {
-                theta = atan(u.z / u.x) - PI/2;
-            }
+            theta = atanf(u.z / u.x) + PIOVER2;
         }
         else {
-            theta = PI/2;
+            theta = 3.0f * PIOVER2;
         }
 
-        phi = asin(u.y / u.norm()) + PI/2;
+        phi = asinf(u.y / u.norm()) + PIOVER2;
     }
 };
 
@@ -216,10 +190,10 @@ int main(int, char**) {
 
     rt::screen scr(width, height);
 
+    SDL_SetWindowFullscreen(scr.window, SDL_WINDOW_FULLSCREEN);
     SDL_ShowCursor(SDL_DISABLE);
 
     const unsigned int depth = 3;
-
     const unsigned int nbpix = depth * dims.value().width * dims.value().height;
     std::vector<char> pixels(nbpix);
     
@@ -247,10 +221,10 @@ int main(int, char**) {
         return EXIT_FAILURE;
     }
 
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(scr.renderer, surface);
+    // SDL_Texture* texture = SDL_CreateTextureFromSurface(scr.renderer, surface);
 
 
-    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_NONE);
+    // SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_NONE);
     
     SDL_Rect srcrect;
     SDL_Rect dstrect;
@@ -266,7 +240,8 @@ int main(int, char**) {
 
     SDL_RenderClear(scr.renderer);
 
-    SDL_RenderCopy(scr.renderer, texture, &srcrect, &dstrect);
+    // SDL_RenderCopy(scr.renderer, texture, &srcrect, &dstrect);
+    
 
     // SDL_RenderPresent(scr.renderer);
 
@@ -279,17 +254,18 @@ int main(int, char**) {
     unsigned int frame_cpt = 0;
     char* texture_pixels;
     int texture_pitch;
-    const float ratio_x = ((float) (matrix.size() - 1)) / (scr.width()-1);
-    // const float ratio_y = ((float) (matrix[0].size() - 1)) / (scr.height()-1);
     char* orig_pixels = (char*) surface->pixels;
 
     const int img_width = dims.value().width;
     const int img_height = dims.value().height;
+    
+    // const float ratio_x = ((float) (img_width - 1)) / (scr.width()-1);
+    // const float ratio_y = ((float) (img_height - 1)) / (scr.height()-1);
 
     const int half_scr_width = scr.width() / 2;
     const int half_scr_height = scr.height() / 2;
 
-    const float fov_x = 0.15;
+    const float fov_x = 0.3;
     const float fov_y = 0.15;
 
     screen_axes axes;
@@ -297,7 +273,7 @@ int main(int, char**) {
     const float x_step = fov_x * PI / half_scr_width;
     const float y_step = fov_y * PI / half_scr_height;
 
-    // Scaling factor to convert [-pi/2, pi/2] to [0, img_width-1] or [0, img_height-1]
+    // Scaling factor to convert [-pi, pi] (resp. [-pi/2, pi/2]) to [0, img_width-1] (resp. [0, img_height-1])
     const float img_scale_x = (img_width - 1) / (2 * PI);
     const float img_scale_y = (img_height - 1) / PI;
 
@@ -324,24 +300,40 @@ int main(int, char**) {
         // Pre-computation of the cartesian coordinates of the pixel in world space
         const rt::vector center = get_center(fov_x, mouse.theta, mouse.phi);
         axes.set(mouse.theta, mouse.phi);
+        const rt::vector scaled_x_axis = axes.screen_x_axis * x_step;
+        const rt::vector scaled_y_axis = axes.screen_y_axis * y_step;
 
         SDL_LockTexture(txt, NULL, (void**) &texture_pixels, &texture_pitch);
         for (int j = 0; j < scr.height(); j++) {
 
             // Pre-computation of the cartesian coordinates of the pixel in world space
-            const rt::vector y_component = axes.screen_y_axis * (j - half_scr_height) * y_step;
+            const rt::vector y_component = scaled_y_axis * (j - half_scr_height);
             const rt::vector pre_cartesian = center + y_component;
 
             for (int i = 0; i < scr.width(); i++) {
                 
                 // Determining the cartesian coordinates of the pixel in world space
-                const rt::vector x_component = axes.screen_x_axis * (i - half_scr_width) * x_step;
+                const rt::vector x_component = scaled_x_axis * (i - half_scr_width);
                 const rt::vector cartesian = pre_cartesian + x_component;
                 // Converting the coordinates into spherical coordinates in world space
                 const spherical sph(cartesian);
+                
+                /*
+                const int x = (sph.theta * img_scale_x);
+                const int y = (sph.phi * img_scale_y);
+                if (x < 0 || x >= img_width || y < 0 || y >= img_height) {
+                    std::cout << "img_width = " << img_width << "; img_height = " << img_height << std::endl;
+                    std::cout << "x = " << x << "; y = " << y << std::endl;
+                    std::cout << "float x = " << (sph.theta * img_scale_x) << "; float y = " << (sph.phi * img_scale_y) << std::endl;
+                    std::cout << std::endl;
+                    std::cout << "2 * pi = " << 2 * PI << std::endl;
+                    std::cout << "theta = " << sph.theta << "; phi = " << sph.phi << std::endl;
+                    return EXIT_FAILURE;
+                }
+                */
 
                 // Reading the pixel of the image corresponding to the spherical coordinates of the pixel in world space
-                const int index_src = index_source(sph.theta * img_scale_x, sph.phi * img_scale_y, ratio_x, img_width);
+                const int index_src = 3 * (((int) (sph.phi * img_scale_y)) * img_width + (int) (sph.theta * img_scale_x));
                 // Copying its color onto the screen
                 const int index = 3 * (j * scr.width() + i);
                 texture_pixels[index]     = orig_pixels[index_src];
