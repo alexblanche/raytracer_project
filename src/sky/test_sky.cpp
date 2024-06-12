@@ -1,24 +1,14 @@
 #include <iostream>
-
 #include "file_readers/bmp_reader.hpp"
 #include "screen/screen.hpp"
-
-#include <algorithm>
-// #include <thread>
-// #include <mutex>
-#include <functional>
-#include <chrono>
-
-// #include<unistd.h>
-
-#include <cmath>
-
 #include "light/vector.hpp"
+#include <chrono>
+#include <cmath>
 
 #define PI 3.14159265359f
 #define PIOVER2 1.57079632679f
 
-/* Prototype: attempt at a real-time skydome, to be cleaned-up later */
+/* Prototype: real-time skydome, to be cleaned-up */
 
 /* Returns the current time in milliseconds */
 uint64_t get_time() {
@@ -27,6 +17,7 @@ uint64_t get_time() {
     ).count();
 }
 
+/* Struct containing the spherical coordinates controlled by the mouse */
 struct mouse_pos {
     const float width;
     const float height;
@@ -34,7 +25,7 @@ struct mouse_pos {
 
     mouse_pos(int width, int height)
         : width(width), height(height),
-          theta(0), phi(0.5) {}
+          theta(PI), phi(0) {}
 
     // xr and yr are relative positions
     void set(int xr, int yr) {
@@ -53,94 +44,70 @@ struct mouse_pos {
         
         // phi is capped between -PI/2 and PI/2
         if (phi > PIOVER2) {
-            phi = PIOVER2 - 1e-07f;
+            phi = PIOVER2;
         }
         else if (phi < -PIOVER2) {
-            phi = -PIOVER2 + 1e-07f;;
+            phi = -PIOVER2;
         }
     }
 };
 
-/*
-void update_screen(rt::screen& scr, std::vector<std::vector<rt::color>>& image, mouse_pos&) { //mouse) {
-    scr.clear();
-    const float ratio_x = ((float) image.size()) / (scr.width()-1);
-    const float ratio_y = ((float) image[0].size()) / (scr.height()-1);
-    for (int i = 0; i < scr.width()-1; i++) {
-        for (int j = 0; j < scr.height()-1; j++) {
-            scr.set_pixel(i, j, image[(int) (ratio_x * i)][(int) (ratio_y * j)]);
-        }
-    }
-}
-*/
-
-// Index of the pixel in the original texture corresponding to the index i, j of the screen
-/*
-int index_source (const int i, const int j, const float& ratio_x, const float& ratio_y, const int img_width) {
-
-    // const int a = 3 * (((int) (1 * j)) * img_width + ((int) (ratio_x * i)));
-    // if (a < 0 || a >= (22118400-2)) {
-    //     // std::cout << "Index overflow " << a << std::endl;
-    //     return 0;
-    // }
-
-    // Copying the image onto the screen
-    return 3 * (j * img_width + ((int) (1 * i)));
-}
-*/
-
 /** Trigonometry calculations **/
 
-// Struct containing the X and Y axes of the screen in world space
+// Struct containing the X and Y axes of the screen in world space,
+// and the catersian coordinates of the center of the screen (x0, y0, z0)
+// The 4 edges of the screen plane are set at radius 1, so the center is
+// set at a distance cos(fov_x)
 struct screen_axes {
     rt::vector screen_x_axis;
     rt::vector screen_y_axis;
+    rt::vector center;
 
     screen_axes() {
         screen_x_axis = rt::vector(1, 0, 0);
         screen_y_axis = rt::vector(0, 1, 0);
+        center = rt::vector(0, 0, 1);
     }
 
-    void set(const float& theta, const float& phi) {
+    void set(const float& fov_x, const float& theta, const float& phi) {
+        const float cosphi = cos(phi);
         const float sinphi = sin(phi);
         const float costheta = cos(theta);
         const float sintheta = sin(theta);
+        const float l = cos(fov_x * PI);
+        
         screen_x_axis.x = sintheta;
         screen_x_axis.z = costheta;
+
         screen_y_axis.x = -sinphi * costheta;
-        screen_y_axis.y = cos(phi);
+        screen_y_axis.y = cosphi;
         screen_y_axis.z = sinphi * sintheta;
+
+        center.x = l * cosphi * costheta;
+        center.y = l * sinphi;
+        center.z = l * cosphi * (-sintheta);
     }
 };
 
-// Returns the catersian coordinates of the center of the screen (x0, y0, z0)
-// The 4 edges of the screen plane are set at radius 1, so the center is
-// set at a distance cos(fov_x)
-rt::vector get_center(const float& fov_x, const float& theta, const float& phi) {
-    const float l = cos(fov_x * PI);
-    const float lcosphi = l * cos(phi);
-    return rt::vector(
-        lcosphi * cos(theta),
-        l * sin(phi),
-        lcosphi * (-sin(theta))
-    );
-}
-
+/*
 // Returns the world space cartesian coordinates of the pixel of coordinates (i, j) (in screen space)
-// rt::vector get_cartesian(screen_axes& axes,
-//     const float& fov_x, const float& fov_y, const int scr_width, const int scr_height,
-//     const float& theta, const float& phi, const int i, const int j) {
+// Prototype: the computations have been placed into the code at the right place, to optimize pre-computation
 
-//     const rt::vector center = get_center(fov_x, theta, phi);
-//     axes.set(theta, phi);
-//     const int i0 = scr_width / 2;
-//     const int j0 = scr_height / 2;
-//     return center
-//         + axes.screen_x_axis * (i - i0) * (fov_x * PI / i0)  // atomic horizontal angle: fov_x * pi / (width / 2)
-//         + axes.screen_y_axis * (j - j0) * (fov_y * PI / j0); // atomic vertical angle: fov_y * pi / (height / 2)
-// }
+rt::vector get_cartesian(screen_axes& axes,
+    const float& fov_x, const float& fov_y, const int scr_width, const int scr_height,
+    const float& theta, const float& phi, const int i, const int j) {
 
-// Struct for spherical coordinates
+    const rt::vector center = get_center(fov_x, theta, phi);
+    axes.set(theta, phi);
+    const int i0 = scr_width / 2;
+    const int j0 = scr_height / 2;
+    return center
+        + axes.screen_x_axis * (i - i0) * (fov_x * PI / i0)  // atomic horizontal angle: fov_x * pi / (width / 2)
+        + axes.screen_y_axis * (j - j0) * (fov_y * PI / j0); // atomic vertical angle: fov_y * pi / (height / 2)
+}
+*/
+
+// Struct for spherical coordinates of pixels in world space
 struct spherical {
     float theta;
     float phi;
@@ -169,8 +136,10 @@ int main(int, char**) {
 
     /* Skydome texture */
     const char* file_name =
-        //"../../../raytracer_project/sky/dome/test.bmp";
-        "../../../raytracer_project/sky/dome/field.bmp";
+        //"../../../raytracer_project/sky/dome/evening.bmp";
+        //"../../../raytracer_project/sky/dome/field.bmp";
+        //"../../../raytracer_project/sky/dome/southern_sky.bmp";
+        "../../../raytracer_project/sky/dome/house.bmp";
 
     std::optional<dimensions> dims = read_bmp_size(file_name);
     if (not dims.has_value()) {
@@ -179,20 +148,17 @@ int main(int, char**) {
     }
     std::vector<std::vector<rt::color>> matrix(dims.value().width, std::vector<rt::color>(dims.value().height));
     const bool read_success = read_bmp(file_name, matrix);
-
     if (not read_success) {
         return EXIT_FAILURE;
     }
 
     /* Screen dimensions */
-    //int width = 1366, height = 768;
     int width = 1920, height = 1080;
-
     rt::screen scr(width, height);
-
     SDL_SetWindowFullscreen(scr.window, SDL_WINDOW_FULLSCREEN);
     SDL_ShowCursor(SDL_DISABLE);
 
+    /* Creation of the surface containing the colors in char format */
     const unsigned int depth = 3;
     const unsigned int nbpix = depth * dims.value().width * dims.value().height;
     std::vector<char> pixels(nbpix);
@@ -220,11 +186,6 @@ int main(int, char**) {
         std::cout << "Error" << std::endl;
         return EXIT_FAILURE;
     }
-
-    // SDL_Texture* texture = SDL_CreateTextureFromSurface(scr.renderer, surface);
-
-
-    // SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_NONE);
     
     SDL_Rect srcrect;
     SDL_Rect dstrect;
@@ -238,29 +199,22 @@ int main(int, char**) {
     dstrect.w = scr.width();
     dstrect.h = scr.height();
 
-    SDL_RenderClear(scr.renderer);
-
-    // SDL_RenderCopy(scr.renderer, texture, &srcrect, &dstrect);
-    
-
-    // SDL_RenderPresent(scr.renderer);
-
+    /* Rendering texture */
     SDL_Texture* txt = SDL_CreateTexture(scr.renderer, SDL_PIXELFORMAT_BGR24, SDL_TEXTUREACCESS_STREAMING, scr.width(), scr.height());
 
+    /* Variable declarations */
     mouse_pos mouse(scr.width(), scr.height());
 
     SDL_Event event;
     const uint64_t time_init = get_time();
     unsigned int frame_cpt = 0;
+    
     char* texture_pixels;
     int texture_pitch;
     char* orig_pixels = (char*) surface->pixels;
 
     const int img_width = dims.value().width;
     const int img_height = dims.value().height;
-    
-    // const float ratio_x = ((float) (img_width - 1)) / (scr.width()-1);
-    // const float ratio_y = ((float) (img_height - 1)) / (scr.height()-1);
 
     const int half_scr_width = scr.width() / 2;
     const int half_scr_height = scr.height() / 2;
@@ -273,11 +227,12 @@ int main(int, char**) {
     const float x_step = fov_x * PI / half_scr_width;
     const float y_step = fov_y * PI / half_scr_height;
 
-    // Scaling factor to convert [-pi, pi] (resp. [-pi/2, pi/2]) to [0, img_width-1] (resp. [0, img_height-1])
+    // Scaling factor to convert [0, 2pi] (resp. [0, pi]) to [0, img_width-1] (resp. [0, img_height-1])
     const float img_scale_x = (img_width - 1) / (2 * PI);
     const float img_scale_y = (img_height - 1) / PI;
 
     while(true) {
+        /* Event handling */
         while(SDL_PollEvent(&event)) {
                     
             if (event.type == SDL_MOUSEMOTION) {
@@ -295,11 +250,11 @@ int main(int, char**) {
 
         // std::cout << "Theta = " << mouse.theta << "; Phi = " << mouse.phi << std::endl;
 
-        // Render a new frame
+        /* Frame rendering */
 
         // Pre-computation of the cartesian coordinates of the pixel in world space
-        const rt::vector center = get_center(fov_x, mouse.theta, mouse.phi);
-        axes.set(mouse.theta, mouse.phi);
+        //const rt::vector center = get_center(fov_x, mouse.theta, mouse.phi);
+        axes.set(fov_x, mouse.theta, mouse.phi);
         const rt::vector scaled_x_axis = axes.screen_x_axis * x_step;
         const rt::vector scaled_y_axis = axes.screen_y_axis * y_step;
 
@@ -308,7 +263,7 @@ int main(int, char**) {
 
             // Pre-computation of the cartesian coordinates of the pixel in world space
             const rt::vector y_component = scaled_y_axis * (j - half_scr_height);
-            const rt::vector pre_cartesian = center + y_component;
+            const rt::vector pre_cartesian = axes.center + y_component;
 
             for (int i = 0; i < scr.width(); i++) {
                 
@@ -317,20 +272,6 @@ int main(int, char**) {
                 const rt::vector cartesian = pre_cartesian + x_component;
                 // Converting the coordinates into spherical coordinates in world space
                 const spherical sph(cartesian);
-                
-                /*
-                const int x = (sph.theta * img_scale_x);
-                const int y = (sph.phi * img_scale_y);
-                if (x < 0 || x >= img_width || y < 0 || y >= img_height) {
-                    std::cout << "img_width = " << img_width << "; img_height = " << img_height << std::endl;
-                    std::cout << "x = " << x << "; y = " << y << std::endl;
-                    std::cout << "float x = " << (sph.theta * img_scale_x) << "; float y = " << (sph.phi * img_scale_y) << std::endl;
-                    std::cout << std::endl;
-                    std::cout << "2 * pi = " << 2 * PI << std::endl;
-                    std::cout << "theta = " << sph.theta << "; phi = " << sph.phi << std::endl;
-                    return EXIT_FAILURE;
-                }
-                */
 
                 // Reading the pixel of the image corresponding to the spherical coordinates of the pixel in world space
                 const int index_src = 3 * (((int) (sph.phi * img_scale_y)) * img_width + (int) (sph.theta * img_scale_x));
@@ -340,8 +281,6 @@ int main(int, char**) {
                 texture_pixels[index + 1] = orig_pixels[index_src + 1];
                 texture_pixels[index + 2] = orig_pixels[index_src + 2];
             }
-
-            // std::cout << std::endl;
         }
         SDL_UnlockTexture(txt);
         SDL_RenderClear(scr.renderer);
