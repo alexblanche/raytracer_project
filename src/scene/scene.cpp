@@ -22,13 +22,15 @@ scene::scene(std::vector<const object*>&& object_set,
     const std::vector<const bounding*>& bounding_set,
     std::vector<texture>&& texture_set,
     std::vector<material>&& material_set,
-    const rt::color& background,
+    const rt::color& bg_color, texture&& bg_texture,
     const int width, const int height,
     const camera& cam,
     const unsigned int polygons_per_bounding)
 
-    : object_set(std::move(object_set)), bounding_set(bounding_set), texture_set(std::move(texture_set)), material_set(std::move(material_set)),
-    background(background), width(width), height(height),
+    : object_set(std::move(object_set)), bounding_set(bounding_set),
+    texture_set(std::move(texture_set)), material_set(std::move(material_set)),
+    background_color(bg_color), background_texture(std::move(bg_texture)),
+    width(width), height(height),
     cam(cam), rg(randomgen()), polygons_per_bounding(polygons_per_bounding) {}
 
 

@@ -193,6 +193,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         resolution width:1366 height:768
         camera position:(0, 0, 0) direction:(0, 0, 1) rightdir:(1, 0, 0) fov_width:1000 distance:400 [focal_distance:500 aperture:100] (optional)
         background_color 190 235 255
+        background_texture filename.bmp (optional: at least one of background_color, background_texture must be specified)
         polygons_per_bounding 10 //specifying 0 will deactivate the bounding generation
 
         fov_height is generated automatically (for width/height aspect ratio)
@@ -232,13 +233,39 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 fovw, fovh, dist, width, height);
         }
 
+        bool background_set = false;
+        const long int position_bg = ftell(file);
+        rt::color background_color;
+        texture background_texture;
+
+        // Setting up the background_color (optional)
         double r, g, b;
         ret = fscanf(file, "background_color %lf %lf %lf\n", &r, &g, &b);
         if (ret != 3) {
-            throw std::runtime_error("Parsing error in scene constructor (background)");
+            fseek(file, position_bg, SEEK_SET);
         }
+        else {
+            background_color = rt::color(r, g, b);
+            background_set = true;
+        }
+        // Setting up the background texture (also optional)
+        char bg_tfile_name[513];
+        ret = fscanf(file, "background_texture %512s\n", bg_tfile_name);
 
-        rt::color background = rt::color(r, g, b);
+        // Neither background color nor texture
+        if (ret != 1){
+            if (not background_set) {
+                throw std::runtime_error("Parsing error in scene constructor (background)");
+            }
+        }
+        else {
+            bool bg_parsing_successful;
+            background_texture = texture(bg_tfile_name, bg_parsing_successful);
+            if (not bg_parsing_successful) {
+                throw std::runtime_error("Parsing error in scene constructor (background texture parsing)");
+            }
+        }
+        
         unsigned int polygons_per_bounding = 0;
 
         ret = fscanf(file, "polygons_per_bounding %u\n", &polygons_per_bounding);
@@ -622,7 +649,8 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         
         std::optional<scene> scene_opt;
         scene_opt.emplace(std::move(object_set), std::move(bounding_set), std::move(texture_set), std::move(material_set),
-            background, width, height, cam, polygons_per_bounding);
+            background_color, std::move(background_texture),
+            width, height, cam, polygons_per_bounding);
         return scene_opt;
 
     }

@@ -50,28 +50,6 @@ class texture {
             // printf("Destruction of a texture (width = %d, height = %d, data = %lu)\n", width, height, data.size());
         }
         
-        /*
-        texture(const texture& tx)
-            :
-            width(tx.width),
-            height(tx.height),
-            data(tx.data),
-            width_minus_one(tx.width_minus_one),
-            height_minus_one(tx.height_minus_one) {
-            
-            printf("Copying a texture\n");
-        }
-
-        texture& operator=(const texture& tx) {
-            printf("Assigning a texture\n");
-            const int width = tx.width;
-            const int height = tx.height;
-            const std::vector<std::vector<rt::color>> data = tx.data;
-            texture* txt = new texture(width, height, data);
-            printf("(returning)\n");
-            return *txt;
-        }
-        */
         texture(const texture&) = delete;
 
         texture& operator=(const texture&) = delete;

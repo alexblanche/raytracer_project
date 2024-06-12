@@ -244,7 +244,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
         }
         else {
             // No object hit: background color
-            return (color_materials * scene.background) + emitted_colors;
+            return (color_materials * scene.background_color) + emitted_colors;
         }
     }
 

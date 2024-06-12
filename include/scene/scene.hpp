@@ -27,7 +27,8 @@ class scene {
 
 
         // Color of the background
-        rt::color background;
+        rt::color background_color;
+        texture background_texture;
 
         // Screen parameters
         int width;
@@ -49,7 +50,7 @@ class scene {
             const std::vector<const bounding*>& bounding_set,
             std::vector<texture>&& texture_set,
             std::vector<material>&& material_set,
-            const rt::color& background,
+            const rt::color& bg_color, texture&& bg_texture,
             const int width, const int height,
             const camera& cam,
             const unsigned int polygons_per_bounding);

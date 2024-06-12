@@ -137,9 +137,9 @@ int main(int, char**) {
     /* Skydome texture */
     const char* file_name =
         //"../../../raytracer_project/sky/dome/evening.bmp";
-        //"../../../raytracer_project/sky/dome/field.bmp";
+        "../../../raytracer_project/sky/dome/field.bmp";
         //"../../../raytracer_project/sky/dome/southern_sky.bmp";
-        "../../../raytracer_project/sky/dome/house.bmp";
+        //"../../../raytracer_project/sky/dome/house.bmp";
 
     std::optional<dimensions> dims = read_bmp_size(file_name);
     if (not dims.has_value()) {
