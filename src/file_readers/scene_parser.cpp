@@ -193,8 +193,12 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         resolution width:1366 height:768
         camera position:(0, 0, 0) direction:(0, 0, 1) rightdir:(1, 0, 0) fov_width:1000 distance:400 [focal_distance:500 aperture:100] (optional)
         background_color 190 235 255
-        background_texture filename.bmp (optional: at least one of background_color, background_texture must be specified)
+        background_texture filename.bmp horizontal_angle:3.14 vertical_angle:0
         polygons_per_bounding 10 //specifying 0 will deactivate the bounding generation
+
+        - At least one of background_color, background_texture must be specified
+        - filename.bmp should designate a panoramic image
+        - horizontal_angle must be between 0 and 2*pi = 6.28, vertical_angle must be between -pi/2 and pi/2 ~= 1.57
 
         fov_height is generated automatically (for width/height aspect ratio)
         */
@@ -233,8 +237,8 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 fovw, fovh, dist, width, height);
         }
 
-        bool background_color_set = false;
-        bool background_texture_set = false;
+        bool background_color_is_set = false;
+        bool background_texture_is_set = false;
         const long int position_bg = ftell(file);
         rt::color background_color;
         texture background_texture;
@@ -247,26 +251,34 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         }
         else {
             background_color = rt::color(r, g, b);
-            background_color_set = true;
+            background_color_is_set = true;
         }
         // Setting up the background texture (also optional)
         char bg_tfile_name[513];
-        ret = fscanf(file, "background_texture %512s\n", bg_tfile_name);
+        double theta, phi;
+        ret = fscanf(file, "background_texture %512s horizontal_angle:%lf vertical_angle:%lf\n", bg_tfile_name, &theta, &phi);
 
         // Neither background color nor texture
-        if (ret != 1){
-            if (not background_color_set) {
+        if (ret != 3){
+            if (not background_color_is_set) {
                 throw std::runtime_error("Parsing error in scene constructor (background)");
             }
         }
+        else if (theta < 0 || theta > 2 * 3.1416 || phi < -1.58 || phi > 1.58) {
+            throw std::runtime_error("Incorrect background texture angles");
+        }
         else {
             bool bg_parsing_successful;
+            printf("Parsing %s...", bg_tfile_name);
+            fflush(stdout);
             background_texture = texture(bg_tfile_name, bg_parsing_successful);
             if (not bg_parsing_successful) {
                 throw std::runtime_error("Parsing error in scene constructor (background texture parsing)");
             }
             else {
-                background_texture_set = true;
+                printf("\r%s texture loaded\n", bg_tfile_name);
+                fflush(stdout);
+                background_texture_is_set = true;
             }
         }
         
@@ -400,10 +412,12 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 t_name.resize(strlen(t_name.data()));
                 
                 bool parsing_successful;
+                printf("Parsing %s...", tfile_name);
+                fflush(stdout);
                 texture_wrapper_set.emplace_back(texture(tfile_name, parsing_successful), t_name);
 
                 if (parsing_successful) {
-                    printf("%s texture loaded\n", tfile_name);
+                    printf("\r%s texture loaded\n", tfile_name);
                     fflush(stdout);
                 }
                 else {
@@ -652,9 +666,9 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         }
         
         std::optional<scene> scene_opt;
-        if (background_texture_set) {
+        if (background_texture_is_set) {
             scene_opt.emplace(std::move(object_set), std::move(bounding_set), std::move(texture_set), std::move(material_set),
-                (background_color_set) ? std::optional<rt::color>(background_color) : std::nullopt, std::move(background_texture),
+                std::move(background_texture), theta, phi,
                 width, height, cam, polygons_per_bounding);
         }
         else {

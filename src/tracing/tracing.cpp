@@ -10,7 +10,6 @@
 
 #define PI 3.14159265358979323846f
 
-
 /* ******************************************************************** */
 /* *************************** Path tracing *************************** */
 
@@ -107,39 +106,17 @@ void refractive_case(ray& r, const hit& h, randomgen& rg, const real& scattering
 rt::color background_case(const scene& scene, const ray& r,
     const rt::color& color_materials, const rt::color& emitted_colors) {
 
-    if (scene.background_texture.has_value()) {
+    if (scene.background.has_texture()) {
         /* Determining the pixel of the background texture to display */
         /* Determining the spherical coordinates of the direction,
             then the UV-coordinates in the 360 image */
 
         const rt::vector& dir = r.get_direction();
-        
-        real phi = asinf(dir.y) + 0.5f * PI;
-        // dir is a unit vector, but due to floating-point imprecision, dir.y can be greater than 1
-        if (abs(dir.y) >= 1.0f) {
-            phi = (dir.y > 0.0f) ? PI : 0;
-        }
-
-        real theta;
-        if (dir.x > 0.0f) {
-            theta = atanf(dir.z / dir.x) + 1.5f * PI;
-        }
-        else if (dir.x < 0.0f) {
-            theta = atanf(dir.z / dir.x) + 0.5f * PI;
-        }
-        else {
-            theta = 0.0f;
-        }
-
-        const real u = theta / (2.0f * PI);
-        const real v = phi / PI;
-
-        const rt::color bg_texture_color = scene.background_texture.value().get_color(u, v);
-        return (color_materials * bg_texture_color) + emitted_colors;
+        return (color_materials * scene.background.get_color(dir)) + emitted_colors;
 
     }
     else {
-        return (color_materials * scene.background_color) + emitted_colors;
+        return (color_materials * scene.background.get_color()) + emitted_colors;
     }
 }
 

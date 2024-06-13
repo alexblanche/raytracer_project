@@ -7,7 +7,7 @@
 #include "screen/color.hpp"
 #include "auxiliary/randomgen.hpp"
 #include "camera.hpp"
-
+#include "material/background.hpp"
 
 class scene {
     public:
@@ -25,10 +25,8 @@ class scene {
         /* Set containing all the materials from the scene */
         std::vector<material> material_set;
 
-
-        // Color of the background
-        rt::color background_color;
-        std::optional<texture> background_texture;
+        // Color or texture of the background
+        background_container background;
 
         // Screen parameters
         int width;
@@ -60,7 +58,7 @@ class scene {
             const std::vector<const bounding*>& bounding_set,
             std::vector<texture>&& texture_set,
             std::vector<material>&& material_set,
-            const std::optional<rt::color>& bg_color, texture&& bg_texture,
+            texture&& bg_texture, const real& bg_horiz, const real& bg_vert,
             const int width, const int height,
             const camera& cam,
             const unsigned int polygons_per_bounding);
