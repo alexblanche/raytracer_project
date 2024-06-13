@@ -157,7 +157,7 @@ rt::vector hit::random_direction(randomgen& rg, const rt::vector& central_dir, c
     */
     const real cos_theta = 1.0f - p * (1.0f - cos_theta_max);
     const real sin_theta = sqrt(1.0f - cos_theta * cos_theta);
-
+    
     return (
           (cos(phi) * sin_theta) * X
         + (sin(phi) * sin_theta) * Y

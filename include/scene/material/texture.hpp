@@ -43,7 +43,7 @@ class texture {
 
         /* Accessor */
 
-        /* Returns the color stored in data at UV-coordinates u, v between 0 and 1 times width, height */
+        /* Returns the color stored in data at UV-coordinates u, v (between 0 and 1) times width, height */
         rt::color get_color(const real& u, const real& v) const;
 
         ~texture() {

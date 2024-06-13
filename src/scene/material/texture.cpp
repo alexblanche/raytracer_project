@@ -14,16 +14,11 @@ texture::texture() {
 /* Default constructor */
 texture::texture(const int width, const int height, const std::vector<std::vector<rt::color>>& data)
     : width(width), height(height), data(data),
-        width_minus_one((real) (width - 1)), height_minus_one((real) (height - 1)) {
-
-    // printf("Creation of a texture from the main constructor\n");
-}
+        width_minus_one((real) (width - 1)), height_minus_one((real) (height - 1)) {}
 
 /* Constructor from a .bmp file
    Writes true in parsing_successful if the operation was successful */
 texture::texture(const char* file_name, bool& parsing_successful) {
-
-    // printf("Creation of a texture from a file\n");
 
     const std::optional<dimensions> dims = read_bmp_size(file_name);
     if (dims.has_value()) {
@@ -44,7 +39,7 @@ texture::texture(const char* file_name, bool& parsing_successful) {
 
 /* Accessor */
 
-/* Returns the color stored in data at UV-coordinates u, v between 0 and 1 times width, height */
+/* Returns the color stored in data at UV-coordinates u, v (between 0 and 1) times width, height */
 rt::color texture::get_color(const real& u, const real& v) const {
     return data[(int) (u * width_minus_one)][(int) (v * height_minus_one)];
 }
