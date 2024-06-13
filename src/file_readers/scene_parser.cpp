@@ -233,7 +233,8 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 fovw, fovh, dist, width, height);
         }
 
-        bool background_set = false;
+        bool background_color_set = false;
+        bool background_texture_set = false;
         const long int position_bg = ftell(file);
         rt::color background_color;
         texture background_texture;
@@ -246,7 +247,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         }
         else {
             background_color = rt::color(r, g, b);
-            background_set = true;
+            background_color_set = true;
         }
         // Setting up the background texture (also optional)
         char bg_tfile_name[513];
@@ -254,7 +255,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
 
         // Neither background color nor texture
         if (ret != 1){
-            if (not background_set) {
+            if (not background_color_set) {
                 throw std::runtime_error("Parsing error in scene constructor (background)");
             }
         }
@@ -263,6 +264,9 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
             background_texture = texture(bg_tfile_name, bg_parsing_successful);
             if (not bg_parsing_successful) {
                 throw std::runtime_error("Parsing error in scene constructor (background texture parsing)");
+            }
+            else {
+                background_texture_set = true;
             }
         }
         
@@ -648,9 +652,15 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         }
         
         std::optional<scene> scene_opt;
-        scene_opt.emplace(std::move(object_set), std::move(bounding_set), std::move(texture_set), std::move(material_set),
-            background_color, std::move(background_texture),
-            width, height, cam, polygons_per_bounding);
+        if (background_texture_set) {
+            scene_opt.emplace(std::move(object_set), std::move(bounding_set), std::move(texture_set), std::move(material_set),
+                (background_color_set) ? std::optional<rt::color>(background_color) : std::nullopt, std::move(background_texture),
+                width, height, cam, polygons_per_bounding);
+        }
+        else {
+            scene_opt.emplace(std::move(object_set), std::move(bounding_set), std::move(texture_set), std::move(material_set),
+                background_color, width, height, cam, polygons_per_bounding);
+        }
         return scene_opt;
 
     }

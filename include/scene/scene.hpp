@@ -28,7 +28,7 @@ class scene {
 
         // Color of the background
         rt::color background_color;
-        texture background_texture;
+        std::optional<texture> background_texture;
 
         // Screen parameters
         int width;
@@ -45,12 +45,22 @@ class scene {
 
         /* Constructor */
 
-        /* Main constructor */
+        /* Constructor with only background color */
         scene(std::vector<const object*>&& object_set,
             const std::vector<const bounding*>& bounding_set,
             std::vector<texture>&& texture_set,
             std::vector<material>&& material_set,
-            const rt::color& bg_color, texture&& bg_texture,
+            const rt::color& bg_color,
+            const int width, const int height,
+            const camera& cam,
+            const unsigned int polygons_per_bounding);
+
+        /* Constructor with background texture and optional background color */
+        scene(std::vector<const object*>&& object_set,
+            const std::vector<const bounding*>& bounding_set,
+            std::vector<texture>&& texture_set,
+            std::vector<material>&& material_set,
+            const std::optional<rt::color>& bg_color, texture&& bg_texture,
             const int width, const int height,
             const camera& cam,
             const unsigned int polygons_per_bounding);

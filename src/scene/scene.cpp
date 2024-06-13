@@ -18,20 +18,46 @@ std::numeric_limits<real> realscene;
 const real infinity = realscene.infinity();
 
 
+/* Constructor with only background color */
 scene::scene(std::vector<const object*>&& object_set,
     const std::vector<const bounding*>& bounding_set,
     std::vector<texture>&& texture_set,
     std::vector<material>&& material_set,
-    const rt::color& bg_color, texture&& bg_texture,
+    const rt::color& bg_color,
     const int width, const int height,
     const camera& cam,
     const unsigned int polygons_per_bounding)
 
     : object_set(std::move(object_set)), bounding_set(bounding_set),
     texture_set(std::move(texture_set)), material_set(std::move(material_set)),
-    background_color(bg_color), background_texture(std::move(bg_texture)),
+    background_color(bg_color), background_texture(std::nullopt),
     width(width), height(height),
     cam(cam), rg(randomgen()), polygons_per_bounding(polygons_per_bounding) {}
+
+
+/* Constructor with background texture and optional background color */
+scene::scene(std::vector<const object*>&& object_set,
+    const std::vector<const bounding*>& bounding_set,
+    std::vector<texture>&& texture_set,
+    std::vector<material>&& material_set,
+    const std::optional<rt::color>& bg_color, texture&& bg_texture,
+    const int width, const int height,
+    const camera& cam,
+    const unsigned int polygons_per_bounding)
+
+    : object_set(std::move(object_set)), bounding_set(bounding_set),
+    texture_set(std::move(texture_set)), material_set(std::move(material_set)),
+    background_texture(std::move(bg_texture)),
+    width(width), height(height),
+    cam(cam), rg(randomgen()), polygons_per_bounding(polygons_per_bounding) {
+    
+    if (bg_color.has_value()) {
+        background_color = bg_color.value();
+    }
+    else {
+        background_color = rt::color(0, 0, 0);
+    }
+}
 
 
 

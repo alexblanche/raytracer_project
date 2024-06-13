@@ -17,7 +17,7 @@
 /** Auxiliary functions **/
 
 /* Auxiliary function that updates the color accumulators */
-void update_accumulators(const material& m, const object*& obj, const rt::vector& hit_point,
+void update_accumulators(const material& m, const object* obj, const rt::vector& hit_point,
     const std::vector<texture>& texture_set,
     rt::color& emitted_colors, rt::color& color_materials,
     const bool update_color_materials) {
@@ -104,8 +104,6 @@ void refractive_case(ray& r, const hit& h, randomgen& rg, const real& scattering
     apply_bias(r, h.get_point(), h.get_normal(), inward, false);
 }
 
-#define UPDATE_ACC(reflects_colors) update_accumulators(m, obj, h.get_point(), scene.texture_set, emitted_colors, color_materials, reflects_colors)
-
 
 /* Path tracing function */
 
@@ -138,9 +136,14 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
 
         if (opt_h.has_value()) {
             
-            const hit h = opt_h.value();
+            const hit& h = opt_h.value();
             const object* obj = h.get_object();
             const material& m = scene.material_set[obj->get_material_index()];
+
+            auto update_acc = [&](bool reflects_colors) {
+                update_accumulators(m, obj, h.get_point(), scene.texture_set, emitted_colors, color_materials, reflects_colors);
+            };
+
 
             /* Full-intensity light source reached */
             if (m.get_emission_intensity() >= 1.0f) {
@@ -179,14 +182,14 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
 
                     /* We update color_materials only if the material reflects colors (like a christmas tree ball),
                        otherwise the reflection has the original color (like a tomato) */
-                    UPDATE_ACC(m.does_reflect_color());
+                    update_acc(m.does_reflect_color());
                 }
                 else {
 
                     /* Diffuse bounce */
 
                     diffuse_case(r, h, scene.rg, inward);
-                    UPDATE_ACC(true);
+                    update_acc(true);
                 }
             }
             else {
@@ -218,7 +221,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                     
                     /* Is it a pure specular or a mix of specular and diffuse just like in the previous case? */
                     specular_reflective_case(r, h, scene.rg, m.get_reflectivity(), inward);
-                    UPDATE_ACC(false);
+                    update_acc(false);
                 }
                 else {
                     
@@ -229,21 +232,21 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                         /* Total internal reflection */
 
                         specular_reflective_case(r, h, scene.rg, m.get_reflectivity(), inward);
-                        UPDATE_ACC(false);
+                        update_acc(false);
                     }
                     else {
                         /* Transmission */
 
                         refractive_case(r, h, scene.rg, m.get_refraction_scattering(),
                             vx, sin_theta_2_sq, inward, refr_index, next_refr_i);
-                        UPDATE_ACC(true);
+                        update_acc(true);
                     }
 
                 }
             }
         }
         else {
-            // No object hit: background color
+            // No object hit: background color or background texture
             return (color_materials * scene.background_color) + emitted_colors;
         }
     }
