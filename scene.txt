@@ -20,13 +20,13 @@ quad (-600,100,800) (-600,100,400) (600,100,400) (600,100,800) material:(color:(
 
 # Glass
 cylinder origin:(-350, 100.1, 600) direction:(0, -1, 0) radius:80 length:300 material:glass
-cylinder origin:(-350, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:water
+# cylinder origin:(-350, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:water
 
 cylinder origin:(-117, 100.1, 600) direction:(0, -1, 0) radius:80 length:300 material:glass
-cylinder origin:(-117, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:water
+# cylinder origin:(-117, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:water
 
 cylinder origin:(117, 100.1, 600) direction:(0, -1, 0) radius:80 length:300 material:glass
-cylinder origin:(117, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:water
+# cylinder origin:(117, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:water
 
 cylinder origin:(350, 100.1, 600) direction:(0, -1, 0) radius:80 length:300 material:glass
-cylinder origin:(350, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:water
+# cylinder origin:(350, 60, 600) direction:(0, -1, 0) radius:78 length:260.1 material:water
