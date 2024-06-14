@@ -41,7 +41,16 @@ texture::texture(const char* file_name, bool& parsing_successful) {
 
 /* Returns the color stored in data at UV-coordinates u, v (between 0 and 1) times width, height */
 rt::color texture::get_color(const real& u, const real& v) const {
-    return data[(int) (u * width_minus_one)][(int) (v * height_minus_one)];
+    const int x = u * width_minus_one;
+    const int y = v * height_minus_one;
+    // Due to floating-point imprecision, some "unit" vector have a norm slightly larger than 1,
+    // producing out of range coordinates
+    if (x < 0 || x >= width || y < 0 || y >= height) {
+        return data[std::min(width - 1, std::max(0, x))][std::min(height - 1, std::max(0, y))];
+    }
+    else {
+        return data[x][y];
+    }
 }
 
 

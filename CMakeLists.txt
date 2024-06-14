@@ -29,6 +29,7 @@ set (libname raytracer)
 add_library(${libname} SHARED
 	src/screen/color.cpp
 	src/scene/material/texture.cpp
+	src/scene/material/background.cpp
 	src/scene/material/material.cpp
 	src/screen/image.cpp
 	src/screen/screen.cpp
