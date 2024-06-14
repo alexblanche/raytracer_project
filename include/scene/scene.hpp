@@ -58,7 +58,7 @@ class scene {
             const std::vector<const bounding*>& bounding_set,
             std::vector<texture>&& texture_set,
             std::vector<material>&& material_set,
-            texture&& bg_texture, const real& bg_horiz, const real& bg_vert,
+            texture&& bg_texture, const real& bg_rx, const real& bg_ry, const real& bg_rz,
             const int width, const int height,
             const camera& cam,
             const unsigned int polygons_per_bounding);

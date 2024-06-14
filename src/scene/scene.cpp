@@ -40,14 +40,14 @@ scene::scene(std::vector<const object*>&& object_set,
     const std::vector<const bounding*>& bounding_set,
     std::vector<texture>&& texture_set,
     std::vector<material>&& material_set,
-    texture&& bg_texture, const real& bg_horiz, const real& bg_vert,
+    texture&& bg_texture, const real& rx, const real& ry, const real& rz,
     const int width, const int height,
     const camera& cam,
     const unsigned int polygons_per_bounding)
 
     : object_set(std::move(object_set)), bounding_set(bounding_set),
     texture_set(std::move(texture_set)), material_set(std::move(material_set)),
-    background(background_container(std::move(bg_texture), bg_horiz, bg_vert)),
+    background(background_container(std::move(bg_texture), rx, ry, rz)),
     width(width), height(height),
     cam(cam), rg(randomgen()), polygons_per_bounding(polygons_per_bounding) {}
 

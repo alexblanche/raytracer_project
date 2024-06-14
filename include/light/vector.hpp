@@ -73,6 +73,21 @@ namespace rt {
 		 * return a vector of the same direction but of norm 1
 		 */
 		vector unit() const;
+
+		/**
+		 * Rotation around axis x by an angle theta
+		 * */
+		vector rotate_x(const real& theta) const;
+
+		/**
+		 * Rotation around axis y by an angle theta
+		 * */
+		vector rotate_y(const real& theta) const;
+
+		/**
+		 * Rotation around axis z by an angle theta
+		 * */
+		vector rotate_z(const real& theta) const;
 	};
 
 	/**

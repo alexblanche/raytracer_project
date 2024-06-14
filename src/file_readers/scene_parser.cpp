@@ -255,16 +255,16 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         }
         // Setting up the background texture (also optional)
         char bg_tfile_name[513];
-        double theta, phi;
-        ret = fscanf(file, "background_texture %512s horizontal_angle:%lf vertical_angle:%lf\n", bg_tfile_name, &theta, &phi);
+        double rx, ry, rz;
+        ret = fscanf(file, "background_texture %512s rotate_x:%lf rotate_y:%lf rotate_z:%lf\n", bg_tfile_name, &rx, &ry, &rz);
 
         // Neither background color nor texture
-        if (ret != 3){
+        if (ret != 4){
             if (not background_color_is_set) {
                 throw std::runtime_error("Parsing error in scene constructor (background)");
             }
         }
-        else if (theta < 0 || theta > 2 * 3.1416 || phi < -1.58 || phi > 1.58) {
+        else if (rx < 0 || rx > 2 * 3.1416 || ry < 0 || ry > 2 * 3.1416 || rz < 0 || rz > 2 * 3.1416) {
             throw std::runtime_error("Incorrect background texture angles");
         }
         else {
@@ -668,7 +668,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         std::optional<scene> scene_opt;
         if (background_texture_is_set) {
             scene_opt.emplace(std::move(object_set), std::move(bounding_set), std::move(texture_set), std::move(material_set),
-                std::move(background_texture), theta, phi,
+                std::move(background_texture), rx, ry, rz,
                 width, height, cam, polygons_per_bounding);
         }
         else {

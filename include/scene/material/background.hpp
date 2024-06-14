@@ -11,16 +11,17 @@
 struct background_container {
     rt::color bg_color;
     std::optional<texture> bg_texture;
-    real init_theta;
-    real init_phi;
+    real rotate_x;
+    real rotate_y;
+    real rotate_z;
 
     background_container(const rt::color& col)
         : bg_color(col),
-        bg_texture(std::nullopt), init_theta(0), init_phi(0) {}
+        bg_texture(std::nullopt), rotate_x(0), rotate_y(0), rotate_z(0) {}
 
-    background_container(texture&& txt, const real& theta, const real& phi)
+    background_container(texture&& txt, const real& rx, const real& ry, const real& rz)
         : bg_color(rt::color(0, 0, 0)),
-        bg_texture(std::move(txt)), init_theta(theta), init_phi(phi) {}
+        bg_texture(std::move(txt)), rotate_x(rx), rotate_y(ry), rotate_z(rz) {}
 
     inline bool has_texture() const {
         return bg_texture.has_value();
@@ -33,40 +34,40 @@ struct background_container {
 
     /* Returns the color of the pixel dir is pointing at, when a texture is set */
     rt::color get_color(const rt::vector& dir) const {
+
+        rt::vector dir_rotated = dir;
+        if (rotate_x != 0.0f) {
+            dir_rotated = dir_rotated.rotate_x(rotate_x);
+        }
+        if (rotate_y != 0.0f) {
+            dir_rotated = dir_rotated.rotate_y(rotate_y);
+        }
+        if (rotate_z != 0.0f) {
+            dir_rotated = dir_rotated.rotate_z(rotate_z);
+        }
+
         
         /* Determining the pixel of the background texture to display */      
-        real phi = asinf(dir.y) + 0.5f * PI;
+        real phi = asinf(dir_rotated.y) + 0.5f * PI;
         // dir is a unit vector, but due to floating-point imprecision, dir.y can be greater than 1
-        if (abs(dir.y) >= 1.0f) {
-            phi = (dir.y > 0.0f) ? PI : 0;
+        if (abs(dir_rotated.y) >= 1.0f) {
+            phi = (dir_rotated.y > 0.0f) ? PI : 0;
         }
 
         real theta;
-        if (dir.x > 0.0f) {
-            theta = atanf(dir.z / dir.x) + 1.5f * PI;
+        if (dir_rotated.x > 0.0f) {
+            theta = atanf(dir_rotated.z / dir_rotated.x) + 1.5f * PI;
         }
-        else if (dir.x < 0.0f) {
-            theta = atanf(dir.z / dir.x) + 0.5f * PI;
+        else if (dir_rotated.x < 0.0f) {
+            theta = atanf(dir_rotated.z / dir_rotated.x) + 0.5f * PI;
         }
         else {
             theta = 0.0f;
         }
 
-        /* Determining the UV-coordinates, taking the initial horizontal and vertical angles into account */
-        real u = (theta + init_theta) / (2.0f * PI);
-        if (u > 1.0f) { u -= 1.0f; }
-
-        real v = (phi - init_phi) / PI;
-        if (v < 0.0f) {
-            v = - v;
-            u += 0.5f;
-            if (u > 1.0f) { u -= 1.0f; }
-        }
-        else if (v > 1.0f) {
-            v = 2.0f - v;
-            u += 0.5f;
-            if (u > 1.0f) { u -= 1.0f; }
-        }
+        /* Determining the UV-coordinates */
+        const real u = theta / (2.0f * PI);
+        const real v = phi / PI;
 
         return bg_texture.value().get_color(u, v);
     }
