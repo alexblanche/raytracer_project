@@ -25,9 +25,13 @@ on the same line as ``camera``.
 The background color (the "sky") is defined by:  
 ``background_color 190 235 255``
 
+Alternatively, one can define a background texture, which should be a 360 panoramic image, with the following syntax:  
+``background_texture file_name.bmp rotate_x:3.14 rotate_y:0 rotate_z:0``  
+The image is projected onto a sphere that surrounds the scene (at infinite distance) and rotated around the three axes by the specified angles (each between 0 and 2*pi).  
+
 When polygon meshes are used (see below), the rendering can be accelerated with the [Bounding Volume Hierarchy](https://en.wikipedia.org/wiki/Bounding_volume_hierarchy) method. The polygons are placed in boxes, which are themselves recursively enclosed in larger boxes, until only one box remains. The ``polygons_per_bounding`` parameter designates the number of polygons in terminal nodes, and its optimal value for peak performance depends on the object.  
 To enable the BVH strategy, a non-zero value should be specified:  
-``polygons_per_bounding 60``
+``polygons_per_bounding 3``
 
 Specifying 0 will disable the method, and a linear search will be performed instead:  
 ``polygons_per_bounding 0``
@@ -146,7 +150,7 @@ The progress will be displayed and updated every 10 samples per pixel.
 
 ## Merger executable <a name="merger"></a>
 
-The ``merge`` executable can be compiled with ```make merger```. It is used to merge several raw data files into one raw data file and a bmp file.
+The ``merge`` executable can be compiled with ```make merge```. It is used to merge several raw data files into one raw data file and a bmp file.
 The syntax is the following:  
 ``./merge dest.bmp dest.rtdata source1.rtdata source2.rtdata ... sourcen.rtdata``  
 When the source files are rtdata files ``source1.rtdata``, ..., ``sourcen.rtdata`` and the destination files are ``dest.bmp`` and ``dest.rtdata``.
