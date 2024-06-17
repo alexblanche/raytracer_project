@@ -274,9 +274,54 @@ std::vector<const bounding*> get_bounding_vector(const std::vector<element>& elt
     return bds;
 }
 
+/* Auxiliary function to create_bounding_hierarchy
+   Performs the second step of the algorithm: creates the hierarchy of the terminal boundings */
+const bounding* create_hierarchy_from_boundings(const std::vector<const bounding*>& term_nodes) {
+
+    if (term_nodes.size() == 1) {
+        return term_nodes[0];
+    }
+    else if (term_nodes.size() <= CARDINAL_OF_BOX_GROUP) {
+        return containing_bounding_any(term_nodes);
+    }
+
+    std::vector<element> nodes = get_element_vector(term_nodes);
+
+    while (nodes.size() > CARDINAL_OF_BOX_GROUP) {
+
+        const unsigned int k = 1 + nodes.size() / CARDINAL_OF_BOX_GROUP;
+
+        const std::vector<std::vector<element>> groups = k_means(nodes, k);
+
+        std::vector<const bounding*> new_bd_nodes;
+        
+        unsigned int cpt = 0;
+        for (std::vector<element> const& elts : groups) {
+            
+            if (not elts.empty()) {
+                new_bd_nodes.push_back(containing_bounding_any(get_bounding_vector(elts)));
+                cpt ++;
+            }
+        }
+        if (DISPLAY_KMEANS) {
+            printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
+            fflush(stdout);
+        }
+
+        nodes.clear();
+        nodes = get_element_vector(new_bd_nodes);
+    }
+
+    if (nodes.size() == 1) {
+        return nodes[0].bd.value();
+    }
+    else {
+        return containing_bounding_any(get_bounding_vector(nodes));
+    }
+}
 
 
-/* Creating the bounding box hierarchy of a set of objects */
+/* Main function: creates the bounding box hierarchy of a set of objects */
 
 /* Returns a bounding* containing the objects of content, split into a hierarchy of boundings if their number
    exceeds MIN_NUMBER_OF_POLYGONS_FOR_BOX
@@ -285,7 +330,6 @@ std::vector<const bounding*> get_bounding_vector(const std::vector<element>& elt
    polygons_per_bounding polygons on average.
    The non-terminal nodes have CARDINAL_OF_BOX_GROUP children on average.
 */
-
 const bounding* create_bounding_hierarchy(const std::vector<const object*>& content,
     const unsigned int polygons_per_bounding) {
 
@@ -330,41 +374,7 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
         fflush(stdout);
     }
     
-    std::vector<element> nodes = get_element_vector(term_nodes);
-
-    while (nodes.size() > CARDINAL_OF_BOX_GROUP) {
-
-        const unsigned int k = 1 + nodes.size() / CARDINAL_OF_BOX_GROUP;
-
-        const std::vector<std::vector<element>> groups = k_means(nodes, k);
-
-        std::vector<const bounding*> new_bd_nodes;
-        
-        unsigned int cpt = 0;
-        for (std::vector<element> const& elts : groups) {
-            
-            if (not elts.empty()) {
-                new_bd_nodes.push_back(containing_bounding_any(get_bounding_vector(elts)));
-                cpt ++;
-            }
-        }
-        if (DISPLAY_KMEANS) {
-            printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
-            fflush(stdout);
-        }
-
-        nodes.clear();
-        nodes = get_element_vector(new_bd_nodes);
-
-        // printf("nodes.size() = %u\n", nodes.size());
-    }
-
-    if (nodes.size() == 1) {
-        return nodes[0].bd.value();
-    }
-    else {
-        return containing_bounding_any(get_bounding_vector(nodes));
-    }
+    return create_hierarchy_from_boundings(term_nodes);
 }
 
 

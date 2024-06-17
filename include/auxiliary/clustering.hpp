@@ -47,6 +47,10 @@ struct element {
 /* Returns a vector of k vectors of elements representing the k clusters */
 std::vector<std::vector<element>> k_means(const std::vector<element>& elts, const unsigned int k);
 
+/* Auxiliary function to create_bounding_hierarchy
+   Performs the second step of the algorithm: creates the hierarchy of the terminal boundings */
+const bounding* create_hierarchy_from_boundings(const std::vector<const bounding*>& term_nodes);
+
 /* Returns a bounding* containing the objects of content, split into a hierarchy of boundings if their number
    exceeds MIN_NUMBER_OF_POLYGONS_FOR_BOX */
 const bounding* create_bounding_hierarchy(const std::vector<const object*>& content,

@@ -1,34 +1,39 @@
 resolution width:1920 height:1080
-camera position:(-15, 25, 250) direction:(0, -0.05, -1) rightdir:(1, 0, 0) fov_width:5 distance:15 focal_distance:240 aperture:0.8
-background_texture ../../../raytracer_project/sky/dome/countryside.bmp rotate_x:3.1415 rotate_y:6 rotate_z:6.28
+camera position:(3.3, 0.8, 5) direction:(-0.72, 0, -1) rightdir:(1, 0, -0.72) fov_width:1 distance:1.2 focal_distance:5 aperture:0.016
+background_texture ../../../raytracer_project/sky/dome/field.bmp rotate_x:3.14 rotate_y:3.38 rotate_z:0
 polygons_per_bounding 1
 
-# Sky render
-# camera position:(-15, 25, 250) direction:(0, -0.05, -1) rightdir:(1, 0, 0) fov_width:5 distance:15 focal_distance:240 aperture:0.8
-# background_texture ../../../raytracer_project/sky/dome/countryside.bmp rotate_x:3.1415 rotate_y:6 rotate_z:6.28
+# Front field
+# camera position:(3.3, 0.8, 5) direction:(-0.72, 0, -1) rightdir:(1, 0, -0.72) fov_width:1 distance:1.2 focal_distance:5 aperture:0.016
+# background_texture ../../../raytracer_project/sky/dome/field.bmp rotate_x:3.14 rotate_y:3.38 rotate_z:0
 
-# Wine glass front
-# camera position:(0, 20, 250) direction:(0, 0, -1) rightdir:(1, 0, 0) fov_width:5 distance:15 focal_distance:240 aperture:0.8
-# background_texture ../../../raytracer_project/sky/dome/countryside.bmp rotate_x:3.1415 rotate_y:6 rotate_z:6.28
+# Front
+# camera position:(0, 1.1, 16) direction:(0, 0, -1) rightdir:(1, 0, 0) fov_width:0.6 distance:1
 
-# Default (normal scale)
-# camera position:(-0.15, 0.36, 2.5) direction:(0, -0.1, -1) rightdir:(1, 0, 0) fov_width:0.05 distance:0.15 focal_distance:2.4 aperture:0.008
-# background_texture ../../../raytracer_project/sky/dome/countryside.bmp rotate_x:3.2 rotate_y:6 rotate_z:6.25
+# Right
+# camera position:(16, 1.1, 0) direction:(-1, 0, 0) rightdir:(0, 0, -1) fov_width:0.6 distance:1
 
+# Side (back)
+# camera position:(-4, 1.1, -6) direction:(0.72, -0.13, 1) rightdir:(-1, 0, 0.72) fov_width:0.6 distance:1
+
+# Side (front)
+# camera position:(4, 1.1, 6) direction:(-0.72, -0.13, -1) rightdir:(1, 0, -0.72) fov_width:0.6 distance:1
+# background_color 190 235 255
+
+# Lamp
+# material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+# quad (-4, 0.01, 10) (-4, 0.01, 0) (4, 0.01, 0) (4, 0.01, 10) material:white_light
 
 # Ground
-load_texture wooden_table ../../../raytracer_project/texture_assets/wooden_table.bmp
-material wood (color:(88, 57, 39) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-quad (-75, -0.0005, -100) (-75, -0.0005, 100) (45, -0.0005, 100) (45, -0.0005, -100) material:wood texture:(wooden_table (1,0) (0,0) (0,1) (1,1))
+# plane normal:(0,1,0) position:(0, 0, 0) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0.5 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-# Models
-load_obj ../../../raytracer_project/3d_models/glasses/wine_glass2_1.obj (texture:none shift:(0, 0, 20) scale:129.5)
-load_obj ../../../raytracer_project/3d_models/glasses/pitcher.obj (texture:none shift:(-30, 0, 0) scale:128)
-load_obj ../../../raytracer_project/3d_models/glasses/whiskey_glass.obj (texture:none shift:(-15, 3.42, 30) scale:7.95)
+load_texture asphalt ../../../raytracer_project/texture_assets/asphalt.bmp
+material road_mat (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0.1 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+quad (-3, 0, -6) (-3, 0, 6) (3, 0, 6) (3, 0, -6) material:road_mat texture:(asphalt (1, 0) (0, 0) (0, 1) (1, 1))
+quad (-3, 0, -18) (-3, 0, -6) (3, 0, -6) (3, 0, -18) material:road_mat texture:(asphalt (0, 0) (0, 1) (1, 1) (1, 0))
+quad (-3, 0, -30) (-3, 0, -18) (3, 0, -18) (3, 0, -30) material:road_mat texture:(asphalt (0, 0) (0, 1) (1, 1) (1, 0))
 
-# Sun
-material sunlight (color:(255, 255, 255) emitted_color:(255, 251, 211) reflectivity:0 emission:100 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-sphere center:(1000,900,-3000) radius:400 material:sunlight
-
-# Test sphere
-# sphere center:(0, 20, 20) radius:5 material:glass
+# Model
+load_obj ../../../raytracer_project/3d_models/porsche_2016/porsche_obj.obj (texture:none shift:(0,0,0) scale:1)
+# Box for camera and parameters testing
+# box center:(0, 0.642, 0) x_axis:(1, 0, 0) y_axis:(0, 1, 0) 1.98 1.284 4.5 material:diffuse

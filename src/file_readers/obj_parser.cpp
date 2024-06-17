@@ -23,6 +23,13 @@ const real infinity = realobj.infinity();
 #include "file_readers/parsing_wrappers.hpp"
 #include <stdexcept>
 
+/* Quad splitting threshold: when the two triangles forming a quad form an angle
+   superior to a certain amount depending on this constant,
+   split the quad into two triangles, to solve some visual glitches */
+/* The value 1.0E-7 is chosen empirically: it seems to remove all visible glitches by splitting a small number of quads */
+/* History: for the stool, 1.0E-6 is sufficient, but leaves visible glitches on the "Porsche 2016" test model. 1.0E-7 removes them. */
+#define QUAD_SPLIT_THRESHOLD 1.0E-7f
+
 
 /* Wavefront .obj file parser */
 /* Only handles .obj files made up of triangles and quads, for now.
@@ -706,11 +713,8 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
 
                const rt::vector n12 = ((vertex_set[v2] - vertex_set[v1]) ^ (vertex_set[v3] - vertex_set[v1])).unit();
                const rt::vector n23 = ((vertex_set[v3] - vertex_set[v1]) ^ (vertex_set[v4] - vertex_set[v1])).unit();
-               
-               /* The value 1.0E-7 is chosen empirically: it seems to remove all visible glitches by splitting a small number of quads */
-               /* History: for the stool, 1.0E-6 is sufficient, but leaves visible glitches on the "Porsche 2016" test model. 1.0E-7 removes them. */
-               
-               if ((n12 - n23).normsq() > 1.0E-7) {
+                              
+               if ((n12 - n23).normsq() > QUAD_SPLIT_THRESHOLD) {
                   /* Non-coplanar vertices: splitting the quad into two triangles */
 
                   add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
@@ -776,7 +780,7 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
                      const rt::vector n12 = ((vertex_set[v2] - vertex_set[v1]) ^ (vertex_set[v3] - vertex_set[v1])).unit();
                      const rt::vector n23 = ((vertex_set[v3] - vertex_set[v1]) ^ (vertex_set[v4] - vertex_set[v1])).unit();
                      
-                     if ((n12 - n23).normsq() > 1.0E-7) {
+                     if ((n12 - n23).normsq() > QUAD_SPLIT_THRESHOLD) {
                         // Splitting into triangles with no texture and normal
                         add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
                            number_of_polygons, number_of_triangles,
@@ -833,7 +837,7 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
                      const rt::vector n12 = ((vertex_set[v2] - vertex_set[v1]) ^ (vertex_set[v3] - vertex_set[v1])).unit();
                      const rt::vector n23 = ((vertex_set[v3] - vertex_set[v1]) ^ (vertex_set[v4] - vertex_set[v1])).unit();
                      
-                     if ((n12 - n23).normsq() > 1.0E-7) {
+                     if ((n12 - n23).normsq() > QUAD_SPLIT_THRESHOLD) {
                         // Splitting into two untextured triangles
                         add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
                            number_of_polygons, number_of_triangles,
@@ -895,7 +899,7 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
                   const rt::vector n12 = ((vertex_set[v2] - vertex_set[v1]) ^ (vertex_set[v3] - vertex_set[v1])).unit();
                   const rt::vector n23 = ((vertex_set[v3] - vertex_set[v1]) ^ (vertex_set[v4] - vertex_set[v1])).unit();
                      
-                  if ((n12 - n23).normsq() > 1.0E-7) {
+                  if ((n12 - n23).normsq() > QUAD_SPLIT_THRESHOLD) {
                      // Splitting into two triangles with no normal
                      add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
                         number_of_polygons, number_of_triangles,
@@ -950,7 +954,7 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
             output_bd = children[0];
          }
          else {
-            output_bd = containing_bounding_any(children);
+            output_bd = create_hierarchy_from_boundings(children);
          }
       }
 
