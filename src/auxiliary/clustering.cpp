@@ -1,25 +1,11 @@
 #include "auxiliary/clustering.hpp"
 
-#include <vector>
-#include "scene/objects/object.hpp"
-#include "scene/objects/bounding.hpp"
-
 #include "parallel/parallel.h"
-/*
-#ifdef __unix__
-#include <mutex>
-#else
-#include "mingw.mutex.h"
-#endif
-*/
 #include <mutex>
 
+#include <vector>
 #include <stack>
 #include <queue>
-
-#include<limits>
-numeric_limits<double> realclu;
-const double infinity = realclu.infinity();
 
 #define MAX_NUMBER_OF_ITERATIONS 10
 
@@ -31,23 +17,25 @@ const double infinity = realclu.infinity();
 #define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](unsigned int start, unsigned int end){ for(unsigned int n = start; n < end; ++n)
 #define PARALLEL_FOR_END()})
 
+
 /** K-means clustering algorithm **/
+
 
 /* Auxiliary function that computes the centroid of a vector of objects */
 rt::vector compute_centroid(const std::vector<element>& elts) {
-    if (elts.size() == 0) {
+    if (elts.empty()) {
         printf("Error, empty element set\n");
-        return rt::vector(-infinity, -infinity, -infinity);
+        return rt::vector();
     }
 
-    double sum_x = 0;
-    double sum_y = 0;
-    double sum_z = 0;
+    real sum_x = 0;
+    real sum_y = 0;
+    real sum_z = 0;
 
     /* Computation of the dimensions of the object set */
-    for (const element& elt : elts) {
+    for (element const& elt : elts) {
         
-        const rt::vector pos = elt.get_position();
+        const rt::vector& pos = elt.get_position();
         sum_x += pos.x;
         sum_y += pos.y;
         sum_z += pos.z;
@@ -64,21 +52,20 @@ rt::vector compute_centroid(const std::vector<element>& elts) {
 bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std::vector<std::vector<element>>& new_groups,
     const std::vector<rt::vector>& means) {
 
-    
     // Former sequential version
     /*
     bool change = false;
     for (unsigned int n = 0; n < old_group.size(); n++) {
         for (unsigned int i = 0; i < old_group[n].size(); i++) {
 
-            const element elt = old_group[n][i];
-            const rt::vector v = elt.get_position();
+            const element& elt = old_group[n][i];
+            const rt::vector& v = elt.get_position();
 
             unsigned int closest_index = 0;
-            double distance_to_closest = (means[0] - v).normsq();
+            real distance_to_closest = (means[0] - v).normsq();
 
             for (unsigned int m = 1; m < means.size(); m++) {
-                const double d = (means[m] - v).normsq();
+                const real d = (means[m] - v).normsq();
                 if(d < distance_to_closest) {
                     distance_to_closest = d;
                     closest_index = m;
@@ -93,7 +80,6 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
     }
     */
 
-
     // Parallel version
     const unsigned int nb_of_groups = old_groups.size();
     
@@ -103,14 +89,14 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
         // First iteration (all elements in the first group)
         PARALLEL_FOR_BEGIN(old_groups[0].size()) {
 
-            const element elt = old_groups[0][n];
-            const rt::vector v = elt.get_position();
+            const element& elt = old_groups[0][n];
+            const rt::vector& v = elt.get_position();
 
             unsigned int closest_index = 0;
-            double distance_to_closest = (means[0] - v).normsq();
+            real distance_to_closest = (means[0] - v).normsq();
 
             for (unsigned int m = 1; m < means.size(); m++) {
-                const double d = (means[m] - v).normsq();
+                const real d = (means[m] - v).normsq();
                 if(d < distance_to_closest) {
                     distance_to_closest = d;
                     closest_index = m;
@@ -129,13 +115,13 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
         PARALLEL_FOR_BEGIN(nb_of_groups) {
             for (element const& elt : old_groups[n]) {
 
-                const rt::vector v = elt.get_position();
+                const rt::vector& v = elt.get_position();
 
                 unsigned int closest_index = 0;
-                double distance_to_closest = (means[0] - v).normsq();
+                real distance_to_closest = (means[0] - v).normsq();
 
                 for (unsigned int m = 1; m < means.size(); m++) {
-                    const double d = (means[m] - v).normsq();
+                    const real d = (means[m] - v).normsq();
                     if(d < distance_to_closest) {
                         distance_to_closest = d;
                         closest_index = m;
@@ -191,7 +177,7 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
     std::vector<rt::vector> means(k);
 
     /* Filling the vector with k elements uniformly distributed along the obj vector */
-    const double step = std::max((double) (obj.size() / k), 1.0);
+    const real step = std::max((real) (obj.size() / k), 1.0f);
 
     for (unsigned int i = 0; i < std::min((unsigned int) obj.size(), k); i++) {
         means[i] = obj[(int) (i * step)].get_position();
@@ -208,12 +194,11 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
 
         if (DISPLAY_KMEANS) {
             printf("\rIteration %u / %u", MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS);
-            fflush(stdout);
         }
         else {
             printf("\rOptimizing the data structure... Iteration %u / %u", MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS);
-            fflush(stdout);
         }
+        fflush(stdout);
 
         /* Updating the means */
         means.clear();
@@ -318,12 +303,11 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
     /* A hierarchy has to be created */
     if (DISPLAY_KMEANS) {
         printf("\nOptimizing the data structure...\n");
-        fflush(stdout);
     }
     else {
         printf("\rOptimizing the data structure...");
-        fflush(stdout);
     }
+    fflush(stdout);
 
     /* Splitting the objects into groups of polygons_per_bounding polygons (on average) */
     const unsigned int k = 1 + content.size() / polygons_per_bounding;
@@ -384,7 +368,7 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
 }
 
 
-/** Test function **/
+/** Display function **/
 
 /* Displays the depth of the hierarchy, as well as the minimum, maximum and average arity of each depth */
 void display_hierarchy_properties(const bounding* bd0) {
@@ -401,7 +385,7 @@ void display_hierarchy_properties(const bounding* bd0) {
         /* Computing min, max and average arity of the nodes on the stack
            If one node is terminal, its arity counts as zero. */
         unsigned int terminal_nodes = 0;
-        unsigned int min = 4294967295;
+        unsigned int min = -1;
         unsigned int max = 0;
         unsigned int total = 0;
         const unsigned int number_of_nodes = bds.size();
@@ -434,7 +418,7 @@ void display_hierarchy_properties(const bounding* bd0) {
             else {
                 printf("|| Level %u: nodes: %u, all terminal\n", level, number_of_nodes);
                 printf("|| Minimum object arity: %u, maximum: %u, average: %lf\n",
-                    min, max, ((double) total) / number_of_nodes);
+                    min, max, ((real) total) / number_of_nodes);
             }
         }
         else {
@@ -444,7 +428,7 @@ void display_hierarchy_properties(const bounding* bd0) {
             }
             else {
                 printf("|| Level %u: nodes: %u, terminal: %u, minimum arity: %u, maximum: %u, average: %lf\n",
-                    level, number_of_nodes, terminal_nodes, min, max, ((double) total) / number_of_nodes);
+                    level, number_of_nodes, terminal_nodes, min, max, ((real) total) / number_of_nodes);
             }
         }
         
