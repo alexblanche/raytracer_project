@@ -1,9 +1,6 @@
 #include <iostream>
 #include <cstdlib>
-#include <ctime>
-
 #include "screen/screen.hpp"
-#include "tracing/tracing.hpp"
 
 #include "file_readers/raw_data.hpp"
 #include "file_readers/bmp_reader.hpp"
@@ -11,9 +8,14 @@
 
 #include "render/render_loops.hpp"
 
-#define MAX_RAYS 1000
+// Folder creation
+#include <sys/stat.h>
+#include <bits/stdc++.h>
+#include <sys/types.h>
 
-#include "scene/objects/polygon.hpp"
+#include <filesystem>
+
+#define MAX_RAYS 1000
 
 
 /* ********* MAIN FUNCTION ********* */
@@ -80,6 +82,16 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    /* Checking if the output directory exists */
+    struct stat info;
+    bool output_dir_exists = stat("../output", &info) == 0 && info.st_mode & S_IFDIR;
+
+    auto create_dir = [&output_dir_exists]() {
+        if (not output_dir_exists) {
+            output_dir_exists = std::filesystem::create_directories("../output");
+        }
+    };
+
     // This screen causes the next one to initialize before crashing
     // const rt::screen scr0(200, 300);
     // scr0.update();
@@ -127,15 +139,17 @@ int main(int argc, char *argv[]) {
             }
             /* Exporting as rtdata every 100 samples */
             if (i % 100 == 99) {
-                export_raw("image.rtdata", i+1, matrix);
+                create_dir();
+                export_raw("../output/image.rtdata", i+1, matrix);
             } 
         }
 
         printf("\r%u / %u", target_number_of_rays, target_number_of_rays);
 
-        const bool success_bmp = write_bmp("image.bmp", matrix, target_number_of_rays);
+        create_dir();
+        const bool success_bmp = write_bmp("../output/image.bmp", matrix, target_number_of_rays);
         if (success_bmp) {
-            printf(" Saved as image.bmp\n");
+            printf(" Saved as output/image.bmp\n");
         }
         else {
             printf("Save failed\n");
@@ -197,9 +211,10 @@ int main(int argc, char *argv[]) {
                     /* B */
                     /* Export as BMP */
                     {
-                        const bool success_bmp = write_bmp("image.bmp", matrix, number_of_rays);
+                        create_dir();
+                        const bool success_bmp = write_bmp("../output/image.bmp", matrix, number_of_rays);
                         if (success_bmp) {
-                            printf(" Saved as image.bmp\n");
+                            printf(" Saved as output/image.bmp\n");
                         }
                         else {
                             printf("Save failed\n");
@@ -211,9 +226,10 @@ int main(int argc, char *argv[]) {
                     /* R */
                     /* Export raw data */
                     {
-                        const bool success_raw = export_raw("image.rtdata", number_of_rays, matrix);
+                        create_dir();
+                        const bool success_raw = export_raw("../output/image.rtdata", number_of_rays, matrix);
                         if (success_raw) {
-                            printf(" Saved as image.rtdata\n");
+                            printf(" Saved as output/image.rtdata\n");
                         }
                         else {
                             printf("Save failed\n");
@@ -227,9 +243,10 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    const bool success = write_bmp("image_final.bmp", matrix, MAX_RAYS);
+    create_dir();
+    const bool success = write_bmp("../output/image_final.bmp", matrix, MAX_RAYS);
     if (success) {
-        printf("\nSaved as image_final.bmp\n");
+        printf("\nSaved as output/image_final.bmp\n");
         return EXIT_SUCCESS;
     }
     else {

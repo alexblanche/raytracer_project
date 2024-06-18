@@ -136,8 +136,8 @@ When a single sample per pixel takes a long time, the progress and estimated tim
 
 When the window appears, the render stops and waits for an input by the user:  
 - Space/Enter: Continue
-- B key: Save the generated image as ``image.bmp`` and continue
-- R key: Save the generated raw data as ``image.rtdata`` and continue
+- B key: Save the generated image as ``output/image.bmp`` and continue
+- R key: Save the generated raw data as ``output/image.rtdata`` and continue
 - Esc key: Exit
 
 ### Non-interactive mode
@@ -145,7 +145,7 @@ When the window appears, the render stops and waits for an input by the user:
 To render in the non-interactive mode, the desired number of samples of pixels needs to be specified with this syntax:  
 ``./main 10 -rays 100``
 
-The progress will be displayed and updated every 10 samples per pixel.
+The progress will be displayed and updated every 10 samples per pixel. The generated image is saved as ``output/image.bmp``. The directory ``output`` is created if it does not exist yet.
 
 
 ## Merger executable <a name="merger"></a>
