@@ -177,7 +177,7 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
     std::vector<rt::vector> means(k);
 
     /* Filling the vector with k elements uniformly distributed along the obj vector */
-    const real step = std::max((real) (obj.size() / k), 1.0f);
+    const real step = std::max((real) (obj.size() / k), (real) 1.0f);
 
     for (unsigned int i = 0; i < std::min((unsigned int) obj.size(), k); i++) {
         means[i] = obj[(int) (i * step)].get_position();

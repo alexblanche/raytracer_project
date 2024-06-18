@@ -15,7 +15,7 @@
 #pragma once
 
 // Type alias for floating-point numerical values
-using real = float;
+using real = double;
 
 #include <vector>
 
