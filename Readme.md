@@ -9,7 +9,7 @@ The goal of this project is to code a path-tracer that handles all sorts of obje
 The project is an implementation of the backward path-tracing algorithm: for each pixel of the image, a ray is cast from the camera in the direction of the pixel, bounces off the objects in the scene until it reaches a source of light. A color is then calculated from the color and intensity of the light source, as well as the colors of the materials encountered at each bounce, and applied to the pixel. Multiple samples are computed for each pixel, and averaged out to produce the final image: the more samples, the less grain the final image will have. This method works well in the case of ambient light, but is extremely inefficient in the case of dark scenes or directional light sources.  
 
 Current state:  
-![Screen](pictures/porsche_field_200rpp.jpg)  
+![Screen](pictures/porsche_field.jpg)  
 ![Screen](pictures/glass_3000rpp.jpg)  
 ![Screen](pictures/stool_HD_1000.jpg) 
 ![Screen](pictures/porsche_glow.jpg)  

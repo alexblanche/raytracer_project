@@ -15,7 +15,7 @@
 #pragma once
 
 // Type alias for floating-point numerical values
-using real = double;
+using real = float;
 
 #include <vector>
 
@@ -23,12 +23,12 @@ namespace rt  {
 
 	/**
 	 * The color class represents a color through its
-	 * four components: red, green, blue and alpha (RGBA).
+	 * three components: red, green, blue (RGB).
 	 */
 	class color {
 		private:
 			/* Red, green blue and alpha components */
-			real red, green, blue; 
+			real red, green, blue;
 
 		public:
 
