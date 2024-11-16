@@ -69,7 +69,7 @@ struct screen_axes {
         center = rt::vector(0, 0, 1);
     }
 
-    void set(const float& fov_x, const float& theta, const float& phi) {
+    void set(const float fov_x, const float theta, const float phi) {
         const float cosphi = cos(phi);
         const float sinphi = sin(phi);
         const float costheta = cos(theta);
@@ -83,9 +83,10 @@ struct screen_axes {
         screen_y_axis.y = cosphi;
         screen_y_axis.z = sinphi * sintheta;
 
-        center.x = l * cosphi * costheta;
+        const float lcosphi = l * cosphi;
+        center.x = lcosphi * costheta;
         center.y = l * sinphi;
-        center.z = l * cosphi * (-sintheta);
+        center.z = lcosphi * (-sintheta);
     }
 };
 
@@ -163,13 +164,16 @@ int main(int, char**) {
     const unsigned int nbpix = depth * dims.value().width * dims.value().height;
     std::vector<char> pixels(nbpix);
     
-    for (int j = 0; j < dims.value().height; j++) { 
+    for (int j = 0; j < dims.value().height; j++) {
+
+        const int jwidth = j * dims.value().width;
+
         for (int i = 0; i < dims.value().width; i++) {
             rt::color& c = matrix[i][j];
             char r = c.get_red();
             char g = c.get_green();
             char b = c.get_blue();
-            const int index = depth * (j * dims.value().width + i);
+            const int index = depth * (jwidth + i);
             pixels[index]     = b;
             pixels[index + 1] = g;
             pixels[index + 2] = r;
@@ -234,17 +238,20 @@ int main(int, char**) {
     while(true) {
         /* Event handling */
         while(SDL_PollEvent(&event)) {
-                    
-            if (event.type == SDL_MOUSEMOTION) {
-                // std::cout << event.motion.xrel << ' ' << event.motion.yrel << std::endl;
-                mouse.set(event.motion.xrel, event.motion.yrel);
-                SDL_WarpMouseInWindow(scr.window, scr.width() >> 1, scr.height() >> 1);
-            }
-            else if (event.type == SDL_QUIT ||
-                (event.type == SDL_KEYDOWN && event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)) {
-                const uint64_t curr_time = get_time();
-                std::cout << "Average fps: " << (1000.0 * frame_cpt) / (curr_time - time_init) << std::endl;
-                return EXIT_SUCCESS;
+            
+            switch (event.type) {
+                case SDL_MOUSEMOTION:
+                    // std::cout << event.motion.xrel << ' ' << event.motion.yrel << std::endl;
+                    mouse.set(event.motion.xrel, event.motion.yrel);
+                    SDL_WarpMouseInWindow(scr.window, scr.width() >> 1, scr.height() >> 1);
+                    break;
+                case SDL_QUIT:
+                case SDL_KEYDOWN:
+                    if (event.type != SDL_KEYDOWN || event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+                        const uint64_t curr_time = get_time();
+                        std::cout << "Average fps: " << (1000.0 * frame_cpt) / (curr_time - time_init) << std::endl;
+                        return EXIT_SUCCESS;
+                    }
             }
         }
 
@@ -264,6 +271,7 @@ int main(int, char**) {
             // Pre-computation of the cartesian coordinates of the pixel in world space
             const rt::vector y_component = scaled_y_axis * (j - half_scr_height);
             const rt::vector pre_cartesian = axes.center + y_component;
+            const int jwidth = j * scr.width();
 
             for (int i = 0; i < scr.width(); i++) {
                 
@@ -276,7 +284,7 @@ int main(int, char**) {
                 // Reading the pixel of the image corresponding to the spherical coordinates of the pixel in world space
                 const int index_src = 3 * (((int) (sph.phi * img_scale_y)) * img_width + (int) (sph.theta * img_scale_x));
                 // Copying its color onto the screen
-                const int index = 3 * (j * scr.width() + i);
+                const int index = 3 * (jwidth + i);
                 texture_pixels[index]     = orig_pixels[index_src];
                 texture_pixels[index + 1] = orig_pixels[index_src + 1];
                 texture_pixels[index + 2] = orig_pixels[index_src + 2];
