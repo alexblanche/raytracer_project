@@ -7,6 +7,8 @@
 
 #include <stdexcept>
 
+#define MAX_PADDING 4
+
 /* Writes in the variables the width and height of the .bmp image contained in file_name */
 std::optional<dimensions> read_bmp_size(const char* file_name) {
     FILE* file = fopen(file_name, "rb");
@@ -132,25 +134,24 @@ bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
 
         /* Padding at the end of each row in the file */
         bool padding = false;
-        unsigned int vp = (3*bmpwidth) % 4;
-        if (vp != 0) {
+        unsigned int p = (3 * bmpwidth) % 4;
+        if (p != 0) {
             padding = true;
-            vp = 4 - vp;
+            p = 4 - p;
         }
-        /* I need p constant because it is the size of an array defined below */
-        const unsigned int p = vp;
 
         /* Color data */
         for (size_t j = 0; j < bmpheight; j++) {
+            const size_t indexj = bmpheight - j - 1;
             for (size_t i = 0; i < bmpwidth; i++) {
                 const unsigned char b = fgetc(file);
                 const unsigned char g = fgetc(file);
                 const unsigned char r = fgetc(file);
-                data[i][bmpheight - j - 1] = rt::color(r, g, b);
+                data[i][indexj] = rt::color(r, g, b);
             }
             /* Skipping p bytes of padding */
             if (padding) {
-                char buffer[p]; // p is constant
+                char buffer[MAX_PADDING];
                 ret = fread((void*) buffer, p, 1, file);
                 if (ret != 1) {
                     throw std::runtime_error("Reading error in read_bmp (padding bytes)");
@@ -180,10 +181,10 @@ bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data,
     const unsigned int width = data.size();
     const unsigned int height = data[0].size();
     bool padding = false;
-    size_t vp = (3*width) % 4;
-    if (vp != 0) {
+    size_t p = (3 * width) % 4;
+    if (p != 0) {
         padding = true;
-        vp = 4 - vp;
+        p = 4 - p;
     }
 
     FILE* file = fopen(file_name, "wb");
@@ -207,12 +208,12 @@ bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data,
 
         /* 4 bytes: File size */
         /* Size = 14 (header) + 40 (infoheader) + 3 * width * height (pixel data) + p * height */
-        const unsigned int file_size = 14 + 40 + 3 * width * height + vp * height;
+        const unsigned int file_size = 14 + 40 + (3 * width + p) * height;
         ret = fprintf(file, "%c%c%c%c",
-            file_size % 256,
-            (file_size >> 8) % 256,
-            (file_size >> 16) % 256,
-            (file_size >> 24) % 256
+            file_size & 0xFF,
+            (file_size >> 8) & 0xFF,
+            (file_size >> 16) & 0xFF,
+            (file_size >> 24) & 0xFF
         );
         HANDLE_ERROR
 
@@ -232,19 +233,19 @@ bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data,
 
         /* 4 bytes: Width */
         ret = fprintf(file, "%c%c%c%c",
-            width % 256,
-            (width >> 8) % 256,
-            (width >> 16) % 256,
-            (width >> 24) % 256
+            width & 0xFF,
+            (width >> 8) & 0xFF,
+            (width >> 16) & 0xFF,
+            (width >> 24) & 0xFF
         );
         HANDLE_ERROR
 
         /* 4 bytes: Height */
         ret = fprintf(file, "%c%c%c%c",
-            height % 256,
-            (height >> 8) % 256,
-            (height >> 16) % 256,
-            (height >> 24) % 256
+            height & 0xFF,
+            (height >> 8) & 0xFF,
+            (height >> 16) & 0xFF,
+            (height >> 24) & 0xFF
         );
         HANDLE_ERROR
 
@@ -262,12 +263,12 @@ bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data,
 
         /* 4 bytes: Size of the pixel data */
         /* Size = 3 * width * height (pixel data) + p * height */
-        const unsigned int data_size = 3 * width * height + vp * height;
+        const unsigned int data_size = (3 * width + p) * height;
         ret = fprintf(file, "%c%c%c%c",
-            data_size % 256,
-            (data_size >> 8) % 256,
-            (data_size >> 16) % 256,
-            (data_size >> 24) % 256
+            data_size & 0xFF,
+            (data_size >> 8) & 0xFF,
+            (data_size >> 16) & 0xFF,
+            (data_size >> 24) & 0xFF
         );
         HANDLE_ERROR
 
@@ -290,25 +291,25 @@ bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data,
         Unimportant: leaving it as 0 */
         ret = fprintf(file, "%c%c%c%c", 0, 0, 0, 0);
         HANDLE_ERROR
-
-
+        
 
         /** Color data **/
         /* Each pixel is represented as 3 bytes BGR, each line (sequence of 3*width bytes) is followed by p bytes '0' of padding */
 
         /* Padding bytes at the end of each line (if padding = true) */
-        const size_t p = padding ? vp : 1;
-        char padding_zeroes[p];
+        char padding_zeroes[MAX_PADDING];
         for (size_t k = 0; k < p; k++) {
             padding_zeroes[k] = 0;
         }
 
+        const double invN = 1.0 / n;
         for (size_t j = 0; j < height; j++) {
+            const size_t indexj = height - j - 1;
             for (size_t i = 0; i < width; i++) {
-                const rt::color& c = data[i][height - j - 1];
-                const char r = (char) std::min(c.get_red()   / n, 255.0);
-                const char g = (char) std::min(c.get_green() / n, 255.0);
-                const char b = (char) std::min(c.get_blue()  / n, 255.0);
+                const rt::color& c = data[i][indexj];
+                const char r = (char) std::min(c.get_red()   * invN, 255.0);
+                const char g = (char) std::min(c.get_green() * invN, 255.0);
+                const char b = (char) std::min(c.get_blue()  * invN, 255.0);
                 ret = fprintf(file, "%c%c%c", b, g, r);
                 HANDLE_ERROR
             }

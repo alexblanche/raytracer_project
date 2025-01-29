@@ -133,14 +133,18 @@ struct spherical {
 
 
 
-int main(int, char**) {
+int main(int argc, char** argv) {
 
     /* Skydome texture */
     const char* file_name =
+        (argc == 2) ?
+        argv[1]
+        :
         //"../../../raytracer_project/sky/dome/evening.bmp";
-        "../../../raytracer_project/sky/dome/field.bmp";
+        //"../../../raytracer_project/sky/dome/field.bmp";
         //"../../../raytracer_project/sky/dome/southern_sky.bmp";
         //"../../../raytracer_project/sky/dome/house.bmp";
+        "../../../raytracer_project/sky/dome/cobblestone_street_night.bmp";
 
     std::optional<dimensions> dims = read_bmp_size(file_name);
     if (not dims.has_value()) {
@@ -223,7 +227,7 @@ int main(int, char**) {
     const int half_scr_width = scr.width() / 2;
     const int half_scr_height = scr.height() / 2;
 
-    const float fov_x = 0.3;
+    constexpr float fov_x = 0.3;
     const float fov_y = 0.15;
 
     screen_axes axes;
