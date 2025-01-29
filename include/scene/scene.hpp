@@ -51,7 +51,8 @@ class scene {
             const rt::color& bg_color,
             const int width, const int height,
             const camera& cam,
-            const unsigned int polygons_per_bounding);
+            const unsigned int polygons_per_bounding,
+            const real& std_dev_anti_aliasing);
 
         /* Constructor with background texture and optional background color */
         scene(std::vector<const object*>&& object_set,
@@ -61,7 +62,8 @@ class scene {
             texture&& bg_texture, const real& bg_rx, const real& bg_ry, const real& bg_rz,
             const int width, const int height,
             const camera& cam,
-            const unsigned int polygons_per_bounding);
+            const unsigned int polygons_per_bounding,
+            const real& std_dev_anti_aliasing);
 
         /* For testing purposes: forbidding copy */
         scene(const scene&) = delete;

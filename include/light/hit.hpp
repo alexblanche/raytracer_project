@@ -52,8 +52,8 @@ class hit {
 
         /* Returns a vector of n random reflected ray in the cone of center hit::reflect_ray(),
            within solid angle theta_max */
-        std::vector<ray> random_reflect(const size_t n, randomgen& rg,
-            const rt::vector& central_dir, const real& theta_max) const;
+        // std::vector<ray> random_reflect(const size_t n, randomgen& rg,
+        //     const rt::vector& central_dir, const real& theta_max) const;
 
         /* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
         rt::vector random_direction(randomgen& rg, const rt::vector& central_dir,

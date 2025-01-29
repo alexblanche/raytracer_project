@@ -67,6 +67,7 @@ rt::vector hit::get_central_reflected_direction(const real& reflectivity, const 
    Y = (ac, bc, -(a*a + b*b)) is a solution.
 */
 
+/*
 std::vector<ray> hit::random_reflect(const size_t n, randomgen& rg,
     const rt::vector& central_dir, const real& theta_max) const {
 
@@ -103,12 +104,11 @@ std::vector<ray> hit::random_reflect(const size_t n, randomgen& rg,
         const real p = rands01[i];
         const real phi = rands0twopi[i];
 
-        /*
-        theta = acos(1 - p(1 - cos(theta_max)))
-        x = cos(phi) sin(theta) = cos(phi) * sqrt(1 - (1 - p(1-cos(theta_max))^2))
-        y = sin(phi) sin(theta) = sin(phi) * sqrt(1 - (1 - p(1-cos(theta_max))^2))
-        z = cos(theta)          = 1 - p(1-cos(theta_max))
-        */
+        // theta = acos(1 - p(1 - cos(theta_max)))
+        // x = cos(phi) sin(theta) = cos(phi) * sqrt(1 - (1 - p(1-cos(theta_max))^2))
+        // y = sin(phi) sin(theta) = sin(phi) * sqrt(1 - (1 - p(1-cos(theta_max))^2))
+        // z = cos(theta)          = 1 - p(1-cos(theta_max))
+        
         const real cos_theta = 1.0f - p * (1.0f - cos_theta_max);
         rays.emplace_back(point,
               (cos(phi) * sqrt(1.0f - cos_theta * cos_theta)) * X
@@ -118,6 +118,7 @@ std::vector<ray> hit::random_reflect(const size_t n, randomgen& rg,
 
     return rays;
 }
+*/
 
 /* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
 rt::vector hit::random_direction(randomgen& rg, const rt::vector& central_dir, const real& theta_max) const {

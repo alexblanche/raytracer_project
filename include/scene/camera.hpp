@@ -58,7 +58,7 @@ class camera {
 
         /* Returns the ray that goes toward the pixel i,j of the screen in average,
            following a normal distribution around to center of the pixel, with given stardard deviation */
-        ray gen_ray_normal(const int i, const int j, const real& std_dev, randomgen& rg) const;
+        ray gen_ray_normal(const int i, const int j, /*const real& std_dev,*/ randomgen& rg) const;
 
         /* Returns the ray that goes toward the pixel i,j of the screen, with depth of field */
         ray gen_ray_dof(const int i, const int j, randomgen& rg) const;

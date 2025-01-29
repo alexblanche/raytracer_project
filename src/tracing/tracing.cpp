@@ -231,7 +231,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                 // const real kr = inward ? h.get_fresnel(sin_theta_2_sq, refr_index, next_refr_i) : 0.0f;
                 const real kr = inward ? h.get_schlick(refr_index, next_refr_i) : 0.0f;
 	
-                if (inward && scene.rg.random_real(1) * m.get_transparency() <= kr) {
+                if (inward && scene.rg.random_real(1.0f) * m.get_transparency() <= kr) {
                 
                     /* The ray is reflected */
                     

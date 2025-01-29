@@ -16,7 +16,7 @@
 #include <filesystem>
 
 #define MAX_RAYS 1000
-
+#define ANTI_ALIASING 0.3f
 
 /* ********* MAIN FUNCTION ********* */
 
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
        negative z toward the camera, positive x forward
     */
 
-    std::optional<scene> scene_opt = parse_scene_descriptor("../scene.txt");
+    std::optional<scene> scene_opt = parse_scene_descriptor("../scene.txt", ANTI_ALIASING);
     
     if (not scene_opt.has_value()) {
         printf("Scene creation failed\n");
