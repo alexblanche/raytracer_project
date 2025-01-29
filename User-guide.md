@@ -134,11 +134,11 @@ The time taken to render each sample per pixel can be displayed with the option:
 When a single sample per pixel takes a long time, the progress and estimated time can be displayed with the option:  
 ``./main 10 -time all``
 
-When the window appears, the render stops and waits for an input by the user:  
-- Space/Enter: Continue
+A window appears and the generated image is updated after each sample. The user can enter an input among the following:  
 - B key: Save the generated image as ``output/image.bmp`` and continue
 - R key: Save the generated raw data as ``output/image.rtdata`` and continue
 - Esc key: Exit
+
 
 ### Non-interactive mode
 

@@ -45,7 +45,7 @@ rt::color background_container::get_color(const rt::vector& dir) const {
     }
 
     /* Determining the UV-coordinates */
-    const real u = theta / (2.0f * PI);
+    const real u = 1.0f - theta / (2.0f * PI);
     const real v = phi / PI;
 
     return bg_texture.value().get_color(u, v);
