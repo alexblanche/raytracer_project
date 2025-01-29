@@ -7,7 +7,7 @@ background_container::background_container(const rt::color& col)
     : bg_color(col),
     bg_texture(std::nullopt), rotate_x(0), rotate_y(0), rotate_z(0) {}
 
-background_container::background_container(texture&& txt, const real& rx, const real& ry, const real& rz)
+background_container::background_container(texture&& txt, const real rx, const real ry, const real rz)
     : bg_color(rt::color(0, 0, 0)),
     bg_texture(std::move(txt)), rotate_x(rx), rotate_y(ry), rotate_z(rz) {}
 

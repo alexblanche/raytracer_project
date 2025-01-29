@@ -27,7 +27,7 @@ scene::scene(std::vector<const object*>&& object_set,
     const int width, const int height,
     const camera& cam,
     const unsigned int polygons_per_bounding,
-    const real& std_dev_anti_aliasing)
+    const real std_dev_anti_aliasing)
 
     : object_set(std::move(object_set)), bounding_set(bounding_set),
     texture_set(std::move(texture_set)), material_set(std::move(material_set)),
@@ -41,11 +41,11 @@ scene::scene(std::vector<const object*>&& object_set,
     const std::vector<const bounding*>& bounding_set,
     std::vector<texture>&& texture_set,
     std::vector<material>&& material_set,
-    texture&& bg_texture, const real& rx, const real& ry, const real& rz,
+    texture&& bg_texture, const real rx, const real ry, const real rz,
     const int width, const int height,
     const camera& cam,
     const unsigned int polygons_per_bounding,
-    const real& std_dev_anti_aliasing)
+    const real std_dev_anti_aliasing)
 
     : object_set(std::move(object_set)), bounding_set(bounding_set),
     texture_set(std::move(texture_set)), material_set(std::move(material_set)),

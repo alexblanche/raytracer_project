@@ -175,7 +175,7 @@ std::optional<texture_info> parse_texture_info(FILE* file,
 
 /** Scene description parser **/
 
-std::optional<scene> parse_scene_descriptor(const char* file_name, const real& std_dev_anti_aliasing) {
+std::optional<scene> parse_scene_descriptor(const char* file_name, const real std_dev_anti_aliasing) {
 
     FILE* file = fopen(file_name, "r");
 

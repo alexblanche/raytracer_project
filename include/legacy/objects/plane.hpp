@@ -20,10 +20,10 @@ class plane : public object {
 
         plane();
         
-        plane(const real& sa, const real& sb, const real& sc, const real& sd,
+        plane(const real sa, const real sb, const real sc, const real sd,
             const rt::color& col);
         
-        plane(const real& pa, const real& pb, const real& pc, const rt::vector& position,
+        plane(const real pa, const real pb, const real pc, const rt::vector& position,
             const rt::color& col);
 
         /* Accessors */
@@ -37,5 +37,5 @@ class plane : public object {
 
         std::optional<real> measure_distance(const ray& r) const;
         
-        hit compute_intersection(ray& r, const real& t) const;
+        hit compute_intersection(ray& r, const real t) const;
 };

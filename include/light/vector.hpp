@@ -30,7 +30,7 @@ namespace rt {
 		// Constructors
 		vector() : x(0), y(0), z(0) {}
 
-		vector(const real& a, const real& b, const real& c) : x(a), y(b), z(c) {}
+		vector(const real a, const real b, const real c) : x(a), y(b), z(c) {}
 
 		/**
 		 * Comparison
@@ -77,36 +77,36 @@ namespace rt {
 		/**
 		 * Rotation around axis x by an angle theta
 		 * */
-		vector rotate_x(const real& theta) const;
+		vector rotate_x(const real theta) const;
 
 		/**
 		 * Rotation around axis y by an angle theta
 		 * */
-		vector rotate_y(const real& theta) const;
+		vector rotate_y(const real theta) const;
 
 		/**
 		 * Rotation around axis z by an angle theta
 		 * */
-		vector rotate_z(const real& theta) const;
+		vector rotate_z(const real theta) const;
 	};
 
 	/**
 	 * Left multiplication with a scalar
 	 * x * (a,b,c) = (xa,xb,xc)
 	 */
-	vector operator*(const real& x, const vector& v);
+	vector operator*(const real x, const vector& v);
 
 	/**
 	 * Right multiplication with a scalar
 	 * (a,b,c) * x = (ax,bx,cx)
 	 */
-	vector operator*(const vector& v, const real& x);
+	vector operator*(const vector& v, const real x);
 
 	/**
 	 * Division by a scalar
 	 * (a,b,c) / x = (a/x, b/x, c/x)
 	 */
-	vector operator/(const vector& v, const real& a);
+	vector operator/(const vector& v, const real a);
 }
 
 

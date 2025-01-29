@@ -17,6 +17,6 @@ std::optional<real> object::measure_distance(const ray& /*r*/) const {
     return std::nullopt;
 }
 
-hit object::compute_intersection(ray& /*r*/, const real& /*t*/) const {
+hit object::compute_intersection(ray& /*r*/, const real /*t*/) const {
     return hit();
 }

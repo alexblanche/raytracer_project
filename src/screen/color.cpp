@@ -33,7 +33,7 @@ namespace rt {
 	 * Builds a color from its red, green and blue components.
 	 * Alpha is set to 255.
 	 */
-	color::color(const real& r, const real& g, const real& b)
+	color::color(const real r, const real g, const real b)
 		: red(r), green(g), blue(b) {}
 
 	
@@ -58,7 +58,7 @@ namespace rt {
 	/**
 	 * Scaling operator.
 	 */
-	color color::operator*(const real& x) const {
+	color color::operator*(const real x) const {
 		return color(
 			x * get_red(),
 			x * get_green(),
@@ -88,7 +88,7 @@ namespace rt {
 	/**
 	 * Division by a scalar operator.
 	 */
-	color color::operator/(const real& x) const {
+	color color::operator/(const real x) const {
 		return color(
 			get_red() 	/ x,
 			get_green() / x,

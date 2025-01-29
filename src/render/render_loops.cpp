@@ -25,7 +25,7 @@ void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
 
             ray r = scene.cam.depth_of_field_enabled ?
                   scene.cam.gen_ray_dof(i, j, scene.rg)
-                : scene.cam.gen_ray_normal(i, j, /*ANTI_ALIASING,*/ scene.rg);
+                : scene.cam.gen_ray_normal(i, j, scene.rg);
             const rt::color pixel_col = pathtrace(r, scene, number_of_bounces);
 
             // Updating the color matrix
@@ -49,18 +49,9 @@ void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
 
             ray r = scene.cam.depth_of_field_enabled ?
                   scene.cam.gen_ray_dof(i, j, scene.rg)
-                : scene.cam.gen_ray_normal(i, j, /*ANTI_ALIASING,*/ scene.rg);
-            // const rt::color pixel_col = pathtrace(r, scene, number_of_bounces);
-            
-            // const rt::color current_color = matrix[i][j];
-            // const rt::color new_color = current_color + pixel_col;
+                : scene.cam.gen_ray_normal(i, j, scene.rg);
 
             output[j] = pathtrace(r, scene, number_of_bounces);
-
-            // Updating the color matrix
-            // m.lock();
-            // matrix[i][j] = new_color;
-            // m.unlock();
         }
 
         m.lock();
@@ -86,11 +77,14 @@ void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
 
     PARALLEL_FOR_BEGIN(scene.width) {
 
+        
+
         for (int j = 0; j < scene.height; j++) {
 
             ray r = scene.cam.depth_of_field_enabled ?
                   scene.cam.gen_ray_dof(i, j, scene.rg)
-                : scene.cam.gen_ray_normal(i, j, /*ANTI_ALIASING,*/ scene.rg);
+                : scene.cam.gen_ray_normal(i, j, scene.rg);
+
             const rt::color pixel_col = pathtrace(r, scene, number_of_bounces);
             
             const rt::color current_color = matrix[i][j];

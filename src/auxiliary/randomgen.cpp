@@ -4,7 +4,7 @@
 
 #include "auxiliary/randomgen.hpp"
 
-randomgen::randomgen(const real& std_dev_anti_aliasing) {
+randomgen::randomgen(const real std_dev_anti_aliasing) {
     const unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
     engine = std::default_random_engine(seed);
     std_dev = std_dev_anti_aliasing;
@@ -15,7 +15,7 @@ randomgen::randomgen(const real& std_dev_anti_aliasing) {
 // }
 
 /* Returns a random real between 0 and m */
-real randomgen::random_real(const real& m) {
+real randomgen::random_real(const real m) {
     /*
     update_seed();
     std::default_random_engine eng (seed);

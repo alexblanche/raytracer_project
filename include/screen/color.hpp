@@ -55,7 +55,7 @@ namespace rt  {
 			 * Builds a color from its red, green and blue components.
 			 * Alpha is set to 255.
 			 */
-			color(const real& r, const real& g, const real& b);
+			color(const real r, const real g, const real b);
 
 			/**
 			 * Assignment by copy
@@ -65,7 +65,7 @@ namespace rt  {
 			/**
 			 * Sets the red component.
 			 */
-			inline void set_red(const real& r) {
+			inline void set_red(const real r) {
 				red = r;
 			}
 
@@ -79,7 +79,7 @@ namespace rt  {
 			/**
 			 * Sets the green component.
 			 */
-			inline void set_green(const real& g) {
+			inline void set_green(const real g) {
 				green = g;
 			}
 
@@ -93,7 +93,7 @@ namespace rt  {
 			/**
 			 * Sets the blue component.
 			 */
-			inline void set_blue(const real& b) {
+			inline void set_blue(const real b) {
 				blue = b;
 			}
 
@@ -112,7 +112,7 @@ namespace rt  {
 			/**
 			 * Scaling operator.
 			 */
-			color operator*(const real& x) const;
+			color operator*(const real x) const;
 
 			/**
 			 * Addition operator.
@@ -127,7 +127,7 @@ namespace rt  {
 			/**
 			 * Division operator.
 			 */
-			color operator/(const real& x) const;
+			color operator/(const real x) const;
 
 			/**
 			 * Maxing out color components at 255.

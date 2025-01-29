@@ -222,7 +222,7 @@ rt::vector quad::get_interpolated_normal(const barycentric_info& bary) const {
     
 }
 
-hit quad::compute_intersection(ray& r, const real& t) const {
+hit quad::compute_intersection(ray& r, const real t) const {
 
     // const rt::vector p1 = position + v1;
     // const rt::vector p2 = position + v2;

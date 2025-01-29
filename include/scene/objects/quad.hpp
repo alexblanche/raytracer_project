@@ -56,7 +56,7 @@ class quad : public polygon {
         
         rt::vector get_interpolated_normal(const barycentric_info& bary) const;
 
-        hit compute_intersection(ray& r, const real& t) const;
+        hit compute_intersection(ray& r, const real t) const;
 
         /* Minimum and maximum coordinates */
         min_max_coord get_min_max_coord() const;

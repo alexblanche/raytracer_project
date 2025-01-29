@@ -17,7 +17,7 @@ struct background_container {
 
     background_container(const rt::color& col);
 
-    background_container(texture&& txt, const real& rx, const real& ry, const real& rz);
+    background_container(texture&& txt, const real rx, const real ry, const real rz);
     
     inline bool has_texture() const {
         return bg_texture.has_value();

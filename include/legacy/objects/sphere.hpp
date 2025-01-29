@@ -17,12 +17,12 @@ class sphere : public object {
         
         sphere();
 
-        sphere(const rt::vector& center, const real& radius, const rt::color& col);
+        sphere(const rt::vector& center, const real radius, const rt::color& col);
 
         
         /* Intersection determination */
 
         std::optional<real> measure_distance(const ray& r) const;
 
-        hit compute_intersection(ray& r, const real& t) const;
+        hit compute_intersection(ray& r, const real t) const;
 };

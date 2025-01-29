@@ -40,7 +40,7 @@ ray hit::get_reflected_ray() const {
 
 /* Returns the interpolated direction between the normal and the reflected direction */
 /* inward = ((direction | normal) <= 0) */
-rt::vector hit::get_central_reflected_direction(const real& reflectivity, const bool inward) const {
+rt::vector hit::get_central_reflected_direction(const real reflectivity, const bool inward) const {
     const rt::vector u = generator->get_direction();
     /*
     inward = (u | normal) <= 0;
@@ -69,7 +69,7 @@ rt::vector hit::get_central_reflected_direction(const real& reflectivity, const 
 
 /*
 std::vector<ray> hit::random_reflect(const size_t n, randomgen& rg,
-    const rt::vector& central_dir, const real& theta_max) const {
+    const rt::vector& central_dir, const real theta_max) const {
 
     // n random reals between 0 and 1, and n between 0 and 2*pi
     const std::vector<real> rands01 = rg.random_real_array(n, 1.0f);
@@ -121,16 +121,16 @@ std::vector<ray> hit::random_reflect(const size_t n, randomgen& rg,
 */
 
 /* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
-rt::vector hit::random_direction(randomgen& rg, const rt::vector& central_dir, const real& theta_max) const {
+rt::vector hit::random_direction(randomgen& rg, const rt::vector& central_dir, const real theta_max) const {
 
     // n random reals between 0 and 1, and n between 0 and 2*pi
     const real p = rg.random_real(1.0f);
     const real phi = rg.random_real(TWOPI);
 
     // Central direction of the rays
-    const real& a = central_dir.x;
-    const real& b = central_dir.y;
-    const real& c = central_dir.z;
+    const real a = central_dir.x;
+    const real b = central_dir.y;
+    const real c = central_dir.z;
 
     // Orthonormal base of the plane orthogonal to central_dir
     rt::vector X, Y;
@@ -170,7 +170,7 @@ rt::vector hit::random_direction(randomgen& rg, const rt::vector& central_dir, c
 
 /* Returns sin(theta_2), where theta_2 is the refracted angle
    Is precomputed to determine whether the ray is refracted or internally reflected */
-rt::vector hit::get_sin_refracted(const real& current_refr_i, const real& surface_refr_i,
+rt::vector hit::get_sin_refracted(const real current_refr_i, const real surface_refr_i,
     real& sin_theta_2_sq) const {
 
     /* See get_refracted_direction below */
@@ -184,7 +184,7 @@ rt::vector hit::get_sin_refracted(const real& current_refr_i, const real& surfac
 }
 
 /* Returns the refracted direction */
-rt::vector hit::get_refracted_direction(const rt::vector& vx, const real& sin_theta_2_sq, const bool inward) const {
+rt::vector hit::get_refracted_direction(const rt::vector& vx, const real sin_theta_2_sq, const bool inward) const {
     
     /* Factor to apply to normal to obtain the normal outward the surface of contact,
        so that (dir | a * normal) <= 0 */
@@ -209,15 +209,15 @@ rt::vector hit::get_refracted_direction(const rt::vector& vx, const real& sin_th
 }
 
 /* Returns a random unit direction in the cone whose center is the refracted direction, within solid angle refraction_scattering * pi */
-rt::vector hit::get_random_refracted_direction(randomgen& rg, const real& refraction_scattering,
-    const rt::vector& vx, const real& sin_theta_2_sq, const bool inward) const {
+rt::vector hit::get_random_refracted_direction(randomgen& rg, const real refraction_scattering,
+    const rt::vector& vx, const real sin_theta_2_sq, const bool inward) const {
 
     const rt::vector refr_dir = get_refracted_direction(vx, sin_theta_2_sq, inward);
     return random_direction(rg, refr_dir, refraction_scattering * 1.57079632679f);
 }
 
 /* Computes the Fresnel coefficient Kr */
-real hit::get_fresnel(const real& sin_theta_2_sq, const real& refr_1, const real& refr_2) const {
+real hit::get_fresnel(const real sin_theta_2_sq, const real refr_1, const real refr_2) const {
 
     const real pdt = (-1.0f) * (generator->get_direction() | normal);
     const real cos_theta_1 = abs(pdt);
@@ -230,7 +230,7 @@ real hit::get_fresnel(const real& sin_theta_2_sq, const real& refr_1, const real
 }
 
 /* Compute Schlick's approximation of Fresnel coefficient Kr */
-real hit::get_schlick(const real& refr_1, const real& refr_2) const {
+real hit::get_schlick(const real refr_1, const real refr_2) const {
     const real pdt = (-1.0f) * (generator->get_direction() | normal);
     const real cos_theta_1 = abs(pdt);
 

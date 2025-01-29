@@ -40,7 +40,7 @@ texture::texture(const char* file_name, bool& parsing_successful) {
 /* Accessor */
 
 /* Returns the color stored in data at UV-coordinates u, v (between 0 and 1) times width, height */
-rt::color texture::get_color(const real& u, const real& v) const {
+rt::color texture::get_color(const real u, const real v) const {
     const int x = u * width_minus_one;
     const int y = v * height_minus_one;
     // Due to floating-point imprecision, some "unit" vector have a norm slightly larger than 1,

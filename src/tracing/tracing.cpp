@@ -50,7 +50,7 @@ void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& normal,
 
 
 /* Auxiliary function that handles the specular reflective case */
-void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real& reflectivity, const bool inward) {
+void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real reflectivity, const bool inward) {
 
     const rt::vector central_dir = h.get_central_reflected_direction(reflectivity, inward);
                     
@@ -83,9 +83,9 @@ void diffuse_case(ray& r, const hit& h, randomgen& rg, const bool inward) {
 
 
 /* Auxiliary function that handles the refractive case */
-void refractive_case(ray& r, const hit& h, randomgen& rg, const real& scattering,
-    const rt::vector& vx, const real& sin_theta_2_sq, const bool inward,
-    real& refr_index, const real& next_refr_i) {
+void refractive_case(ray& r, const hit& h, randomgen& rg, const real scattering,
+    const rt::vector& vx, const real sin_theta_2_sq, const bool inward,
+    real& refr_index, const real next_refr_i) {
 
     /* Setting the refracted direction */
     r.set_direction(

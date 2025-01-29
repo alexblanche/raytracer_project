@@ -31,6 +31,6 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
    std::vector<const object*>& obj_set,
    std::vector<wrapper<material>>& material_wrapper_set,
    std::vector<wrapper<texture>>& texture_wrapper_set,
-   const real& scale, const rt::vector& shift,
+   const real scale, const rt::vector& shift,
    const bool bounding_enabled, const unsigned int polygons_per_bounding,
    const bounding*& output_bd);

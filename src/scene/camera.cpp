@@ -9,7 +9,7 @@
 camera::camera() {}
 
 camera::camera(const rt::vector& origin, const rt::vector& direction, const rt::vector& to_the_right,
-    const real& fov_w, const real& fov_h, const real& dist,
+    const real fov_w, const real fov_h, const real dist,
     const int width, const int height)
 
     : origin(origin), direction(direction.unit()), to_the_right(to_the_right.unit()),
@@ -19,9 +19,9 @@ camera::camera(const rt::vector& origin, const rt::vector& direction, const rt::
       focal_length(-1), aperture(-1), depth_of_field_enabled(false) {}
 
 camera::camera(const rt::vector& origin, const rt::vector& direction, const rt::vector& to_the_right,
-    const real& fov_w, const real& fov_h, const real& dist,
+    const real fov_w, const real fov_h, const real dist,
     const int width, const int height,
-    const real& focal_length, const real& aperture)
+    const real focal_length, const real aperture)
 
     : origin(origin), direction(direction.unit()), to_the_right(to_the_right.unit()),
       to_the_bottom((direction ^ to_the_right).unit()), distance(dist),
@@ -40,7 +40,7 @@ ray camera::gen_ray(const int i, const int j) const {
 
 /* Returns the ray that goes toward the pixel i,j of the screen in average,
    following a normal distribution around to center of the pixel, with given stardard deviation */
-ray camera::gen_ray_normal(const int i, const int j, /*const real& std_dev,*/ randomgen& rg) const {
+ray camera::gen_ray_normal(const int i, const int j, randomgen& rg) const {
     std::pair<real, real> shift = rg.random_pair_normal(); //rg.random_pair_normal(0.0f, std_dev);
     rt::vector dir = (mhalf_fovw + (((real) i) + shift.first) * di) * to_the_right
         + (mhalf_fovh + (((real) j) + shift.second) * dj) * to_the_bottom

@@ -21,7 +21,7 @@ material::material() : color(rt::color::WHITE), reflectivity(0),
     specular_probability(1), reflects_color(true),
     transparency(0), refraction_index(1) {}
 
-material::material(const rt::color& color, const real& reflectivity)
+material::material(const rt::color& color, const real reflectivity)
 
     : color(color), reflectivity(reflectivity),
         emission_intensity(0),
@@ -29,10 +29,10 @@ material::material(const rt::color& color, const real& reflectivity)
         transparency(0), refraction_index(1) {}
 
 material::material(const rt::color& color, const rt::color& emitted_color,
-    const real& reflectivity, const real& emission_intensity,
-    const real& specular_probability, const bool reflects_color,
-    const real& transparency, const real& refraction_scattering,
-    const real& refraction_index)
+    const real reflectivity, const real emission_intensity,
+    const real specular_probability, const bool reflects_color,
+    const real transparency, const real refraction_scattering,
+    const real refraction_index)
 
     : color(color), reflectivity(reflectivity),
         emitted_color(emitted_color), emission_intensity(emission_intensity),
@@ -41,9 +41,9 @@ material::material(const rt::color& color, const rt::color& emitted_color,
         refraction_index(refraction_index) {}
 
 /* Constructor from mtl parameters */
-material::material(const real& ns,
+material::material(const real ns,
     const rt::color& ka, const rt::color& kd, const rt::color& ks, const rt::color& ke,
-    const real& ni, const real& d, const unsigned int illum)
+    const real ni, const real d, const unsigned int illum)
     
     : color(kd * 255), reflectivity(pow(ns / 1000, 0.25)),
       emitted_color(ke * 255),
@@ -85,6 +85,6 @@ material diffuse_material(const rt::color& color) {
 }
 
 /* Returns a light of given color and intensity */
-material light_material(const rt::color& color, const real& emission_intensity) {
+material light_material(const rt::color& color, const real emission_intensity) {
     return material(color, color, 0, emission_intensity, 0, false, 0, 0, 1);
 }

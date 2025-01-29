@@ -40,5 +40,5 @@ class object {
         /* Intersection determination */
         virtual std::optional<real> measure_distance(const ray& r) const;
 
-        virtual hit compute_intersection(ray& r, const real& t) const;
+        virtual hit compute_intersection(ray& r, const real t) const;
 };

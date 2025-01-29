@@ -90,7 +90,7 @@ namespace rt {
 	/**
 	 * Rotation around axis x by an angle theta
 	 * */
-	vector vector::rotate_x(const real& theta) const {
+	vector vector::rotate_x(const real theta) const {
 		const real costheta = cos(theta);
 		const real sintheta = sin(theta);
 		return rt::vector(
@@ -103,7 +103,7 @@ namespace rt {
 	/**
 	 * Rotation around axis y by an angle theta
 	 * */
-	vector vector::rotate_y(const real& theta) const {
+	vector vector::rotate_y(const real theta) const {
 		const real costheta = cos(theta);
 		const real sintheta = sin(theta);
 		return rt::vector(
@@ -116,7 +116,7 @@ namespace rt {
 	/**
 	 * Rotation around axis z by an angle theta
 	 * */
-	vector vector::rotate_z(const real& theta) const {
+	vector vector::rotate_z(const real theta) const {
 		const real costheta = cos(theta);
 		const real sintheta = sin(theta);
 		return rt::vector(
@@ -130,7 +130,7 @@ namespace rt {
 	 * Left multiplication with a scalar
 	 * x * (a,b,c) = (xa,xb,xc)
 	 */
-	vector operator*(const real& a, const vector& v) {
+	vector operator*(const real a, const vector& v) {
 		return vector(a*v.x, a*v.y, a*v.z);
 	}
 
@@ -138,7 +138,7 @@ namespace rt {
 	 * Right multiplication with a scalar
 	 * (a,b,c) * x = (ax,bx,cx)
 	 */
-	vector operator*(const vector& v, const real& a) {
+	vector operator*(const vector& v, const real a) {
 		return vector(a*v.x, a*v.y, a*v.z);
 	}
 
@@ -146,7 +146,7 @@ namespace rt {
 	 * Division by a scalar
 	 * (a,b,c) / x = (a/x, b/x, c/x)
 	 */
-	vector operator/(const vector& v, const real& a) {
+	vector operator/(const vector& v, const real a) {
 		return vector(v.x / a, v.y / a, v.z / a);
 	}
 }

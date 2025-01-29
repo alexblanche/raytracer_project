@@ -12,7 +12,7 @@ sphere::sphere() {
     radius = 0;
 }
 
-sphere::sphere(const rt::vector& center, const real& radius, const size_t material_index)
+sphere::sphere(const rt::vector& center, const real radius, const size_t material_index)
 
     : object(center, material_index), radius(radius) {}
 
@@ -67,7 +67,7 @@ std::optional<real> sphere::measure_distance(const ray& r) const {
 }
 
 /* Returns the hit corresponding with the given intersection value t */
-hit sphere::compute_intersection(ray& r, const real& t) const {
+hit sphere::compute_intersection(ray& r, const real t) const {
 
     // Intersection point
     const rt::vector u = r.get_origin();

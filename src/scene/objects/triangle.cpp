@@ -159,7 +159,7 @@ rt::vector triangle::get_interpolated_normal(const barycentric_info& bary) const
     return (((1 - bary.l1 - bary.l2) * vn0) + (bary.l1 * vn1) + (bary.l2 * vn2));
 }
 
-hit triangle::compute_intersection(ray& r, const real& t) const {
+hit triangle::compute_intersection(ray& r, const real t) const {
     
     const rt::vector p = r.get_origin() + t * r.get_direction();
 

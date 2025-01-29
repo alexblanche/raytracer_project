@@ -9,9 +9,9 @@ struct barycentric_info {
     real l2;
     bool lower_triangle;
 
-    barycentric_info(const real& l1, const real& l2, bool lower_triangle)
+    barycentric_info(const real l1, const real l2, bool lower_triangle)
         : l1(l1), l2(l2), lower_triangle(lower_triangle) {}
 
-    barycentric_info(const real& l1, const real& l2)
+    barycentric_info(const real l1, const real l2)
         : l1(l1), l2(l2), lower_triangle(true) {}
 };

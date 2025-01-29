@@ -11,13 +11,13 @@ box::box() : object(), n1(rt::vector(1,0,0)), n2(rt::vector(0,1,0)), n3(rt::vect
         
 /* The vector n3 is taken as the cross product of n1 and n2 */
 box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
-            const real& l1, const real& l2, const real& l3, const size_t material_index)
+            const real l1, const real l2, const real l3, const size_t material_index)
     
     : object(center, material_index), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1/2), l2(l2/2), l3(l3/2) {}
 
 /* The vector n3 is taken as the cross product of n1 and n2 */
 box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
-            const real& l1, const real& l2, const real& l3)
+            const real l1, const real l2, const real l3)
     
     : object(center, (size_t) (-1)), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1/2), l2(l2/2), l3(l3/2) {}
 
@@ -173,7 +173,7 @@ std::optional<real> box::measure_distance(const ray& r) const {
     return std::min(t1, std::min(t2, t3));
     */
         
-hit box::compute_intersection(ray& r, const real& t) const {
+hit box::compute_intersection(ray& r, const real t) const {
     // Intersection point
     const rt::vector u = r.get_origin();
     const rt::vector p = u + t * r.get_direction();

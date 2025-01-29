@@ -34,7 +34,7 @@ long int get_time () {
 
 /* Sequential version */
 
-void render_loop_seq(const rt::screen& scr, const int width, const int height, const real& dist,
+void render_loop_seq(const rt::screen& scr, const int width, const int height, const real dist,
     const rt::vector& screen_center, const std::vector<const object*>& obj_set, const std::vector<source>& light_set,
     long int& time) {
 
@@ -63,7 +63,7 @@ void render_loop_seq(const rt::screen& scr, const int width, const int height, c
 
 /* Parallel version */
 
-void render_loop_parallel(const rt::screen& scr, const int width, const int height, const real& dist,
+void render_loop_parallel(const rt::screen& scr, const int width, const int height, const real dist,
     const rt::vector& screen_center, const std::vector<const object*>& obj_set, const std::vector<source>& light_set,
     long int& time) {
     

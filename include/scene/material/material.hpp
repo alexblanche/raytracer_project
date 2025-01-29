@@ -56,19 +56,19 @@ class material {
         material();
 
         /* Constructs a material with no emitted light, with specular probability 1 */
-        material(const rt::color& color, const real& reflectivity);
+        material(const rt::color& color, const real reflectivity);
 
         /* Main constructor */
         material(const rt::color& color, const rt::color& emitted_color,
-            const real& reflectivity, const real& emission_intensity,
-            const real& specular_probability, const bool reflects_color,
-            const real& transparency, const real& refraction_scattering,
-            const real& refraction_index_in);
+            const real reflectivity, const real emission_intensity,
+            const real specular_probability, const bool reflects_color,
+            const real transparency, const real refraction_scattering,
+            const real refraction_index_in);
 
         /* Constructor from mtl parameters */
-        material(const real& ns,
+        material(const real ns,
             const rt::color& ka, const rt::color& kd, const rt::color& ks, const rt::color& ke,
-            const real& ni, const real& d, const unsigned int illum);
+            const real ni, const real d, const unsigned int illum);
 
         material(const material&) = delete;
 
@@ -124,4 +124,4 @@ class material {
 material diffuse_material(const rt::color& color);
 
 /* Returns a light of given color and intensity */
-material light_material(const rt::color& color, const real& emission_intensity);
+material light_material(const rt::color& color, const real emission_intensity);

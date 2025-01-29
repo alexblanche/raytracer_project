@@ -9,7 +9,7 @@ plane::plane() : a(0), b(0), c(0), d(0) {}
 /* A plane (P) of equation (P): ax + by + cz + d = 0
  defined by 4 reals a,b,c,d */
 /* The normal vector (a, b, c) is a unit vector */
-plane::plane(const real& pa, const real& pb, const real& pc, const real& pd,
+plane::plane(const real pa, const real pb, const real pc, const real pd,
     const rt::color& col)
     
     : object(rt::vector(), col) {
@@ -36,7 +36,7 @@ plane::plane(const real& pa, const real& pb, const real& pc, const real& pd,
 }
 
 /* Constructor of a plane of normal vector (a,b,c) and touching the point v */
-plane::plane(const real& pa, const real& pb, const real& pc, const rt::vector& position,
+plane::plane(const real pa, const real pb, const real pc, const rt::vector& position,
     const rt::color& col)
 
     : object(position, col) {
@@ -78,7 +78,7 @@ std::optional<real> plane::measure_distance(const ray& r) const {
     }
 }
 
-hit plane::compute_intersection(ray& r, const real& t) const {
+hit plane::compute_intersection(ray& r, const real t) const {
 
     // Intersection point
     const rt::vector p = r.get_origin() + t * r.get_direction();

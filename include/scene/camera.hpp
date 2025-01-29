@@ -45,20 +45,20 @@ class camera {
         camera();
 
         camera(const rt::vector& origin, const rt::vector& direction, const rt::vector& to_the_right,
-            const real& fov_w, const real& fov_h, const real& dist,
+            const real fov_w, const real fov_h, const real dist,
             const int width, const int height);
 
         camera(const rt::vector& origin, const rt::vector& direction, const rt::vector& to_the_right,
-            const real& fov_w, const real& fov_h, const real& dist,
+            const real fov_w, const real fov_h, const real dist,
             const int width, const int height,
-            const real& focal_length, const real& aperture);
+            const real focal_length, const real aperture);
 
         /* Returns the ray that goes toward the pixel i,j of the screen */
         ray gen_ray(const int i, const int j) const;
 
         /* Returns the ray that goes toward the pixel i,j of the screen in average,
            following a normal distribution around to center of the pixel, with given stardard deviation */
-        ray gen_ray_normal(const int i, const int j, /*const real& std_dev,*/ randomgen& rg) const;
+        ray gen_ray_normal(const int i, const int j, randomgen& rg) const;
 
         /* Returns the ray that goes toward the pixel i,j of the screen, with depth of field */
         ray gen_ray_dof(const int i, const int j, randomgen& rg) const;
