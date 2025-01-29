@@ -33,6 +33,10 @@ namespace rt {
 			SDL_Window* window;
 			SDL_Renderer* renderer;
 
+			SDL_Rect srcrect;
+    		SDL_Rect dstrect;
+			SDL_Texture* texture;
+
 			/**
 			 * Default constructor is protected and can be used
 			 * only by inheriting classes. It is forbidden to
@@ -84,6 +88,7 @@ namespace rt {
 			 * Sets a pixel to a given color.
 			 */
 			virtual void set_pixel(int x, int y, const color& c) const;
+			virtual void set_pixel(int x, int y, Uint8 r, Uint8 g, Uint8 b) const;
 
 			/**
 			 * Draws a line from (x1,y1) to (x2,y2) of a given color.

@@ -21,6 +21,17 @@ namespace rt {
 		renderer = SDL_CreateRenderer(window, (-1), SDL_RENDERER_ACCELERATED);
 		SDL_RenderSetVSync(renderer, 0); // 1 = Enable VSync, 0 = Disable
 		SDL_RenderSetLogicalSize(renderer, width, height);
+
+		srcrect.x = 0;
+		srcrect.y = 0;
+		srcrect.w = width;
+		srcrect.h = height;
+		dstrect.x = 0;
+		dstrect.y = 0;
+		dstrect.w = width;
+		dstrect.h = height;
+
+		texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, width, height);
 	}
 
 	/**
@@ -39,6 +50,7 @@ namespace rt {
 	 * Destructor.
 	 */
 	image::~image() {
+		SDL_DestroyTexture(texture);
 		if (renderer != NULL){
 			SDL_DestroyRenderer(renderer);
 		}
@@ -58,6 +70,12 @@ namespace rt {
 		Uint8 r = c.get_red();
 		Uint8 g = c.get_green();
 		Uint8 b = c.get_blue();
+		SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+		SDL_RenderDrawPoint(renderer, x, y);
+	}
+
+	void image::set_pixel(int x, int y, Uint8 r, Uint8 g, Uint8 b) const {
+		
 		SDL_SetRenderDrawColor(renderer, r, g, b, 255);
 		SDL_RenderDrawPoint(renderer, x, y);
 	}

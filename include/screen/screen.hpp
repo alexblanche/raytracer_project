@@ -49,6 +49,11 @@ namespace rt {
 			 */
 			void update() const;
 
+			/**
+			 * Same as update, but first copies the texture onto the renderer
+			 */
+			void update_from_texture() const;
+
 			/****************************************************************************************************/
 			/** Event processing **/
 
@@ -75,12 +80,24 @@ namespace rt {
 			 */
 			int wait_keyboard_event() const;
 
+			/**
+			 * Same as wait_keyboard_event, with poll events
+			 */
+			int poll_keyboard_event() const;
+
 			/****************************************************************************************************/
 
 			/**
 			 * Copies the rt::color matrix onto the screen, by averaging the number_of_rays colors per pixel
 			*/
 			void copy(std::vector<std::vector<rt::color>>& matrix,
+				const size_t width, const size_t height,
+				const unsigned int number_of_rays) const;
+
+			/**
+			 * Same as copy
+			*/
+			void fast_copy(std::vector<std::vector<rt::color>>& matrix,
 				const size_t width, const size_t height,
 				const unsigned int number_of_rays) const;
 

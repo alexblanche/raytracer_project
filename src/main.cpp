@@ -173,6 +173,10 @@ int main(int argc, char *argv[]) {
         render_loop_parallel(matrix, scene, number_of_bounces);
     }
 
+    const rt::screen scr(scene.width, scene.height);
+    scr.fast_copy(matrix, scene.width, scene.height, 1);
+    scr.update_from_texture();
+
     printf("\r                                                   ");
     printf("\rNumber of rays per pixel: 1");
     fflush(stdout);
@@ -189,16 +193,21 @@ int main(int argc, char *argv[]) {
         printf("\rNumber of rays per pixel: %u", number_of_rays);
         fflush(stdout);
 
-        if (number_of_rays % 10 == 0) {
+        if (true || number_of_rays % 10 == 0) {
             
-            const rt::screen scr(scene.width, scene.height);
-            scr.copy(matrix, scene.width, scene.height, number_of_rays);
-            scr.update();
+            //const rt::screen scr(scene.width, scene.height);
+            //scr.copy(matrix, scene.width, scene.height, number_of_rays);
+            //scr.update();
+
+            scr.fast_copy(matrix, scene.width, scene.height, number_of_rays);
+            scr.update_from_texture();
+
             int key;
-            do {
-                key = scr.wait_keyboard_event();
-            }
-            while (key == 0);
+            // do {
+            //     key = scr.wait_keyboard_event();
+            // }
+            // while (key == 0);
+            key = scr.poll_keyboard_event();
             switch (key) {
                 case 1:
                     /* Esc or the window exit "X" clicked */

@@ -54,6 +54,15 @@ namespace rt {
 		SDL_RenderPresent(renderer);
 	}
 
+	/**
+	 * Same as update, but first copies the texture onto the renderer
+	 */
+	void screen::update_from_texture() const {
+		SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, texture, &srcrect, &dstrect);
+        SDL_RenderPresent(renderer);
+	}
+
 
 	/****************************************************************************************************/
 	/** Event processing **/
@@ -135,25 +144,99 @@ namespace rt {
 		return 0;
 	}
 
+	/**
+	 * Same as wait_keyboard_event, with poll events
+	 */
+	int screen::poll_keyboard_event() const {
+		SDL_Event event;
+		while(SDL_PollEvent(&event)) {
+			switch(event.type) {
+				case SDL_QUIT:
+					return 1;
+				case SDL_KEYDOWN:
+					switch(event.key.keysym.scancode) {
+						case SDL_SCANCODE_ESCAPE:
+							return 1;
+						case SDL_SCANCODE_SPACE:
+						case SDL_SCANCODE_RETURN:
+						case SDL_SCANCODE_KP_ENTER:
+							return 2;
+						case SDL_SCANCODE_B:
+							return 3;
+						case SDL_SCANCODE_R:
+							return 4;
+						default:
+							break;
+					}
+					break;
+				case SDL_MOUSEBUTTONDOWN:
+					printf("\nX = %d, Y = %d", event.button.x, event.button.y);
+					break;
+			}
+		}
+		return 0;
+	}
+
 	/****************************************************************************************************/
 
 	/**
 	 * Copies the rt::color matrix onto the screen, by averaging the number_of_rays colors per pixel
 	*/
-	void screen::copy(std::vector<std::vector<rt::color>>& matrix,
+	void screen::copy(std::vector<std::vector<color>>& matrix,
 		const size_t width, const size_t height,
 		const unsigned int number_of_rays) const {
 			
+		const real invN = 1.0 / number_of_rays;
 		for (size_t i = 0; i < width; i++) {
 			for (size_t j = 0; j < height; j++) {
-				const rt::color& pixel_col = matrix[i][j];
+				const color& pixel_col = matrix[i][j];
 				// Maxed values
-				const real r = std::min(pixel_col.get_red()   / number_of_rays, (real) 255.0f);
-				const real g = std::min(pixel_col.get_green() / number_of_rays, (real) 255.0f);
-				const real b = std::min(pixel_col.get_blue()  / number_of_rays, (real) 255.0f);
-				set_pixel(i, j, rt::color(r, g, b));
+				// const real r = std::min(pixel_col.get_red()   / number_of_rays, (real) 255.0f);
+				// const real g = std::min(pixel_col.get_green() / number_of_rays, (real) 255.0f);
+				// const real b = std::min(pixel_col.get_blue()  / number_of_rays, (real) 255.0f);
+				// set_pixel(i, j, rt::color(r, g, b));
+
+				const Uint8 r = std::min((Uint8) (pixel_col.get_red()   * invN), (Uint8) 255);
+				const Uint8 g = std::min((Uint8) (pixel_col.get_green() * invN), (Uint8) 255);
+				const Uint8 b = std::min((Uint8) (pixel_col.get_blue()  * invN), (Uint8) 255);
+				set_pixel(i, j, r, g, b);
 			}
 		}
+	}
+
+	/**
+	 * Same as copy
+	 */
+	void screen::fast_copy(std::vector<std::vector<color>>& matrix,
+		const size_t width, const size_t height,
+		const unsigned int number_of_rays) const {
+
+		const real invN = 1.0 / number_of_rays;
+
+		char* texture_pixels;
+		int texture_pitch;
+		unsigned int index = 0;
+		SDL_LockTexture(texture, NULL, (void**) &texture_pixels, &texture_pitch);
+		const unsigned int padding = texture_pitch % 3;
+        for (size_t j = 0; j < height; j++) {
+			//const int jwidth = j * (width + 1);
+            for (size_t i = 0; i < width; i++) {
+				const color& pixel_col = matrix[i][j];
+
+				const Uint8 r = std::min((Uint8) (pixel_col.get_red()   * invN), (Uint8) 255);
+				const Uint8 g = std::min((Uint8) (pixel_col.get_green() * invN), (Uint8) 255);
+				const Uint8 b = std::min((Uint8) (pixel_col.get_blue()  * invN), (Uint8) 255);
+
+				texture_pixels[index] = r;
+				index++;
+				texture_pixels[index] = g;
+				index++;
+				texture_pixels[index] = b;
+				index++;
+            }
+			index += padding;
+        }
+        SDL_UnlockTexture(texture);
 	}
 	
 	/**
