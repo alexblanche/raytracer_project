@@ -14,9 +14,7 @@
  */
 #pragma once
 
-// Type alias for floating-point numerical values
-using real = double;
-
+#include "parameters.hpp"
 #include <vector>
 
 namespace rt  {

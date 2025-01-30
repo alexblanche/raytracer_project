@@ -172,11 +172,11 @@ bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
 
 /* Prints the integer stored in the buffer at index start_index on nb_bytes bytes (in Little Endian convention) */
 void print_bytes(const char buffer[], const int start_index, const int nb_bytes) {
-    int value = 0;
+    unsigned int value = 0;
     for (int i = start_index + nb_bytes - 1; i >= start_index; i--) {
         value = (value << 8) + buffer[i];
     }
-    printf("%d", value);
+    printf("%u", value);
 }
 
 /* Prints the info contained in the header of the given .bmp file */

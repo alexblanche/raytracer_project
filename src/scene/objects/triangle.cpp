@@ -6,7 +6,6 @@
 
 #include <optional>
 
-
 /* Constructors */
 
 triangle::triangle() {}
@@ -162,14 +161,21 @@ rt::vector triangle::get_interpolated_normal(const barycentric_info& bary) const
 hit triangle::compute_intersection(ray& r, const real t) const {
     
     const rt::vector p = r.get_origin() + t * r.get_direction();
-
-    // Computation of the interpolated normal vector
-    const barycentric_info bary = get_barycentric(p);
-
     const object* pt_obj = this;
     ray* pt_ray = &r;
     
+#ifdef SMOOTH_SHADING
+    
+    // Computation of the interpolated normal vector
+    const barycentric_info bary = get_barycentric(p);
+
     return hit(pt_ray, p, get_interpolated_normal(bary), pt_obj);
+
+#else // Flat shading
+    
+    return hit(pt_ray, p, normal, pt_obj);
+
+#endif
 }
 
 

@@ -15,8 +15,6 @@
 
 #include <filesystem>
 
-#define MAX_RAYS 1000
-#define ANTI_ALIASING 0.3f
 
 /* ********* MAIN FUNCTION ********* */
 

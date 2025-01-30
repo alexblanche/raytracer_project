@@ -231,14 +231,22 @@ hit quad::compute_intersection(ray& r, const real t) const {
     //     position.x, position.y, position.z, p1.x, p1.y, p1.z, p2.x, p2.y, p2.z, p3.x, p3.y, p3.z);
 
     const rt::vector p = r.get_origin() + t * r.get_direction();
-
-    // Computation of the interpolated normal vector
-    barycentric_info bary = get_barycentric(p);
-
     const object* pt_obj = this;
     ray* pt_ray = &r;
+
+
+#ifdef SMOOTH_SHADING
     
+    // Computation of the interpolated normal vector
+    const barycentric_info bary = get_barycentric(p);
+
     return hit(pt_ray, p, get_interpolated_normal(bary), pt_obj);
+
+#else // Flat shading
+    
+    return hit(pt_ray, p, normal, pt_obj);
+    
+#endif
 }
 
 /* Minimum and maximum coordinates */

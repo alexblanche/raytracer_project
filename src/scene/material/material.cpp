@@ -18,14 +18,14 @@ material material::WATER = material(rt::color(255,255,255), rt::color(0,0,0), 1,
 
 material::material() : color(rt::color::WHITE), reflectivity(0),
     emitted_color(rt::color::WHITE), emission_intensity(0),
-    specular_probability(1), reflects_color(true),
+    specular_probability(0), reflects_color(false),
     transparency(0), refraction_index(1) {}
 
 material::material(const rt::color& color, const real reflectivity)
 
     : color(color), reflectivity(reflectivity),
         emission_intensity(0),
-        specular_probability(1), reflects_color(true),
+        specular_probability(0), reflects_color(false),
         transparency(0), refraction_index(1) {}
 
 material::material(const rt::color& color, const rt::color& emitted_color,

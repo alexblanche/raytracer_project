@@ -100,13 +100,13 @@ The texture's name is followed by 3 (for a triangle) or 4 points (for a quad) in
 
 
 ### Polygon mesh import
-The project supports polygon meshes in .obj format. Some features are not yet supported, like mtl files. Materials must be declared beforehand, with the same name as in the associated mtl file.  
+The project supports polygon meshes in .obj format. Associated .mtl files are supported, but materials can also be declared beforehand, with the same name as in the associated mtl file.  
 An .obj file can be imported by specifying its file name, the texture mapped onto the object, a shifting vector and a scaling factor. The texture shall be declared beforehand and given a variable name.  
 ``````
-material wood_mat (...)  // appearing in wooden_table.mtl
-material metal_mat (...) // appearing in wooden_table.mtl
+material wood_mat (...)  // appearing in wooden_table.obj
+material metal_mat (...) // appearing in wooden_table.obj
 load_texture wood wood_texture.bmp
-load_obj wooden_table.bmp (texture:wood shift:(1,0,0) scale:2)
+load_obj wooden_table.obj (texture:wood shift:(1,0,0) scale:2)
 ``````
 
 ### Comments
