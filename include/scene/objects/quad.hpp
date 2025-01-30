@@ -2,7 +2,6 @@
 
 #include "object.hpp"
 #include "polygon.hpp"
-#include "plane.hpp"
 
 #include "light/vector.hpp"
 #include "light/hit.hpp"

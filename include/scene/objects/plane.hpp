@@ -12,6 +12,7 @@ class plane : public object {
     
     private:
 
+        rt::vector normal;
         real a, b, c, d;
 
         /* A plane (P) of equation (P): ax + by + cz + d = 0
@@ -31,8 +32,8 @@ class plane : public object {
 
         /* Accessors */
 
-        inline rt::vector get_normal() const {
-            return rt::vector(a, b, c);
+        inline const rt::vector& get_normal() const {
+            return normal;
         }
 
 

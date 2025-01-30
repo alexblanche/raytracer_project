@@ -21,10 +21,10 @@ plane::plane(const real pa, const real pb, const real pc, const real pd,
     : object(rt::vector(), material_index) {
 
     /* Normalization of the normal vector */
-    const rt::vector n = rt::vector(pa, pb, pc).unit();
-    a = n.x;
-    b = n.y;
-    c = n.z;
+    normal = rt::vector(pa, pb, pc).unit();
+    a = normal.x;
+    b = normal.y;
+    c = normal.z;
     d = pd / sqrt(pa*pa + pb*pb + pc*pc);
     
     if (pa != 0) {
@@ -47,12 +47,12 @@ plane::plane(const real pa, const real pb, const real pc, const rt::vector& posi
 
     : object(position, material_index) {
 
-    const rt::vector n = rt::vector(pa, pb, pc).unit();
-    a = n.x;
-    b = n.y;
-    c = n.z;
+    normal = rt::vector(pa, pb, pc).unit();
+    a = normal.x;
+    b = normal.y;
+    c = normal.z;
 
-    d = -(n | position); // = -aX-bY-cZ if position = (X,Y,Z)
+    d = -(normal | position); // = -aX-bY-cZ if position = (X,Y,Z)
 }
 
 
@@ -70,7 +70,7 @@ std::optional<real> plane::measure_distance(const ray& r) const {
        => t = -(aX + bY + cZ + d) / (ax + by + cz)
     */
 
-    const rt::vector n = get_normal();
+    const rt::vector& n = get_normal();
     const real pdt = (n | r.get_direction()); // ax + by + cz
     const real upln = (n | r.get_origin()) + d; // aX + bY + cZ + d
     
