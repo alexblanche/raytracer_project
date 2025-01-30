@@ -15,11 +15,14 @@
 /* Constructors */
 
 /* Main constructor */
-hit::hit(ray*& generator, const rt::vector& point, const rt::vector& normal, const object*& hit_object)
-    : generator(generator), point(point), normal(normal), flat_normal(normal), hit_object(hit_object) {}
+hit::hit(ray* generator, const rt::vector& point, const rt::vector& normal, const object*& hit_object)
+    : generator(generator), point(point), normal(normal), hit_object(hit_object) {
 
-hit::hit(ray*& generator, const rt::vector& point, const rt::vector& normal, const rt::vector& flat_normal, const object*& hit_object)
-    : generator(generator), point(point), normal(normal), flat_normal(flat_normal), hit_object(hit_object) {}
+    inward = (generator->get_direction() | normal) <= 0.0f;
+}
+
+hit::hit(ray* generator, const rt::vector& point, const rt::vector& normal, const object*& hit_object, const bool inward)
+    : generator(generator), point(point), normal(normal), hit_object(hit_object), inward(inward) {}
 
 hit::hit() {}
 
@@ -222,22 +225,26 @@ rt::vector hit::get_random_refracted_direction(randomgen& rg, const real refract
 /* Computes the Fresnel coefficient Kr */
 real hit::get_fresnel(const real sin_theta_2_sq, const real refr_1, const real refr_2) const {
 
-    const real pdt = (-1.0f) * (generator->get_direction() | normal);
+    const real pdt = /* (-1.0f) * */ (generator->get_direction() | normal);
     const real cos_theta_1 = abs(pdt);
     const real cos_theta_2 = sqrt(1.0f - sin_theta_2_sq);
 
-    const real orth = (refr_2 * cos_theta_1 - refr_1 * cos_theta_2) / (refr_2 * cos_theta_1 + refr_1 * cos_theta_2);
-    const real para = (refr_2 * cos_theta_2 - refr_1 * cos_theta_1) / (refr_2 * cos_theta_2 + refr_1 * cos_theta_1);
+    const real refr1costheta1 = refr_1 * cos_theta_1;
+    const real refr1costheta2 = refr_1 * cos_theta_2;
+    const real refr2costheta1 = refr_2 * cos_theta_1;
+    const real refr2costheta2 = refr_2 * cos_theta_2;
+    const real orth = (refr2costheta1 - refr1costheta2) / (refr2costheta1 + refr1costheta2);
+    const real para = (refr2costheta2 - refr1costheta1) / (refr2costheta2 + refr1costheta1);
     
     return (para * para + orth * orth) / 2.0f;
 }
 
 /* Compute Schlick's approximation of Fresnel coefficient Kr */
 real hit::get_schlick(const real refr_1, const real refr_2) const {
-    const real pdt = (-1.0f) * (generator->get_direction() | normal);
+    const real pdt = /* (-1.0f) * */ (generator->get_direction() | normal);
     const real cos_theta_1 = abs(pdt);
 
-    const real r_zero = pow((refr_1 - refr_2) / (refr_1 + refr_2), 2);
-
+    const real ratio = (refr_1 - refr_2) / (refr_1 + refr_2);
+    const real r_zero = ratio * ratio;
     return r_zero + (1.0f - r_zero) * pow(1.0f - cos_theta_1, 5);
 }

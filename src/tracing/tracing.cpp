@@ -184,7 +184,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
                or reflected in three ways: specularly, diffusely, or in the case of total internal reflection,
                when the ray hits a surface of lower refraction index at an angle greater than the critical angle.
             */
-            const real inward = (r.get_direction() | h.get_flat_normal()) <= 0.0f;
+            const real inward = h.is_inward();
 
             if (m.get_transparency() == 0.0f) {
                 /* Diffuse or specular reflection */

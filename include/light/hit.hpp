@@ -20,14 +20,14 @@ class hit {
         ray* generator;
         rt::vector point;
         rt::vector normal;
-        rt::vector flat_normal;
         const object* hit_object;
+        bool inward;
 
     public:
         /* Main constructor */
-        hit(ray*& generator, const rt::vector& point, const rt::vector& normal, const object*& hit_object);
+        hit(ray* generator, const rt::vector& point, const rt::vector& normal, const object*& hit_object);
 
-        hit(ray*& generator, const rt::vector& point, const rt::vector& normal, const rt::vector& flat_normal, const object*& hit_object);
+        hit(ray* generator, const rt::vector& point, const rt::vector& normal, const object*& hit_object, const bool inward);
 
         hit();
 
@@ -40,12 +40,12 @@ class hit {
             return normal;
         }
 
-        inline const rt::vector& get_flat_normal() const {
-            return flat_normal;
-        }
-
         inline const object* get_object() const {
             return hit_object;
+        }
+
+        inline bool is_inward() const {
+            return inward;
         }
 
         /* Reflection */

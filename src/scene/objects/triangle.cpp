@@ -168,8 +168,10 @@ hit triangle::compute_intersection(ray& r, const real t) const {
     
     // Computation of the interpolated normal vector
     const barycentric_info bary = get_barycentric(p);
+    // inward uses the face normal to avoid artefacts at the edge of the mesh
+    const bool inward = (r.get_direction() | normal) <= 0.0f;
 
-    return hit(pt_ray, p, get_interpolated_normal(bary), normal, pt_obj);
+    return hit(pt_ray, p, get_interpolated_normal(bary), pt_obj, inward);
 
 #else // Flat shading
     
