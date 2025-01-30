@@ -112,7 +112,7 @@ rt::color background_case(const scene& scene, const ray& r,
             then the UV-coordinates in the 360 image */
 
         const rt::vector& dir = r.get_direction();
-        return (color_materials * scene.background.get_color(dir)) + emitted_colors;
+        return (color_materials * (scene.background.get_color(dir) /* * ((real) 1.3f) */)) + emitted_colors; // TEMPORARY
 
     }
     else {

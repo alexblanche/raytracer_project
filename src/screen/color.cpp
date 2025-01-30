@@ -41,9 +41,9 @@ namespace rt {
 	 * Assignment by copy
 	 */
 	void color::operator=(const color& c) {
-		red = c.get_red();
+		red   = c.get_red();
 		green = c.get_green();
-		blue = c.get_blue();
+		blue  = c.get_blue();
 	}
 
 	/**

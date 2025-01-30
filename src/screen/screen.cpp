@@ -215,17 +215,22 @@ namespace rt {
 
 		char* texture_pixels;
 		int texture_pitch;
-		unsigned int index = 0;
+
 		SDL_LockTexture(texture, NULL, (void**) &texture_pixels, &texture_pitch);
 		const unsigned int padding = texture_pitch % 3;
-        for (size_t j = 0; j < height; j++) {
-			//const int jwidth = j * (width + 1);
+        
+		unsigned int index = 0;
+
+		for (size_t j = 0; j < height; j++) {
             for (size_t i = 0; i < width; i++) {
 				const color& pixel_col = matrix[i][j];
 
-				const Uint8 r = std::min((Uint8) (pixel_col.get_red()   * invN), (Uint8) 255);
-				const Uint8 g = std::min((Uint8) (pixel_col.get_green() * invN), (Uint8) 255);
-				const Uint8 b = std::min((Uint8) (pixel_col.get_blue()  * invN), (Uint8) 255);
+				// const Uint8 r = std::min((Uint8) (pixel_col.get_red()   * invN), (Uint8) 255);
+				// const Uint8 g = std::min((Uint8) (pixel_col.get_green() * invN), (Uint8) 255);
+				// const Uint8 b = std::min((Uint8) (pixel_col.get_blue()  * invN), (Uint8) 255);
+				const Uint8 r = std::min(pixel_col.get_red()   * invN, (real) 255.0f);
+				const Uint8 g = std::min(pixel_col.get_green() * invN, (real) 255.0f);
+				const Uint8 b = std::min(pixel_col.get_blue()  * invN, (real) 255.0f);
 
 				texture_pixels[index] = r;
 				index++;
@@ -236,6 +241,7 @@ namespace rt {
             }
 			index += padding;
         }
+		
         SDL_UnlockTexture(texture);
 	}
 	
