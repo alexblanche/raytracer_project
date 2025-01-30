@@ -31,4 +31,6 @@
     Computes the hit of the given ray on the closest object,
     then launches one ray, in a direction and with a color depending on the surface material,
     until it is too dim, or a light-emitting object is hit, or the maximum number of bounces is reached. */
-rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce);
+rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce, const real init_refr_index = 1.0f);
+
+rt::color pathtrace_multisample(ray& r, scene& scene, const unsigned int bounce, const unsigned int number_of_samples);

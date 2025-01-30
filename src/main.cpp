@@ -49,6 +49,8 @@ int main(int argc, char *argv[]) {
     bool time_all = false;
     bool interactive = true;
     unsigned int target_number_of_rays = 0;
+    bool multisample = false;
+    unsigned int number_of_samples = 0;
 
     if (argc == 1 || atoi(argv[1]) == 0) {
         printf("Number of bounces: %u (default)\n", number_of_bounces);
@@ -59,23 +61,51 @@ int main(int argc, char *argv[]) {
     }
 
     if (argc > 2) {
-        if (strcmp(argv[2], "-time") == 0) {
-            time_enabled = true;
 
-            if (argc == 4) {
-                if (strcmp(argv[3], "all") == 0) {
-                    time_all = true;
+        int index_arg = 2;
+        while (index_arg < argc) {
+
+            if (strcmp(argv[index_arg], "-time") == 0) {
+                time_enabled = true;
+                index_arg++;
+
+                if (index_arg < argc) {
+                    if (strcmp(argv[index_arg], "all") == 0) {
+                        time_all = true;
+                        index_arg++;
+                    }
                 }
+                continue;
             }
-        }
-        else if (strcmp(argv[2], "-rays") == 0) {
-            if (argc == 4) {
+
+            if (strcmp(argv[index_arg], "-rays") == 0) {
                 interactive = false;
-                target_number_of_rays = atoi(argv[3]);
+                index_arg++;
+
+                if (index_arg < argc) {
+                    target_number_of_rays = atoi(argv[index_arg]);
+                    index_arg++;
+                }
+                else {
+                    printf("Error, -rays option expects 1 argument\n");
+                    return EXIT_FAILURE;
+                }
+                continue;
             }
-            else {
-                printf("Error, wrong number of arguments\n");
-                return EXIT_FAILURE;
+
+            if (strcmp(argv[index_arg], "-multisample") == 0) {
+                multisample = true;
+                index_arg++;
+
+                if (index_arg < argc) {
+                    number_of_samples = atoi(argv[index_arg]);
+                    index_arg++;
+                }
+                else {
+                    printf("Error, -multisample option expects 1 argument\n");
+                    return EXIT_FAILURE;
+                }
+                continue;
             }
         }
     }
@@ -130,7 +160,11 @@ int main(int argc, char *argv[]) {
         fflush(stdout);
         
         for (unsigned int i = 0; i < target_number_of_rays; i++) {
-            render_loop_parallel(matrix, scene, number_of_bounces);
+            if (multisample)
+                render_loop_parallel_multisample(matrix, scene, number_of_bounces, number_of_samples);
+            else
+                render_loop_parallel(matrix, scene, number_of_bounces);
+
             if (target_number_of_rays <= 10 || i % 10 == 9) {
                 printf("\r%u / %u", i+1, target_number_of_rays);
                 fflush(stdout);
@@ -168,7 +202,10 @@ int main(int argc, char *argv[]) {
         render_loop_parallel_time(matrix, scene, number_of_bounces, time_all);
     }
     else {
-        render_loop_parallel(matrix, scene, number_of_bounces);
+        if (multisample)
+            render_loop_parallel_multisample(matrix, scene, number_of_bounces, number_of_samples);
+        else
+            render_loop_parallel(matrix, scene, number_of_bounces);
     }
 
     const rt::screen scr(scene.width, scene.height);
@@ -185,7 +222,10 @@ int main(int argc, char *argv[]) {
             render_loop_parallel_time(matrix, scene, number_of_bounces, time_all);
         }
         else {
-            render_loop_parallel(matrix, scene, number_of_bounces);
+            if (multisample)
+                render_loop_parallel_multisample(matrix, scene, number_of_bounces, number_of_samples);
+            else
+                render_loop_parallel(matrix, scene, number_of_bounces);
         }
 
         printf("\rNumber of rays per pixel: %u", number_of_rays);

@@ -18,3 +18,7 @@ void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
  */
 void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
     scene& scene, const unsigned int number_of_bounces, const bool time_all);
+
+
+void render_loop_parallel_multisample(std::vector<std::vector<rt::color>>& matrix,
+    scene& scene, const unsigned int number_of_bounces, const unsigned int number_of_samples);

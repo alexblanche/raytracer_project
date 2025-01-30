@@ -74,7 +74,7 @@ void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real re
 /* Auxiliary function that handles the diffuse reflective case */
 void diffuse_case(ray& r, const hit& h, randomgen& rg, const bool inward) {
 
-    const rt::vector normal = h.get_normal();
+    const rt::vector& normal = h.get_normal();
     r.set_direction(((inward ? normal : (-1.0f) * normal) + h.random_direction(rg, normal, PI)).unit());
 
     /* Apply the bias outward the surface */
@@ -131,13 +131,17 @@ rt::color background_case(const scene& scene, const ray& r,
    in iterative form, we have an accumulator color_materials of the product of the a(k), k=n..,
    and an accumulator (emitted_colors) of the (product of a(j), j=n..k) * b(k). */
 
-rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
+rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
+    const real init_refr_index = 1.0f) {
 
     rt::color color_materials = rt::color::WHITE;
     rt::color emitted_colors = rt::color::BLACK;
     
-    real refr_index = 1.0f;
+    real refr_index = init_refr_index;
     std::stack<real> refr_stack;
+    if (refr_index != 1.0f) {
+        refr_stack.push(1.0f);
+    }
 
     const bool bounding_method = scene.polygons_per_bounding != 0;
 
@@ -269,4 +273,178 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce) {
 
     /* Maximum number of bounces reached: the final color is black */
     return emitted_colors;
+}
+
+
+
+
+
+
+/******************************************************************************* */
+/* Path tracing with multisample approach:
+   After the first hit, multiple rays are cast */
+
+rt::vector random_dir(const hit& h, scene& scene, const rt::vector central_dir, const real scattering) {
+    
+    return (central_dir + (1.0f - scattering) * h.random_direction(scene.rg, central_dir, PI)).unit();
+}
+
+/* Computation of the new central direction and scattering */
+void compute_bouncing_ray(ray& r, const material& m, const hit& h, const object* obj, scene& scene,
+    // Output
+    rt::vector& central_dir, real& scattering, rt::color& color_materials, rt::color& emitted_colors, real& init_refr_index) {
+
+    init_refr_index = 1.0f;
+
+    color_materials = rt::color::WHITE;
+    emitted_colors = rt::color::BLACK;
+
+    auto update_acc = [&](bool reflects_colors) {
+        update_accumulators(m, obj, h.get_point(), scene.texture_set, emitted_colors, color_materials, reflects_colors);
+    };
+
+    const real inward = h.is_inward();
+
+    if (m.get_transparency() == 0.0f) {
+        /* Diffuse or specular reflection */
+
+        /* Testing whether the ray is reflected specularly or diffusely */
+        if (m.get_specular_proba() != 0.0f && scene.rg.random_real(1.0f) <= m.get_specular_proba()) {
+            
+            /* Specular bounce */
+
+            central_dir = h.get_central_reflected_direction(m.get_reflectivity(), inward);
+            scattering = m.get_reflectivity();
+            apply_bias(r, h.get_point(), h.get_normal(), inward, true);
+
+            /* We update color_materials only if the material reflects colors (like a christmas tree ball),
+                otherwise the reflection has the original color (like a tomato) */
+            update_acc(m.does_reflect_color());
+        }
+        else {
+
+            /* Diffuse bounce */
+
+            const rt::vector& normal = h.get_normal();
+            central_dir = inward ? normal : (-1.0f) * normal;
+            scattering = 0.0f;
+            apply_bias(r, h.get_point(), normal, inward, true);
+
+            update_acc(true);
+        }
+    }
+    else {
+        /* Transmission or reflection, depending on the Fresnel coefficients Kr, Kt
+            Kr is the probability that the ray is reflected, Kt the probability that the ray is transmitted */
+
+        /* Computation of the new refraction index */
+        const real next_refr_i = inward ? m.get_refraction_index() : 1.0f;
+
+        /* Pre-computation of the refracted direction */
+        real sin_theta_2_sq;
+        const rt::vector vx = h.get_sin_refracted(1.0f, next_refr_i, sin_theta_2_sq);
+
+        /* Computation of the Fresnel coefficient */
+        const real kr = inward ? h.get_schlick(1.0f, next_refr_i) : 0.0f;
+
+        if (inward && scene.rg.random_real(1.0f) * m.get_transparency() <= kr) {
+        
+            /* The ray is reflected */
+            
+            central_dir = h.get_central_reflected_direction(m.get_reflectivity(), inward);
+            scattering = m.get_reflectivity();
+            apply_bias(r, h.get_point(), h.get_normal(), inward, true);
+
+            update_acc(false);
+        }
+        else {
+            
+            /* The ray is transmitted */
+
+            /* Determination of whether the ray is transmitted (refracted) or in total interal reflection */
+            if (sin_theta_2_sq >= 1.0f) {
+                /* Total internal reflection */
+
+                central_dir = h.get_central_reflected_direction(m.get_reflectivity(), inward);
+                scattering = m.get_reflectivity();
+                apply_bias(r, h.get_point(), h.get_normal(), inward, true);
+
+                update_acc(false);
+            }
+            else {
+                /* Transmission */
+
+                /* Setting the refracted direction */
+                central_dir = h.get_refracted_direction(vx, sin_theta_2_sq, inward);
+                scattering = m.get_refraction_scattering() * 1.57079632679f;
+
+                init_refr_index = next_refr_i;
+                apply_bias(r, h.get_point(), h.get_normal(), inward, false);
+
+                update_acc(true);
+            }
+        }
+    }
+}
+
+rt::color pathtrace_multisample(ray& r, scene& scene, const unsigned int bounce, const unsigned int number_of_samples) {
+    
+    const bool bounding_method = scene.polygons_per_bounding != 0;
+
+    const std::optional<hit> opt_h =
+        bounding_method ?
+            scene.find_closest_object_bounding(r)
+            :
+            scene.find_closest_object(r);
+
+    if (opt_h.has_value()) {
+        const hit& h = opt_h.value();
+        const object* obj = h.get_object();
+        const material& m = scene.material_set[obj->get_material_index()];
+
+        if (m.get_emission_intensity() >= 1.0f) {
+
+            if (obj->is_textured()) {
+                // Only polygons (triangles and quads) can be textured (for now)
+                
+                const barycentric_info bary = static_cast<const polygon*>(obj)->get_barycentric(h.get_point());
+                return
+                    static_cast<const polygon*>(obj)->info.value().get_texture_color(bary, scene.texture_set)
+                        * m.get_emission_intensity();
+            }
+            else {
+                return m.get_emitted_color() * m.get_emission_intensity();
+            }                
+        }
+
+        // Multiple samples cast
+        
+        /* Computation of the new origin, central direction and scattering */
+        rt::color color_materials;
+        rt::color emitted_colors;
+        rt::vector central_dir;
+        real scattering;
+        real init_refr_index;
+        compute_bouncing_ray(r, m, h, obj, scene, central_dir, scattering, color_materials, emitted_colors, init_refr_index);
+        
+        // Accumulator
+        rt::color output_color = rt::color::BLACK;
+
+        for (unsigned int sample = 0; sample < number_of_samples; sample++) {
+
+            const rt::vector dir = random_dir(h, scene, central_dir, scattering);
+            ray bouncing_ray(r.get_origin(), dir);
+            const rt::color sample_color = pathtrace(bouncing_ray, scene, bounce - 1, init_refr_index);
+            output_color = output_color + sample_color;
+        }
+
+        return color_materials * (output_color / number_of_samples) + emitted_colors;
+    }
+    else {
+        return
+            (scene.background.has_texture()) ?
+                scene.background.get_color(r.get_direction())
+                :
+                scene.background.get_color();
+    }
 }
