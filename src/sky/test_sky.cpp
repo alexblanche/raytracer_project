@@ -146,6 +146,8 @@ int main(int argc, char** argv) {
         //"../../../raytracer_project/sky/dome/house.bmp";
         "../../../raytracer_project/sky/dome/cobblestone_street_night.bmp";
 
+    print_bmp_info(file_name);
+
     std::optional<dimensions> dims = read_bmp_size(file_name);
     if (not dims.has_value()) {
         std::cout << "File not found" << std::endl;

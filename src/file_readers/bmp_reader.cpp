@@ -23,7 +23,7 @@ std::optional<dimensions> read_bmp_size(const char* file_name) {
         int ret;
 
         /* 18 bytes ignored:
-        Type (2), Size (4), Reserved 1 (2), Reserved 2 (2), Offset (4), Size (4)
+        Type (2), Size (4), Reserved 1 (2), Reserved 2 (2), Offset (4), Size of the header (4)
         */
         char buffer18[18];
         ret = fread((void*) buffer18, 18, 1, file);
@@ -72,7 +72,7 @@ bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
         int ret;
 
         /* 18 bytes ignored:
-        Type (2), Size (4), Reserved 1 (2), Reserved 2 (2), Offset (4), Size (4)
+        Type (2), Size (4), Reserved 1 (2), Reserved 2 (2), Offset (4), Size of the header (4)
         */
         char buffer18[18];
         ret = fread((void*) buffer18, 18, 1, file);
@@ -109,7 +109,7 @@ bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
 
         /* 28 bytes ignored:
         Number of color planes (2), Number of bits per pixel (2), Compression method used (4),
-        Size of the image (4), Horizontal resolution (4), Vertical resolution (4),
+        Compressed size of the image (4), Horizontal resolution (4), Vertical resolution (4),
         Number of colors used (4), Number of important colors used (4)
         */
         char buffer28[28];
@@ -139,6 +139,7 @@ bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
             padding = true;
             p = 4 - p;
         }
+        char padding_buffer[MAX_PADDING];
 
         /* Color data */
         for (size_t j = 0; j < bmpheight; j++) {
@@ -151,13 +152,68 @@ bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
             }
             /* Skipping p bytes of padding */
             if (padding) {
-                char buffer[MAX_PADDING];
-                ret = fread((void*) buffer, p, 1, file);
+                ret = fread((void*) padding_buffer, p, 1, file);
                 if (ret != 1) {
                     throw std::runtime_error("Reading error in read_bmp (padding bytes)");
                 }
             }
         }
+
+        fclose(file);
+        return true;
+
+    }
+    catch(const std::exception& e) {
+        printf("%s\n", e.what());
+        fclose(file);
+        return false;
+    }
+}
+
+/* Prints the integer stored in the buffer at index start_index on nb_bytes bytes (in Little Endian convention) */
+void print_bytes(const char buffer[], const int start_index, const int nb_bytes) {
+    int value = 0;
+    for (int i = start_index + nb_bytes - 1; i >= start_index; i--) {
+        value = (value << 8) + buffer[i];
+    }
+    printf("%d", value);
+}
+
+/* Prints the info contained in the header of the given .bmp file */
+bool print_bmp_info(const char* file_name) {
+    FILE* file = fopen(file_name, "rb");
+
+    if (file == NULL) {
+        printf("Error, file %s not found\n", file_name);
+        return false;
+    }
+
+    try {
+
+        int ret;
+
+        char buffer[54];
+        ret = fread((void*) buffer, 54, 1, file);
+        if (ret != 1) {
+            throw std::runtime_error("Reading error in read_bmp");
+        }
+
+        printf("Type:                  %c%c", buffer[0], buffer[1]);
+        printf("\nFile size:             "); print_bytes(buffer, 2, 4);  printf(" bytes");
+        printf("\nReserved 1:            0x%d%d", buffer[6], buffer[7]);
+        printf("\nReserved 2:            0x%d%d", buffer[8], buffer[9]);
+        printf("\nOffset:                "); print_bytes(buffer, 10, 4);
+        printf("\nHeader size:           "); print_bytes(buffer, 14, 4); printf(" bytes");
+        printf("\nWidth:                 "); print_bytes(buffer, 18, 4);
+        printf("\nHeight:                "); print_bytes(buffer, 22, 4);
+        printf("\nColor planes:          "); print_bytes(buffer, 26, 2);
+        printf("\nBits per pixel:        "); print_bytes(buffer, 28, 2);
+        printf("\nCompression method:    "); print_bytes(buffer, 30, 4);
+        printf("\nCompressed size:       "); print_bytes(buffer, 34, 4); printf(" bytes");
+        printf("\nHorizontal resolution: "); print_bytes(buffer, 38, 4);
+        printf("\nVertical resolution:   "); print_bytes(buffer, 42, 4);
+        printf("\nColors used:           "); print_bytes(buffer, 46, 4);
+        printf("\nImportant colors:      "); print_bytes(buffer, 50, 4); printf("\n");
 
         fclose(file);
         return true;
@@ -177,7 +233,7 @@ bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
    Returns true if the operation was successful */
 bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data, const unsigned int number_of_rays) {
 
-    const double n = (double) number_of_rays;
+    const double n = number_of_rays;
     const unsigned int width = data.size();
     const unsigned int height = data[0].size();
     bool padding = false;
