@@ -44,7 +44,7 @@ class texture {
         /* Accessor */
 
         /* Returns the color stored in data at UV-coordinates u, v (between 0 and 1) times width, height */
-        rt::color get_color(const real u, const real v) const;
+        const rt::color& get_color(const real u, const real v) const;
 
         ~texture() {
             // printf("Destruction of a texture (width = %d, height = %d, data = %lu)\n", width, height, data.size());
@@ -80,6 +80,6 @@ class texture_info {
         uvcoord get_barycenter(const barycentric_info& bary) const;
 
         /* Returns the color of the pixel associated with UV-coordinates u, v */
-        rt::color get_texture_color(const barycentric_info& bary,
+        const rt::color& get_texture_color(const barycentric_info& bary,
             const std::vector<texture>& texture_set) const;
 };

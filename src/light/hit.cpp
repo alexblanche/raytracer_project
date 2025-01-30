@@ -16,7 +16,10 @@
 
 /* Main constructor */
 hit::hit(ray*& generator, const rt::vector& point, const rt::vector& normal, const object*& hit_object)
-    : generator(generator), point(point), normal(normal), hit_object(hit_object) {}
+    : generator(generator), point(point), normal(normal), flat_normal(normal), hit_object(hit_object) {}
+
+hit::hit(ray*& generator, const rt::vector& point, const rt::vector& normal, const rt::vector& flat_normal, const object*& hit_object)
+    : generator(generator), point(point), normal(normal), flat_normal(flat_normal), hit_object(hit_object) {}
 
 hit::hit() {}
 
@@ -41,7 +44,7 @@ ray hit::get_reflected_ray() const {
 /* Returns the interpolated direction between the normal and the reflected direction */
 /* inward = ((direction | normal) <= 0) */
 rt::vector hit::get_central_reflected_direction(const real reflectivity, const bool inward) const {
-    const rt::vector u = generator->get_direction();
+    const rt::vector& u = generator->get_direction();
     /*
     inward = (u | normal) <= 0;
     right_normal = inward ? normal : (-1)*normal;

@@ -12,7 +12,7 @@ background_container::background_container(texture&& txt, const real rx, const r
     bg_texture(std::move(txt)), rotate_x(rx), rotate_y(ry), rotate_z(rz) {}
 
 /* Returns the color of the pixel dir is pointing at, when a texture is set */
-rt::color background_container::get_color(const rt::vector& dir) const {
+const rt::color& background_container::get_color(const rt::vector& dir) const {
 
     rt::vector dir_rotated = dir;
     if (rotate_x != 0.0f) {

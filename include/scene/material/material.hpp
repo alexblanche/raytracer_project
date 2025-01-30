@@ -81,11 +81,11 @@ class material {
 
         /* Accessors */
 
-        inline rt::color get_color() const {
+        inline const rt::color& get_color() const {
             return color;
         }
 
-        inline rt::color get_emitted_color() const {
+        inline const rt::color& get_emitted_color() const {
             return emitted_color;
         }
 

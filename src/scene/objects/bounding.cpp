@@ -132,8 +132,8 @@ const bounding* containing_bounding_two(const bounding*& bd0, const bounding*& b
     const real bd1l2 = b1->get_l2();
     const real bd1l3 = b1->get_l3();
 
-    const rt::vector pos0 = b0->get_position();
-    const rt::vector pos1 = b1->get_position();
+    const rt::vector& pos0 = b0->get_position();
+    const rt::vector& pos1 = b1->get_position();
     const rt::vector position(
         (pos1.x + bd1l1 + (pos0.x - bd0l1)) / 2,
         (pos1.y + bd1l2 + (pos0.y - bd0l2)) / 2,

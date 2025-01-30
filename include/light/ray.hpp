@@ -41,15 +41,15 @@ class ray {
             return origin;
         }
         
-        inline rt::vector get_direction() const {
+        inline const rt::vector& get_direction() const {
             return direction;
         }
 
-        inline rt::vector get_inv_dir() const {
+        inline const rt::vector& get_inv_dir() const {
             return inv_dir;
         }
 
-        inline rt::vector get_abs_inv_dir() const {
+        inline const rt::vector& get_abs_inv_dir() const {
             return abs_inv_dir;
         }
 

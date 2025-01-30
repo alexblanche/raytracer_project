@@ -53,8 +53,8 @@ rt::vector quad::get_barycenter() const {
 /* Intersection determination */
 
 std::optional<real> quad::measure_distance(const ray& r) const {
-    const rt::vector u = r.get_origin();
-    const rt::vector dir = r.get_direction();
+    const rt::vector& u = r.get_origin();
+    const rt::vector& dir = r.get_direction();
     
     // const rt::vector n12 = (v1 ^ v2).unit();
     // const rt::vector n23 = (v2 ^ v3).unit();
@@ -234,18 +234,17 @@ hit quad::compute_intersection(ray& r, const real t) const {
     const object* pt_obj = this;
     ray* pt_ray = &r;
 
-
 #ifdef SMOOTH_SHADING
     
     // Computation of the interpolated normal vector
     const barycentric_info bary = get_barycentric(p);
 
-    return hit(pt_ray, p, get_interpolated_normal(bary), pt_obj);
+    return hit(pt_ray, p, get_interpolated_normal(bary), normal, pt_obj);
 
 #else // Flat shading
     
     return hit(pt_ray, p, normal, pt_obj);
-    
+
 #endif
 }
 

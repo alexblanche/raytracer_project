@@ -24,10 +24,10 @@ struct background_container {
     }
 
     /* Returns the background color when it is a color */
-    inline rt::color get_color() const {
+    inline const rt::color& get_color() const {
         return bg_color;
     }
 
     /* Returns the color of the pixel dir is pointing at, when a texture is set */
-    rt::color get_color(const rt::vector& dir) const;
+    const rt::color& get_color(const rt::vector& dir) const;
 };

@@ -39,7 +39,7 @@ std::optional<real> box::measure_distance(const ray& r) const {
        Only one of t1, t2, t3 can be finite at the end, so we return one as soon as we find it.
     */
 
-    const rt::vector dir = r.get_direction();
+    const rt::vector& dir = r.get_direction();
 
     /** This whole function to be optimized (it will then become incomprehensible)
      * 
@@ -175,7 +175,7 @@ std::optional<real> box::measure_distance(const ray& r) const {
         
 hit box::compute_intersection(ray& r, const real t) const {
     // Intersection point
-    const rt::vector u = r.get_origin();
+    const rt::vector& u = r.get_origin();
     const rt::vector p = u + t * r.get_direction();
 
     // Re-computing the face of intersection
@@ -246,9 +246,9 @@ min_max_coord box::get_min_max_coord() const {
    The box is assumed to be standard (axes are n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1)) */
 bool box::is_hit_by(const ray& r) const {
     
-    const rt::vector dir = r.get_direction();
-    const rt::vector inv_dir = r.get_inv_dir();
-    const rt::vector abs_inv_dir = r.get_abs_inv_dir();
+    const rt::vector& dir = r.get_direction();
+    const rt::vector& inv_dir = r.get_inv_dir();
+    const rt::vector& abs_inv_dir = r.get_abs_inv_dir();
 
     // See measure_distance
 

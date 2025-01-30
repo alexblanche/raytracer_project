@@ -60,8 +60,8 @@ ray camera::gen_ray_dof(const int i, const int j, randomgen& rg) const {
     const real phi = rg.random_real(TWOPI);
     const real apr_r = aperture * sqrt(r);
     const rt::vector starting_point =
-          (apr_r * cos(phi) * to_the_right)
-        + (apr_r * sin(phi) * to_the_bottom);
+          ((apr_r * cos(phi)) * to_the_right)
+        + ((apr_r * sin(phi)) * to_the_bottom);
     const rt::vector dir = (focus_point - starting_point).unit();
     return ray(origin + starting_point, dir);
 }

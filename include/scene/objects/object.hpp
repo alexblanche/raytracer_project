@@ -52,7 +52,7 @@ class object {
 
         /* Accessors */
 
-        inline rt::vector get_position() const {
+        inline const rt::vector& get_position() const {
             return position;
         }
 

@@ -48,8 +48,8 @@ rt::vector triangle::get_barycenter() const {
 /* Intersection determination */
 
 std::optional<real> triangle::measure_distance(const ray& r) const {
-    const rt::vector u = r.get_origin();
-    const rt::vector dir = r.get_direction();
+    const rt::vector& u = r.get_origin();
+    const rt::vector& dir = r.get_direction();
 
     // Intersection between the ray and the triangle plane
     const real pdt = (normal | dir); // ax + by + cz
@@ -169,7 +169,7 @@ hit triangle::compute_intersection(ray& r, const real t) const {
     // Computation of the interpolated normal vector
     const barycentric_info bary = get_barycentric(p);
 
-    return hit(pt_ray, p, get_interpolated_normal(bary), pt_obj);
+    return hit(pt_ray, p, get_interpolated_normal(bary), normal, pt_obj);
 
 #else // Flat shading
     

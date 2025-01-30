@@ -19,7 +19,6 @@ ray::ray(const rt::vector& o, const rt::vector& d)
 
 ray::ray() {}
 
-
 void ray::set_direction(const rt::vector& d) {
     direction = d;
     inv_dir = rt::vector(1.0f / d.x, 1.0f / d.y, 1.0f / d.z);
