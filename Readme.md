@@ -52,4 +52,5 @@ See command-line arguments and scene descriptor syntax in the [User guide](User-
 ## Sources
 
 [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html)  
-[_Scratchapixel_](https://www.scratchapixel.com)
+[_Scratchapixel_](https://www.scratchapixel.com)  
+[_Physically Based Rendering_](https://www.pbrt.org/)
