@@ -18,6 +18,9 @@ std::optional<dimensions> read_bmp_size(const char* file_name);
    Returns true if the operation was successful */
 bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data);
 
+/* Returns the integer stored in the buffer at index start_index on nb_bytes bytes (in Little Endian convention) */
+unsigned int value_of_bytes(const unsigned char buffer[], const int start_index, const int nb_bytes);
+
 /* Prints the info contained in the header of the given .bmp file */
 bool print_bmp_info(const char* file_name);
 

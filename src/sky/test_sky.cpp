@@ -1,5 +1,6 @@
 #include <iostream>
 #include "file_readers/bmp_reader.hpp"
+#include "file_readers/hdr_reader.hpp"
 #include "screen/screen.hpp"
 #include "light/vector.hpp"
 #include <chrono>
@@ -145,6 +146,8 @@ int main(int argc, char** argv) {
         //"../../../raytracer_project/sky/dome/southern_sky.bmp";
         //"../../../raytracer_project/sky/dome/house.bmp";
         "../../../raytracer_project/sky/dome/cobblestone_street_night.bmp";
+
+    print_hdr_info("../../../raytracer_project/sky/dome/rock.hdr");
 
     print_bmp_info(file_name);
 

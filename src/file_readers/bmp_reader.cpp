@@ -169,6 +169,36 @@ bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
             throw std::runtime_error("Reading error in read_bmp (pixel data)");
         }
 
+        ///
+        // int nb = 10;
+        // printf("\n");
+        // for (int i = 0; i < nb; i++) {
+        //     printf("%d ", buffer[i]);
+        // }
+        // printf("\n");
+        // for (int i = 0; i < nb; i++) {
+        //     printf("%c ", buffer[i]);
+        // }
+        // printf("\n");
+        // for (int i = 0; i < nb / 2; i++) {
+        //     printf("%c ", (buffer[2 * i] << 4) + buffer[2 * i + 1]);
+        // }
+        // printf("\n");
+        // for (int i = 0; i < nb; i++) {
+        //     int h1 = (buffer[i] >> 4) & 0x0F;
+        //     int h2 = buffer[i] & 0x0F;
+        //     if (h1 < 10)
+        //         printf("%d", h1);
+        //     else
+        //         printf("%c", 'a' + h1 - 10);
+        //     if (h2 < 10)
+        //         printf("%d ", h2);
+        //     else
+        //         printf("%c ", 'a' + h2 - 10);
+        // }
+        // printf("\n");
+        ///
+
         unsigned int index = 0;
         for (size_t j = 0; j < bmpheight; j++) {
             const size_t indexj = bmpheight - j - 1;
@@ -195,7 +225,7 @@ bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
 }
 
 /* Returns the integer stored in the buffer at index start_index on nb_bytes bytes (in Little Endian convention) */
-unsigned int value_of_bytes(const char buffer[], const int start_index, const int nb_bytes) {
+unsigned int value_of_bytes(const unsigned char buffer[], const int start_index, const int nb_bytes) {
     unsigned int value = 0;
     for (int i = start_index + nb_bytes - 1; i >= start_index; i--) {
         value = (value << 8) + buffer[i];
@@ -216,28 +246,28 @@ bool print_bmp_info(const char* file_name) {
 
         int ret;
 
-        char buffer[54];
+        unsigned char buffer[54];
         ret = fread((void*) buffer, 54, 1, file);
         if (ret != 1) {
             throw std::runtime_error("Reading error in read_bmp");
         }
 
-        printf("Type:                  %c%c\n", buffer[0], buffer[1]);
+        printf("Type:                  %c%c\n",     buffer[0], buffer[1]);
         printf("File size:             %u bytes\n", value_of_bytes(buffer, 2, 4));
-        printf("Reserved 1:            0x%d%d\n", buffer[6], buffer[7]);
-        printf("Reserved 2:            0x%d%d\n", buffer[8], buffer[9]);
-        printf("Offset:                %u\n", value_of_bytes(buffer, 10, 4));
+        printf("Reserved 1:            0x%d%d\n",   buffer[6], buffer[7]);
+        printf("Reserved 2:            0x%d%d\n",   buffer[8], buffer[9]);
+        printf("Offset:                %u\n",       value_of_bytes(buffer, 10, 4));
         printf("Header size:           %u bytes\n", value_of_bytes(buffer, 14, 4));
-        printf("Width:                 %u\n", value_of_bytes(buffer, 18, 4));
-        printf("Height:                %u\n", value_of_bytes(buffer, 22, 4));
-        printf("Color planes:          %u\n", value_of_bytes(buffer, 26, 2));
-        printf("Bits per pixel:        %u\n", value_of_bytes(buffer, 28, 2));
-        printf("Compression method:    %u\n", value_of_bytes(buffer, 30, 4));
+        printf("Width:                 %u\n",       value_of_bytes(buffer, 18, 4));
+        printf("Height:                %u\n",       value_of_bytes(buffer, 22, 4));
+        printf("Color planes:          %u\n",       value_of_bytes(buffer, 26, 2));
+        printf("Bits per pixel:        %u\n",       value_of_bytes(buffer, 28, 2));
+        printf("Compression method:    %u\n",       value_of_bytes(buffer, 30, 4));
         printf("Compressed size:       %u bytes\n", value_of_bytes(buffer, 34, 4));
-        printf("Horizontal resolution: %u\n", value_of_bytes(buffer, 38, 4));
-        printf("Vertical resolution:   %u\n", value_of_bytes(buffer, 42, 4));
-        printf("Colors used:           %u\n", value_of_bytes(buffer, 46, 4));
-        printf("Important colors:      %u\n", value_of_bytes(buffer, 50, 4));
+        printf("Horizontal resolution: %u\n",       value_of_bytes(buffer, 38, 4));
+        printf("Vertical resolution:   %u\n",       value_of_bytes(buffer, 42, 4));
+        printf("Colors used:           %u\n",       value_of_bytes(buffer, 46, 4));
+        printf("Important colors:      %u\n",       value_of_bytes(buffer, 50, 4));
 
         fclose(file);
         return true;
