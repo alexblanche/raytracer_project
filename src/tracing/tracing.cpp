@@ -280,7 +280,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
 
 
 
-/******************************************************************************* */
+/* ******************************************************************** */
 /* Path tracing with multisample approach:
    After the first hit, multiple rays are cast */
 

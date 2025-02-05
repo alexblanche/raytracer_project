@@ -68,13 +68,13 @@ class hit {
 
         /* Refraction */
 
-        /* Returns sin(theta_2), where theta_2 is the refracted angle
+        /* Returns sin(theta_2) squared, where theta_2 is the refracted angle
            Is precomputed to determine whether the ray is refracted or internally reflected */
         rt::vector get_sin_refracted(const real current_refr_i, const real surface_refr_i,
-            real& sin_theta_2) const;
+            real& sin_theta_2_sq) const;
 
         /* Returns the refracted direction */
-        rt::vector get_refracted_direction(const rt::vector& vx, const real sin_theta_2, const bool inward) const;
+        rt::vector get_refracted_direction(const rt::vector& vx, const real sin_theta_2_sq, const bool inward) const;
 
         /* Returns a random unit direction in the cone whose center is the refracted direction, within solid angle refraction_scattering * pi */
         rt::vector get_random_refracted_direction(randomgen& rg, const real refraction_scattering,
