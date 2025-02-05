@@ -117,17 +117,75 @@ bool print_hdr_info(const char* file_name) {
 
         std::vector<std::vector<rt::color>> matrix(width, std::vector<rt::color>(height));
         // Copy data to matrix
+
+        // Simple Gamma correction
+        /*
         for (unsigned int j = 0; j < height; j++) {
             const unsigned int indexj = j * width;
             for (unsigned int i = 0; i < width; i++) {
                 unsigned char* const pixel_color = data[indexj + i];
-                // const real r = pixel_color[0];
-                // const real g = pixel_color[1];
-                // const real b = pixel_color[2];
-                //matrix[i][j] = rt::color(r, g, b);
+                const real r = pixel_color[0];
+                const real g = pixel_color[1];
+                const real b = pixel_color[2];
                 const unsigned char e = pixel_color[3];
-                const real radiance_val = 128.0f * pow(2.0f, e - 128);
-                matrix[i][j] = rt::color(radiance_val, radiance_val, radiance_val);
+                const real radiance_val = pow(2.0f, e - 127);
+                constexpr float gamma_corr = 1.0f / 1.7f;
+                matrix[i][j] =
+                    rt::color(
+                        pow(r * radiance_val / 255.0f, gamma_corr) * 255.0f,
+                        pow(g * radiance_val / 255.0f, gamma_corr) * 255.0f,
+                        pow(b * radiance_val / 255.0f, gamma_corr) * 255.0f);
+            }
+        }
+        */
+
+        // Extended Reinhardt tone mapping
+        float max_luminance = 0.0f;
+        for (unsigned int j = 5 * height/6; j < height; j++) {
+            const unsigned int indexj = j * width;
+            for (unsigned int i = 0; i < width; i++) {
+                unsigned char* const pixel_color = data[indexj + i];
+                const real r = pixel_color[0];
+                const real g = pixel_color[1];
+                const real b = pixel_color[2];
+                const unsigned char e = pixel_color[3];
+                const real radiance_val = pow(2.0f, e - 127);
+                const float lr = r * radiance_val;
+                const float lg = g * radiance_val;
+                const float lb = b * radiance_val;
+                const float luminance = 0.2126 * lr + 0.7152 * lg + 0.0722 * lb;
+                if (luminance > max_luminance)
+                    max_luminance = luminance;
+            }
+        }
+        const float lwhitecorr = 1.0f / (max_luminance * max_luminance);
+        printf("\nmax luminance %f; lwhitecorr %f\n", max_luminance, lwhitecorr);
+
+        for (unsigned int j = 0; j < height; j++) {
+            const unsigned int indexj = j * width;
+            for (unsigned int i = 0; i < width; i++) {
+                unsigned char* const pixel_color = data[indexj + i];
+                const real r = pixel_color[0];
+                const real g = pixel_color[1];
+                const real b = pixel_color[2];
+                const unsigned char e = pixel_color[3];
+                const real radiance_val = pow(2.0f, e - 127);
+                
+                float lr = r * radiance_val;
+                float lg = g * radiance_val;
+                float lb = b * radiance_val;
+                float lin = (0.2126 * lr + 0.7152 * lg + 0.0722 * lb) / 255.0f;
+                float lcorr = (1.0f + lin * lwhitecorr) / (1.0f + lin);
+                float cr = lr * lcorr;
+                float cg = lg * lcorr;
+                float cb = lb * lcorr;
+
+                constexpr float gamma_corr = 1.0f / 1.9f;
+                matrix[i][j] =
+                    rt::color(
+                        pow(cr / 255.0f, gamma_corr) * 255.0f,
+                        pow(cg / 255.0f, gamma_corr) * 255.0f,
+                        pow(cb / 255.0f, gamma_corr) * 255.0f);
             }
         }
 
