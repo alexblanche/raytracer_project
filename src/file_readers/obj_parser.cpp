@@ -35,6 +35,12 @@ const real infinity = realobj.infinity();
 /* Only handles .obj files made up of triangles and quads, for now.
    In the future, maybe split polygons with >= 5 sides into triangles */
 
+/* When indices are negative, convert them to positive */
+void correct(int& v, const unsigned int n) {
+   if (v < 0)
+      v += n;
+};
+
 /* Auxiliary function that adds a trianlge to obj_set and to content if bounded_enabled is true */
 void add_triangle(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    const std::vector<rt::vector>& normal_set,
@@ -302,25 +308,30 @@ void add_subdivided_polygon(FILE* file,
    while (c != '\n' && c != EOF) {
       ungetc(c, file);
       int ret;
-      unsigned int vi, vti, vni;
-      ret = fscanf(file, " %u/%u/%u", &vi, &vti, &vni);
+      int vi, vti, vni;
+      ret = fscanf(file, " %d/%d/%d", &vi, &vti, &vni);
       if (ret < 1) {
          fclose(file);
          printf("Error in parsing of polygons of at least 5 sides (with normal)\n");
          return;
       }
       else if (ret == 1) {
-         ret = fscanf(file, "/%u", &vni);
+         ret = fscanf(file, "/%d", &vni);
          if (ret != 1) {
             fclose(file);
             printf("Error in parsing of polygons of at least 5 sides (with normal) [2]\n");
             return;
-         } 
+         }
          apply_texture = false;
       }
 
+      correct(vi, vertex_set.size());
       v_stack.push(vi);
-      if (apply_texture) { vt_stack.push(vti); }
+      if (apply_texture) {
+         correct(vti, uv_coord_set.size());
+         vt_stack.push(vti);
+      }
+      correct(vni, normal_set.size());
       vn_stack.push(vni);
 
       final_v = final_v + vertex_set[vi];
@@ -404,8 +415,8 @@ void add_subdivided_polygon_no_normal(FILE* file,
    while (c != '\n' && c != EOF) {
       ungetc(c, file);
       int ret;
-      unsigned int vi, vti;
-      ret = fscanf(file, "%u/%u", &vi, &vti);
+      int vi, vti;
+      ret = fscanf(file, "%d/%d", &vi, &vti);
 
       if (ret < 1) {
          fclose(file);
@@ -416,8 +427,12 @@ void add_subdivided_polygon_no_normal(FILE* file,
          apply_texture = false;
       }
 
+      correct(vi, vertex_set.size());
       v_stack.push(vi);
-      if (apply_texture) { vt_stack.push(vti); }
+      if (apply_texture) {
+         correct(vti, uv_coord_set.size());
+         vt_stack.push(vti);
+      }
 
       final_v = final_v + vertex_set[vi];
       if (apply_texture) { final_vt = final_vt + uv_coord_set[vti]; }
@@ -530,6 +545,8 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
    unsigned int number_of_triangles = 0;
    unsigned int number_of_quads = 0;
    unsigned int number_of_polygons = 0;
+   unsigned int number_of_texture_coords = 0;
+   unsigned int number_of_normals = 0;
 
    /* Max dimensions */
    real min_x = infinity,
@@ -546,10 +563,17 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
    std::vector<const object*> content;
    std::vector<const bounding*> children;
 
+   // printf("\n");
+
    try {
+
+      // unsigned int cpt_loop = 0;
 
       /* Parsing loop */
       while (not feof(file)) {
+
+         // cpt_loop ++;
+         // if (cpt_loop % 1000 == 0) printf("\r%u vertices %u polygons %u normals %llu", cpt_loop, number_of_vertices, number_of_polygons, normal_set.size());
 
          // longest items are usemtl, mtllib
          char s[7];
@@ -617,12 +641,14 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
             else {
                if (u >= 0 && u <= 1 && v >= 0 && v <= 1) {
                   uv_coord_set.push_back(rt::vector(u, v, 0));
+                  number_of_texture_coords++;
                }
                else {
-                  // Stupid case in some garbage obj files...
+                  // Case that happened in one obj file
                   const real nu = (u >= 0) ? 1 : ((u <= (-1)) ? 0 : 1 + u);
                   const real nv = (v >= 0) ? 1 : ((v <= (-1)) ? 0 : 1 + v);
                   uv_coord_set.push_back(rt::vector(nu, nv, 0));
+                  number_of_texture_coords++;
                }
             }
          }
@@ -635,6 +661,7 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
             }
             else {
                normal_set.push_back(rt::vector(x, y, z));
+               number_of_normals++;
             }
          }
          else if (strcmp(s, "usemtl") == 0) {
@@ -689,9 +716,37 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
             /* Face declaration */
 
             /* 3 or 4 vertices will be parsed */
-            unsigned int v1, vt1, vn1, v2, vt2, vn2, v3, vt3, vn3, v4, vt4, vn4, v5, vt5, vn5;
-            const int ret = fscanf(file, "%u/%u/%u %u/%u/%u %u/%u/%u %u/%u/%u %u/%u/%u",
+            int v1, vt1, vn1, v2, vt2, vn2, v3, vt3, vn3, v4, vt4, vn4, v5, vt5, vn5;
+            const int ret = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d",
                &v1, &vt1, &vn1, &v2, &vt2, &vn2, &v3, &vt3, &vn3, &v4, &vt4, &vn4, &v5, &vt5, &vn5);
+
+            
+            correct(v4, number_of_vertices);
+            correct(v5, number_of_vertices);
+            if (ret >= 9) {
+               correct(v1, number_of_vertices);
+               correct(vt1, number_of_texture_coords);
+               correct(vn1, number_of_normals);
+
+               correct(v2, number_of_vertices);
+               correct(vt2, number_of_texture_coords);
+               correct(vn2, number_of_normals);
+
+               correct(v3, number_of_vertices);
+               correct(vt3, number_of_texture_coords);
+               correct(vn3, number_of_normals);
+            }
+            if (ret >= 12) {
+               correct(v4, number_of_vertices);
+               correct(vt4, number_of_texture_coords);
+               correct(vn4, number_of_normals);
+            }
+            if (ret >= 15) {
+               correct(v5, number_of_vertices);
+               correct(vt5, number_of_texture_coords);
+               correct(vn5, number_of_normals);
+            }
+
 
             if (ret == 9) {
                /* Triangle */
@@ -763,8 +818,14 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
                if (c == ' ') {
                   // f v1 v2 v3 ...
 
-                  const int ret2 = fscanf(file, "%u %u %u %u",
+                  const int ret2 = fscanf(file, "%d %d %d %d",
                      &v2, &v3, &v4, &v5);
+
+                  correct(v1, number_of_vertices);
+                  if (ret2 >= 1) correct(v2, number_of_vertices);
+                  if (ret2 >= 2) correct(v3, number_of_vertices);
+                  if (ret2 >= 3) correct(v4, number_of_vertices);
+                  if (ret2 >= 4) correct(v5, number_of_vertices);
 
                   if (ret2 == 2) {
                      // Triangle with no texture and normal
@@ -819,8 +880,27 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
                else {
                   // By elimination: c = '/'
                   // f v1//vn1 v2//vn2 ...
-                  const int ret2 = fscanf(file, "%u %u//%u %u//%u %u//%u %u//%u",
+                  const int ret2 = fscanf(file, "%d %d//%d %d//%d %d//%d %d//%d",
                      &vn1, &v2, &vn2, &v3, &vn3, &v4, &vn4, &v5, &vn5);
+
+                  if (ret2 >= 5) {
+                     correct(v1, number_of_vertices);
+                     correct(vn1, number_of_normals);
+
+                     correct(v2, number_of_vertices);
+                     correct(vn2, number_of_normals);
+
+                     correct(v3, number_of_vertices);
+                     correct(vn3, number_of_normals);
+                  }
+                  if (ret2 >= 7) {
+                     correct(v4, number_of_vertices);
+                     correct(vn4, number_of_normals);
+                  }
+                  if (ret2 >= 9) {
+                     correct(v5, number_of_vertices);
+                     correct(vn5, number_of_normals);
+                  }
 
                   if (ret2 == 5) {
                      // Untextured triangle
@@ -882,8 +962,27 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
             else {
                // ret == 2
                // f v1/vt1 v2/vt2 ...
-               const int ret2 = fscanf(file, "%u/%u %u/%u %u/%u %u/%u",
+               const int ret2 = fscanf(file, "%d/%d %d/%d %d/%d %d/%d",
                   &v2, &vt2, &v3, &vt3, &v4, &vt4, &v5, &vt5);
+
+               if (ret2 >= 4) {
+                  correct(v1, number_of_vertices);
+                  correct(vt1, number_of_texture_coords);
+
+                  correct(v2, number_of_vertices);
+                  correct(vt2, number_of_texture_coords);
+
+                  correct(v3, number_of_vertices);
+                  correct(vt3, number_of_texture_coords);
+               }
+               if (ret2 >= 6) {
+                  correct(v4, number_of_vertices);
+                  correct(vt4, number_of_texture_coords);
+               }
+               if (ret2 >= 8) {
+                  correct(v5, number_of_vertices);
+                  correct(vt5, number_of_texture_coords);
+               }
 
                if (ret2 == 4) {
                   // Triangle with no normal
