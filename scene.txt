@@ -1,8 +1,10 @@
 resolution width:1920 height:1080
 camera position:(2.212, 1.488, 3.4) direction:(-0.72, -0.28, -1) rightdir:(1, 0, -0.72) fov_width:1.33 distance:1.0
 background_color 190 235 255
-background_texture ../../../raytracer_project/sky/dome/urban_street.bmp rotate_x:3.14 rotate_y:5.835 rotate_z:0
+background_texture ../../../raytracer_project/sky/dome/field.bmp rotate_x:3.14 rotate_y:5.835 rotate_z:0
 polygons_per_bounding 10
+
+# background_texture ../../../raytracer_project/sky/dome/urban_street.bmp rotate_x:3.14 rotate_y:5.835 rotate_z:0
 
 
 # Right placement of the background and car, wrong FOV for the car

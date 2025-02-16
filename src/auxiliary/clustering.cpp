@@ -10,11 +10,11 @@
 #define MAX_NUMBER_OF_ITERATIONS 10
 
 #define MIN_FOR_TREE_SEARCH 50
-#define MAX_ELTS_PER_LEAF 5
+#define MAX_ELTS_PER_LEAF 100
 
 #define MIN_NUMBER_OF_POLYGONS_FOR_BOX 5
 #define CARDINAL_OF_BOX_GROUP 3
-#define DISPLAY_KMEANS true
+#define DISPLAY_KMEANS false
 
 // Macros for parallel k_means
 #define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](unsigned int start, unsigned int end){ for(unsigned int n = start; n < end; ++n)
@@ -99,18 +99,28 @@ std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tre
 
     const unsigned int nb_indices = index_max - index_min + 1;
 
+    // printf("Split\n");
+
+    // printf("nb_indices = %u, min %u, max %u\n", nb_indices, index_min, index_max);
+
     // Computing the average coordinates
     rt::vector avg(0, 0, 0);
     for (unsigned int i = index_min; i <= index_max; i++) {
+        // if (i >= means.size()) printf("i = %u, elts[%u] = %u\n", i, i, elts[i]);
         avg = avg + means[elts[i]];
     }
     avg = avg / nb_indices;
 
+    // printf("O\n");
+
     tree.internal_nodes[index_root] = avg;
     
     // Counting the number of element in each region, and the average of each region
-    rt::vector avg_region[8];
+    // rt::vector avg_region[8];
     unsigned int nb_elt_region[8];
+    for (unsigned int i = 0; i < 8; i++) {
+        nb_elt_region[i] = 0;
+    }
     for (unsigned int i = index_min; i <= index_max; i++) {
         const rt::vector& v = means[elts[i]];
         const unsigned char bx = v.x >= avg.x;
@@ -118,13 +128,15 @@ std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tre
         const unsigned char bz = v.z >= avg.z;
         const unsigned char region = (bx << 2) + (by << 1) + bz;
         nb_elt_region[region]++;
-        avg_region[region] = avg_region[region] + v;
+        // avg_region[region] = avg_region[region] + v;
     }
-    for (unsigned char i = 0; i < 8; i++)
-        avg_region[i] = avg_region[i] / nb_elt_region[i];
+    // for (unsigned char i = 0; i < 8; i++) {
+    //     if (nb_elt_region[i])
+    //         avg_region[i] = avg_region[i] / nb_elt_region[i];
+    // }
     
     // Computing partial sums
-    unsigned int last = 0;
+    unsigned int last = index_min;
     unsigned int* first_index = nb_elt_region;
     for (unsigned char i = 0; i < 8; i++) {
         const unsigned int nbi = nb_elt_region[i];
@@ -132,25 +144,40 @@ std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tre
         last += nbi;
     }
 
-    std::vector<unsigned int> output(8);
+    std::vector<unsigned int> output(9);
     for (unsigned char i = 0; i < 8; i++)
         output[i] = first_index[i];
+    output[8] = last;
+
+    // for (unsigned char i = 0; i < 8; i++) {
+    //     printf("first_index[%u] = %u\n", i, first_index[i]);
+    // }
 
     // Organizing the elements by region
     std::vector<unsigned int> elts_temp(nb_indices);
+
+    // printf("A\n");
     
     for (unsigned int i = index_min; i <= index_max; i++) {
+
+        // printf("i = %u; elts[%u] = %u; means[%u] = (%f, %f, %f)\n", i, i, elts[i], elts[i], means[elts[i]].x, means[elts[i]].y, means[elts[i]].z);
         const rt::vector& v = means[elts[i]];
+
         const unsigned char bx = v.x >= avg.x;
         const unsigned char by = v.y >= avg.y;
         const unsigned char bz = v.z >= avg.z;
         const unsigned char region = (bx << 2) + (by << 1) + bz;
-        elts_temp[first_index[region]] = i;
+        // printf("region = %u, first_index[%u] = %u\n", region, region, first_index[region]);
+        elts_temp[first_index[region] - index_min] = i;
         first_index[region]++;
     }
 
-    for (unsigned int i = index_min; i <= index_max; i++)
-        elts[i] = elts_temp[i];
+    // printf("B\n");
+
+    for (unsigned int i = 0; i < nb_indices; i++)
+        elts[index_min + i] = elts_temp[i];
+
+    // printf("End split\n");
 
     return output;
 }
@@ -162,49 +189,131 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
     for (unsigned int i = 0; i < means.size(); i++)
         elts[i] = i;
 
-    std::vector<unsigned int> g1(means.size());
-    std::vector<unsigned int> g2(means.size());
-    std::vector<unsigned int> tree_index(means.size());
-    bool parity = true;
+    const unsigned int max_groups = 10 * means.size();
+    std::vector<unsigned int> g1(max_groups);
+    std::vector<unsigned int> g2(max_groups);
+    std::vector<unsigned int> gs1(max_groups);
+    std::vector<unsigned int> gs2(max_groups);
+    std::vector<unsigned int> ti1(max_groups);
+    std::vector<unsigned int> ti2(max_groups);
 
+    // First iteration: one group, with all the elements
     g1[0] = 0;
-    g1[1] = means.size() - 1;
-    tree_index[0] = 0;
+    gs1[0] = means.size();
+    ti1[0] = 0;
 
     unsigned int nb_non_terminal_groups = 1;
+    bool parity = true;
+
+    // printf("Start loop\n");
+
+    unsigned int leaves_done = 0;
+    unsigned int points_done = 0;
+
     while (nb_non_terminal_groups) {
+
+        // printf("Loop\n");
+
+        unsigned int new_nb_non_term_groups = 0;
+
         std::vector<unsigned int>& groups     = (parity) ? g1 : g2;
         std::vector<unsigned int>& new_groups = (parity) ? g2 : g1;
 
+        std::vector<unsigned int>& group_size     = (parity) ? gs1 : gs2;
+        std::vector<unsigned int>& new_group_size = (parity) ? gs2 : gs1;
+
+        std::vector<unsigned int>& tree_index     = (parity) ? ti1 : ti2;
+        std::vector<unsigned int>& new_tree_index = (parity) ? ti2 : ti1;
+
         // Split all the groups and compute the terminal nodes
+        // printf("FOR nb_non_terminal_groups = %u\n", nb_non_terminal_groups);
+        // printf("points: %u\n", points_done);
         for (unsigned int g = 0; g < nb_non_terminal_groups; g++) {
 
-            const unsigned int index_min = groups[g];
-            const unsigned int index_max = groups[g + 1];
-            const unsigned int index = tree_index[g];
+            const unsigned int index_min     = groups[g];
+            const unsigned int nb_elts_group = group_size[g];
+            const unsigned int index_max     = index_min + nb_elts_group - 1;
+            const unsigned int index         = tree_index[g];
+
+            // if (index >= max_groups) printf("Erroneous index: %u\n", index);
+
+            // printf("g = %u, index = %u\n", g, index);
+
+            //printf("Y\n");
             
-            const unsigned int nb_elts_group = index_max - index_min + 1;
             if (nb_elts_group <= MAX_ELTS_PER_LEAF) {
                 // Compute leaf
 
+                // printf("W1 (index %u, nb elts %u, means %u, index_min %u, max %u)\n", index, nb_elts_group,
+                //     (unsigned int) means.size(), index_min, index_min + nb_elts_group - 1);
+
+                // if (nb_elts_group > means.size()) {
+                //     for(int i = 0; i < 1000; i++)
+                //         printf("ERROR!!!\n");
+                // }
+
+                // printf("Leaves done: %u\n", leaves_done);
+
+                // if (nb_elts_group) printf("Leaves %u\n", (unsigned int) tree.leaves.size());
+                // if (nb_elts_group) printf("W1.2 (leaf %u)\n", (unsigned int) tree.leaves[index].size());
+                
+                // printf("leaf = {}\n");
+                // tree.leaves[index] = {};
+                // printf("leaf.resize(%u)\n", nb_elts_group);
+                tree.leaves[index].resize(nb_elts_group);
+                // printf("Resize done\n");
+                
                 std::vector<unsigned int>& leaf = tree.leaves[index];
-                leaf.resize(nb_elts_group);
-                for (unsigned int i = 0; i < nb_elts_group; i++)
+
+                // printf("Printing leaf: (size %llu)\n", leaf.size());
+                // for (unsigned int i = 0; i < leaf.size(); i++) {
+                //     printf("leaf[%u] = %u\n", i, leaf[i]);
+                // }
+
+                // if (nb_elts_group) printf("W1.3 (leaf %u)\n", (unsigned int) leaf.size());
+                for (unsigned int i = 0; i < nb_elts_group; i++) {
+                    //leaf[i] = elts[index_min + i];
+                    // printf("elts[%u] = %u\n", index_min + i, elts[index_min + i]);
+                    // printf("leaf[%u] = %u\n", i, leaf[i]);
+                    //tree.leaves[index].push_back(elts[index_min + i]);
                     leaf[i] = elts[index_min + i];
+                }
+                // if (nb_elts_group) printf("W1.5 (leaf %u)\n", (unsigned int) leaf.size());
+                tree.terminal_state[index] = true;
+
+                // printf("W2\n\n");
+                leaves_done++;
+                points_done += nb_elts_group;
+                //if (nb_elts_group) printf("points: %u\n", points_done);
             }
             else {
 
                 std::vector<unsigned int> new_regions = split(means, tree, elts, index, index_min, index_max);
 
+                // printf("new regions sizes ");
+                // for (unsigned int i = 0; i < 8; i++) {
+                //     printf("%u ", new_regions[i+1] - new_regions[i]);
+                // }
+                // printf("\n");
+
                 // Add the new groups
-                unsigned int ng = g << 3;
+                unsigned int ng = new_nb_non_term_groups;
                 const unsigned int ni = (index << 3) + 1;
                 for (char i = 0; i < 8; i++) {
-                    new_groups[ng + i] = new_regions[i];
-                    tree_index[ng + i] = ni + i;
+                    unsigned int ngi = ng + i;
+                    new_groups[ngi]     = new_regions[i];
+                    new_group_size[ngi] = new_regions[i + 1] - new_regions[i];
+                    new_tree_index[ngi] = ni + i;
+                    //printf("tree_index[%u] = %u (%u * 8 + %u + 1)\n", ngi, ni + i, index, i);
                 }
+                new_nb_non_term_groups += 8;
+
+                // printf("U\n");
             }
         }
+
+        parity = not parity;
+        nb_non_terminal_groups = new_nb_non_term_groups;
     }
 }
 
@@ -279,7 +388,13 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
 
     std::stack<tree_search_info> stack;
 
+    unsigned int iter = 0;
+
     while (not (index == 0 && closest_centroid_index.has_value())) {
+
+        iter++;
+
+        if (iter == 1000) printf("Infinite loop\n");
 
         // Go down
         while (not tree.terminal_state[index]) {
@@ -287,7 +402,6 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
         }
 
         if (tree.leaves[index].size()) {
-            // /!\ Make sure it is initialized
 
             std::pair<real, std::optional<unsigned int>> p = compute_min_dist_sq(means, tree, v, index);
             const real d = p.first;
@@ -356,6 +470,8 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
         }
     }
 
+    printf("Iter %u\n", iter);
+
     return closest_centroid_index.value();
 }
 
@@ -369,15 +485,15 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
 bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std::vector<std::vector<element>>& new_groups,
     const std::vector<rt::vector>& means) {
 
-    //bool search_type = LINEAR;
+    bool search_type = LINEAR;
 
     search_tree tree(means.size());
     
-    // if (means.size() >= MIN_FOR_TREE_SEARCH) {
-        
-    //     build_tree(means, tree);
-    //     //search_type = ACCELERATED;
-    // }
+    if (means.size() >= MIN_FOR_TREE_SEARCH) {
+        printf("\nBuilding search tree\n");
+        build_tree(means, tree);
+        search_type = ACCELERATED;
+    }
 
     const unsigned int nb_of_groups = old_groups.size();
     
@@ -385,11 +501,13 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
 
     if (nb_of_groups == 1) {
         // First iteration (all elements in the first group)
-        printf("Means size : %llu\n", means.size());
+        // printf("Means size : %llu\n", means.size());
 
         const std::vector<element>& old_group = old_groups[0];
 
         unsigned int cpt = 0;
+
+        printf("Assigning to closest\n");
 
         PARALLEL_FOR_BEGIN(old_group.size()) {
         //for (unsigned int n = 0; n < old_group.size(); n++) {
@@ -400,8 +518,8 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
             const rt::vector& v = elt.get_position();
 
             const unsigned int closest_index =
-                //(search_type == LINEAR) ?
-                (true) ?
+                (search_type == LINEAR) ?
+                //(true) ?
                     linear_search(means, v)
                     :
                     tree_search(means, tree, v);
@@ -409,13 +527,15 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
             // Test
             // const unsigned int closest_index_linear = linear_search(means, v);
             // const unsigned int closest_index_tree   = tree_search(means, tree, v);
-            // if (closest_index_linear != closest_index_tree) printf("ERROR: tree search incorrect\n\n");
+            // if (closest_index_linear != closest_index_tree) printf("ERROR: tree search incorrect\n");
 
             mut.lock();
             new_groups[closest_index].push_back(elt);
             cpt++;
             mut.unlock();
         } PARALLEL_FOR_END();
+
+        printf("Done.\n");
 
         return true;
     }
@@ -483,8 +603,6 @@ void fill_empty_clusters(std::vector<std::vector<element>>& groups) {
 /* Returns a vector of k vectors of elements representing the k clusters */
 std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const unsigned int k) {
 
-    //printf("HOHOHO\n");
-
     /* Vectors containing the k initial means */
     std::vector<rt::vector> means(k);
 
@@ -497,9 +615,7 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
         
     std::vector<std::vector<element>> groups(k);
     assign_to_closest({obj}, groups, means);
-    //printf("WOWOWO\n");
     fill_empty_clusters(groups);
-    //printf("HAHAHA\n");
 
     unsigned int iterations = MAX_NUMBER_OF_ITERATIONS;
     bool change = true;
@@ -663,7 +779,6 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
     /* A hierarchy has to be created */
     if (DISPLAY_KMEANS) {
         printf("\nOptimizing the data structure...\n");
-        //printf("LALALALALA\n");
     }
     else {
         printf("\rOptimizing the data structure...");
