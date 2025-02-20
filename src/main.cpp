@@ -165,10 +165,10 @@ int main(int argc, char *argv[]) {
             else
                 render_loop_parallel(matrix, scene, number_of_bounces);
 
-            if (target_number_of_rays <= 10 || i % 10 == 9) {
+            //if (target_number_of_rays <= 10 || i % 10 == 9) {
                 printf("\r%u / %u", i+1, target_number_of_rays);
                 fflush(stdout);
-            }
+            //}
             /* Exporting as rtdata every 100 samples */
             if (i % 100 == 99) {
                 create_dir();
