@@ -120,16 +120,39 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
             const unsigned int closest_index_linear = linear_search(means, v);
             const unsigned int closest_index_tree   = tree_search(means, tree, v);
             if (closest_index_linear != closest_index_tree) {
-                printf("ERROR: tree search incorrect (%u lin v %u tr)\n", closest_index_linear, closest_index_tree);
                 const rt::vector& vlin = means[closest_index_linear];
                 const rt::vector& vtr  = means[closest_index_tree];
                 const real dlin = (vlin - v).normsq();
                 const real dtr  = (vtr  - v).normsq();
-                printf("v    = (%f, %f, %f)\n", v.x, v.y, v.z);
-                printf("vlin = (%f, %f, %f)\n", vlin.x, vlin.y, vlin.z);
-                printf("vtr  = (%f, %f, %f)\n", vtr.x, vtr.y, vtr.z);
-                printf("Dist sq (%f lin v %f tr)\n", dlin, dtr);
-                throw;
+                if (dlin < dtr) {
+                    printf("ERROR: tree search incorrect\nSuccessful tests: %u\nv = (%f, %f, %f)\nLIN means[%u] = (%f, %f, %f), dist %f\nTR  means[%u] = (%f, %f, %f), dist %f\n",
+                        n, v.x, v.y, v.z, closest_index_linear, vlin.x, vlin.y, vlin.z, dlin, closest_index_tree, vtr.x, vtr.y, vtr.z, dtr);
+
+                    // Search for closest_index_tree
+                    bool stop = false;
+                    unsigned int leaf_index_lin = 0;
+                    for (unsigned int i = 0; i < tree.terminal_state.size(); i++) {
+                        if (tree.terminal_state[i] && tree.leaves[i].size()) {
+                            for (unsigned int j = 0; j < tree.leaves[i].size(); j++) {
+                                if (tree.leaves[i][j] == closest_index_linear) {
+                                    stop = true;
+                                    leaf_index_lin = i;
+                                    break;
+                                }
+                            }
+                            if (stop) break;
+                        }
+                    }
+                    printf("Leaf containing index tr (%u) : %u\n", closest_index_linear, leaf_index_lin);
+
+                    printf("\nNew execution of tree\n");
+                    tree_search(means, tree, v, true);
+
+                    printf("\nTest actual closest\n");
+                    tree_search(means, tree, vlin, true);
+
+                    throw;
+                }
             }
 
             mut.lock();
@@ -140,6 +163,8 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
         }
 
         printf("Done.\n");
+        
+        printf("All correct\n"); throw;
 
         return true;
     }

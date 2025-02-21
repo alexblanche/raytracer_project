@@ -321,13 +321,13 @@ std::pair<real, std::optional<unsigned int>> compute_min_dist_sq(const std::vect
 
 real distance_sq_to_region(const rt::vector& v, const rt::vector& root, const unsigned char region) {
 
-    const unsigned char bx = v.x >= root.x;
-    const unsigned char by = v.y >= root.y;
-    const unsigned char bz = v.z >= root.z;
+    const bool bx = v.x >= root.x;
+    const bool by = v.y >= root.y;
+    const bool bz = v.z >= root.z;
 
-    const unsigned char rx = region & 0x04;
-    const unsigned char ry = region & 0x02;
-    const unsigned char rz = region & 0x01;
+    const bool rx = region & 0x04;
+    const bool ry = region & 0x02;
+    const bool rz = region & 0x01;
 
     real d = 0.0f;
     if (bx != rx) {
@@ -351,7 +351,8 @@ struct tree_search_info {
     unsigned char max_region_checked;
 };
 
-unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree& tree, const rt::vector& v) {
+unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree& tree, const rt::vector& v,
+    bool verbose) {
 
     unsigned int index = 0;
     real min_dist = std::numeric_limits<float>::infinity();
@@ -360,7 +361,7 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
     std::stack<tree_search_info> stack;
 
     unsigned int iter = 0;
-    // printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+    //if (verbose) printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 
     while (not (index == 0 && closest_centroid_index.has_value())) {
 
@@ -372,13 +373,13 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
         }
 
         // Go down
-        // printf("Go down (index = %u)\n", index);
+        if (verbose) printf("Go down (index = %u)\n", index);
         //
         unsigned int loop_temp_cpt = 0;
         //
         while (not tree.terminal_state[index]) {
 
-            // printf("Going down... index = %u\n", index);
+            if (verbose) printf("Going down... index = %u\n", index);
 
             index = compute_subregion_index(tree, v, index);
 
@@ -402,17 +403,17 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
                 closest_centroid_index = ci;
             }
 
-            // printf("Non-empty leaf. index = %u, min_dist = %f, closest = %u\n", index, min_dist, closest_centroid_index.value());
+            if (verbose) printf("Non-empty leaf. index = %u, min_dist = %f, closest = %u\n", index, min_dist, closest_centroid_index.value());
         }
-        // else {
-        //     printf("Empty leaf. index = %u, min_dist = %f, closest = %u\n", index, min_dist,
-        //         closest_centroid_index.has_value() ? closest_centroid_index.value() : (unsigned int) (-1));
-        // }
+        else {
+            if (verbose) printf("Empty leaf. index = %u, min_dist = %f, closest = %u\n", index, min_dist,
+                closest_centroid_index.has_value() ? closest_centroid_index.value() : (unsigned int) (-1));
+        }
 
         // Go back up
-        // printf("Go back up\n");
+        if (verbose) printf("Go back up\n");
         while (index != 0) {
-            // printf("Climbing... index = %u\n", index);
+            if (verbose) printf("Climbing... index = %u\n", index);
             const unsigned int parent_index = (index - 1) >> 3;
             // index = 8 * new_index + r + 1, r in 0..7
             const unsigned char r = (index - 1) & 0x07;
@@ -422,12 +423,12 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
             unsigned char region_to_start_from = 0;
             bool resume = false;
             if (not stack.empty()) {
-                const tree_search_info& tsi = stack.top();
-                // printf("tsi: (size %u) index_stack %u, orig region %u, max reg %u\n", (unsigned int) stack.size(), tsi.index_stack, tsi.original_region, tsi.max_region_checked);
-                
-                original_region = tsi.original_region;
+                const tree_search_info& tsi = stack.top();                
                 if (parent_index == tsi.index_stack) {
+                    if (verbose) printf("Resuming: tsi (size %u) index_stack %u, orig region %u, max reg %u\n",
+                        (unsigned int) stack.size(), tsi.index_stack, tsi.original_region, tsi.max_region_checked);
                     resume = true;
+                    original_region = tsi.original_region;
                     region_to_start_from = tsi.max_region_checked + 1;
                 }
             }
@@ -439,6 +440,8 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
                 if (i == r || i == original_region) continue;
 
                 const real di = distance_sq_to_region(v, root, i);
+                if (verbose) printf("Neighbor region %u (%u): distance %f\n", i, 8 * parent_index + i + 1, di);
+
                 if (di < min_dist) {
                     // Search in this region
 
@@ -459,7 +462,7 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
 
                     index = (parent_index << 3) + i + 1; // go to region i
                     gobackdown = true;
-                    // printf("Go back down (to index %u)\n", index);
+                    if (verbose) printf("Go back down (to index %u)\n", index);
                     break;
                 }
             }
@@ -471,7 +474,7 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
         }
     }
 
-    printf("Iter %u\n", iter);
+    if (verbose) printf("Iter %u\n", iter);
 
     return closest_centroid_index.value();
 }

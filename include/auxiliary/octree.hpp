@@ -23,4 +23,4 @@ struct search_tree {
 
 void build_tree(const std::vector<rt::vector>& means, search_tree& tree);
 
-unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree& tree, const rt::vector& v);
+unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree& tree, const rt::vector& v, bool verbose = false);
