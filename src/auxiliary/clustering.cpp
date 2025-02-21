@@ -78,11 +78,13 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
 
     bool search_type = LINEAR;
 
-    search_tree tree(means.size());
+    search_tree tree(10 * means.size());
+    // printf("tree has size %u\n", (unsigned int) (tree.internal_nodes.size()));
     
     if (means.size() >= MIN_FOR_TREE_SEARCH) {
         printf("\nBuilding search tree\n");
         build_tree(means, tree);
+        printf("Tree successfully built\n");
         search_type = ACCELERATED;
     }
 
@@ -100,8 +102,8 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
 
         printf("Assigning to closest\n");
 
-        PARALLEL_FOR_BEGIN(old_group.size()) {
-        //for (unsigned int n = 0; n < old_group.size(); n++) {
+        // PARALLEL_FOR_BEGIN(old_group.size()) {
+        for (unsigned int n = 0; n < old_group.size(); n++) {
 
             //printf("%u\n", cpt);
 
@@ -110,21 +112,32 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
 
             const unsigned int closest_index =
                 (search_type == LINEAR) ?
-                //(true) ?
                     linear_search(means, v)
                     :
                     tree_search(means, tree, v);
 
             // Test
-            // const unsigned int closest_index_linear = linear_search(means, v);
-            // const unsigned int closest_index_tree   = tree_search(means, tree, v);
-            // if (closest_index_linear != closest_index_tree) printf("ERROR: tree search incorrect\n");
+            const unsigned int closest_index_linear = linear_search(means, v);
+            const unsigned int closest_index_tree   = tree_search(means, tree, v);
+            if (closest_index_linear != closest_index_tree) {
+                printf("ERROR: tree search incorrect (%u lin v %u tr)\n", closest_index_linear, closest_index_tree);
+                const rt::vector& vlin = means[closest_index_linear];
+                const rt::vector& vtr  = means[closest_index_tree];
+                const real dlin = (vlin - v).normsq();
+                const real dtr  = (vtr  - v).normsq();
+                printf("v    = (%f, %f, %f)\n", v.x, v.y, v.z);
+                printf("vlin = (%f, %f, %f)\n", vlin.x, vlin.y, vlin.z);
+                printf("vtr  = (%f, %f, %f)\n", vtr.x, vtr.y, vtr.z);
+                printf("Dist sq (%f lin v %f tr)\n", dlin, dtr);
+                throw;
+            }
 
             mut.lock();
             new_groups[closest_index].push_back(elt);
             cpt++;
             mut.unlock();
-        } PARALLEL_FOR_END();
+        //} PARALLEL_FOR_END();
+        }
 
         printf("Done.\n");
 
@@ -138,6 +151,7 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
 
                 const rt::vector& v = elt.get_position();
 
+                //
                 unsigned int closest_index = 0;
                 real distance_to_closest = (means[0] - v).normsq();
 

@@ -19,6 +19,7 @@ std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tre
     const unsigned int index_root, const unsigned int index_min, const unsigned int index_max) {
 
     const unsigned int nb_indices = index_max - index_min + 1;
+    if (nb_indices == 0) throw;
 
     // printf("Split\n");
 
@@ -39,8 +40,8 @@ std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tre
     // Counting the number of element in each region, and the average of each region
     // rt::vector avg_region[8];
     unsigned int nb_elt_region[8];
-    for (unsigned int i = 0; i < 8; i++) {
-        nb_elt_region[i] = 0;
+    for (unsigned char r = 0; r < 8; r++) {
+        nb_elt_region[r] = 0;
     }
     for (unsigned int i = index_min; i <= index_max; i++) {
         const rt::vector& v = means[elts[i]];
@@ -59,15 +60,15 @@ std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tre
     // Computing partial sums
     unsigned int last = index_min;
     unsigned int* first_index = nb_elt_region;
-    for (unsigned char i = 0; i < 8; i++) {
-        const unsigned int nbi = nb_elt_region[i];
-        first_index[i] = last;
-        last += nbi;
+    for (unsigned char r = 0; r < 8; r++) {
+        const unsigned int nbr = nb_elt_region[r];
+        first_index[r] = last;
+        last += nbr;
     }
 
     std::vector<unsigned int> output(9);
-    for (unsigned char i = 0; i < 8; i++)
-        output[i] = first_index[i];
+    for (unsigned char r = 0; r < 8; r++)
+        output[r] = first_index[r];
     output[8] = last;
 
     // for (unsigned char i = 0; i < 8; i++) {
@@ -89,7 +90,11 @@ std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tre
         const unsigned char bz = v.z >= avg.z;
         const unsigned char region = (bx << 2) + (by << 1) + bz;
         // printf("region = %u, first_index[%u] = %u\n", region, region, first_index[region]);
-        elts_temp[first_index[region] - index_min] = i;
+        if (first_index[region] - index_min >= nb_indices) {
+            printf("Error index elts_temp\n");
+            throw;
+        }
+        elts_temp[first_index[region] - index_min] = elts[i];
         first_index[region]++;
     }
 
@@ -105,6 +110,12 @@ std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tre
 
 
 void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
+
+    //
+    std::vector<bool> isdone(means.size());
+    for (unsigned int i = 0; i < isdone.size(); i++)
+        isdone[i] = false;
+    //
     
     std::vector<unsigned int> elts(means.size());
     for (unsigned int i = 0; i < means.size(); i++)
@@ -131,9 +142,12 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
     unsigned int leaves_done = 0;
     unsigned int points_done = 0;
 
+    // unsigned int depth = 0;
+
     while (nb_non_terminal_groups) {
 
-        // printf("Loop\n");
+        // printf("Loop (depth = %u)\n", depth);
+        // depth ++;
 
         unsigned int new_nb_non_term_groups = 0;
 
@@ -143,8 +157,8 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
         std::vector<unsigned int>& group_size     = (parity) ? gs1 : gs2;
         std::vector<unsigned int>& new_group_size = (parity) ? gs2 : gs1;
 
-        std::vector<unsigned int>& tree_index     = (parity) ? ti1 : ti2;
-        std::vector<unsigned int>& new_tree_index = (parity) ? ti2 : ti1;
+        std::vector<unsigned int>& tree_indices     = (parity) ? ti1 : ti2;
+        std::vector<unsigned int>& new_tree_indices = (parity) ? ti2 : ti1;
 
         // Split all the groups and compute the terminal nodes
         // printf("FOR nb_non_terminal_groups = %u\n", nb_non_terminal_groups);
@@ -154,11 +168,18 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
             const unsigned int index_min     = groups[g];
             const unsigned int nb_elts_group = group_size[g];
             const unsigned int index_max     = index_min + nb_elts_group - 1;
-            const unsigned int index         = tree_index[g];
+            const unsigned int tree_index    = tree_indices[g];
 
-            // if (index >= max_groups) printf("Erroneous index: %u\n", index);
+            if (tree_index >= tree.internal_nodes.size()) {
+                printf("Erroneous index: %u (>= %u) \n", tree_index, (unsigned int) tree.internal_nodes.size());
+                throw;
+            }
+            if (g >= max_groups) {
+                printf("Erroneous group: %u (>= %u)\n", g, (unsigned int) max_groups);
+                throw;
+            }
 
-            // printf("g = %u, index = %u\n", g, index);
+            // printf("g = %u, tree_index = %u\n", g, tree_index);
 
             //printf("Y\n");
             
@@ -168,11 +189,6 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
                 // printf("W1 (index %u, nb elts %u, means %u, index_min %u, max %u)\n", index, nb_elts_group,
                 //     (unsigned int) means.size(), index_min, index_min + nb_elts_group - 1);
 
-                // if (nb_elts_group > means.size()) {
-                //     for(int i = 0; i < 1000; i++)
-                //         printf("ERROR!!!\n");
-                // }
-
                 // printf("Leaves done: %u\n", leaves_done);
 
                 // if (nb_elts_group) printf("Leaves %u\n", (unsigned int) tree.leaves.size());
@@ -181,10 +197,10 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
                 // printf("leaf = {}\n");
                 // tree.leaves[index] = {};
                 // printf("leaf.resize(%u)\n", nb_elts_group);
-                tree.leaves[index].resize(nb_elts_group);
+                tree.leaves[tree_index].resize(nb_elts_group);
                 // printf("Resize done\n");
                 
-                std::vector<unsigned int>& leaf = tree.leaves[index];
+                std::vector<unsigned int>& leaf = tree.leaves[tree_index];
 
                 // printf("Printing leaf: (size %llu)\n", leaf.size());
                 // for (unsigned int i = 0; i < leaf.size(); i++) {
@@ -193,14 +209,22 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
 
                 // if (nb_elts_group) printf("W1.3 (leaf %u)\n", (unsigned int) leaf.size());
                 for (unsigned int i = 0; i < nb_elts_group; i++) {
-                    //leaf[i] = elts[index_min + i];
                     // printf("elts[%u] = %u\n", index_min + i, elts[index_min + i]);
                     // printf("leaf[%u] = %u\n", i, leaf[i]);
                     //tree.leaves[index].push_back(elts[index_min + i]);
                     leaf[i] = elts[index_min + i];
+
+                    //
+                    if (isdone[leaf[i]]) {
+                        printf("Point already done %u\n", leaf[i]);
+                        throw;
+                    }
+                    // printf("tree_index %u, leaf[%u] = %u\n", tree_index, i, leaf[i]);
+                    isdone[leaf[i]] = true;
+                    //
                 }
                 // if (nb_elts_group) printf("W1.5 (leaf %u)\n", (unsigned int) leaf.size());
-                tree.terminal_state[index] = true;
+                tree.terminal_state[tree_index] = true;
 
                 // printf("W2\n\n");
                 leaves_done++;
@@ -209,7 +233,23 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
             }
             else {
 
-                std::vector<unsigned int> new_regions = split(means, tree, elts, index, index_min, index_max);
+                // printf("split (tree_index %u, index_min %u, index_max %u)\n", tree_index, index_min, index_max);
+
+                // new_regions has size 9: each of the 8 regions (0..7) is defined by the interval [new_regions[i] .. new_regions[i+1]]
+                std::vector<unsigned int> new_regions = split(means, tree, elts, tree_index, index_min, index_max);
+
+                //
+                // Find duplicates in elts
+                for (unsigned int i = 0; i < elts.size(); i++) {
+                    for (unsigned int j = 0; j < elts.size(); j++) {
+                        if (i != j && elts[i] == elts[j]) {
+                            printf("Duplicate found elts[%u] = elts[%u] = %u\n", i, j, elts[i]);
+                            throw;
+                        }
+                    }
+                }
+                //
+
 
                 // printf("new regions sizes ");
                 // for (unsigned int i = 0; i < 8; i++) {
@@ -218,13 +258,13 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
                 // printf("\n");
 
                 // Add the new groups
-                unsigned int ng = new_nb_non_term_groups;
-                const unsigned int ni = (index << 3) + 1;
+                const unsigned int ng = new_nb_non_term_groups;
+                const unsigned int ni = (tree_index << 3) + 1;
                 for (unsigned char i = 0; i < 8; i++) {
                     unsigned int ngi = ng + i;
                     new_groups[ngi]     = new_regions[i];
                     new_group_size[ngi] = new_regions[i + 1] - new_regions[i];
-                    new_tree_index[ngi] = ni + i;
+                    new_tree_indices[ngi] = ni + i;
                     //printf("tree_index[%u] = %u (%u * 8 + %u + 1)\n", ngi, ni + i, index, i);
                 }
                 new_nb_non_term_groups += 8;
@@ -236,15 +276,25 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
         parity = not parity;
         nb_non_terminal_groups = new_nb_non_term_groups;
     }
+    
+
+    //
+    for (unsigned int i = 0; i < isdone.size(); i++) {
+        if (not isdone[i]) {
+            printf("Point not done %u\n", i);
+            throw;
+        }
+    }
+    //
 }
 
 unsigned int compute_subregion_index(const search_tree& tree, const rt::vector& v, const unsigned int index) {
     
     const rt::vector& root = tree.internal_nodes[index];
-    const unsigned char first_bit  = v.x >= root.x;
-    const unsigned char second_bit = v.y >= root.y;
-    const unsigned char third_bit  = v.z >= root.z;
-    const unsigned char region = (first_bit << 2) + (second_bit << 1) + third_bit;
+    const unsigned char bx = v.x >= root.x;
+    const unsigned char by = v.y >= root.y;
+    const unsigned char bz = v.z >= root.z;
+    const unsigned char region = (bx << 2) + (by << 1) + bz;
 
     return (index << 3) + region + 1;
 }
@@ -310,23 +360,34 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
     std::stack<tree_search_info> stack;
 
     unsigned int iter = 0;
+    // printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 
     while (not (index == 0 && closest_centroid_index.has_value())) {
 
         iter++;
 
-        if (iter == 1000) printf("Infinite loop\n");
+        if (iter == 1000) {
+            printf("Infinite loop\n");
+            throw;
+        }
 
         // Go down
+        // printf("Go down (index = %u)\n", index);
         //
         unsigned int loop_temp_cpt = 0;
         //
         while (not tree.terminal_state[index]) {
+
+            // printf("Going down... index = %u\n", index);
+
             index = compute_subregion_index(tree, v, index);
 
             //
             loop_temp_cpt++;
-            if (loop_temp_cpt > 1000) printf("Infinie loop (2)\n");
+            if (loop_temp_cpt > 1000) {
+                printf("Infinie loop (2)\n");
+                throw;
+            }
             //
         }
 
@@ -340,22 +401,32 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
                 min_dist = d;
                 closest_centroid_index = ci;
             }
+
+            // printf("Non-empty leaf. index = %u, min_dist = %f, closest = %u\n", index, min_dist, closest_centroid_index.value());
         }
+        // else {
+        //     printf("Empty leaf. index = %u, min_dist = %f, closest = %u\n", index, min_dist,
+        //         closest_centroid_index.has_value() ? closest_centroid_index.value() : (unsigned int) (-1));
+        // }
 
         // Go back up
+        // printf("Go back up\n");
         while (index != 0) {
-            const unsigned int new_index = (index - 1) >> 3;
+            // printf("Climbing... index = %u\n", index);
+            const unsigned int parent_index = (index - 1) >> 3;
             // index = 8 * new_index + r + 1, r in 0..7
             const unsigned char r = (index - 1) & 0x07;
-            const rt::vector& root = tree.internal_nodes[new_index];
+            const rt::vector& root = tree.internal_nodes[parent_index];
 
             unsigned char original_region = r;
             unsigned char region_to_start_from = 0;
             bool resume = false;
             if (not stack.empty()) {
                 const tree_search_info& tsi = stack.top();
+                // printf("tsi: (size %u) index_stack %u, orig region %u, max reg %u\n", (unsigned int) stack.size(), tsi.index_stack, tsi.original_region, tsi.max_region_checked);
+                
                 original_region = tsi.original_region;
-                if (new_index == tsi.index_stack) {
+                if (parent_index == tsi.index_stack) {
                     resume = true;
                     region_to_start_from = tsi.max_region_checked + 1;
                 }
@@ -380,21 +451,22 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
                     else {
                         // Add a new element
                         tree_search_info tsi;
-                        tsi.index_stack = index;
+                        tsi.index_stack = parent_index;
                         tsi.max_region_checked = i;
                         tsi.original_region = r;
                         stack.push(tsi);
                     }
 
-                    index = (new_index << 3) + i + 1; // go to region i
+                    index = (parent_index << 3) + i + 1; // go to region i
                     gobackdown = true;
+                    // printf("Go back down (to index %u)\n", index);
                     break;
                 }
             }
 
             if (gobackdown) break;
 
-            index = new_index;
+            index = parent_index;
             if (resume && not stack.empty()) stack.pop();
         }
     }
