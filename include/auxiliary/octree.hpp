@@ -12,7 +12,7 @@ struct search_tree {
     // Each index contains a boolean that indicates whether the node is terminal (a leaf) or internal
     std::vector<bool> terminal_state;
 
-    search_tree(const unsigned int number_of_nodes) {
+    void resize_tree(const unsigned int number_of_nodes) {
         internal_nodes.resize(number_of_nodes);
         leaves.resize(number_of_nodes);
         terminal_state.resize(number_of_nodes);
@@ -23,4 +23,4 @@ struct search_tree {
 
 void build_tree(const std::vector<rt::vector>& means, search_tree& tree);
 
-unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree& tree, const rt::vector& v, bool verbose = false);
+unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree& tree, const rt::vector& v);// , bool verbose = false);
