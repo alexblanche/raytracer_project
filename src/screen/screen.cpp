@@ -169,9 +169,9 @@ namespace rt {
 							break;
 					}
 					break;
-				case SDL_MOUSEBUTTONDOWN:
-					printf("\nX = %d, Y = %d", event.button.x, event.button.y);
-					break;
+				// case SDL_MOUSEBUTTONDOWN:
+				// 	printf("\nX = %d, Y = %d", event.button.x, event.button.y);
+				// 	break;
 			}
 		}
 		return 0;

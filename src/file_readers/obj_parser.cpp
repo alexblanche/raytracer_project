@@ -38,8 +38,8 @@ const real infinity = realobj.infinity();
 /* When indices are negative, convert them to positive */
 void correct(int& v, const unsigned int n) {
    if (v < 0)
-      v += n;
-};
+      v += ((int) n) + 1;
+}
 
 /* Auxiliary function that adds a trianlge to obj_set and to content if bounded_enabled is true */
 void add_triangle(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
@@ -325,13 +325,13 @@ void add_subdivided_polygon(FILE* file,
          apply_texture = false;
       }
 
-      correct(vi, vertex_set.size());
+      correct(vi, vertex_set.size() - 1);
       v_stack.push(vi);
       if (apply_texture) {
-         correct(vti, uv_coord_set.size());
+         correct(vti, uv_coord_set.size() - 1);
          vt_stack.push(vti);
       }
-      correct(vni, normal_set.size());
+      correct(vni, normal_set.size() - 1);
       vn_stack.push(vni);
 
       final_v = final_v + vertex_set[vi];
@@ -427,10 +427,10 @@ void add_subdivided_polygon_no_normal(FILE* file,
          apply_texture = false;
       }
 
-      correct(vi, vertex_set.size());
+      correct(vi, vertex_set.size() - 1);
       v_stack.push(vi);
       if (apply_texture) {
-         correct(vti, uv_coord_set.size());
+         correct(vti, uv_coord_set.size() - 1);
          vt_stack.push(vti);
       }
 
@@ -534,7 +534,7 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
    /* Material -> texture association table */
    map<size_t, size_t> mt_assoc;
 
-   size_t current_material_index = -1;
+   size_t current_material_index = 0;
    size_t current_texture_index = default_texture_index.value_or((size_t) (-1));
 
    const bool default_texture_provided = default_texture_index.has_value();
@@ -720,9 +720,6 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
             const int ret = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d",
                &v1, &vt1, &vn1, &v2, &vt2, &vn2, &v3, &vt3, &vn3, &v4, &vt4, &vn4, &v5, &vt5, &vn5);
 
-            
-            correct(v4, number_of_vertices);
-            correct(v5, number_of_vertices);
             if (ret >= 9) {
                correct(v1, number_of_vertices);
                correct(vt1, number_of_texture_coords);

@@ -13,7 +13,6 @@
 class triangle : public polygon {
     
     private:
-    
         /* A triangle is defined by a normal (unit) vector (a,b,c), and three (non-unit) vectors position, v1, v2
            (when the triangle is three points P0, P1, P2, position = P0, v1 = P1-P0 and v2 = P2-P0).
            Vertex normals can be specified, but are optional.

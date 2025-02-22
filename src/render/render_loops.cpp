@@ -39,6 +39,8 @@ void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
 void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
     scene& scene, const unsigned int number_of_bounces) {
 
+    // static unsigned int cpt = 0;
+
     PARALLEL_FOR_BEGIN(scene.width) {
 
         std::vector<rt::color>& output = matrix[i];
@@ -52,6 +54,9 @@ void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
             const rt::color new_col = pathtrace(r, scene, number_of_bounces);
             output[j] = output[j] + new_col;
         }
+
+        // cpt++;
+        // printf("%u\n", cpt);
         
     } PARALLEL_FOR_END();
 }

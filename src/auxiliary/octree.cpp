@@ -82,7 +82,7 @@ std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tre
 
 void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
 
-    tree.resize_tree(12 * means.size());
+    tree.resize_tree(/*12*/24 * means.size());
 
     std::vector<unsigned int> elts(means.size());
     for (unsigned int i = 0; i < means.size(); i++)
