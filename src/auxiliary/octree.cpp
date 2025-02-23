@@ -28,6 +28,7 @@ std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tre
     }
     avg = avg / nb_indices;
 
+    tree.increase_size(index_root);
     tree.internal_nodes[index_root] = avg;
     
     // Counting the number of element in each region, and the average of each region
@@ -82,30 +83,36 @@ std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tre
 
 void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
 
-    tree.resize_tree(/*12*/24 * means.size());
+    tree.initial_resize(10 * means.size());
 
     std::vector<unsigned int> elts(means.size());
     for (unsigned int i = 0; i < means.size(); i++)
         elts[i] = i;
 
     const unsigned int max_groups = tree.internal_nodes.size();
-    std::vector<unsigned int> g1(max_groups);
-    std::vector<unsigned int> g2(max_groups);
-    std::vector<unsigned int> gs1(max_groups);
-    std::vector<unsigned int> gs2(max_groups);
-    std::vector<unsigned int> ti1(max_groups);
-    std::vector<unsigned int> ti2(max_groups);
+    std::vector<unsigned int> g1;
+    std::vector<unsigned int> g2;
+    std::vector<unsigned int> gs1;
+    std::vector<unsigned int> gs2;
+    std::vector<unsigned int> ti1;
+    std::vector<unsigned int> ti2;
+    g1.reserve(max_groups);
+    g2.reserve(max_groups);
+    gs1.reserve(max_groups);
+    gs2.reserve(max_groups);
+    ti1.reserve(max_groups);
+    ti2.reserve(max_groups);
 
     // First iteration: one group, with all the elements
-    g1[0] = 0;
-    gs1[0] = means.size();
-    ti1[0] = 0;
+    // g1[0] = 0;
+    // gs1[0] = means.size();
+    // ti1[0] = 0;
+    g1.push_back(0);
+    gs1.push_back(means.size());
+    ti1.push_back(0);
 
     unsigned int nb_non_terminal_groups = 1;
     bool parity = true;
-
-    // unsigned int leaves_done = 0;
-    // unsigned int points_done = 0;
 
     while (nb_non_terminal_groups) {
 
@@ -120,6 +127,10 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
         std::vector<unsigned int>& tree_indices     = (parity) ? ti1 : ti2;
         std::vector<unsigned int>& new_tree_indices = (parity) ? ti2 : ti1;
 
+        new_groups.clear();
+        new_group_size.clear();
+        new_tree_indices.clear();
+
         // Split all the groups and compute the terminal nodes
         for (unsigned int g = 0; g < nb_non_terminal_groups; g++) {
 
@@ -128,28 +139,26 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
             const unsigned int index_max     = index_min + nb_elts_group - 1;
             const unsigned int tree_index    = tree_indices[g];
 
-            if (tree_index >= tree.internal_nodes.size()) {
-                printf("Erroneous index: %u (>= %u) \n", tree_index, (unsigned int) tree.internal_nodes.size());
-                throw;
-            }
-            if (g >= max_groups) {
-                printf("Erroneous group: %u (>= %u)\n", g, (unsigned int) max_groups);
-                throw;
-            }
+            // if (tree_index >= tree.internal_nodes.size()) {
+            //     printf("Erroneous index: %u (>= %u) \n", tree_index, (unsigned int) tree.internal_nodes.size());
+            //     throw;
+            // }
+            // if (g >= max_groups) {
+            //     printf("Erroneous group: %u (>= %u)\n", g, (unsigned int) max_groups);
+            //     throw;
+            // }
             
             if (nb_elts_group <= MAX_ELTS_PER_LEAF) {
                 // Compute leaf
+                tree.increase_size(tree_index);
+
                 tree.leaves[tree_index].resize(nb_elts_group);
-                
                 std::vector<unsigned int>& leaf = tree.leaves[tree_index];
 
                 for (unsigned int i = 0; i < nb_elts_group; i++) {
                     leaf[i] = elts[index_min + i];
                 }
                 tree.terminal_state[tree_index] = true;
-
-                // leaves_done++;
-                // points_done += nb_elts_group;
             }
             else {
 
@@ -157,13 +166,16 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
                 std::vector<unsigned int> new_regions = split(means, tree, elts, tree_index, index_min, index_max);
 
                 // Add the new groups
-                const unsigned int ng = new_nb_non_term_groups;
+                // const unsigned int ng = new_nb_non_term_groups;
                 const unsigned int ni = (tree_index << 3) + 1;
                 for (unsigned char i = 0; i < 8; i++) {
-                    unsigned int ngi = ng + i;
-                    new_groups[ngi]     = new_regions[i];
-                    new_group_size[ngi] = new_regions[i + 1] - new_regions[i];
-                    new_tree_indices[ngi] = ni + i;
+                    // unsigned int ngi = ng + i;
+                    // new_groups[ngi]     = new_regions[i];
+                    // new_group_size[ngi] = new_regions[i + 1] - new_regions[i];
+                    // new_tree_indices[ngi] = ni + i;
+                    new_groups.push_back(new_regions[i]);
+                    new_group_size.push_back(new_regions[i + 1] - new_regions[i]);
+                    new_tree_indices.push_back(ni + i);
                 }
                 new_nb_non_term_groups += 8;
             }
