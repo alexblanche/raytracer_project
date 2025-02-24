@@ -42,6 +42,11 @@ class material {
         /* Indice of refraction: air = 1, water = 1.3, glass = 1.5, diamond = 1.8 */
         real refraction_index;
 
+        /* Booleans to speed up the tracing function */
+        bool opaque;
+        bool emissive;
+        bool has_spec_prob;
+
     public:
 
         /* Mirror surface */
@@ -115,6 +120,18 @@ class material {
 
         inline real get_refraction_index() const {
             return refraction_index;
+        }
+
+        inline bool is_opaque() const {
+            return opaque;
+        }
+
+        inline bool is_emissive() const {
+            return emissive;
+        }
+
+        inline bool has_specular_proba() const {
+            return has_spec_prob;
         }
 };
 

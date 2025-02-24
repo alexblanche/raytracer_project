@@ -23,10 +23,10 @@ void update_accumulators(const material& m, const object* obj, const rt::vector&
     rt::color& emitted_colors, rt::color& color_materials,
     const bool update_color_materials) {
 
-    const rt::color emitted_light = m.get_emitted_color() * m.get_emission_intensity();
-
-    /* Updating the accumulators */
-    emitted_colors = emitted_colors + (color_materials * emitted_light);
+    if (m.is_emissive()) {
+        const rt::color emitted_light = m.get_emitted_color() * m.get_emission_intensity();
+        emitted_colors = emitted_colors + (color_materials * emitted_light);
+    }
     
     if (update_color_materials) {
         if (obj->is_textured()) {
@@ -136,17 +136,6 @@ rt::color background_case(const scene& scene, const ray& r,
 rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
     const real init_refr_index = 1.0f) {
 
-    //
-    // for (unsigned int i = 0; i < scene.object_set.size(); i++) {
-    //     const triangle* tr = static_cast<const triangle*>(scene.object_set[i]);
-    //     // printf("tr %u (%f, %f, %f) (%f, %f, %f) (%f, %f, %f) n:(%f, %f, %f)\n",
-    //     //     i, tr->position.x, tr->position.y, tr->position.z, tr->v1.x, tr->v1.y, tr->v1.z, tr->v2.x, tr->v2.y, tr->v2.z, tr->normal.x, tr->normal.y, tr->normal.z);
-    //     printf("\rtr %u (%f)",
-    //         i, tr->position.x);
-    // }
-    // throw;
-    //
-
     rt::color color_materials = rt::color::WHITE;
     rt::color emitted_colors = rt::color::BLACK;
     
@@ -161,15 +150,11 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
 
     for (unsigned int i = 0; i < bounce; i++) {
 
-        // printf("A ");
-        
         const std::optional<hit> opt_h =
             bounding_method ?
                 scene.find_closest_object_bounding(r)
                 :
                 scene.find_closest_object(r);
-
-        // printf("B ");
 
         if (opt_h.has_value()) {
             
@@ -181,12 +166,8 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
                 update_accumulators(m, obj, h.get_point(), scene.texture_set, emitted_colors, color_materials, reflects_colors);
             };
 
-            // printf("E ");
-
             /* Full-intensity light source reached */
-            if (m.get_emission_intensity() >= 1.0f) {
-
-                // printf("F ");
+            if (m.is_emissive() && m.get_emission_intensity() >= 1.0f) {
 
                 if (obj->is_textured()) {
                     // Only polygons (triangles and quads) can be textured (for now)
@@ -201,12 +182,9 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
                 }
                 else {
 
-                    // printf("G ");
                     return (color_materials * (m.get_emitted_color() * m.get_emission_intensity())) + emitted_colors;
                 }                
             }
-
-            // printf("H ");
 
             /* The ray can either be transmitted (and refracted) through the surface,
                or reflected in three ways: specularly, diffusely, or in the case of total internal reflection,
@@ -214,11 +192,11 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
             */
             const real inward = h.is_inward();
 
-            if (m.get_transparency() == 0.0f) {
+            if (m.is_opaque()) {
                 /* Diffuse or specular reflection */
 
                 /* Testing whether the ray is reflected specularly or diffusely */
-                if (m.get_specular_proba() != 0.0f && scene.rg.random_real(1.0f) <= m.get_specular_proba()) {
+                if (m.has_specular_proba() && scene.rg.random_real(1.0f) <= m.get_specular_proba()) {
                     
                     /* Specular bounce */
 
@@ -290,14 +268,10 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
             }
         }
         else {
-            // printf("C ");
-            
             /* No object hit: background color or background texture */
             return background_case(scene, r, color_materials, emitted_colors);
         }
     }
-
-    // printf("D ");
 
     /* Maximum number of bounces reached: the final color is black */
     return emitted_colors;

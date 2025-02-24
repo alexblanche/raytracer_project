@@ -19,14 +19,16 @@ material material::WATER = material(rt::color(255,255,255), rt::color(0,0,0), 1,
 material::material() : color(rt::color::WHITE), reflectivity(0),
     emitted_color(rt::color::WHITE), emission_intensity(0),
     specular_probability(0), reflects_color(false),
-    transparency(0), refraction_index(1) {}
+    transparency(0), refraction_index(1),
+    opaque(true), emissive(false), has_spec_prob(false) {}
 
 material::material(const rt::color& color, const real reflectivity)
 
     : color(color), reflectivity(reflectivity),
         emission_intensity(0),
         specular_probability(0), reflects_color(false),
-        transparency(0), refraction_index(1) {}
+        transparency(0), refraction_index(1),
+        opaque(true), emissive(false), has_spec_prob(false) {}
 
 material::material(const rt::color& color, const rt::color& emitted_color,
     const real reflectivity, const real emission_intensity,
@@ -38,7 +40,8 @@ material::material(const rt::color& color, const rt::color& emitted_color,
         emitted_color(emitted_color), emission_intensity(emission_intensity),
         specular_probability(specular_probability), reflects_color(reflects_color),
         transparency(transparency), refraction_scattering(refraction_scattering),
-        refraction_index(refraction_index) {}
+        refraction_index(refraction_index),
+        opaque(transparency == 0), emissive(emission_intensity != 0), has_spec_prob(specular_probability != 0) {}
 
 /* Constructor from mtl parameters */
 material::material(const real ns,
@@ -55,6 +58,8 @@ material::material(const real ns,
        reflects_color is left to false
        refraction_scattering is set equal to the reflectivity
     */
+    has_spec_prob = specular_probability != 0;
+    emissive = false;
 
     // Light emission
     if (ke == rt::color(0, 0, 0)) {
@@ -63,12 +68,16 @@ material::material(const real ns,
     else {
         // Temporary
         emission_intensity = 10;
+        emissive = true;
     }
+
+    opaque = true;
 
     if (illum == 4 || illum == 6 || illum == 7 || illum == 9) {
         // Glass
         transparency = 1 - d;
         color = ka * 255; // Usually kd = black for glass
+        opaque = false;
     }
     else {
         // Other materials
