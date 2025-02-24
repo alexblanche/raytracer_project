@@ -50,6 +50,7 @@ add_library(${libname} SHARED
 	src/file_readers/scene_parser.cpp
 	src/scene/scene.cpp
 	src/file_readers/bmp_reader.cpp
+	src/file_readers/hdr_reader.cpp
 	src/file_readers/raw_data.cpp
 	src/auxiliary/octree.cpp
 	src/auxiliary/clustering.cpp

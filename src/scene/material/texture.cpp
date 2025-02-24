@@ -1,5 +1,6 @@
 #include "scene/material/texture.hpp"
 #include "file_readers/bmp_reader.hpp"
+#include "file_readers/hdr_reader.hpp"
 
 #include <cmath>
 #include <iostream>
@@ -16,24 +17,38 @@ texture::texture(const int width, const int height, const std::vector<std::vecto
     : width(width), height(height), data(data),
         width_minus_one((real) (width - 1)), height_minus_one((real) (height - 1)) {}
 
-/* Constructor from a .bmp file
+/* Constructor from a .bmp or .hdr file
    Writes true in parsing_successful if the operation was successful */
 texture::texture(const char* file_name, bool& parsing_successful) {
 
-    const std::optional<dimensions> dims = read_bmp_size(file_name);
+    const char* p = file_name;
+    while(*p != '\0')
+        p++;
+    p-=3;
+    bool is_bmp;
+    if (*p == 'b' && *(p+1) == 'm' && *(p+2) == 'p')
+        is_bmp = true;
+    else if (*p == 'h' && *(p+1) == 'd' && *(p+2) == 'r')
+        is_bmp = false;
+    else {
+        printf("Error in texture definition: wrong file format\n");
+        throw;
+    }
+
+    const std::optional<dimensions> dims = (is_bmp) ? read_bmp_size(file_name) : read_hdr_size(file_name);
     if (dims.has_value()) {
         width = dims.value().width;
         height = dims.value().height;
         data = std::vector<std::vector<rt::color>>(width, std::vector<rt::color>(height));
-        const bool read_bmp_success = read_bmp(file_name, data);
+        bool read_success = (is_bmp) ? read_bmp(file_name, data) : read_hdr(file_name, data);
         width_minus_one = (real) (width - 1);
         height_minus_one = (real) (height - 1);
-        parsing_successful = read_bmp_success;
+        parsing_successful = read_success;
     }
     else {
         parsing_successful = false;
     }
-    
+
 }
 
 

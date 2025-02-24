@@ -142,62 +142,12 @@ bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) 
         
 
         /* Color data */
-        /*
-        char padding_buffer[MAX_PADDING];
-        for (size_t j = 0; j < bmpheight; j++) {
-            const size_t indexj = bmpheight - j - 1;
-            for (size_t i = 0; i < bmpwidth; i++) {
-                const unsigned char b = fgetc(file);
-                const unsigned char g = fgetc(file);
-                const unsigned char r = fgetc(file);
-                data[i][indexj] = rt::color(r, g, b);
-            }
-            // Skipping p bytes of padding
-            if (padding) {
-                ret = fread((void*) padding_buffer, p, 1, file);
-                if (ret != 1) {
-                    throw std::runtime_error("Reading error in read_bmp (padding bytes)");
-                }
-            }
-        }
-        */
-
         const unsigned int nb_bytes = ((3 * bmpwidth) + p) * bmpheight;
         std::vector<unsigned char> buffer(nb_bytes);
         ret = fread((void*) buffer.data(), 1, nb_bytes, file);
         if ((unsigned int) ret != nb_bytes) {
             throw std::runtime_error("Reading error in read_bmp (pixel data)");
         }
-
-        ///
-        // int nb = 10;
-        // printf("\n");
-        // for (int i = 0; i < nb; i++) {
-        //     printf("%d ", buffer[i]);
-        // }
-        // printf("\n");
-        // for (int i = 0; i < nb; i++) {
-        //     printf("%c ", buffer[i]);
-        // }
-        // printf("\n");
-        // for (int i = 0; i < nb / 2; i++) {
-        //     printf("%c ", (buffer[2 * i] << 4) + buffer[2 * i + 1]);
-        // }
-        // printf("\n");
-        // for (int i = 0; i < nb; i++) {
-        //     int h1 = (buffer[i] >> 4) & 0x0F;
-        //     int h2 = buffer[i] & 0x0F;
-        //     if (h1 < 10)
-        //         printf("%d", h1);
-        //     else
-        //         printf("%c", 'a' + h1 - 10);
-        //     if (h2 < 10)
-        //         printf("%d ", h2);
-        //     else
-        //         printf("%c ", 'a' + h2 - 10);
-        // }
-        // printf("\n");
-        ///
 
         unsigned int index = 0;
         for (size_t j = 0; j < bmpheight; j++) {

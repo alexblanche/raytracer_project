@@ -191,7 +191,7 @@ bool combine_raw(const char* dest_bmp_name, const char* dest_raw_name, const int
             printf("Error in generating the bmp file %s\n", dest_bmp_name);
         }
         if (not success_raw) {
-            printf("Error in generating the bmp file %s\n", dest_raw_name);
+            printf("Error in generating the raw data file %s\n", dest_raw_name);
         }
         return false;
     }
