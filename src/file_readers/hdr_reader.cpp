@@ -7,8 +7,13 @@
 #include <cstdint>
 
 #include <cmath>
-
 #include <stdexcept>
+
+#include "parallel/parallel.h"
+
+// Parallel for-loop macros
+#define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](int start, int end){ for(int i = start; i < end; ++i)
+#define PARALLEL_FOR_END()})
 
 /* Prints the info contained in the header of the given .hdr file */
 bool print_hdr_info(const char* file_name) {
@@ -334,19 +339,32 @@ bool read_hdr(const char* file_name, std::vector<std::vector<rt::color>>& data) 
         }
 
         // Copy data to matrix
-        for (unsigned int j = 0; j < height; j++) {
-            const unsigned int indexj = j * width;
-            for (unsigned int i = 0; i < width; i++) {
-                unsigned char* const pixel_color = data_buffer[indexj + i];
+        // for (unsigned int j = 0; j < height; j++) {
+        //     const unsigned int indexj = j * width;
+        //     for (unsigned int i = 0; i < width; i++) {
+        //         unsigned char* const pixel_color = data_buffer[indexj + i];
+        //         const real r = pixel_color[0];
+        //         const real g = pixel_color[1];
+        //         const real b = pixel_color[2];
+        //         const unsigned char e = pixel_color[3];
+        //         const real radiance_val = pow(2.0f, e - 128);
+                
+        //         data[i][j] = rt::color(r, g, b) * radiance_val;
+        //     }
+        // }
+        PARALLEL_FOR_BEGIN(width) {
+            std::vector<rt::color>& data_line = data[i];
+            for (unsigned int j = 0; j < height; j++) {
+                unsigned char* const pixel_color = data_buffer[j * width + i];
                 const real r = pixel_color[0];
                 const real g = pixel_color[1];
                 const real b = pixel_color[2];
                 const unsigned char e = pixel_color[3];
-                const real radiance_val = pow(2.0f, e - 127);
-                
-                data[i][j] = rt::color(r, g, b) * radiance_val;
+                const real radiance_val = pow(2.0f, e - 128);
+                        
+                data_line[j] = rt::color(r * radiance_val, g * radiance_val, b * radiance_val);
             }
-        }
+        } PARALLEL_FOR_END();
 
         fclose(file);
         return true;

@@ -12,7 +12,6 @@
 #include <sys/stat.h>
 #include <bits/stdc++.h>
 #include <sys/types.h>
-
 #include <filesystem>
 
 
@@ -51,6 +50,9 @@ int main(int argc, char *argv[]) {
     unsigned int target_number_of_rays = 0;
     bool multisample = false;
     unsigned int number_of_samples = 0;
+    bool gamma_enabled = false;
+    float gamma = 1.0f;
+    bool reinhardt_enabled = false;
 
     if (argc == 1 || atoi(argv[1]) == 0) {
         printf("Number of bounces: %u (default)\n", number_of_bounces);
@@ -107,8 +109,33 @@ int main(int argc, char *argv[]) {
                 }
                 continue;
             }
+
+            if (strcmp(argv[index_arg], "-gamma") == 0) {
+                gamma_enabled = true;
+                index_arg++;
+
+                if (index_arg < argc) {
+                    gamma = 1.0 / atof(argv[index_arg]);
+                    index_arg++;
+                }
+                else {
+                    printf("Error, -gamma option expects 1 argument\n");
+                    return EXIT_FAILURE;
+                }
+
+                continue;
+            }
+
+            if (strcmp(argv[index_arg], "-reinhardt") == 0) {
+                reinhardt_enabled = true;
+                index_arg++;
+                continue;
+            }
         }
     }
+
+    if (gamma_enabled) printf("Gamma correction: 1 / %.1f\n", (1.0 / gamma));
+    if (reinhardt_enabled) printf("Reinhardt local tone mapping enabled\n");
 
     /* Checking if the output directory exists */
     struct stat info;
@@ -179,7 +206,7 @@ int main(int argc, char *argv[]) {
         printf("\r%u / %u", target_number_of_rays, target_number_of_rays);
 
         create_dir();
-        const bool success_bmp = write_bmp("../output/image.bmp", matrix, target_number_of_rays);
+        const bool success_bmp = write_bmp("../output/image.bmp", matrix, target_number_of_rays, gamma);
         if (success_bmp) {
             printf(" Saved as output/image.bmp\n");
         }
@@ -209,7 +236,17 @@ int main(int argc, char *argv[]) {
     }
 
     const rt::screen scr(scene.width, scene.height);
-    scr.fast_copy(matrix, scene.width, scene.height, 1);
+    
+    if (gamma_enabled) {
+        if (reinhardt_enabled)
+            scr.fast_copy_reinhardt(matrix, scene.width, scene.height, 1, gamma);
+        else
+            scr.fast_copy_gamma(matrix, scene.width, scene.height, 1, gamma);
+    }
+    else
+        scr.fast_copy(matrix, scene.width, scene.height, 1);
+    
+    // 
     scr.update_from_texture();
 
     printf("\r                                                   ");
@@ -231,67 +268,61 @@ int main(int argc, char *argv[]) {
         printf("\rNumber of rays per pixel: %u", number_of_rays);
         fflush(stdout);
 
-        if (true || number_of_rays % 10 == 0) {
-            
-            //const rt::screen scr(scene.width, scene.height);
-            //scr.copy(matrix, scene.width, scene.height, number_of_rays);
-            //scr.update();
-
+        if (gamma_enabled) {
+            if (reinhardt_enabled)
+                scr.fast_copy_reinhardt(matrix, scene.width, scene.height, number_of_rays, gamma);
+            else
+                scr.fast_copy_gamma(matrix, scene.width, scene.height, number_of_rays, gamma);
+        }
+        else
             scr.fast_copy(matrix, scene.width, scene.height, number_of_rays);
-            scr.update_from_texture();
 
-            int key;
-            // do {
-            //     key = scr.wait_keyboard_event();
-            // }
-            // while (key == 0);
-            key = scr.poll_keyboard_event();
-            switch (key) {
-                case 1:
-                    /* Esc or the window exit "X" clicked */
-                    printf("\n");
-                    return EXIT_SUCCESS;
-                case 2:
-                    /* Space or Enter */
-                    break;
-                case 3:
-                    /* B */
-                    /* Export as BMP */
-                    {
-                        create_dir();
-                        const bool success_bmp = write_bmp("../output/image.bmp", matrix, number_of_rays);
-                        if (success_bmp) {
-                            printf(" Saved as output/image.bmp\n");
-                        }
-                        else {
-                            printf("Save failed\n");
-                            return EXIT_FAILURE;
-                        }
-                        break;
+        scr.update_from_texture();
+
+        int key;
+        key = scr.poll_keyboard_event();
+        switch (key) {
+            case 1:
+                /* Esc or the window exit "X" clicked */
+                printf("\n");
+                return EXIT_SUCCESS;
+            case 3:
+                /* B */
+                /* Export as BMP */
+                {
+                    create_dir();
+                    const bool success_bmp = write_bmp("../output/image.bmp", matrix, number_of_rays, gamma);
+                    if (success_bmp) {
+                        printf(" Saved as output/image.bmp\n");
                     }
-                case 4:
-                    /* R */
-                    /* Export raw data */
-                    {
-                        create_dir();
-                        const bool success_raw = export_raw("../output/image.rtdata", number_of_rays, matrix);
-                        if (success_raw) {
-                            printf(" Saved as output/image.rtdata\n");
-                        }
-                        else {
-                            printf("Save failed\n");
-                            return EXIT_FAILURE;
-                        }
-                        break;
+                    else {
+                        printf("Save failed\n");
+                        return EXIT_FAILURE;
                     }
-                default:
                     break;
-            }
+                }
+            case 4:
+                /* R */
+                /* Export raw data */
+                {
+                    create_dir();
+                    const bool success_raw = export_raw("../output/image.rtdata", number_of_rays, matrix);
+                    if (success_raw) {
+                        printf(" Saved as output/image.rtdata\n");
+                    }
+                    else {
+                        printf("Save failed\n");
+                        return EXIT_FAILURE;
+                    }
+                    break;
+                }
+            default:
+                break;
         }
     }
 
     create_dir();
-    const bool success = write_bmp("../output/image_final.bmp", matrix, MAX_RAYS);
+    const bool success = write_bmp("../output/image_final.bmp", matrix, MAX_RAYS, gamma);
     if (success) {
         printf("\nSaved as output/image_final.bmp\n");
         return EXIT_SUCCESS;

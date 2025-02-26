@@ -101,13 +101,13 @@ namespace rt {
 				const size_t width, const size_t height,
 				const unsigned int number_of_rays) const;
 
-			/**
-			 * Copies the rt::color matrix onto the screen, by averaging the number_of_rays colors per pixel
-			 * and applying a square root to each component to increase the brightness
-			*/
-			void copy_gamma_corrected(std::vector<std::vector<rt::color>>& matrix,
+			void fast_copy_gamma(std::vector<std::vector<rt::color>>& matrix,
 				const size_t width, const size_t height,
-				const unsigned int number_of_rays) const;
+				const unsigned int number_of_rays, const real gamma) const;
+
+			void fast_copy_reinhardt(std::vector<std::vector<rt::color>>& matrix,
+				const size_t width, const size_t height,
+				const unsigned int number_of_rays, const real gamma) const;
 	};
 
 }

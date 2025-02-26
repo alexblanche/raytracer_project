@@ -28,4 +28,4 @@ std::optional<std::vector<std::vector<rt::color>>> read_raw(const char* file_nam
 /* Combines the n files whose names are in the array source_file_names into one bmp file dest_bmp_name (extension .bmp)
    and one raw data file dest_raw_name (extension .rtdata)
    Returns true if the operation was successful */
-bool combine_raw(const char* dest_bmp_name, const char* dest_raw_name, const int n, const char* const source_file_names[]);
+bool combine_raw(const char* dest_bmp_name, const char* dest_raw_name, const int n, const char* const source_file_names[], const float gamma = 1.0f);

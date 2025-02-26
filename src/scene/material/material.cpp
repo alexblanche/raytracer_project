@@ -10,7 +10,7 @@
 
 material material::DIFFUSE = material(rt::color(255,255,255), 0);
 material material::MIRROR = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 0, 0, 1.0);
-material material::GLASS = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 0.6, 0, 1.52);
+material material::GLASS = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 0.95, 0, 1.52);
 material material::WATER = material(rt::color(255,255,255), rt::color(0,0,0), 1, 0, 1, false, 1, 0, 1.33);
 
 

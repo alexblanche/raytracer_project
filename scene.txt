@@ -1,5 +1,5 @@
-resolution width:1366 height:768
-camera position:(0, -500, -3500) direction:(0, 0.15, 1) rightdir:(1, 0, 0) fov_width:1366 distance:2000
+resolution width:1920 height:1080
+camera position:(0, -600, -3500) direction:(0, 0.25, 1) rightdir:(1, 0, 0) fov_width:1366 distance:2000
 background_texture ../../../raytracer_project/sky/dome/rock.hdr rotate_x:0 rotate_y:1.57 rotate_z:0
 polygons_per_bounding 0
 
@@ -16,6 +16,11 @@ polygons_per_bounding 0
 sphere center:( -1125, 350, 900) radius:250 material:glass
 sphere center:( -375, 350, 900) radius:250 material:diffuse
 sphere center:( 375, 350, 900) radius:250 material:mirror
-sphere center:( 1125, 350, 900) radius:250 material:(color:(135, 206, 250) emitted_color:(0, 0, 0) reflectivity:0.96 emission:0 specular_p:0.07 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+sphere center:( 1125, 350, 900) radius:250 material:(color:(63, 159, 244) emitted_color:(0, 0, 0) reflectivity:0.96 emission:0 specular_p:0.04 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+# non-gamma corrected color:(135, 206, 250)
 
-plane normal:(0, -1, 0) position:(0, 600, 0) material:(color:(137, 137, 153) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+plane normal:(0, -1, 0) position:(0, 601, 0) material:(color:(50, 50, 50) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+# color:(137, 137, 153)
+
+load_texture checkered ../../../raytracer_project/texture_assets/checkered.bmp
+quad (-2400, 600, 2800) (-2400, 600, 0) (2400, 600, 0) (2400, 600, 2800) material:diffuse texture:(checkered (0, 1) (0, 0) (1, 0) (1, 1))

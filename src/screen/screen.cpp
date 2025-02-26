@@ -224,13 +224,116 @@ namespace rt {
 		for (size_t j = 0; j < height; j++) {
             for (size_t i = 0; i < width; i++) {
 				const color& pixel_col = matrix[i][j];
-
-				// const Uint8 r = std::min((Uint8) (pixel_col.get_red()   * invN), (Uint8) 255);
-				// const Uint8 g = std::min((Uint8) (pixel_col.get_green() * invN), (Uint8) 255);
-				// const Uint8 b = std::min((Uint8) (pixel_col.get_blue()  * invN), (Uint8) 255);
 				const Uint8 r = std::min(pixel_col.get_red()   * invN, (real) 255.0f);
 				const Uint8 g = std::min(pixel_col.get_green() * invN, (real) 255.0f);
 				const Uint8 b = std::min(pixel_col.get_blue()  * invN, (real) 255.0f);
+
+				texture_pixels[index] = r;
+				index++;
+				texture_pixels[index] = g;
+				index++;
+				texture_pixels[index] = b;
+				index++;
+            }
+			index += padding;
+        }
+		
+        SDL_UnlockTexture(texture);
+	}
+
+	/* Copy matrix to the screen with gamma correction */
+	void screen::fast_copy_gamma(std::vector<std::vector<color>>& matrix,
+		const size_t width, const size_t height,
+		const unsigned int number_of_rays, const real gamma) const {
+
+		const real invN = 1.0 / number_of_rays;
+		const real inv255 = 1.0 / 255.0;
+
+		char* texture_pixels;
+		int texture_pitch;
+
+		SDL_LockTexture(texture, NULL, (void**) &texture_pixels, &texture_pitch);
+		const unsigned int padding = texture_pitch % 3;
+        
+		unsigned int index = 0;
+
+		for (size_t j = 0; j < height; j++) {
+            for (size_t i = 0; i < width; i++) {
+				const color& pixel_col = matrix[i][j];
+				const real red_val   = pixel_col.get_red()   * invN;
+				const real green_val = pixel_col.get_green() * invN;
+				const real blue_val  = pixel_col.get_blue()  * invN;
+				const real gamma_corrected_red   = pow((red_val   * inv255), gamma) * 255.0f;
+				const real gamma_corrected_green = pow((green_val * inv255), gamma) * 255.0f;
+				const real gamma_corrected_blue  = pow((blue_val  * inv255), gamma) * 255.0f;
+				const Uint8 r = std::min(gamma_corrected_red,   (real) 255.0f);
+				const Uint8 g = std::min(gamma_corrected_green, (real) 255.0f);
+				const Uint8 b = std::min(gamma_corrected_blue,  (real) 255.0f);
+
+				texture_pixels[index] = r;
+				index++;
+				texture_pixels[index] = g;
+				index++;
+				texture_pixels[index] = b;
+				index++;
+            }
+			index += padding;
+        }
+		
+        SDL_UnlockTexture(texture);
+	}
+
+	/* Copy matrix to the screen with gamma correction and extended Reinhardt local tone mapping */
+	void screen::fast_copy_reinhardt(std::vector<std::vector<color>>& matrix,
+		const size_t width, const size_t height,
+		const unsigned int number_of_rays, const real gamma) const {
+
+		const real invN = 1.0 / number_of_rays;
+
+		// Computation of the maximum luminance
+		float max_luminance = 0.0f;
+		for (unsigned int j = 0; j < height; j++) {
+			for (unsigned int i = 0; i < width; i++) {
+				const rt::color& col = matrix[i][j];
+				const float luminance = (0.2126 * col.get_red() + 0.7152 * col.get_green() + 0.0722 * col.get_blue()) * invN;
+				// const float luminance = (col.get_red() + col.get_green() + col.get_blue()) * invN * 0.333;
+				if (luminance > max_luminance)
+					max_luminance = luminance;
+			}
+		}
+		const float lwhitecorr = 1.0f / (max_luminance * max_luminance);
+
+		char* texture_pixels;
+		int texture_pitch;
+
+		SDL_LockTexture(texture, NULL, (void**) &texture_pixels, &texture_pitch);
+		const unsigned int padding = texture_pitch % 3;
+        
+		unsigned int index = 0;
+		constexpr real inv255 = 1.0f / 255.0f;
+		const real inv = inv255 * invN;
+
+		for (size_t j = 0; j < height; j++) {
+            for (size_t i = 0; i < width; i++) {
+
+				const rt::color& col = matrix[i][j];
+				
+				const real lr = col.get_red();
+				const real lg = col.get_green();
+				const real lb = col.get_blue();
+				const real lin = (0.2126 * lr + 0.7152 * lg + 0.0722 * lb) * inv;
+				// const real lin = (lr + lg + lb) * inv * 0.333;
+				const real lcorr = (1.0f + lin * lwhitecorr) / (1.0f + lin);
+				const real cr = lr * lcorr * invN;
+				const real cg = lg * lcorr * invN;
+				const real cb = lb * lcorr * invN;
+				const real gr = pow(cr * inv255, gamma) * 255.0f;
+				const real gg = pow(cg * inv255, gamma) * 255.0f;
+				const real gb = pow(cb * inv255, gamma) * 255.0f;
+				
+				const Uint8 r = std::min(gr, (real) 255.0f);
+				const Uint8 g = std::min(gg, (real) 255.0f);
+				const Uint8 b = std::min(gb, (real) 255.0f);
 
 				texture_pixels[index] = r;
 				index++;

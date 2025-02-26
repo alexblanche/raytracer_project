@@ -6,6 +6,7 @@
 #include <cstdint>
 
 #include <stdexcept>
+#include <cmath>
 
 #define MAX_PADDING 4
 
@@ -235,7 +236,8 @@ bool print_bmp_info(const char* file_name) {
 /* Writes the data into a .bmp file with the given name
    The value (double) of each component of each color of data is divided by number_of_rays before being written in the file
    Returns true if the operation was successful */
-bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data, const unsigned int number_of_rays) {
+bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data,
+    const unsigned int number_of_rays, const real gamma) {
 
     const double n = number_of_rays;
     const unsigned int width = data.size();
@@ -362,15 +364,27 @@ bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data,
             padding_zeroes[k] = 0;
         }
 
+        const bool gamma_enabled = gamma != 1.0f;
         const double invN = 1.0 / n;
+        const double inv255 = 1.0 / 255.0;
+        // const double inv255invN = invN * inv255;
+
         for (size_t j = 0; j < height; j++) {
             const size_t indexj = height - j - 1;
             for (size_t i = 0; i < width; i++) {
                 const rt::color& c = data[i][indexj];
-                const char r = (char) std::min(c.get_red()   * invN, 255.0);
-                const char g = (char) std::min(c.get_green() * invN, 255.0);
-                const char b = (char) std::min(c.get_blue()  * invN, 255.0);
-                ret = fprintf(file, "%c%c%c", b, g, r);
+                if (gamma_enabled) {
+                    const unsigned char r = pow((std::min((c.get_red()   * invN), 255.0) * inv255), gamma) * 255.0;
+                    const unsigned char g = pow((std::min((c.get_green() * invN), 255.0) * inv255), gamma) * 255.0;
+                    const unsigned char b = pow((std::min((c.get_blue()  * invN), 255.0) * inv255), gamma) * 255.0;
+                    ret = fprintf(file, "%c%c%c", b, g, r);
+                }
+                else {
+                    const char r = std::min(c.get_red()   * invN, 255.0);
+                    const char g = std::min(c.get_green() * invN, 255.0);
+                    const char b = std::min(c.get_blue()  * invN, 255.0);
+                    ret = fprintf(file, "%c%c%c", b, g, r);
+                }
                 HANDLE_ERROR
             }
             /* Writing p bytes '0' of padding */

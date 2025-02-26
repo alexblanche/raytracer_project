@@ -110,7 +110,7 @@ std::optional<std::vector<std::vector<rt::color>>> read_raw(const char* file_nam
 /* Combines the n files whose names are in the array source_file_names into one bmp file dest_bmp_name (extension .bmp)
    and one raw data file dest_raw_name (extension .rtdata)
    Returns true if the operation was successful */
-bool combine_raw(const char* dest_bmp_name, const char* dest_raw_name, const int n, const char* const source_file_names[]) {
+bool combine_raw(const char* dest_bmp_name, const char* dest_raw_name, const int n, const char* const source_file_names[], const float gamma) {
     if (n < 0) {
         printf("Error, not enough files provided\n");
         return false;
@@ -165,11 +165,12 @@ bool combine_raw(const char* dest_bmp_name, const char* dest_raw_name, const int
         total_number_of_rays += number_of_rays_k;
 
         for(size_t j = 0; j < height; j++) {
+            const size_t widthj = width * j;
             for(size_t i = 0; i < width; i++) {
                 double r, g, b;
                 const int ret = fscanf(file, "%lf %lf %lf\n", &r, &g, &b);
                 if (ret < 0) {
-                    printf("Reading error at color line %zu of file %s\n", width*j + i, source_file_names[k]);
+                    printf("Reading error at color line %zu of file %s\n", widthj + i, source_file_names[k]);
                     fclose(file);
                     return false;
                 }
@@ -180,7 +181,7 @@ bool combine_raw(const char* dest_bmp_name, const char* dest_raw_name, const int
     }
 
     /* Exporting the matrix as a bmp file */
-    const bool success_bmp = write_bmp(dest_bmp_name, matrix, total_number_of_rays);
+    const bool success_bmp = write_bmp(dest_bmp_name, matrix, total_number_of_rays, gamma);
     const bool success_raw = export_raw(dest_raw_name, total_number_of_rays, matrix);
 
     if (success_bmp && success_raw) {
