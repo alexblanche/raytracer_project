@@ -38,7 +38,7 @@ class object {
         const size_t material_index;
 
         /* Contains a texture_info if the object is textured */
-        std::optional<texture_info> texture_information;
+        const std::optional<texture_info> texture_information;
 
     public:
 
@@ -64,6 +64,10 @@ class object {
 
         inline bool is_textured() const {
             return texture_information.has_value();
+        }
+
+        inline const texture_info& get_texture_info() const {
+            return texture_information.value();
         }
 
         

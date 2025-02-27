@@ -36,3 +36,8 @@ min_max_coord object::get_min_max_coord() const {
 
     return min_max_coord();
 }
+
+barycentric_info object::get_barycentric(const rt::vector& /*p*/) const {
+
+    return barycentric_info(0.0f, 0.0f);
+}

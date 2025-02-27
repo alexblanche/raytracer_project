@@ -2,7 +2,7 @@
 #include "light/ray.hpp"
 #include "screen/color.hpp"
 #include "scene/objects/object.hpp"
-#include "scene/objects/polygon.hpp"
+// #include "scene/objects/polygon.hpp"
 #include "scene/scene.hpp"
 #include "scene/objects/bounding.hpp"
 #include "scene/material/texture.hpp"
@@ -30,9 +30,9 @@ void update_accumulators(const material& m, const object* obj, const rt::vector&
     if (update_color_materials) {
         if (obj->is_textured()) {
             // Only polygons (triangles and quads) can be textured (for now)
-            const barycentric_info bary = static_cast<const polygon*>(obj)->get_barycentric(hit_point);
+            const barycentric_info bary = obj->get_barycentric(hit_point);
 
-            color_materials = color_materials * static_cast<const polygon*>(obj)->info.value().get_texture_color(bary, texture_set);
+            color_materials = color_materials * obj->get_texture_info().get_texture_color(bary, texture_set);
         }
         else {
             color_materials = color_materials * m.get_color();
@@ -168,10 +168,10 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
                 if (obj->is_textured()) {
                     // Only polygons (triangles and quads) can be textured (for now)
                     
-                    const barycentric_info bary = static_cast<const polygon*>(obj)->get_barycentric(h.get_point());
+                    const barycentric_info bary = obj->get_barycentric(h.get_point());
                     return
                         (color_materials *
-                            (static_cast<const polygon*>(obj)->info.value().get_texture_color(bary, scene.texture_set)
+                            (obj->get_texture_info().get_texture_color(bary, scene.texture_set)
                                 * m.get_emission_intensity())
                         )
                         + emitted_colors;
@@ -412,9 +412,9 @@ rt::color pathtrace_multisample(ray& r, scene& scene, const unsigned int bounce,
             if (obj->is_textured()) {
                 // Only polygons (triangles and quads) can be textured (for now)
                 
-                const barycentric_info bary = static_cast<const polygon*>(obj)->get_barycentric(h.get_point());
+                const barycentric_info bary = obj->get_barycentric(h.get_point());
                 return
-                    static_cast<const polygon*>(obj)->info.value().get_texture_color(bary, scene.texture_set)
+                    obj->get_texture_info().get_texture_color(bary, scene.texture_set)
                         * m.get_emission_intensity();
             }
             else {
