@@ -502,7 +502,7 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
    std::vector<wrapper<texture>>& texture_wrapper_set,
    const real scale, const rt::vector& shift,
    const bool bounding_enabled, const unsigned int polygons_per_bounding,
-   const bounding*& output_bd) {
+   const bounding*& output_bd, const real gamma) {
 
    printf("Parsing obj file...");
    fflush(stdout);
@@ -706,7 +706,7 @@ bool parse_obj_file(const char* file_name, const std::optional<size_t> default_t
 
             const bool mtl_parsing_successful =
                parse_mtl_file(mtl_file_name, path, material_wrapper_set,
-                  texture_wrapper_set, mt_assoc);
+                  texture_wrapper_set, mt_assoc, gamma);
 
             if (not mtl_parsing_successful) {
                throw std::runtime_error("(mtl file loading)");

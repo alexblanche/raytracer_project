@@ -73,7 +73,7 @@ class material {
         /* Constructor from mtl parameters */
         material(const real ns,
             const rt::color& ka, const rt::color& kd, const rt::color& ks, const rt::color& ke,
-            const real ni, const real d, const unsigned int illum);
+            const real ni, const real d, const unsigned int illum, const real gamma);
 
         material(const material&) = delete;
 

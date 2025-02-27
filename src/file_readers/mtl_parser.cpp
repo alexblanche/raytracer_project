@@ -24,7 +24,7 @@
 bool parse_mtl_file(const char* file_name, const std::string& path,
     std::vector<wrapper<material>>& material_wrapper_set,
     std::vector<wrapper<texture>>& texture_wrapper_set,
-    std::map<size_t, size_t>& mt_assoc) {
+    std::map<size_t, size_t>& mt_assoc, const real gamma) {
 
     FILE* file = fopen((path + std::string(file_name)).data(), "r");
 
@@ -137,7 +137,7 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
                 if (not already_exists) {
                     material m(ns, rt::color(ka_r, ka_g, ka_b), rt::color(kd_r, kd_g, kd_b),
                         rt::color(ks_r, ks_g, ks_b), rt::color(ke_r, ke_g, ke_b),
-                        ni, d, illum);
+                        ni, d, illum, gamma);
                     material_wrapper_set.emplace_back(std::move(m), m_name);
                 }
                 

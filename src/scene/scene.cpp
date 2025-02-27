@@ -27,13 +27,14 @@ scene::scene(std::vector<const object*>&& object_set,
     const int width, const int height,
     const camera& cam,
     const unsigned int polygons_per_bounding,
-    const real std_dev_anti_aliasing)
+    const real std_dev_anti_aliasing, const real gamma)
 
     : object_set(std::move(object_set)), bounding_set(bounding_set),
     texture_set(std::move(texture_set)), material_set(std::move(material_set)),
     background(background_container(bg_color)),
     width(width), height(height),
-    cam(cam), rg(randomgen(std_dev_anti_aliasing)), polygons_per_bounding(polygons_per_bounding) {}
+    cam(cam), rg(randomgen(std_dev_anti_aliasing)), polygons_per_bounding(polygons_per_bounding),
+    gamma(gamma) {}
 
 
 /* Constructor with background texture */
@@ -45,13 +46,14 @@ scene::scene(std::vector<const object*>&& object_set,
     const int width, const int height,
     const camera& cam,
     const unsigned int polygons_per_bounding,
-    const real std_dev_anti_aliasing)
+    const real std_dev_anti_aliasing, const real gamma)
 
     : object_set(std::move(object_set)), bounding_set(bounding_set),
     texture_set(std::move(texture_set)), material_set(std::move(material_set)),
     background(background_container(std::move(bg_texture), rx, ry, rz)),
     width(width), height(height),
-    cam(cam), rg(randomgen(std_dev_anti_aliasing)), polygons_per_bounding(polygons_per_bounding) {}
+    cam(cam), rg(randomgen(std_dev_anti_aliasing)), polygons_per_bounding(polygons_per_bounding),
+    gamma(gamma) {}
 
 
 

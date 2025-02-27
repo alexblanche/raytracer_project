@@ -22,7 +22,7 @@
 /*** Scene description parsing ***/
 
 /* Auxiliary function: returns a material from a description file */
-std::optional<material> parse_material(FILE* file) {
+std::optional<material> parse_material(FILE* file, const real gamma) {
     /* color:(120, 120, 120) emitted_color:(0, 0, 0) reflectivity:1 emission:0
         specular_p:1.0 reflects_color:false transparency:0.5 scattering:0 refraction_index:1.2)
 
@@ -45,19 +45,37 @@ std::optional<material> parse_material(FILE* file) {
         refl_color = true;
     }
 
-    return material(rt::color(r, g, b), rt::color(er, eg, eb), refl, em_int, spec_p, refl_color, transp, scattering, refr_i);
+    rt::color mat_color;
+    rt::color em_color;
+    if (gamma != 1.0f) {
+        const real gr = pow(r / 255.0f, gamma) * 255.0f;
+        const real gg = pow(g / 255.0f, gamma) * 255.0f;
+        const real gb = pow(b / 255.0f, gamma) * 255.0f;
+        mat_color = rt::color(gr, gg, gb);
+
+        const real ger = pow(er / 255.0f, gamma) * 255.0f;
+        const real geg = pow(eg / 255.0f, gamma) * 255.0f;
+        const real geb = pow(eb / 255.0f, gamma) * 255.0f;
+        em_color = rt::color(ger, geg, geb);
+    }
+    else {
+        mat_color = rt::color(r, g, b);
+        em_color = rt::color(er, eg, eb);
+    }
+
+    return material(mat_color, em_color, refl, em_int, spec_p, refl_color, transp, scattering, refr_i);
 }
 
 
 /* Auxiliary function: parses the name of a material and returns its index in material_set,
    or parses a new material, stores it in material_set and returns its index */
-std::optional<size_t> get_material(FILE* file, std::vector<wrapper<material>>& material_wrapper_set) {
+std::optional<size_t> get_material(FILE* file, std::vector<wrapper<material>>& material_wrapper_set, const real gamma) {
     const long int position = ftell(file);
 
     const char firstchar = fgetc(file);
     if (firstchar == '(') {
         // material declaration
-        std::optional<material> m = parse_material(file);
+        std::optional<material> m = parse_material(file, gamma);
 
         if (m.has_value()) {
             material_wrapper_set.emplace_back(std::move(m.value()));
@@ -193,12 +211,13 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
         resolution width:1366 height:768
         camera position:(0, 0, 0) direction:(0, 0, 1) rightdir:(1, 0, 0) fov_width:1000 distance:400 [focal_distance:500 aperture:100] (optional)
         background_color 190 235 255
-        background_texture filename.bmp horizontal_angle:3.14 vertical_angle:0
+        background_texture filename.bmp rotate_x:3.14 rotate_y:5.835 rotate_z:0 gamma:2.2
         polygons_per_bounding 10 //specifying 0 will deactivate the bounding generation
 
         - At least one of background_color, background_texture must be specified
-        - filename.bmp should designate a panoramic image
-        - horizontal_angle must be between 0 and 2*pi = 6.28, vertical_angle must be between -pi/2 and pi/2 ~= 1.57
+        - filename.bmp or filename.hdr should designate a panoramic image
+        - all angles must be between 0 and 2*pi
+        - gamma will be applied to the whole picture, so all the non-background colors (including the textures) are first corrected with the inverse gamma correction. Gamma is optional.
 
         fov_height is generated automatically (for width/height aspect ratio)
         */
@@ -255,19 +274,23 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
         }
         // Setting up the background texture (also optional)
         char bg_tfile_name[513];
-        double rx, ry, rz;
-        ret = fscanf(file, "background_texture %512s rotate_x:%lf rotate_y:%lf rotate_z:%lf\n", bg_tfile_name, &rx, &ry, &rz);
+        double rx, ry, rz, inverse_gamma;
+        ret = fscanf(file, "background_texture %512s rotate_x:%lf rotate_y:%lf rotate_z:%lf gamma:%lf\n", bg_tfile_name, &rx, &ry, &rz, &inverse_gamma);
 
         // Neither background color nor texture
-        if (ret != 4){
+        if (ret < 4){
             if (not background_color_is_set) {
                 throw std::runtime_error("Parsing error in scene constructor (background)");
             }
         }
-        else if (rx < 0 || rx > 2 * 3.1416 || ry < 0 || ry > 2 * 3.1416 || rz < 0 || rz > 2 * 3.1416) {
+        else if (abs(rx) > 2 * 3.1416 || abs(ry) > 2 * 3.1416 || abs(rz) > 2 * 3.1416) {
             throw std::runtime_error("Incorrect background texture angles");
         }
         else {
+            if (rx < 0) rx += 2 * 3.1416;
+            if (ry < 0) ry += 2 * 3.1416;
+            if (rz < 0) rz += 2 * 3.1416;
+
             bool bg_parsing_successful;
             printf("Parsing %s...", bg_tfile_name);
             fflush(stdout);
@@ -279,6 +302,10 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 printf("\r%s texture loaded\n", bg_tfile_name);
                 fflush(stdout);
                 background_texture_is_set = true;
+            }
+
+            if (ret != 5) {
+                inverse_gamma = 1.0f;
             }
         }
         
@@ -392,7 +419,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 }
                 m_name.resize(strlen(m_name.data()));
 
-                std::optional<material> m = parse_material(file);
+                std::optional<material> m = parse_material(file, inverse_gamma);
                 if (m.has_value()) {
                     material_wrapper_set.emplace_back(std::move(m.value()), m_name);
                 }
@@ -414,7 +441,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 bool parsing_successful;
                 printf("Parsing %s...", tfile_name);
                 fflush(stdout);
-                texture_wrapper_set.emplace_back(texture(tfile_name, parsing_successful), t_name);
+                texture_wrapper_set.emplace_back(texture(tfile_name, parsing_successful, inverse_gamma), t_name);
 
                 if (parsing_successful) {
                     printf("\r%s texture loaded\n", tfile_name);
@@ -436,7 +463,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 if (ret != 4) {
                     throw std::runtime_error("Parsing error in scene constructor (sphere declaration)");
                 }
-                const std::optional<size_t> m_index = get_material(file, material_wrapper_set);
+                const std::optional<size_t> m_index = get_material(file, material_wrapper_set, inverse_gamma);
                 if (m_index.has_value()) {
                     const sphere* sph = new sphere(rt::vector(x, y, z), r, m_index.value());
                     object_set.push_back(sph);
@@ -459,7 +486,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 if (ret != 6) {
                     throw std::runtime_error("Parsing error in scene constructor (plane declaration)");
                 }
-                const std::optional<size_t> m_index = get_material(file, material_wrapper_set);
+                const std::optional<size_t> m_index = get_material(file, material_wrapper_set, inverse_gamma);
                 if (m_index.has_value()) {
                     const plane* pln = new plane(nx, ny, nz, rt::vector(px, py, pz), m_index.value());
                     object_set.push_back(pln);
@@ -483,7 +510,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 if (ret != 12) {
                     throw std::runtime_error("Parsing error in scene constructor (box declaration)");
                 }
-                const std::optional<size_t> m_index = get_material(file, material_wrapper_set);
+                const std::optional<size_t> m_index = get_material(file, material_wrapper_set, inverse_gamma);
                 if (m_index.has_value()) {
                     const box* bx = new box(
                         rt::vector(cx, cy, cz),
@@ -511,7 +538,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 if (ret != 9) {
                     throw std::runtime_error("Parsing error in scene constructor (triangle declaration)");
                 }
-                const std::optional<size_t> m_index = get_material(file, material_wrapper_set);
+                const std::optional<size_t> m_index = get_material(file, material_wrapper_set, inverse_gamma);
                 const std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, true);
                 if (m_index.has_value()) {
                 
@@ -542,7 +569,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 if (ret != 12) {
                     throw std::runtime_error("Parsing error in scene constructor (quad declaration)");
                 }
-                const std::optional<size_t> m_index = get_material(file, material_wrapper_set);
+                const std::optional<size_t> m_index = get_material(file, material_wrapper_set, inverse_gamma);
 
                 if (m_index.has_value()) {
                 
@@ -573,7 +600,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 if (ret != 8) {
                     throw std::runtime_error("Parsing error in scene constructor (cylinder declaration)");
                 }
-                const std::optional<size_t> m_index = get_material(file, material_wrapper_set);
+                const std::optional<size_t> m_index = get_material(file, material_wrapper_set, inverse_gamma);
 
                 if (m_index.has_value()) {
 
@@ -625,7 +652,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 const bool parsing_successful = parse_obj_file(ofile_name, t_index, object_set,
                     material_wrapper_set, texture_wrapper_set,
                     scale, rt::vector(sx, sy, sz),
-                    bounding_enabled, polygons_per_bounding, output_bd);
+                    bounding_enabled, polygons_per_bounding, output_bd, inverse_gamma);
 
                 if (not parsing_successful) {
                     printf("%s obj file reading failed\n", ofile_name);
@@ -670,12 +697,12 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
             scene_opt.emplace(std::move(object_set), std::move(bounding_set), std::move(texture_set), std::move(material_set),
                 std::move(background_texture), rx, ry, rz,
                 width, height, cam, polygons_per_bounding,
-                std_dev_anti_aliasing);
+                std_dev_anti_aliasing, 1.0 / inverse_gamma);
         }
         else {
             scene_opt.emplace(std::move(object_set), std::move(bounding_set), std::move(texture_set), std::move(material_set),
                 background_color, width, height, cam, polygons_per_bounding,
-                std_dev_anti_aliasing);
+                std_dev_anti_aliasing, 1.0 / inverse_gamma);
         }
 
         return scene_opt;

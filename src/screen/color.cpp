@@ -1,6 +1,12 @@
 #include "screen/color.hpp"
 #include <vector>
 
+// Parallel for-loop macros
+#include "parallel/parallel.h"
+#define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](int start, int end){ for(int i = start; i < end; ++i)
+#define PARALLEL_FOR_END()})
+
+#include <cmath>
 
 namespace rt {
 
@@ -95,6 +101,16 @@ namespace rt {
 			get_blue() 	/ x);
 	}
 
+	/**
+	 * Maxing out color components at 255.
+	 */
+	color color::max_out() const {
+		const real maxed_red   = std::min(red,   (real) 255.0f);
+		const real maxed_green = std::min(green, (real) 255.0f);
+		const real maxed_blue  = std::min(blue,  (real) 255.0f);
+		return rt::color(maxed_red, maxed_green, maxed_blue);
+	}
+
 	/* Adds all the colors of the given color vector */
 	color add_col_vect(const std::vector<color>& color_set) {
 		
@@ -131,13 +147,23 @@ namespace rt {
 		return rt::color(r / n, g / n, b / n);
 	}
 
-	/**
-	 * Maxing out color components at 255.
-	 */
-	color color::max_out() const {
-		const real maxed_red   = std::min(red,   (real) 255.0f);
-		const real maxed_green = std::min(green, (real) 255.0f);
-		const real maxed_blue  = std::min(blue,  (real) 255.0f);
-		return rt::color(maxed_red, maxed_green, maxed_blue);
+	/* Applies gamma correction to the color data */
+	void apply_gamma(std::vector<std::vector<color>>& data, const real gamma) {
+
+		const unsigned int width = data.size();
+		const unsigned int height = data[0].size();
+		const real inv255 = 1.0f / 255.0f;
+
+		PARALLEL_FOR_BEGIN(width) {
+
+			std::vector<color>& data_line = data[i];
+			for (unsigned int j = 0; j < height; j++) {
+				const color& col = data_line[j];
+				const real r = pow(col.get_red()   * inv255, gamma) * 255.0f;
+				const real g = pow(col.get_green() * inv255, gamma) * 255.0f;
+				const real b = pow(col.get_blue()  * inv255, gamma) * 255.0f;
+				data_line[j] = rt::color(r, g, b);
+			}
+		} PARALLEL_FOR_END();
 	}
 }

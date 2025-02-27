@@ -41,6 +41,8 @@ class scene {
         // Triangles are grouped by the given number in the bounding box tree-search method
         unsigned int polygons_per_bounding;
 
+        real gamma;
+
         /* Constructor */
 
         /* Constructor with only background color */
@@ -52,7 +54,7 @@ class scene {
             const int width, const int height,
             const camera& cam,
             const unsigned int polygons_per_bounding,
-            const real std_dev_anti_aliasing);
+            const real std_dev_anti_aliasing, const real gamma);
 
         /* Constructor with background texture and optional background color */
         scene(std::vector<const object*>&& object_set,
@@ -63,7 +65,7 @@ class scene {
             const int width, const int height,
             const camera& cam,
             const unsigned int polygons_per_bounding,
-            const real std_dev_anti_aliasing);
+            const real std_dev_anti_aliasing, const real gamma);
 
         /* For testing purposes: forbidding copy */
         scene(const scene&) = delete;

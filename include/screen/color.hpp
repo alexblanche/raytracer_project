@@ -138,5 +138,8 @@ namespace rt  {
 
 	/* Returns the average of all the colors of the given color vector */
 	color average_col_vect(const std::vector<color>& color_set);
+
+	/* Applies gamma correction to the color data */
+	void apply_gamma(std::vector<std::vector<color>>& data, const real gamma);
 }
 

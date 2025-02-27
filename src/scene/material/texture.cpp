@@ -19,7 +19,7 @@ texture::texture(const int width, const int height, const std::vector<std::vecto
 
 /* Constructor from a .bmp or .hdr file
    Writes true in parsing_successful if the operation was successful */
-texture::texture(const char* file_name, bool& parsing_successful) {
+texture::texture(const char* file_name, bool& parsing_successful, const real gamma) {
 
     const char* p = file_name;
     while(*p != '\0')
@@ -41,6 +41,8 @@ texture::texture(const char* file_name, bool& parsing_successful) {
         height = dims.value().height;
         data = std::vector<std::vector<rt::color>>(width, std::vector<rt::color>(height));
         bool read_success = (is_bmp) ? read_bmp(file_name, data) : read_hdr(file_name, data);
+        if (gamma != 1.0f)
+            apply_gamma(data, gamma);
         width_minus_one = (real) (width - 1);
         height_minus_one = (real) (height - 1);
         parsing_successful = read_success;

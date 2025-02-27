@@ -134,7 +134,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (gamma_enabled) printf("Gamma correction: 1 / %.1f\n", (1.0 / gamma));
+    if (gamma_enabled) printf("Gamma correction: %.1f\n", (1.0 / gamma));
     if (reinhardt_enabled) printf("Reinhardt local tone mapping enabled\n");
 
     /* Checking if the output directory exists */
@@ -169,6 +169,13 @@ int main(int argc, char *argv[]) {
     }
 
     scene& scene = scene_opt.value();
+    if (scene.gamma != 1.0f) {
+        if (gamma_enabled) printf("Warning: gamma correction value passed by command-line argument was overwritten by scene description\n");
+
+        gamma_enabled = true;
+        gamma = scene.gamma;
+        printf("Gamma correction: %.1f\n", (1.0 / gamma));
+    }
 
     printf("Number of objects: %zu\n", scene.object_set.size());
 

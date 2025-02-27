@@ -46,7 +46,7 @@ material::material(const rt::color& color, const rt::color& emitted_color,
 /* Constructor from mtl parameters */
 material::material(const real ns,
     const rt::color& ka, const rt::color& kd, const rt::color& ks, const rt::color& ke,
-    const real ni, const real d, const unsigned int illum)
+    const real ni, const real d, const unsigned int illum, const real gamma)
     
     : color(kd * 255), reflectivity(pow(ns / 1000, 0.25)),
       emitted_color(ke * 255),
@@ -82,6 +82,18 @@ material::material(const real ns,
     else {
         // Other materials
         transparency = 0;
+    }
+
+    if (gamma != 1.0f) {
+        const real gr = pow(color.get_red()   / 255.0f, gamma) * 255.0f;
+        const real gg = pow(color.get_green() / 255.0f, gamma) * 255.0f;
+        const real gb = pow(color.get_blue()  / 255.0f, gamma) * 255.0f;
+        color = rt::color(gr, gg, gb);
+
+        const real ger = pow(emitted_color.get_red()   / 255.0f, gamma) * 255.0f;
+        const real geg = pow(emitted_color.get_green() / 255.0f, gamma) * 255.0f;
+        const real geb = pow(emitted_color.get_blue()  / 255.0f, gamma) * 255.0f;
+        emitted_color = rt::color(ger, geg, geb);
     }
 }
 
