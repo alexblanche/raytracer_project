@@ -1,7 +1,6 @@
 #pragma once
 
 #include "object.hpp"
-#include "polygon.hpp"
 
 #include "light/vector.hpp"
 #include "light/hit.hpp"
@@ -9,7 +8,7 @@
 
 #include <optional>
 
-class quad : public polygon {
+class quad : public object {
     
     private:
     
@@ -45,7 +44,7 @@ class quad : public polygon {
 
         std::optional<real> measure_distance(const ray& r) const;
 
-        /* Writes the barycentric coordinates in variables l1, l2, and returns the boolean lower_triangle:
+        /* Returns the barycentric info (l1, l2, lower_triangle):
            (0 <= l1, l2 <= 1)
            p = position + l1 * v1 + l2 * v2 if lower_triangle == true,
            or

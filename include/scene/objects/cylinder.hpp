@@ -47,4 +47,7 @@ class cylinder : public object {
 
         /* Minimum and maximum coordinates */
         min_max_coord get_min_max_coord() const;
+
+        /* Returns the barycentric info (the texture is mapped onto the top, the bottom, and the curved surface) */
+        barycentric_info get_barycentric(const rt::vector& p) const;
 };

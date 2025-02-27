@@ -16,7 +16,7 @@ quad::quad() {}
 quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3, 
     const size_t material_index, const std::optional<texture_info>& info)
 
-    : polygon(p0, material_index, info) {
+    : object(p0, material_index, info) {
 
     v1 = p1 - p0;
     v2 = p2 - p0;
@@ -35,7 +35,7 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
     const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
     const size_t material_index, const std::optional<texture_info>& info)
 
-    : polygon(p0, material_index, info), vn0(vn0.unit()), vn1(vn1.unit()), vn2(vn2.unit()), vn3(vn3.unit()) {
+    : object(p0, material_index, info), vn0(vn0.unit()), vn1(vn1.unit()), vn2(vn2.unit()), vn3(vn3.unit()) {
     
     v1 = p1 - p0;
     v2 = p2 - p0;
@@ -154,7 +154,7 @@ std::optional<real> quad::measure_distance(const ray& r) const {
     return std::nullopt;
 }
 
-/* Writes the barycentric coordinates in variables l1, l2, and returns the boolean lower_triangle:
+/* Returns the barycentric info (l1, l2, lower_triangle):
    (0 <= l1, l2 <= 1)
    p = position + l1 * v1 + l2 * v2 if lower_triangle == true,
    or

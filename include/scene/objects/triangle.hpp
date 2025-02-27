@@ -1,8 +1,6 @@
 #pragma once
 
 #include "object.hpp"
-#include "polygon.hpp"
-#include "plane.hpp"
 
 #include "light/vector.hpp"
 #include "light/hit.hpp"
@@ -10,7 +8,7 @@
 
 #include <optional>
 
-class triangle : public polygon {
+class triangle : public object {
     
     private:
         /* A triangle is defined by a normal (unit) vector (a,b,c), and three (non-unit) vectors position, v1, v2
@@ -48,10 +46,9 @@ class triangle : public polygon {
 
         std::optional<real> measure_distance(const ray& r) const;
 
-        /* Writes the barycentric coordinates in variables l1, l2:
+        /* Returns the barycentric info (l1, l2):
            p = position + l1 * v1 + l2 * v2
            (0 <= l1, l2 <= 1)
-           The boolean return value is unused for triangles (only for quads).
         */
         barycentric_info get_barycentric(const rt::vector& p) const;
 

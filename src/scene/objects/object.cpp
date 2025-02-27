@@ -7,15 +7,15 @@
 
 object::object()
     : position(rt::vector()), material_index((size_t) -1),
-      textured(false) {}
+        texture_information(std::nullopt) {}
 
 object::object(const rt::vector& position, const size_t material_index)
     : position(position), material_index(material_index),
-      textured(false) {}
+        texture_information(std::nullopt) {}
 
-object::object(const rt::vector& position, const size_t material_index, const bool textured)
+object::object(const rt::vector& position, const size_t material_index, const std::optional<texture_info>& info)
     : position(position), material_index(material_index),
-      textured(textured) {}
+        texture_information(info) {}
 
 
 

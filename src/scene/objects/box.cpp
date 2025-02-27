@@ -285,3 +285,8 @@ bool box::is_hit_by(const ray& r) const {
 
     return false;
 }
+
+/* Returns the barycentric info (the faces behave like quads) [to be implemented] */
+barycentric_info box::get_barycentric(const rt::vector& p) const {
+    return barycentric_info(0.0f, 0.0f);
+}

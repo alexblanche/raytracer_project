@@ -4,6 +4,8 @@
 #include "light/hit.hpp"
 #include "light/ray.hpp"
 #include "scene/material/material.hpp"
+#include "scene/material/texture.hpp"
+#include "scene/material/barycentric.hpp"
 
 #include <optional>
 
@@ -35,8 +37,8 @@ class object {
         /* Index of the material in the material_set vector of the scene */
         const size_t material_index;
 
-        /* True if the object is textured (only allowed when it is a triangle or quad) */
-        const bool textured;
+        /* Contains a texture_info if the object is textured */
+        std::optional<texture_info> texture_information;
 
     public:
 
@@ -48,7 +50,7 @@ class object {
 
         object(const rt::vector& pos, const size_t material_index);
 
-        object(const rt::vector& pos, const size_t material_index, const bool textured);
+        object(const rt::vector& pos, const size_t material_index, const std::optional<texture_info>& info);
 
         /* Accessors */
 
@@ -61,7 +63,7 @@ class object {
         }
 
         inline bool is_textured() const {
-            return textured;
+            return texture_information.has_value();
         }
 
         
@@ -72,6 +74,9 @@ class object {
 
         virtual hit compute_intersection(ray& r, const real t) const;
 
-        /* Writes the minimum and maximum coordinates of the object on the three axes */
+        /* Returns the minimum and maximum coordinates of the object along the three axes */
         virtual min_max_coord get_min_max_coord() const;
+
+        /* Returns the barycentric info for the object (depends on the object type) */
+        virtual barycentric_info get_barycentric(const rt::vector& p) const;
 };

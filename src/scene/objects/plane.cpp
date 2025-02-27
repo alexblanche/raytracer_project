@@ -4,6 +4,8 @@
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
 
+#include <cmath>
+
 #include <optional>
 
 /* Constructors */
@@ -18,7 +20,7 @@ plane::plane() : a(0), b(0), c(0), d(0) {}
 plane::plane(const real pa, const real pb, const real pc, const real pd,
     const unsigned int material_index)
     
-    : object(rt::vector(), material_index) {
+    : object(rt::vector(), material_index), right_dir(std::nullopt), down_dir(std::nullopt), inv_texture_scale(1.0f) {
 
     /* Normalization of the normal vector */
     normal = rt::vector(pa, pb, pc).unit();
@@ -45,7 +47,7 @@ plane::plane(const real pa, const real pb, const real pc, const real pd,
 plane::plane(const real pa, const real pb, const real pc, const rt::vector& position,
     const unsigned int material_index)
 
-    : object(position, material_index) {
+    : object(position, material_index), right_dir(std::nullopt), down_dir(std::nullopt), inv_texture_scale(1.0f) {
 
     normal = rt::vector(pa, pb, pc).unit();
     a = normal.x;
@@ -55,6 +57,21 @@ plane::plane(const real pa, const real pb, const real pc, const rt::vector& posi
     d = -(normal | position); // = -aX-bY-cZ if position = (X,Y,Z)
 }
 
+plane::plane(const real pa, const real pb, const real pc, const rt::vector& position,
+    const unsigned int material_index,
+    const rt::vector& right, const real scale)
+
+    : object(position, material_index), right_dir(right.unit()), inv_texture_scale(1.0 / scale) {
+
+    normal = rt::vector(pa, pb, pc).unit();
+    a = normal.x;
+    b = normal.y;
+    c = normal.z;
+
+    d = -(normal | position); // = -aX-bY-cZ if position = (X,Y,Z)
+
+    down_dir = right_dir.value() ^ normal;
+}
 
 /* Intersection determination */
 
@@ -94,4 +111,18 @@ hit plane::compute_intersection(ray& r, const real t) const {
     const object* pt_obj = this;
     ray* pt_ray = &r;
     return hit(pt_ray, p, get_normal(), pt_obj);
+}
+
+/* Returns the barycentric info (tiles according to texture_scale) */
+barycentric_info plane::get_barycentric(const rt::vector& p) const {
+
+    const real right_component = (p | right_dir.value()) * inv_texture_scale;
+    real x_value = fmod(right_component, (real) 1.0f);
+    if (x_value < 0) x_value += 1.0f;
+
+    const real down_component = (p | down_dir.value()) * inv_texture_scale;
+    real y_value = fmod(down_component, (real) 1.0f);
+    if (y_value < 0) y_value += 1.0f;
+
+    return barycentric_info(x_value, y_value);
 }

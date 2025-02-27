@@ -28,8 +28,7 @@ class polygon : public object {
         /* Returns the barycenter of the polygon */
         virtual rt::vector get_barycenter() const = 0;
         
-        /* Writes the barycentric coordinates in variables l1, l2
-           The boolean return value is used for determining the three points considered in quads */
+        /* Returns the barycentric info (l1, l2) */
         virtual barycentric_info get_barycentric(const rt::vector& p) const = 0;
 
         /* Prints the polygon */

@@ -1,9 +1,12 @@
 #include "scene/objects/sphere.hpp"
 #include "light/vector.hpp"
 #include "scene/material/material.hpp"
-#include <math.h>
+#include <cmath>
 
 #include <optional>
+
+#define PI 3.14159265359f
+#define INVPI 0.31830988618f
 
 
 /* Constructors */
@@ -14,7 +17,16 @@ sphere::sphere() {
 
 sphere::sphere(const rt::vector& center, const real radius, const size_t material_index)
 
-    : object(center, material_index), radius(radius) {}
+    : object(center, material_index), radius(radius), forward_dir(std::nullopt), right_dir(std::nullopt) {}
+
+sphere::sphere(const rt::vector& center, const real radius, const size_t material_index,
+    const rt::vector& forward, const rt::vector& right)
+
+    : object(center, material_index), radius(radius),
+        forward_dir(forward.unit()), right_dir(right.unit()) {
+
+        up_dir = right_dir.value() ^ forward_dir.value();
+    }
 
 
 
@@ -94,4 +106,17 @@ min_max_coord sphere::get_min_max_coord() const {
     const real max_z = position.z + radius;
 
     return min_max_coord(min_x, max_x, min_y, max_y, min_z, max_z);
+}
+
+/* Returns the barycentric info for the object (l1 = longitude, l2 = latitude) (both between 0 and 1) */
+barycentric_info sphere::get_barycentric(const rt::vector& p) const {
+    const rt::vector v = (p - position).unit();
+    const real forward_component = (v | forward_dir.value());
+    const real right_component   = (v | right_dir.value());
+    const real up_component      = (v | up_dir.value());
+
+    const real phi = (acos(forward_component) * ((right_component >= 0) ? 1.0f : -1.0f)) + PI;
+    const real theta = asin(up_component);
+
+    return barycentric_info(phi * INVPI, theta * INVPI + 0.5f);
 }

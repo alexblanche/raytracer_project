@@ -14,6 +14,10 @@ class plane : public object {
 
         rt::vector normal;
         real a, b, c, d;
+        // Used to orient the texture
+        std::optional<rt::vector> right_dir;
+        std::optional<rt::vector> down_dir;
+        real inv_texture_scale;
 
         /* A plane (P) of equation (P): ax + by + cz + d = 0
          defined by 4 reals a,b,c,d */
@@ -30,6 +34,10 @@ class plane : public object {
         plane(const real a, const real b, const real c, const rt::vector& position,
             const unsigned int material_index);
 
+        plane(const real a, const real b, const real c, const rt::vector& position,
+            const unsigned int material_index,
+            const rt::vector& right, const real scale);
+
         /* Accessors */
 
         inline const rt::vector& get_normal() const {
@@ -42,4 +50,7 @@ class plane : public object {
         std::optional<real> measure_distance(const ray& r) const;
         
         hit compute_intersection(ray& r, const real t) const;
+
+        /* Returns the barycentric info (tiles according to texture_scale) */
+        barycentric_info get_barycentric(const rt::vector& p) const;
 };
