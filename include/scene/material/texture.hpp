@@ -74,6 +74,10 @@ class texture_info {
 
         texture_info(size_t index, std::vector<real>&& uv_coordinates);
 
+        std::vector<real>& get_vector() {
+            return uv_coordinates;
+        }
+
         /* Write in u, v the UV-coordinate of the barycenter associated with the barycentric coordinates l1, l2
         In the case of quads, the boolean lower_triangle indicates that the three points to
         consider are (u0, v0), (u1, v1), (u2, v2) or (u0, v0), (u3, v3), (u2, v2) (in this order) */

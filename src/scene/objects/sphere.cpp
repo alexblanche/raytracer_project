@@ -19,10 +19,11 @@ sphere::sphere(const rt::vector& center, const real radius, const size_t materia
 
     : object(center, material_index), radius(radius), forward_dir(std::nullopt), right_dir(std::nullopt) {}
 
+// Constructor for textured spheres
 sphere::sphere(const rt::vector& center, const real radius, const size_t material_index,
-    const rt::vector& forward, const rt::vector& right)
+    const std::optional<texture_info>& info, const rt::vector& forward, const rt::vector& right)
 
-    : object(center, material_index), radius(radius),
+    : object(center, material_index, info), radius(radius),
         forward_dir(forward.unit()), right_dir(right.unit()) {
 
         up_dir = right_dir.value() ^ forward_dir.value();

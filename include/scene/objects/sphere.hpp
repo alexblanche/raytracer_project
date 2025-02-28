@@ -27,7 +27,7 @@ class sphere : public object {
         sphere(const rt::vector& center, const real radius, const size_t material_index);
 
         sphere(const rt::vector& center, const real radius, const size_t material_index,
-            const rt::vector& forward_dir, const rt::vector& right_dir);
+            const std::optional<texture_info>& info, const rt::vector& forward_dir, const rt::vector& right_dir);
 
         
         /* Intersection determination */

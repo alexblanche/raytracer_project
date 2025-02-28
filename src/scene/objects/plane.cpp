@@ -57,11 +57,12 @@ plane::plane(const real pa, const real pb, const real pc, const rt::vector& posi
     d = -(normal | position); // = -aX-bY-cZ if position = (X,Y,Z)
 }
 
+// Constructor for textured planes
 plane::plane(const real pa, const real pb, const real pc, const rt::vector& position,
     const unsigned int material_index,
-    const rt::vector& right, const real scale)
+    const std::optional<texture_info>& info, const rt::vector& right, const real scale)
 
-    : object(position, material_index), right_dir(right.unit()), inv_texture_scale(1.0 / scale) {
+    : object(position, material_index, info), right_dir(right.unit()), inv_texture_scale(1.0 / scale) {
 
     normal = rt::vector(pa, pb, pc).unit();
     a = normal.x;
