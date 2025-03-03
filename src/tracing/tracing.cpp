@@ -29,9 +29,7 @@ void update_accumulators(const material& m, const object* obj, const rt::vector&
     
     if (update_color_materials) {
         if (obj->is_textured()) {
-            // Only polygons (triangles and quads) can be textured (for now)
             const barycentric_info bary = obj->get_barycentric(hit_point);
-
             color_materials = color_materials * obj->get_texture_info().get_texture_color(bary, texture_set);
         }
         else {

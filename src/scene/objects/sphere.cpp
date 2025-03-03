@@ -116,8 +116,9 @@ barycentric_info sphere::get_barycentric(const rt::vector& p) const {
     const real right_component   = (v | right_dir.value());
     const real up_component      = (v | up_dir.value());
 
-    const real phi = (acos(forward_component) * ((right_component >= 0) ? 1.0f : -1.0f)) + PI;
     const real theta = asin(up_component);
+    const real x = acos(forward_component / cos(theta));
+    const real phi = (right_component < 0.0f) ? -x + 2.0f * PI : x;
 
-    return barycentric_info(phi * INVPI, theta * INVPI + 0.5f);
+    return barycentric_info(phi * INVPI * 0.5f, theta * INVPI + 0.5f);
 }

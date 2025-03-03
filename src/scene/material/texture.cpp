@@ -88,7 +88,12 @@ texture_info::texture_info(size_t texture_index, std::vector<real>&& uv_coordina
    consider are (u0, v0), (u1, v1), (u2, v2) or (u0, v0), (u3, v3), (u2, v2) (in this order) */
 uvcoord texture_info::get_barycenter(const barycentric_info& bary) const {
 
-    if (uv_coordinates.size() == 6 || bary.lower_triangle) {
+    const unsigned int n = uv_coordinates.size();
+    if (n == 0) {
+        // Spheres or Planes
+        return uvcoord(bary.l1, bary.l2);
+    }
+    else if (n == 6 || bary.lower_triangle) {
         // Triangles or Quads with (u0, v0), (u1, v1), (u2, v2) considered
         const real u = (1.0f - bary.l1 - bary.l2) * uv_coordinates[0] + bary.l1 * uv_coordinates[2] + bary.l2 * uv_coordinates[4];
         const real v = (1.0f - bary.l1 - bary.l2) * uv_coordinates[1] + bary.l1 * uv_coordinates[3] + bary.l2 * uv_coordinates[5];
@@ -110,8 +115,5 @@ const rt::color& texture_info::get_texture_color(const barycentric_info& bary,
     const uvcoord uvc = get_barycenter(bary);
     return texture_set[texture_index].get_color(uvc.u, uvc.v);
 
-    /* HERE: we can introduce texture filtering, with a factor by adding a
-       random number between 0 and something like 0.2 to u, v, in order to
-       blur the texture a little for the first bounce
-       (instead I expect it to be heavily pixelated from up close) */
+    /* HERE: we can introduce texture filtering */
 }
