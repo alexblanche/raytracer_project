@@ -327,6 +327,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
         // Setting up the background texture (also optional)
         char bg_tfile_name[513];
         double rx, ry, rz, inverse_gamma;
+        inverse_gamma = 1.0f;
         ret = fscanf(file, "background_texture %512s rotate_x:%lf rotate_y:%lf rotate_z:%lf gamma:%lf\n", bg_tfile_name, &rx, &ry, &rz, &inverse_gamma);
 
         // Neither background color nor texture
@@ -354,10 +355,6 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 printf("\r%s texture loaded\n", bg_tfile_name);
                 fflush(stdout);
                 background_texture_is_set = true;
-            }
-
-            if (ret != 5) {
-                inverse_gamma = 1.0f;
             }
         }
         
