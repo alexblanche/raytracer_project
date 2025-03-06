@@ -9,11 +9,11 @@ The goal of this project is to code a path-tracer that handles all sorts of obje
 The project is an implementation of the backward path-tracing algorithm: for each pixel of the image, a ray is cast from the camera in the direction of the pixel, bounces off the objects in the scene until it reaches a source of light. A color is then calculated from the color and intensity of the light source, as well as the colors of the materials encountered at each bounce, and applied to the pixel. Multiple samples are computed for each pixel, and averaged out to produce the final image: the more samples, the less grain the final image will have. This method works well in the case of ambient light, but is extremely inefficient in the case of dark scenes or directional light sources.  
 
 Current state:  
-![Screen](pictures/porsche_field.jpg)  
-![Screen](pictures/glass_3000rpp.jpg)  
+![Screen](pictures/porsche_street.jpg)  
+![Screen](pictures/dragon_1000.jpg)  
 ![Screen](pictures/stool_HD_1000.jpg) 
-![Screen](pictures/porsche_glow.jpg)  
-Models found at [free3d.com](https://free3d.com/fr/3d-model/wood-stool-303532.html) and [CGTrader.com](https://www.cgtrader.com/free-3d-models/car/sport-car/2016-porsche-911-turbo).  
+![Screen](pictures/porsche_field.jpg)  
+Models found at [free3d.com](https://free3d.com/fr/3d-model/wood-stool-303532.html) and [CGTrader.com](https://www.cgtrader.com/free-3d-models/car/sport-car/2016-porsche-911-turbo), background from [Poly Haven](https://polyhaven.com/).  
 
 The program currently handles polygon meshes (composed of triangles and quads) and multiple shapes (triangles, quads, spheres, planes, boxes and cylinders), made up of materials of various reflectivity (from diffuse to glossy, to mirror-like), specular probability (to simulate realistic reflections on non-metallic materials) and refractive index (for water, glass). Triangles and quads can be textured with images read from bmp files, and objects can be imported from Wavefront .obj/.mtl files. The rendering of polygon meshes is accelerated with the [Bounding Volume Hierarchy](https://en.wikipedia.org/wiki/Bounding_volume_hierarchy) method. The background may be textured with a 360 image mapped onto a sphere at infinite distance. Scenes are defined in a file ```scene.txt``` at the root (see the syntax in the [User guide](User-guide.md)). The rendered images can be exported as raw data or as a .bmp file. The raw data files from multiple renders of the same scene can be merged into a .bmp file, or can be postprocessed to add a glowing effect around bright lights (see the [User guide](User-guide.md)).
 

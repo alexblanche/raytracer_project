@@ -24,9 +24,25 @@ int main(int argc, char* argv[]) {
         printf("Gamma correction: %.1f\n", 1.0 / gamma);
     }
 
-    printf("Merging files...\n");
+    const int n = argc - index_source;
 
-    const bool success = combine_raw(argv[1], argv[2], argc - index_source, argv + index_source, gamma);
+    printf("Merging %d files...\n", n);
+
+    /* Checking file extensions (ugly) */
+    char* p = argv[1];
+    while (*p != '\0') p++;
+    if (!(*(p-3) == 'b' && *(p-2) == 'm' && *(p-1) == 'p')) {
+        printf("Error: first output file should have format bmp\n");
+        return EXIT_FAILURE;
+    }
+    p = argv[2];
+    while (*p != '\0') p++;
+    if (!(*(p-6) == 'r' && *(p-5) == 't' && *(p-4) == 'd' && *(p-3) == 'a' && *(p-2) == 't' && *(p-1) == 'a')) {
+        printf("Error: second output file should have format rtdata\n");
+        return EXIT_FAILURE;
+    }
+
+    const bool success = combine_raw(argv[1], argv[2], n, argv + index_source, gamma);
 
     printf("Done.\n");
 

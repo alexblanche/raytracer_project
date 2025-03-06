@@ -170,7 +170,8 @@ int main(int argc, char *argv[]) {
 
     scene& scene = scene_opt.value();
     if (scene.gamma != 1.0f) {
-        if (gamma_enabled) printf("Warning: gamma correction value passed by command-line argument was overwritten by scene description\n");
+        if (gamma_enabled && scene.gamma != gamma) printf("Warning: gamma correction value passed by command-line argument (%f) was overwritten by scene description (%f)\n",
+            gamma, scene.gamma);
 
         gamma_enabled = true;
         gamma = scene.gamma;

@@ -225,7 +225,7 @@ std::optional<dimensions> read_hdr_size(const char* file_name) {
         if (ret < 10) {
             ret = fscanf(file, "FORMAT=%15s", format);
             if (ret < 0) {
-                throw std::runtime_error("Readding error in print_hdr_info: header");
+                throw std::runtime_error("Reading error in print_hdr_info: header");
             }
         }
 
@@ -233,7 +233,7 @@ std::optional<dimensions> read_hdr_size(const char* file_name) {
         unsigned int v1, v2;
         ret = fscanf(file, "\n%c%c %u %c%c %u\n", &s1, &l1, &v1, &s2, &l2, &v2);
         if (ret < 6) {
-            throw std::runtime_error("Readding error in print_hdr_info: dimensions");
+            throw std::runtime_error("Reading error in print_hdr_info: dimensions");
         }
         if ((l1 != 'X' && l1 != 'Y') || (l2 != 'X' && l2 != 'Y') || (s1 != '-' && s1 != '+') || (s2 != '-' && s2 != '+')) {
             throw std::runtime_error("Incorrect dimensions");
