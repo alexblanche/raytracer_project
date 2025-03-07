@@ -45,6 +45,37 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
     d = - (normal | p0);
 }
 
+// Constructor from four points with vertex normals and normal mapping enabled
+quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
+    const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
+    const size_t material_index, const std::optional<texture_info>& info, const bool normal_mapping)
+
+    : object(p0, material_index, info), vn0(vn0.unit()), vn1(vn1.unit()), vn2(vn2.unit()), vn3(vn3.unit()) {
+    
+    v1 = p1 - p0;
+    v2 = p2 - p0;
+    v3 = p3 - p0;
+    const rt::vector n = (v1 ^ v2);
+    normal = n.unit();
+    d = - (normal | p0);
+
+    if (normal_mapping && info.has_value()) {
+        
+        /* Same as triangle */
+    
+        const std::vector<real>& uvc = texture_information.value().get_vector();
+        // uvc = (u0, v0, u1, v1, u2, v2)
+        const real x1 = uvc[2] - uvc[0];
+        const real x2 = uvc[4] - uvc[0];
+        const real y1 = uvc[3] - uvc[1];
+        const real y2 = uvc[5] - uvc[1];
+        const real r = 1.0f / (x1 * y2 - x2 * y1);
+        const rt::vector t = r * ( y2 * v1 + -y1 * v2);
+        const rt::vector b = r * (-x2 * v1 +  x1 * v2);
+        texture_information.value().set_tangent_space(t.unit(), b.unit());
+    }
+}
+
 /* Returns the barycenter of the quad */
 rt::vector quad::get_barycenter() const {
     return position + ((v1 + v2 + v3) / 4);

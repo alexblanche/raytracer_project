@@ -40,6 +40,51 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     d = - (normal | p0);
 }
 
+// Constructor from three points with vertex normals and normal mapping enabled
+triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
+    const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
+    const size_t material_index, const std::optional<texture_info>& info, const bool normal_mapping)
+
+    : object(p0, material_index, info), vn0(vn0.unit()), vn1(vn1.unit()), vn2(vn2.unit()) {
+    
+    v1 = p1 - p0;
+    v2 = p2 - p0;
+    const rt::vector n = (v1 ^ v2);
+    normal = n.unit();
+    d = - (normal | p0);
+
+    if (normal_mapping && info.has_value()) {
+        
+        /*
+        Computation of tangent space
+        v1 = x1 * t + y1 * b
+        v2 = x2 * t + y2 * b
+
+        In matrix form:
+        (v1.x v1.y v1.z)   (x1 y1)(t.x t.y t.z)
+        (v2.x v2.y v2.z) = (x2 y2)(b.x b.y b.z)
+
+        So,
+        (x1 y1)-1 (v1.x v1.y v1.z)   (t.x t.y t.z)
+        (x2 y2)   (v2.x v2.y v2.z) = (b.x b.y b.z)
+
+        (x1 y1)-1                             (y2  -y1)
+        (x2 y2)   = (1 / (x1 * y2 - x2 * y1)) (-x2  x1)
+        */
+    
+        const std::vector<real>& uvc = texture_information.value().get_vector();
+        // uvc = (u0, v0, u1, v1, u2, v2)
+        const real x1 = uvc[2] - uvc[0];
+        const real x2 = uvc[4] - uvc[0];
+        const real y1 = uvc[3] - uvc[1];
+        const real y2 = uvc[5] - uvc[1];
+        const real r = 1.0f / (x1 * y2 - x2 * y1);
+        const rt::vector t = r * ( y2 * v1 + -y1 * v2);
+        const rt::vector b = r * (-x2 * v1 +  x1 * v2);
+        texture_information.value().set_tangent_space(t.unit(), b.unit());
+    }
+}
+
 /* Returns the barycenter of the triangle */
 rt::vector triangle::get_barycenter() const {
     return (position + (v1 + v2) / 3);

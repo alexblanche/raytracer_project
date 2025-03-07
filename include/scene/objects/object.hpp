@@ -38,7 +38,7 @@ class object {
         const size_t material_index;
 
         /* Contains a texture_info if the object is textured */
-        const std::optional<texture_info> texture_information;
+        std::optional<texture_info> texture_information;
 
     public:
 
