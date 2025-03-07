@@ -117,3 +117,9 @@ const rt::color& texture_info::get_texture_color(const barycentric_info& bary,
 
     /* HERE: we can introduce texture filtering */
 }
+
+/* Sets the tangent and bitangent vectors */
+void texture_info::set_tangent_space(const rt::vector& t, const rt::vector& b) {
+    tangent   = t;
+    bitangent = b;
+}

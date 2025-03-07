@@ -252,3 +252,16 @@ void triangle::print() const {
     rt::vector p2 = position + v2;
     printf("p2 = (%lf, %lf, %lf)\n", p2.x, p2.y, p2.z);
 }
+
+
+/* Normal map vector computation at render time
+    Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
+rt::vector triangle::compute_normal_from_map(const rt::vector tangent_space_normal, const rt::vector local_normal) const {
+
+    const rt::vector& t = texture_information.value().tangent;
+    // Recompute the tangent space
+    const rt::vector t2 = (t - (t | local_normal) * local_normal).unit();
+    const rt::vector b2 = t2 ^ local_normal;
+
+    return tangent_space_normal.x * t2 + tangent_space_normal.y * b2 + tangent_space_normal.z * local_normal;
+}
