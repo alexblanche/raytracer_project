@@ -4,10 +4,10 @@
 #include "objects/object.hpp"
 #include "objects/bounding.hpp"
 #include "material/texture.hpp"
-#include "screen/color.hpp"
 #include "auxiliary/randomgen.hpp"
 #include "camera.hpp"
 #include "material/background.hpp"
+#include "material/normal_map.hpp"
 
 class scene {
     public:
@@ -21,6 +21,9 @@ class scene {
 
         /* Set containing all the textures from the scene */
         std::vector<texture> texture_set;
+
+        /* Set containing all the normal maps from the scene */
+        std::vector<normal_map> normal_map_set;
 
         /* Set containing all the materials from the scene */
         std::vector<material> material_set;
@@ -49,6 +52,7 @@ class scene {
         scene(std::vector<const object*>&& object_set,
             const std::vector<const bounding*>& bounding_set,
             std::vector<texture>&& texture_set,
+            std::vector<normal_map>&& normal_map_set,
             std::vector<material>&& material_set,
             const rt::color& bg_color,
             const int width, const int height,
@@ -60,6 +64,7 @@ class scene {
         scene(std::vector<const object*>&& object_set,
             const std::vector<const bounding*>& bounding_set,
             std::vector<texture>&& texture_set,
+            std::vector<normal_map>&& normal_map_set,
             std::vector<material>&& material_set,
             texture&& bg_texture, const real bg_rx, const real bg_ry, const real bg_rz,
             const int width, const int height,

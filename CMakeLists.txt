@@ -29,6 +29,7 @@ set (libname raytracer)
 add_library(${libname} SHARED
 	src/screen/color.cpp
 	src/scene/material/texture.cpp
+	src/scene/material/normal_map.cpp
 	src/scene/material/background.cpp
 	src/scene/material/material.cpp
 	src/screen/image.cpp
@@ -51,6 +52,7 @@ add_library(${libname} SHARED
 	src/scene/scene.cpp
 	src/file_readers/bmp_reader.cpp
 	src/file_readers/hdr_reader.cpp
+	src/file_readers/normal_map_reader.cpp
 	src/file_readers/raw_data.cpp
 	src/auxiliary/octree.cpp
 	src/auxiliary/clustering.cpp

@@ -1,18 +1,8 @@
 #include "scene/scene.hpp"
-#include "scene/camera.hpp"
-#include "scene/objects/object.hpp"
-#include "scene/objects/bounding.hpp"
-
-#include "screen/color.hpp"
-#include "auxiliary/randomgen.hpp"
-
-#include "scene/material/material.hpp"
-#include "scene/material/texture.hpp"
 
 #include "file_readers/scene_parser.hpp"
 
 #include <optional>
-
 #include <limits>
 std::numeric_limits<real> realscene;
 const real infinity = realscene.infinity();
@@ -22,6 +12,7 @@ const real infinity = realscene.infinity();
 scene::scene(std::vector<const object*>&& object_set,
     const std::vector<const bounding*>& bounding_set,
     std::vector<texture>&& texture_set,
+    std::vector<normal_map>&& normal_map_set,
     std::vector<material>&& material_set,
     const rt::color& bg_color,
     const int width, const int height,
@@ -30,7 +21,8 @@ scene::scene(std::vector<const object*>&& object_set,
     const real std_dev_anti_aliasing, const real gamma)
 
     : object_set(std::move(object_set)), bounding_set(bounding_set),
-    texture_set(std::move(texture_set)), material_set(std::move(material_set)),
+    texture_set(std::move(texture_set)), normal_map_set(std::move(normal_map_set)),
+    material_set(std::move(material_set)),
     background(background_container(bg_color)),
     width(width), height(height),
     cam(cam), rg(randomgen(std_dev_anti_aliasing)), polygons_per_bounding(polygons_per_bounding),
@@ -41,6 +33,7 @@ scene::scene(std::vector<const object*>&& object_set,
 scene::scene(std::vector<const object*>&& object_set,
     const std::vector<const bounding*>& bounding_set,
     std::vector<texture>&& texture_set,
+    std::vector<normal_map>&& normal_map_set,
     std::vector<material>&& material_set,
     texture&& bg_texture, const real rx, const real ry, const real rz,
     const int width, const int height,
@@ -49,7 +42,8 @@ scene::scene(std::vector<const object*>&& object_set,
     const real std_dev_anti_aliasing, const real gamma)
 
     : object_set(std::move(object_set)), bounding_set(bounding_set),
-    texture_set(std::move(texture_set)), material_set(std::move(material_set)),
+    texture_set(std::move(texture_set)), normal_map_set(std::move(normal_map_set)),
+    material_set(std::move(material_set)),
     background(background_container(std::move(bg_texture), rx, ry, rz)),
     width(width), height(height),
     cam(cam), rg(randomgen(std_dev_anti_aliasing)), polygons_per_bounding(polygons_per_bounding),

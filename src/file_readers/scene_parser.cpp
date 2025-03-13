@@ -18,6 +18,8 @@
 
 #include "file_readers/parsing_wrappers.hpp"
 
+#include "scene/material/normal_map.hpp"
+
 // object types
 #define TRIANGLE_TYPE   0
 #define QUAD_TYPE       1
@@ -421,6 +423,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
 
         wrapper<material>::init();
         wrapper<texture>::init();
+        wrapper<normal_map>::init();
 
         /* Material storage */
         std::vector<wrapper<material>> material_wrapper_set;
@@ -430,6 +433,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
         material_wrapper_set.emplace_back(std::move(material::WATER), "water");
 
         std::vector<wrapper<texture>> texture_wrapper_set;
+        std::vector<wrapper<normal_map>> normal_map_wrapper_set;
 
         std::vector<const bounding*> bounding_set;
 
@@ -444,9 +448,9 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
 
         while (not feof(file)) {
 
-            // longest item is load_texture
-            char s[14];
-            if (fscanf(file, "%13s ", s) != 1) {
+            // longest item is load_normal_map
+            char s[18];
+            if (fscanf(file, "%17s ", s) != 1) {
                 break;
             }
 
@@ -459,6 +463,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 while (c != '\n' && c != EOF);
                 ungetc(c, file);
             }
+            
             /* Material declaration */
             else if (strcmp(s, "material") == 0) {
                 std::string m_name(65, '\0');
@@ -477,6 +482,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 }
                 
             }
+            
             /* BMP file loading */
             else if (strcmp(s, "load_texture") == 0) {
                 std::string t_name(65, '\0');
@@ -499,6 +505,31 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 else {
                     printf("%s texture reading failed\n", tfile_name);
                     throw std::runtime_error("Texture reading failed");
+                }
+            }
+
+            /* Normal map loading */
+            else if (strcmp(s, "load_normal_map") == 0) {
+                std::string t_name(65, '\0');
+                char tfile_name[513];
+                ret = fscanf(file, " %64s %512s", (char*) t_name.data(), tfile_name);
+                if (ret != 2) {
+                    throw std::runtime_error("Parsing error in scene constructor (normal map loading)");
+                }
+                t_name.resize(strlen(t_name.data()));
+                
+                bool parsing_successful;
+                printf("Parsing %s...", tfile_name);
+                fflush(stdout);
+                normal_map_wrapper_set.emplace_back(normal_map(tfile_name, parsing_successful), t_name);
+
+                if (parsing_successful) {
+                    printf("\r%s normal map loaded\n", tfile_name);
+                    fflush(stdout);
+                }
+                else {
+                    printf("%s normal map reading failed\n", tfile_name);
+                    throw std::runtime_error("Normal map reading failed");
                 }
             }
 
@@ -771,17 +802,32 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
         for (wrapper<texture>& txt_wrap : texture_wrapper_set) {
             texture_set[txt_wrap.index] = std::move(txt_wrap.content);
         }
+
+        std::vector<normal_map> normal_map_set(wrapper<normal_map>::counter);
+        for (wrapper<normal_map>& nm_wrap : normal_map_wrapper_set) {
+            normal_map_set[nm_wrap.index] = std::move(nm_wrap.content);
+        }
         
         std::optional<scene> scene_opt;
         if (background_texture_is_set) {
-            scene_opt.emplace(std::move(object_set), std::move(bounding_set), std::move(texture_set), std::move(material_set),
-                std::move(background_texture), rx, ry, rz,
+            scene_opt.emplace(std::move(object_set),
+                std::move(bounding_set),
+                std::move(texture_set),
+                std::move(normal_map_set),
+                std::move(material_set),
+                std::move(background_texture),
+                rx, ry, rz,
                 width, height, cam, polygons_per_bounding,
                 std_dev_anti_aliasing, 1.0 / inverse_gamma);
         }
         else {
-            scene_opt.emplace(std::move(object_set), std::move(bounding_set), std::move(texture_set), std::move(material_set),
-                background_color, width, height, cam, polygons_per_bounding,
+            scene_opt.emplace(std::move(object_set),
+                std::move(bounding_set),
+                std::move(texture_set),
+                std::move(normal_map_set),
+                std::move(material_set),
+                background_color,
+                width, height, cam, polygons_per_bounding,
                 std_dev_anti_aliasing, 1.0 / inverse_gamma);
         }
 

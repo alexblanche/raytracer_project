@@ -13,8 +13,8 @@ texture::texture() {
 }
 
 /* Default constructor */
-texture::texture(const int width, const int height, const std::vector<std::vector<rt::color>>& data)
-    : width(width), height(height), data(data),
+texture::texture(const int width, const int height, const std::vector<std::vector<rt::color>>&& data)
+    : width(width), height(height), data(std::move(data)),
         width_minus_one((real) (width - 1)), height_minus_one((real) (height - 1)) {}
 
 /* Constructor from a .bmp or .hdr file

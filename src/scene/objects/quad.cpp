@@ -314,10 +314,19 @@ void quad::print() const {
     Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
 rt::vector quad::compute_normal_from_map(const rt::vector tangent_space_normal, const rt::vector local_normal) const {
 
+#ifdef SMOOTH_SHADING
     const rt::vector& t = texture_information.value().tangent;
-    // Recompute the tangent space
+    // Recompute the tangent space with Gram-Schmidt's method
     const rt::vector t2 = (t - (t | local_normal) * local_normal).unit();
     const rt::vector b2 = t2 ^ local_normal;
 
     return tangent_space_normal.x * t2 + tangent_space_normal.y * b2 + tangent_space_normal.z * local_normal;
+#else
+    // Flat shading
+    const rt::vector& t = texture_information.value().tangent;
+    const rt::vector& b = texture_information.value().bitangent;
+
+    return tangent_space_normal.x * t + tangent_space_normal.y * b + tangent_space_normal.z * local_normal;
+#endif
+
 }

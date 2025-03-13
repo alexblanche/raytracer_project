@@ -1,7 +1,10 @@
 resolution width:1920 height:1080
 camera position:(0, -600, -3500) direction:(0, 0.25, 1) rightdir:(1, 0, 0) fov_width:1366 distance:2000
-background_texture ../../../raytracer_project/sky/dome/rock.hdr rotate_x:0 rotate_y:1.57 rotate_z:0
+background_texture ../../../raytracer_project/sky/dome/field.bmp rotate_x:0 rotate_y:1.57 rotate_z:0
 polygons_per_bounding 0
+
+# background_color 255 255 255
+# background_texture ../../../raytracer_project/sky/dome/rock.hdr rotate_x:0 rotate_y:1.57 rotate_z:0 gamma:2.2
 
 # Scene with a diffuse white ball in the middle
 # for skydome testing
@@ -10,19 +13,23 @@ polygons_per_bounding 0
 
 # plane normal:(0, 1, 0) position:(0, -600, 0) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0.8 emission:0 specular_p:0.5 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-# material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 # quad (-400, -599, 800) (-400, -599, 400) (400, -599, 400) (400, -599, 800) material:white_light
 
-load_texture earth ../../../raytracer_project/texture_assets/earth.bmp
+load_texture earth ../../../raytracer_project/texture_assets/earth_2.bmp
+load_texture checkered ../../../raytracer_project/texture_assets/checkered.bmp
 
 sphere center:( -1125, 350, 900) radius:250 material:glass
-sphere center:( -375, 350, 900) radius:250 material:diffuse texture:(earth forward:(0,0,-1) right:(-1,0,0))
+sphere center:( -375, 350, 900) radius:250 material:diffuse texture:(earth forward:(0,0,1) right:(-1,0,0))
 sphere center:( 375, 350, 900) radius:250 material:mirror
-sphere center:( 1125, 350, 900) radius:250 material:(color:(63, 159, 244) emitted_color:(0, 0, 0) reflectivity:0.96 emission:0 specular_p:0.04 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+sphere center:( 1125, 350, 900) radius:250 material:white_light
+# material:(color:(63, 159, 244) emitted_color:(0, 0, 0) reflectivity:0.99 emission:0 specular_p:0.04 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 # non-gamma corrected color:(135, 206, 250)
 
-plane normal:(0, -1, 0) position:(0, 601, 0) material:(color:(50, 50, 50) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+plane normal:(0, -1, 0) position:(0, 601, 0) material:(color:(50, 50, 50) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(checkered right:(1,0,0) scale:17000)
 # color:(137, 137, 153)
 
-load_texture checkered ../../../raytracer_project/texture_assets/checkered.bmp
-quad (-2400, 600, 2800) (-2400, 600, 0) (2400, 600, 0) (2400, 600, 2800) material:diffuse texture:(checkered (0, 1) (0, 0) (1, 0) (1, 1))
+load_texture brick ../../../raytracer_project/texture_assets/brick/brick_diff_4k.bmp
+load_normal_map brickn ../../../raytracer_project/texture_assets/brick/brick_nor_gl_4k.bmp
+quad (-2400, 600, 4200) (-2400, 600, -600) (2400, 600, -600) (2400, 600, 4200) material:diffuse texture:(brick (0, 1) (0, 0) (1, 0) (1, 1))
+# normal:brickn)

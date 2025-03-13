@@ -37,5 +37,7 @@ bool read_normal_map(const char* file_name, std::vector<std::vector<rt::vector>>
 
     data = std::vector<std::vector<rt::vector>>(width, std::vector<rt::vector>(height));
     convert_bmp_to_normal_field(col_data, data, width, height);
+
+    return true;
 }
 
