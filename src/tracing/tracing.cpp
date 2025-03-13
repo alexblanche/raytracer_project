@@ -71,9 +71,9 @@ void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real re
 
 
 /* Auxiliary function that handles the diffuse reflective case */
-void diffuse_case(ray& r, const hit& h, randomgen& rg, const bool inward) {
+void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, randomgen& rg, const bool inward) {
 
-    const rt::vector& normal = h.get_normal();
+    const rt::vector& normal = local_normal;//h.get_normal();
     r.set_direction(((inward ? normal : (-1.0f) * normal) + h.random_direction(rg, normal, PI)).unit());
 
     /* Apply the bias outward the surface */
@@ -186,6 +186,14 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
             */
             const real inward = h.is_inward();
 
+            // Temporary: the map_sample should be used for the normal AND the texture data
+            const rt::vector& local_normal =
+                (obj-> is_textured() && obj->get_texture_info().normal_map_index.has_value()) ?
+                scene.sample_maps(obj->get_texture_info(), obj->get_barycentric(h.get_point())).normal_map_vector
+                :
+                h.get_normal();
+            //
+
             if (m.is_opaque()) {
                 /* Diffuse or specular reflection */
 
@@ -204,7 +212,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
 
                     /* Diffuse bounce */
 
-                    diffuse_case(r, h, scene.rg, inward);
+                    diffuse_case(r, h, local_normal, scene.rg, inward);
                     update_acc(true);
                 }
             }
