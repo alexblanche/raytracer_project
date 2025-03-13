@@ -9,6 +9,24 @@
 #include "material/background.hpp"
 #include "material/normal_map.hpp"
 
+/* Struct containing all info from a map sample */
+struct map_sample {
+    const rt::color& texture_color;
+    const rt::vector& normal_map_vector;
+    // real roughness;
+    // real displacement;
+
+    map_sample(const rt::color& texture_color,
+        const rt::vector& normal_map_vector//,
+        // real roughness;
+        // real displacement;
+    )
+    : texture_color(texture_color),
+    normal_map_vector(normal_map_vector)//,
+    //roughness(roughness), displacement(displacement)
+    {}
+};
+
 class scene {
     public:
         /* Set of all the objects in the scene */
@@ -92,4 +110,10 @@ class scene {
 
         /* Tree-search through the bounding boxes */
         std::optional<hit> find_closest_object_bounding(ray& r) const;
+
+        /* Returns the color of the pixel associated with UV-coordinates u, v */
+        const rt::color& sample_texture(const texture_info& ti, const barycentric_info& bary) const;
+
+        /* Sampling maps */
+        map_sample sample_maps(const texture_info& ti, const barycentric_info& bary) const;
 };

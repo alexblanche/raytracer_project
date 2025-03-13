@@ -159,3 +159,26 @@ std::optional<hit> scene::find_closest_object_bounding(ray& r) const {
         return std::nullopt;
     }
 }
+
+/* Returns the color of the pixel associated with UV-coordinates u, v */
+const rt::color& scene::sample_texture(const texture_info& ti, const barycentric_info& bary) const {
+    
+    const uvcoord uvc = ti.get_barycenter(bary);
+    return texture_set[ti.texture_index].get_color(uvc.u, uvc.v);
+
+    /* HERE: we can introduce texture filtering */
+}
+
+map_sample scene::sample_maps(const texture_info& ti, const barycentric_info& bary) const {
+
+    const uvcoord uvc = ti.get_barycenter(bary);
+    const rt::color& t_col = texture_set[ti.texture_index].get_color(uvc.u, uvc.v);
+    const rt::vector& n_vec = normal_map_set[ti.normal_map_index].get_local_normal(uvc.u, uvc.v);
+    // const real roughness = roughness_map_set[ti.roughness_map_index].get_roughness(uvc.u, uvc.v);
+    // const real displacement = displacement_map_set[ti.displacement_map_index].get_displacement(uvc.u, uvc.v);
+
+    return map_sample(t_col, n_vec//,
+        // roughness,
+        // displacement
+        );
+}

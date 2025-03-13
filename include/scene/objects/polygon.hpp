@@ -1,3 +1,5 @@
+/** Unused **/
+
 #pragma once
 
 #include "object.hpp"
@@ -21,7 +23,7 @@ class polygon : public object {
         polygon(const rt::vector& position, const size_t material_index,
             const std::optional<texture_info>& info)
             
-            : object(position, material_index, info.has_value()), info(info) {}
+            : object(position, material_index, info), info(info) {}
 
         // virtual ~polygon() {}
 

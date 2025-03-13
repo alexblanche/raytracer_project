@@ -55,5 +55,5 @@ class plane : public object {
         barycentric_info get_barycentric(const rt::vector& p) const;
 
         /* Normal map vector computation at render time */
-        rt::vector compute_normal_from_map(const rt::vector tangent_space_normal, const rt::vector local_normal) const;
+        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal) const;
 };

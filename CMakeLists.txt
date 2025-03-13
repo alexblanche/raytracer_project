@@ -28,6 +28,7 @@ include_directories(${SDL2_INCLUDE_DIRS})
 set (libname raytracer)
 add_library(${libname} SHARED
 	src/screen/color.cpp
+	src/scene/material/texture_info.cpp
 	src/scene/material/texture.cpp
 	src/scene/material/normal_map.cpp
 	src/scene/material/background.cpp

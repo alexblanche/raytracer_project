@@ -17,8 +17,8 @@
 /** Auxiliary functions **/
 
 /* Auxiliary function that updates the color accumulators */
-void update_accumulators(const material& m, const object* obj, const rt::vector& hit_point,
-    const std::vector<texture>& texture_set,
+void update_accumulators(scene& scene,
+    const material& m, const object* obj, const rt::vector& hit_point,
     rt::color& emitted_colors, rt::color& color_materials,
     const bool update_color_materials) {
 
@@ -30,7 +30,7 @@ void update_accumulators(const material& m, const object* obj, const rt::vector&
     if (update_color_materials) {
         if (obj->is_textured()) {
             const barycentric_info bary = obj->get_barycentric(hit_point);
-            color_materials = color_materials * obj->get_texture_info().get_texture_color(bary, texture_set);
+            color_materials = color_materials * scene.sample_texture(obj->get_texture_info(), bary);
         }
         else {
             color_materials = color_materials * m.get_color();
@@ -111,7 +111,7 @@ rt::color background_case(const scene& scene, const ray& r,
             then the UV-coordinates in the 360 image */
 
         const rt::vector& dir = r.get_direction();
-        return (color_materials * (scene.background.get_color(dir) /* * ((real) 1.3f) */)) + emitted_colors; // TEMPORARY
+        return (color_materials * (scene.background.get_color(dir))) + emitted_colors;
 
     }
     else {
@@ -157,7 +157,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
             const material& m = scene.material_set[obj->get_material_index()];
 
             auto update_acc = [&](bool reflects_colors) {
-                update_accumulators(m, obj, h.get_point(), scene.texture_set, emitted_colors, color_materials, reflects_colors);
+                update_accumulators(scene, m, obj, h.get_point(), emitted_colors, color_materials, reflects_colors);
             };
 
             /* Full-intensity light source reached */
@@ -169,7 +169,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
                     const barycentric_info bary = obj->get_barycentric(h.get_point());
                     return
                         (color_materials *
-                            (obj->get_texture_info().get_texture_color(bary, scene.texture_set)
+                            (scene.sample_texture(obj->get_texture_info(), bary)
                                 * m.get_emission_intensity())
                         )
                         + emitted_colors;
@@ -309,7 +309,7 @@ void compute_bouncing_ray(const material& m, const hit& h, const object* obj, sc
 
     auto update_acc = [&](bool reflects_colors, bool first) {
         rt::color& color_materials = (first) ? color_materials1 : color_materials2;
-        update_accumulators(m, obj, h.get_point(), scene.texture_set, emitted_colors, color_materials, reflects_colors);
+        update_accumulators(scene, m, obj, h.get_point(), emitted_colors, color_materials, reflects_colors);
     };
 
     const real inward = h.is_inward();
@@ -412,7 +412,7 @@ rt::color pathtrace_multisample(ray& r, scene& scene, const unsigned int bounce,
                 
                 const barycentric_info bary = obj->get_barycentric(h.get_point());
                 return
-                    obj->get_texture_info().get_texture_color(bary, scene.texture_set)
+                    scene.sample_texture(obj->get_texture_info(), bary)
                         * m.get_emission_intensity();
             }
             else {

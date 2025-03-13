@@ -124,7 +124,7 @@ barycentric_info sphere::get_barycentric(const rt::vector& p) const {
 }
 
 /* Normal map vector computation at render time */
-rt::vector sphere::compute_normal_from_map(const rt::vector tangent_space_normal, const rt::vector local_normal) const {
+rt::vector sphere::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal) const {
 
     // Computation of tangent space
     const rt::vector t = up_dir.value() ^ local_normal;

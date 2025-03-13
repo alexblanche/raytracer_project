@@ -197,6 +197,7 @@ std::optional<texture_info> parse_texture_info(FILE* file,
                     static_cast<real>(u3), static_cast<real>(v3)});
 
             }
+
             case SPHERE_TYPE: {
 
                 const int ret3 = fscanf(file, " forward:(%lf,%lf,%lf) right:(%lf,%lf,%lf))\n",
@@ -548,7 +549,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                     std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, SPHERE_TYPE);
                     if (info.has_value()) {
 
-                        std::vector<real>& info_vect = info.value().get_vector();
+                        std::vector<real>& info_vect = info.value().uv_coordinates;
                         const rt::vector forward(info_vect[0], info_vect[1], info_vect[2]);
                         const rt::vector right  (info_vect[3], info_vect[4], info_vect[5]);
                         info_vect.clear();
@@ -587,7 +588,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                     std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, PLANE_TYPE);
                     if (info.has_value()) {
 
-                        std::vector<real>& info_vect = info.value().get_vector();
+                        std::vector<real>& info_vect = info.value().uv_coordinates;
                         const rt::vector right(info_vect[0], info_vect[1], info_vect[2]);
                         const real scale = info_vect[3];
                         info_vect.clear();

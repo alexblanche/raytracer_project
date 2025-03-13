@@ -72,7 +72,7 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
         (x2 y2)   = (1 / (x1 * y2 - x2 * y1)) (-x2  x1)
         */
     
-        const std::vector<real>& uvc = texture_information.value().get_vector();
+        const std::vector<real>& uvc = texture_information.value().uv_coordinates;
         // uvc = (u0, v0, u1, v1, u2, v2)
         const real x1 = uvc[2] - uvc[0];
         const real x2 = uvc[4] - uvc[0];
@@ -256,7 +256,7 @@ void triangle::print() const {
 
 /* Normal map vector computation at render time
     Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
-rt::vector triangle::compute_normal_from_map(const rt::vector tangent_space_normal, const rt::vector local_normal) const {
+rt::vector triangle::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal) const {
 
 #ifdef SMOOTH_SHADING
     const rt::vector& t = texture_information.value().tangent;
