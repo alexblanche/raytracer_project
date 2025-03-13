@@ -173,7 +173,7 @@ map_sample scene::sample_maps(const texture_info& ti, const barycentric_info& ba
 
     const uvcoord uvc = ti.get_barycenter(bary);
     const rt::color& t_col = texture_set[ti.texture_index].get_color(uvc.u, uvc.v);
-    const rt::vector& n_vec = normal_map_set[ti.normal_map_index].get_local_normal(uvc.u, uvc.v);
+    const rt::vector& n_vec = normal_map_set[ti.normal_map_index.value()].get_local_normal(uvc.u, uvc.v);
     // const real roughness = roughness_map_set[ti.roughness_map_index].get_roughness(uvc.u, uvc.v);
     // const real displacement = displacement_map_set[ti.displacement_map_index].get_displacement(uvc.u, uvc.v);
 

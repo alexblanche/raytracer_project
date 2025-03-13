@@ -10,7 +10,7 @@
 #include "file_readers/mtl_parser.hpp"
 
 #include<limits>
-numeric_limits<real> realobj;
+numeric_limits<real> realobj; 
 const real infinity = realobj.infinity();
 
 #include <string.h>
@@ -57,6 +57,7 @@ void add_triangle(const std::vector<rt::vector>& vertex_set, const std::vector<r
       apply_texture ?
                
       std::optional<texture_info>(texture_info(current_texture_index,
+         std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
          {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
          uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
          uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y}))
@@ -97,6 +98,7 @@ void add_triangle_subdiv(const std::vector<rt::vector>& vertex_set, const std::v
       apply_texture ?
 
       std::optional<texture_info>(texture_info(current_texture_index,
+         std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
          {uv_coord_set[vtj].x, 1-uv_coord_set[vtj].y,
          uv_coord_set[vti].x, 1-uv_coord_set[vti].y,
          final_vt.x, 1-final_vt.y}))
@@ -137,6 +139,7 @@ void add_quad(const std::vector<rt::vector>& vertex_set, const std::vector<rt::v
       apply_texture ?
 
       std::optional<texture_info>(texture_info(current_texture_index,
+         std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
          {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
          uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
          uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y,
@@ -178,6 +181,7 @@ void add_triangle_no_normal(const std::vector<rt::vector>& vertex_set, const std
       apply_texture ?
                
       std::optional<texture_info>(texture_info(current_texture_index,
+         std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
          {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
          uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
          uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y}))
@@ -215,6 +219,7 @@ void add_triangle_subdiv_no_normal(const std::vector<rt::vector>& vertex_set, co
       apply_texture ?
 
       std::optional<texture_info>(texture_info(current_texture_index,
+         std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
          {uv_coord_set[vtj].x, 1-uv_coord_set[vtj].y,
          uv_coord_set[vti].x, 1-uv_coord_set[vti].y,
          final_vt.x, 1-final_vt.y}))
@@ -252,6 +257,7 @@ void add_quad_no_normal(const std::vector<rt::vector>& vertex_set, const std::ve
       apply_texture ?
 
       std::optional<texture_info>(texture_info(current_texture_index,
+         std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
          {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
          uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
          uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y,

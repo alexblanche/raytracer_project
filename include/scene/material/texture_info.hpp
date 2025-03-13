@@ -22,9 +22,9 @@ class texture_info {
     public:
         /* Index in the scene's sets */
         size_t texture_index;
-        size_t normal_map_index;
-        //size_t roughness_map_index;
-        //size_t displacement_map_index;
+        std::optional<size_t> normal_map_index;
+        // std::optional<size_t> roughness_map_index;
+        // std::optional<size_t> displacement_map_index;
 
         /* Vector of UV coordinates (between 0 and 1)
            6 for a triangle (u0,v0,u1,v1,u2,v2) and 8 for a quad */
@@ -36,7 +36,9 @@ class texture_info {
 
         texture_info();
 
-        texture_info(size_t index, std::vector<real>&& uv_coordinates);
+        texture_info(size_t t_index,
+            std::optional<size_t> n_index,
+            std::vector<real>&& uv_coordinates);
 
         /* Sets the tangent and bitangent vectors */
         void set_tangent_space(const rt::vector& t, const rt::vector& b);
