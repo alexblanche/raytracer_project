@@ -140,7 +140,7 @@ std::optional<texture_info> parse_texture_info(FILE* file,
     char keyword[8];
     const int ret = fscanf(file, "%7s", keyword);
     if (ret != 1) {
-        printf("Parsing error in parse_texture_info (keyword texture)\n");
+        //printf("Parsing error in parse_texture_info (keyword texture)\n");
         return std::nullopt;
     }
 
