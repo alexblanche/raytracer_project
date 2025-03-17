@@ -41,3 +41,9 @@ barycentric_info object::get_barycentric(const rt::vector& /*p*/) const {
 
     return barycentric_info(0.0f, 0.0f);
 }
+
+rt::vector object::compute_normal_from_map(const rt::vector& /*tangent_space_normal*/,
+    const rt::vector& local_normal) const {
+    
+    return local_normal;
+}

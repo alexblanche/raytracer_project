@@ -28,6 +28,6 @@ class normal_map {
 
         normal_map& operator=(normal_map&&) = default;
 
-        /* Returns the local normal at the given UV-coordinates u, v (between 0 and 1) */
-        const rt::vector& get_local_normal(const real u, const real v) const;
+        /* Returns the normal in tangent space at the given UV-coordinates u, v (between 0 and 1) */
+        const rt::vector& get_tangent_space_normal(const real u, const real v) const;
 };

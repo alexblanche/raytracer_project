@@ -47,6 +47,7 @@ add_library(${libname} SHARED
 	src/scene/objects/box.cpp
 	src/scene/objects/bounding.cpp
 	src/scene/objects/cylinder.cpp
+	src/tracing/directions.cpp
 	src/tracing/tracing.cpp
 	src/scene/camera.cpp
 	src/file_readers/scene_parser.cpp

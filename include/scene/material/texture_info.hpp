@@ -21,7 +21,7 @@ class texture_info {
 
     public:
         /* Index in the scene's sets */
-        size_t texture_index;
+        std::optional<size_t> texture_index;
         std::optional<size_t> normal_map_index;
         // std::optional<size_t> roughness_map_index;
         // std::optional<size_t> displacement_map_index;
@@ -36,7 +36,7 @@ class texture_info {
 
         texture_info();
 
-        texture_info(size_t t_index,
+        texture_info(std::optional<size_t> t_index,
             std::optional<size_t> n_index,
             std::vector<real>&& uv_coordinates);
 

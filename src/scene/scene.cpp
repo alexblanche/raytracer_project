@@ -164,21 +164,31 @@ std::optional<hit> scene::find_closest_object_bounding(ray& r) const {
 const rt::color& scene::sample_texture(const texture_info& ti, const barycentric_info& bary) const {
     
     const uvcoord uvc = ti.get_barycenter(bary);
-    return texture_set[ti.texture_index].get_color(uvc.u, uvc.v);
+    return texture_set[ti.texture_index.value()].get_color(uvc.u, uvc.v);
 
     /* HERE: we can introduce texture filtering */
 }
 
-map_sample scene::sample_maps(const texture_info& ti, const barycentric_info& bary) const {
+map_sample scene::sample_maps(const texture_info& ti, const barycentric_info& bary,
+    const rt::color& default_color, const rt::vector& default_vector, const real /*default_reflectivity*/) const {
 
     const uvcoord uvc = ti.get_barycenter(bary);
-    const rt::color& t_col = texture_set[ti.texture_index].get_color(uvc.u, uvc.v);
-    const rt::vector& n_vec = normal_map_set[ti.normal_map_index.value()].get_local_normal(uvc.u, uvc.v);
-    // const real roughness = roughness_map_set[ti.roughness_map_index].get_roughness(uvc.u, uvc.v);
+    const rt::color& t_col = (ti.texture_index.has_value()) ?
+        texture_set[ti.texture_index.value()].get_color(uvc.u, uvc.v)
+        :
+        default_color;
+    const rt::vector& n_vec = (ti.normal_map_index.has_value()) ?
+        normal_map_set[ti.normal_map_index.value()].get_tangent_space_normal(uvc.u, uvc.v)
+        :
+        default_vector;
+    // const real reflectivity = (ti.roughness_map_index.has_value()) ?
+    //     roughness_map_set[ti.roughness_map_index.value()].get_roughness(uvc.u, uvc.v)
+    //     :
+    //     default_reflectivity;
     // const real displacement = displacement_map_set[ti.displacement_map_index].get_displacement(uvc.u, uvc.v);
 
     return map_sample(t_col, n_vec//,
-        // roughness,
+        // reflectivity,
         // displacement
         );
 }

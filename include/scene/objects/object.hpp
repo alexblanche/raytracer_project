@@ -84,4 +84,7 @@ class object {
 
         /* Returns the barycentric info for the object (depends on the object type) */
         virtual barycentric_info get_barycentric(const rt::vector& p) const;
+
+        virtual rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal) const;
+
 };

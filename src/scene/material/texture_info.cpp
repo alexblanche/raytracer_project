@@ -5,7 +5,7 @@
 texture_info::texture_info()
     : texture_index((size_t) -1), uv_coordinates({}) {}
 
-texture_info::texture_info(size_t t_index,
+texture_info::texture_info(std::optional<size_t> t_index,
     std::optional<size_t> n_index,
     // std::optional<size_t> roughness_map_index,
     // std::optional<size_t> displacement_map_index,
