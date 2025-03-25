@@ -191,7 +191,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
             const real inward = h.is_inward();
 
             // Contains the material local color, the local normal and (soon) the reflectivity and displacement
-            map_sample ms = (obj->is_textured()) ?
+            const map_sample ms = (obj->is_textured()) ?
                 scene.sample_maps(obj->get_texture_info(), obj->get_barycentric(h.get_point()),
                     m.get_color(), h.get_normal(), m.get_reflectivity())
                 :
@@ -201,6 +201,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
                 obj->compute_normal_from_map(ms.normal_map_vector, h.get_normal())
                 :
                 h.get_normal();
+
             const rt::color& color = ms.texture_color;
             const real reflectivity = m.get_reflectivity(); // ms.reflectivity
             //

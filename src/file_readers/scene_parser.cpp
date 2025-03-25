@@ -718,13 +718,14 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 }
                 const std::optional<size_t> m_index = get_material(file, material_wrapper_set, inverse_gamma);
                 const std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, TRIANGLE_TYPE);
+                const bool normal_mapping = info.has_value() && info.value().normal_map_index.has_value();
                 if (m_index.has_value()) {
                 
                     const triangle* tr = new triangle(
                         rt::vector(x0, y0, z0),
                         rt::vector(x1, y1, z1),
                         rt::vector(x2, y2, z2),
-                        m_index.value(), info);
+                        m_index.value(), info, normal_mapping);
                     object_set.push_back(tr);
                             
                     if (bounding_enabled) {
@@ -752,12 +753,13 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 if (m_index.has_value()) {
                 
                     const std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, QUAD_TYPE);
+                    const bool normal_mapping = info.has_value() && info.value().normal_map_index.has_value();
                     const quad* q = new quad(
                         rt::vector(x0, y0, z0),
                         rt::vector(x1, y1, z1),
                         rt::vector(x2, y2, z2),
                         rt::vector(x3, y3, z3),
-                        m_index.value(), info);
+                        m_index.value(), info, normal_mapping);
                     object_set.push_back(q);
                             
                     if (bounding_enabled) {

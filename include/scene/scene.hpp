@@ -116,5 +116,5 @@ class scene {
 
         /* Sampling maps */
         map_sample sample_maps(const texture_info& ti, const barycentric_info& bary,
-            const rt::color& default_color, const rt::vector& default_normal, const real default_reflectivity) const;
+            const rt::color& default_color, const rt::vector& default_normal, const real default_reflectivity = 0.0f) const;
 };
