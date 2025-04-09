@@ -126,7 +126,7 @@ std::vector<std::vector<pixel>> generate_glow(const std::vector<std::vector<rt::
     const size_t height = bright_pixels[0].size();
     std::vector<std::vector<pixel>> glow(width, std::vector<pixel>(height));
 
-    printf("0 / %lu", width);
+    printf("0 / %llu", width);
     fflush(stdout);
 
     for (size_t i = 0; i < width; i++) {
@@ -136,7 +136,7 @@ std::vector<std::vector<pixel>> generate_glow(const std::vector<std::vector<rt::
                 blur_pixel(glow, bright_pixels, i, j, nc.normalized_color, nc.intensity, glow_intensity);
             }
         }
-        printf("\r%lu / %lu", i+1, width);
+        printf("\r%llu / %llu", i+1, width);
         fflush(stdout);
     }
     printf("\n");

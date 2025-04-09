@@ -1,10 +1,9 @@
 resolution width:1920 height:1080
 camera position:(2.212, 1.488, 3.4) direction:(-0.72, -0.28, -1) rightdir:(1, 0, -0.72) fov_width:1.33 distance:1.0
 background_color 190 235 255
-background_texture ../../../raytracer_project/sky/dome/urban_street.bmp rotate_x:3.14 rotate_y:5.835 rotate_z:0
+background_texture ../../../raytracer_project/sky/dome/urban_street.hdr rotate_x:3.14 rotate_y:5.835 rotate_z:0 gamma:2.2
 polygons_per_bounding 10
 
-# background_texture ../../../raytracer_project/sky/dome/urban_street.hdr rotate_x:3.14 rotate_y:5.835 rotate_z:0 gamma:2.2
 # background_texture ../../../raytracer_project/sky/dome/urban_street.bmp rotate_x:3.14 rotate_y:5.835 rotate_z:0
 
 # Camera for Porsche in street
@@ -19,30 +18,23 @@ polygons_per_bounding 10
 # Right placement of the background and car, wrong FOV for the car
 # camera position:(2.22, 1.4, 3.5) direction:(-0.72, -0.28, -1) rightdir:(1, 0, -0.72) fov_width:1.595 distance:1.2
 
-material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:10000000000 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-material red_light (color:(255, 255, 255) emitted_color:(255, 1, 1) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-
+material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:5 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
 # Ground
 # plane normal:(0,1,0) position:(0, 0, 0) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0.5 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-# load_texture asphalt ../../../raytracer_project/texture_assets/asphalt/asphalt.bmp
-# load_normal_map asphaltn ../../../raytracer_project/texture_assets/asphalt/asphalt_nor.bmp
-# load_normal_map asphaltn ../../../raytracer_project/texture_assets/test_nor.bmp
-load_texture asphalt ../../../raytracer_project/texture_assets/brick/brick_diff_4k.bmp
-load_normal_map asphaltn ../../../raytracer_project/texture_assets/brick/brick_nor_gl_4k.bmp
+load_texture asphalt ../../../raytracer_project/texture_assets/asphalt2.bmp
 material road_mat (color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-quad (2.372, 0, 0.6) (-0.527, 0, 2.7) (-3.372, 0, -1.4) (-0.5, 0, -3.5) material:diffuse texture:(asphalt normal:asphaltn (0, 0) (0, 1) (1, 1) (1, 0))
-
-# quad (2.372, -0.5, 0.6) (-0.527, -0.5, 2.7) (-3.372, -0.5, -1.4) (-0.5, -0.5, -3.5) material:red_light
-# quad (-3.372, 0, -1.4) (-0.5, 0, -3.5) (-0.5, 1.5, -3.5) (-3.372, 1.5, -1.4) material:white_light
-quad (-0.527, 0, 2.7) (-3.372, 0, -1.4) (-3.372, 1.5, -1.4) (-0.527, 1.5, 2.7) material:white_light
+quad (2.372, 0, 0.6) (-0.527, 0, 2.7) (-3.372, 0, -1.4) (-0.5, 0, -3.5) material:diffuse texture:(asphalt (0, 0) (0, 1) (1, 1) (1, 0))
+# sphere center:(2.3, 0, 0.5) radius:0.1 material:white_light
+# sphere center:(-0.492, 0, 2.6) radius:0.1 material:white_light
+# sphere center:(-0.5, 0, -3.5) radius:0.1 material:white_light
+# sphere center:(-3.372, 0, -1.4) radius:0.1 material:white_light
 
 # Model
-# load_obj ../../../raytracer_project/3d_models/porsche_2016/porsche_obj.obj
+load_obj ../../../raytracer_project/3d_models/porsche_2016/porsche_obj.obj
 # Box for camera and parameters testing
 material diffuse_red (color:(255, 5, 5) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-# box center:(0, 0.642, 0) x_axis:(1, 0, 0) y_axis:(0, 1, 0) 1.98 1.284 4.5 material:diffuse
+# box center:(0, 0.642, 0) x_axis:(1, 0, 0) y_axis:(0, 1, 0) 1.98 1.284 4.5 material:diffuse_red
 
-sphere center:(0,1,0) radius:0.5 material:diffuse
 
