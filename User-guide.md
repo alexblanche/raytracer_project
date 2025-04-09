@@ -73,13 +73,15 @@ A plane is defined by a normal vector and a point the plane goes through.
 A box is defined by its center, two axes x and y (the z axis is the cross product of x and y), and three lengths: the "length" along the x axis, the "height" along the y axis, and the "depth" along the z axis. The axes do not need to be unit vectors.    
 ``box center:(166, -200, 600) x_axis:(100, 100, -100) y_axis:(-200, 100, -100) 300 200 300 material:m1``
 
-- Polygons
-Polygons can be either triangles or quads, and are defined by three or four points.  
+- Triangle
+A triangle is defined by three points.  
 ``triangle (-620, -100, 600) (-520,100,500) (-540, -200, 700) material:m1``  
-or  
+
+- Quad
+A quad is defined by four points.  
 ``quad (-620, -100, 600) (-520, 100, 600) (-540, -200, 600) (-500, -250, 600) material:m1``
 
-The polygons are one-sided, and should be declared in counter-clockwise order. Behavior when looking through the back side is undefined.
+Triangles and quads are one-sided, and should be declared in counter-clockwise order. Behavior when looking through the back side is undefined.
 
 - Cylinder
 A cylinder is defined by its origin, direction vector, radius and length. The origin is the center of the bottom disk. The radius parameter designates the common radius of the bottom and top disks. The length is the length of the cylinder along the direction vector. The direction vector does not need to be a unit vector.    
@@ -87,17 +89,36 @@ A cylinder is defined by its origin, direction vector, radius and length. The or
 
 
 ### Texture definition
-Polygons support texturing, but textures mapped on a quad warp when the shape of the quad is different from the quad's UV-coordinates in texture space (e.g. when the UV-coordinates describe a rectangle in texture space, but the quad is a trapezoid in world space).  
+Triangles, quads, spheres and planes support texturing.  
+Note that textures mapped on a quad warp when the shape of the quad is different from the quad's UV-coordinates in texture space (e.g. when the UV-coordinates describe a rectangle in texture space, but the quad is a trapezoid in world space).  
 
 Textures must be loaded from a bmp file, and given a name:  
 ``load_texture t1 file_name.bmp``
 
-Then when an polygon is defined, we can specify the texture mapping with this syntax:    
-``triangle (...) (...) (...) material:(color:(...) ...) texture:(t1 (0.2, 0.8) (0.5, 0.15) (0.7, 0.65))``   
-or  
-``quad (...) (...) (...) (...) material:m1 texture:(t1 (0.2, 0.8) (0.2, 0.15) (0.7, 0.15) (0.7, 0.8))``
+Then when an object is defined, we can specify the texture mapping with this syntax:   
+- Triangle
+A triangle is textured with the specified UV-coordinates.  
+``triangle (...) (...) (...) material:(...) texture:(t1 (0.2, 0.8) (0.5, 0.15) (0.7, 0.65))``   
+- Quad
+A quad is textured with the specified UV-coordinates.  
+``quad (...) (...) (...) (...) material:(...) texture:(t1 (0.2, 0.8) (0.2, 0.15) (0.7, 0.15) (0.7, 0.8))``
+- Sphere
+For a sphere, the texture is oriented with the forward and right directions.  
+``sphere center:(...) radius:... material:(...) texture:(t1 forward:(0,0,1) right:(-1,0,0))``
+- Plane
+For a plane, the texture is oriented and scaled with the right direction (the down direction is determined with the normal) and a scaling factor.  
+``plane normal:(...) position:(...) material:(...) texture:(t1 right:(1,0,0) scale:100)``
 
-The texture's name is followed by 3 (for a triangle) or 4 points (for a quad) in 2D, representing the UV-coordinates of the polygon in texture space.
+
+### Normal map definition
+Surfaces can be applied a normal map, read from a bmp file in OpenGL format.
+
+The normal map is loaded with a syntax similar to textures:  
+``load_normal_map n1 file_name.bmp``
+
+Then it is applied to an object in the ``texture`` field by adding ``normal:n1`` (where ``n1`` is the normal map name) right after the texture name.  
+E.g.: ``sphere center:(...) radius:... material:(...) texture:(t1 normal:n1 forward:(0,0,1) right:(-1,0,0))``
+
 
 
 ### Polygon mesh import
@@ -109,6 +130,8 @@ material metal_mat (...) // appearing in wooden_table.obj
 load_texture wood wood_texture.bmp
 load_obj wooden_table.obj (texture:wood shift:(1,0,0) scale:2)
 ``````
+
+Polygon meshes do not support normal mapping yet.
 
 ### Comments
 A line can be commented by adding a ``#`` and a space at the beginning of the line:  
