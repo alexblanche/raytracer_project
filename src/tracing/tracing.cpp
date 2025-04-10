@@ -210,15 +210,18 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
                 /* Diffuse or specular reflection */
 
                 /* Testing whether the ray is reflected specularly or diffusely */
-                if (m.has_specular_proba() && scene.rg.random_real(1.0f) <= m.get_specular_proba()) {
+                if (m.has_specular_proba()) {
                     
                     /* Specular bounce */
 
-                    specular_reflective_case(r, h, scene.rg, reflectivity, normal, inward);
+                    const bool is_specular = scene.rg.random_real(1.0f) <= m.get_specular_proba();
+                    const real specular_reflectivity = is_specular ? reflectivity : m.get_secondary_reflectivity();
+                    
+                    specular_reflective_case(r, h, scene.rg, specular_reflectivity, normal, inward);
 
                     /* We update color_materials only if the material reflects colors (like a christmas tree ball),
-                       otherwise the reflection has the original color (like a tomato) */
-                    update_acc(m.does_reflect_color(), color);
+                    otherwise the reflection has the original color (like a tomato) */
+                    update_acc(!is_specular || m.does_reflect_color(), color);
                 }
                 else {
 

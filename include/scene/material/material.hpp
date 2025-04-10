@@ -98,6 +98,10 @@ class material {
             return reflectivity;
         }
 
+        inline real get_secondary_reflectivity() const {
+            return 0.f;
+        }
+
         inline real get_emission_intensity() const {
             return emission_intensity;
         }
