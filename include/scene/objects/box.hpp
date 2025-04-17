@@ -61,4 +61,8 @@ class box : public object {
 
         /* Returns the barycentric info (the faces behave like quads) */
         barycentric_info get_barycentric(const rt::vector& p) const;
+
+        rt::vector sample(randomgen& rg) const;
+        
+        rt::vector sample_visible(randomgen& rg, const rt::vector& pt) const;
 };

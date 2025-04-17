@@ -50,4 +50,9 @@ class cylinder : public object {
 
         /* Returns the barycentric info (the texture is mapped onto the top, the bottom, and the curved surface) */
         barycentric_info get_barycentric(const rt::vector& p) const;
+
+
+        rt::vector sample(randomgen& rg) const;
+        
+        rt::vector sample_visible(randomgen& rg, const rt::vector& pt) const;
 };

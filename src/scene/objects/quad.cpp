@@ -366,3 +366,12 @@ rt::vector quad::compute_normal_from_map(const rt::vector& tangent_space_normal,
 #endif
 
 }
+
+
+rt::vector quad::sample(randomgen& /*rg*/) const {
+    throw std::runtime_error("Sampling is not yet implemented for quads");
+}
+
+rt::vector quad::sample_visible(randomgen& /*rg*/, const rt::vector& /*pt*/) const {
+    throw std::runtime_error("Sampling is not yet implemented for quads");
+}

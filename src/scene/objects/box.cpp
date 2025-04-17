@@ -1,6 +1,7 @@
 #include "scene/objects/box.hpp"
 
 #include <optional>
+#include <stdexcept>
 
 #include "light/vector.hpp"
 #include "light/hit.hpp"
@@ -289,4 +290,12 @@ bool box::is_hit_by(const ray& r) const {
 /* Returns the barycentric info (the faces behave like quads) [to be implemented] */
 barycentric_info box::get_barycentric(const rt::vector& /*p*/) const {
     return barycentric_info(0.0f, 0.0f);
+}
+
+rt::vector box::sample(randomgen& /*rg*/) const {
+    throw std::runtime_error("Sampling is unavailable for boxes");
+}
+
+rt::vector box::sample_visible(randomgen& /*rg*/, const rt::vector& /*pt*/) const {
+    throw std::runtime_error("Sampling is unavailable for boxes");
 }

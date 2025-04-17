@@ -2,7 +2,7 @@
 #include "light/vector.hpp"
 #include "scene/material/material.hpp"
 #include <math.h>
-
+#include <stdexcept>
 #include <optional>
 
 
@@ -252,4 +252,12 @@ min_max_coord cylinder::get_min_max_coord() const {
 /* Returns the barycentric info (the texture is mapped onto the top, the bottom, and the curved surface) [to be implemented] */
 barycentric_info cylinder::get_barycentric(const rt::vector& /*p*/) const {
     return barycentric_info(0.0f, 0.0f);
+}
+
+rt::vector cylinder::sample(randomgen& /*rg*/) const {
+    throw std::runtime_error("Sampling is unavailable for cylinders");
+}
+
+rt::vector cylinder::sample_visible(randomgen& /*rg*/, const rt::vector& /*pt*/) const {
+    throw std::runtime_error("Sampling is unavailable for cylinders");
 }

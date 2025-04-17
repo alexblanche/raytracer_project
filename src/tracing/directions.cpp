@@ -102,7 +102,6 @@ std::vector<ray> random_reflect(const size_t n, randomgen& rg,
 /* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
 rt::vector random_direction(randomgen& rg, const rt::vector& central_dir, const real theta_max) {
 
-    // n random reals between 0 and 1, and n between 0 and 2*pi
     const real p = rg.random_real(1.0f);
     const real phi = rg.random_real(TWOPI);
 

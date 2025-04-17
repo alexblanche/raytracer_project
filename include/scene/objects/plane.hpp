@@ -56,4 +56,10 @@ class plane : public object {
 
         /* Normal map vector computation at render time */
         rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal) const;
+
+
+        rt::vector sample(randomgen& rg) const;
+        
+        rt::vector sample_visible(randomgen& rg, const rt::vector& pt) const;
+
 };

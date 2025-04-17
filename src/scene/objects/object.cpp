@@ -47,3 +47,13 @@ rt::vector object::compute_normal_from_map(const rt::vector& /*tangent_space_nor
     
     return local_normal;
 }
+
+/* Uniformly samples a point on the object */
+rt::vector object::sample(randomgen& /*rg*/) const {
+    return rt::vector();
+}
+
+/* Uniformly samples a point on the object that is visible from pt */
+rt::vector object::sample_visible(randomgen& /*rg*/, const rt::vector& /*pt*/) const {
+    return rt::vector();
+}

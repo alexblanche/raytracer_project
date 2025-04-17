@@ -5,7 +5,7 @@
 #include "scene/material/material.hpp"
 
 #include <cmath>
-
+#include <stdexcept>
 #include <optional>
 
 /* Constructors */
@@ -132,4 +132,14 @@ barycentric_info plane::get_barycentric(const rt::vector& p) const {
 rt::vector plane::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal) const {
 
     return tangent_space_normal.x * right_dir.value() + tangent_space_normal.y * down_dir.value() + tangent_space_normal.z * local_normal;
+}
+
+
+rt::vector plane::sample(randomgen& /*rg*/) const {
+    throw std::runtime_error("Sampling is unavailable for planes");
+}
+
+
+rt::vector plane::sample_visible(randomgen& /*rg*/, const rt::vector& /*pt*/) const {
+    throw std::runtime_error("Sampling is unavailable for planes");
 }

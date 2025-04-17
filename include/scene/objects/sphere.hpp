@@ -5,6 +5,7 @@
 #include "light/vector.hpp"
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
+#include "auxiliary/randomgen.hpp"
 
 #include <optional>
 
@@ -45,4 +46,14 @@ class sphere : public object {
         /* Normal map vector computation at render time
         Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
         rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal) const;
+
+        
+        /* Sampling */
+
+        /* Uniformly samples a point on the sphere */
+        rt::vector sample(randomgen& rg) const;
+
+        /* Uniformly samples a point on the sphere that is visible from pt */
+        rt::vector sample_visible(randomgen& rg, const rt::vector& pt) const;
+
 };

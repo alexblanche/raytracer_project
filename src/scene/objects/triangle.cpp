@@ -321,3 +321,12 @@ rt::vector triangle::compute_normal_from_map(const rt::vector& tangent_space_nor
 #endif
 
 }
+
+
+rt::vector triangle::sample(randomgen& /*rg*/) const {
+    throw std::runtime_error("Sampling is not yet implemented for triangles");
+}
+
+rt::vector triangle::sample_visible(randomgen& /*rg*/, const rt::vector& /*pt*/) const {
+    throw std::runtime_error("Sampling is not yet implemented for triangles");
+}

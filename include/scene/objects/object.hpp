@@ -87,4 +87,11 @@ class object {
 
         virtual rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal) const;
 
+        /* Sampling */
+
+        /* Uniformly samples a point on the object */
+        virtual rt::vector sample(randomgen& rg) const;
+
+        /* Uniformly samples a point on the object that is visible from pt */
+        virtual rt::vector sample_visible(randomgen& rg, const rt::vector& pt) const;
 };
