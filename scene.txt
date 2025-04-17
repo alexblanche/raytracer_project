@@ -1,17 +1,25 @@
-resolution width:1920 height:1080
-camera position:(0, -600, -3500) direction:(0, 0.25, 1) rightdir:(1, 0, 0) fov_width:1366 distance:2000
-background_texture ../../../raytracer_project/sky/dome/field.bmp rotate_x:0 rotate_y:1.57 rotate_z:0
+resolution width:1366 height:768
+camera position:(0, 200, 0) direction:(0, 0, 1) rightdir:(1, 0, 0) fov_width:1366 distance:350
+background_color 190 235 255
 polygons_per_bounding 0
 
-material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:20 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-quad (-400, -599, 500) (-400, -599, 100) (400, -599, 100) (400, -599, 500) material:white_light
 
-# load_texture earth ../../../raytracer_project/texture_assets/earth_2.bmp
-load_texture checkered ../../../raytracer_project/texture_assets/checkered.bmp
+plane normal:(0, -1, 0) position:(0, 600, 0) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0.2 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+plane normal:(0, 0, -1) position:(0, 0, 1200) material:(color:(255, 255, 255) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+plane normal:(1, 0, 0) position:(-1000, 0, 0) material:(color:(255, 80, 80) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+plane normal:(-1, 0, 0) position:(1000, 0, 0) material:(color:(80, 255, 80) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+plane normal:(0, 0, 1) position:(0, 0, 0) material:(color:(10, 180, 255) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+plane normal:(0, 1, 0) position:(0, -600, 0) material:(color:(10, 10, 10) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0.5 reflects_color:false transparency:0 scattering:0 refraction_index:1)
 
-sphere center:( 0, 200, 400) radius:500 material:(color:(63, 159, 244) emitted_color:(0, 0, 0) reflectivity:0.99 emission:0 specular_p:0.04 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+material white_light (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:10 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
+quad (-400, -599, 800) (-400, -599, 400) (400, -599, 400) (400, -599, 800) material:white_light
 
-material white_light_strong (color:(255, 255, 255) emitted_color:(255, 255, 255) reflectivity:0 emission:100 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1)
-sphere center:(1000, 250, 200) radius:100 material:white_light_strong
+# material blue_mirror (color:(10, 180, 255) emitted_color:(10, 180, 255) reflectivity:1 emission:0 specular_p:1 reflects_color:true transparency:0 scattering:0 refraction_index:1)
 
-plane normal:(0, -1, 0) position:(0, 601, 0) material:(color:(50, 50, 50) emitted_color:(0, 0, 0) reflectivity:0 emission:0 specular_p:0 reflects_color:false transparency:0 scattering:0 refraction_index:1) texture:(checkered right:(1,0,0) scale:17000)
+# box center:(0,0,600) x_axis:(-1,1,-1) y_axis:(-1,-2,-1) 200 200 200 material:blue_mirror
+# sphere center:(0,-150,600) radius:200 material:blue_mirror
+
+sphere center:(-400, 350, 950) radius:250 material:diffuse
+sphere center:( 400, 350, 650) radius:250 material:diffuse
+
+# sphere center:( 0, 350, 650) radius:250 material:glass

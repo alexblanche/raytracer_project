@@ -53,8 +53,9 @@ int main(int argc, char *argv[]) {
     bool gamma_enabled = false;
     float gamma = 1.0f;
     bool reinhardt_enabled = false;
+    bool russian_roulette_enabled = false;
 
-    if (argc == 1 || atoi(argv[1]) == 0) {
+    if (argc == 1|| atoi(argv[1]) == 0) {
         printf("Number of bounces: %u (default)\n", number_of_bounces);
     }
     else {
@@ -131,11 +132,18 @@ int main(int argc, char *argv[]) {
                 index_arg++;
                 continue;
             }
+
+            if (strcmp(argv[index_arg], "-rr") == 0) {
+                russian_roulette_enabled = true;
+                index_arg++;
+                continue;
+            }
         }
     }
 
     if (gamma_enabled) printf("Gamma correction: %.1f\n", (1.0 / gamma));
     if (reinhardt_enabled) printf("Reinhardt local tone mapping enabled\n");
+    if (russian_roulette_enabled) printf("Russian roulette technique enabled\n");
 
     /* Checking if the output directory exists */
     struct stat info;
@@ -198,7 +206,7 @@ int main(int argc, char *argv[]) {
             if (multisample)
                 render_loop_parallel_multisample(matrix, scene, number_of_bounces, number_of_samples);
             else
-                render_loop_parallel(matrix, scene, number_of_bounces);
+                render_loop_parallel(matrix, scene, number_of_bounces, russian_roulette_enabled);
 
             //if (target_number_of_rays <= 10 || i % 10 == 9) {
                 printf("\r%u / %u", i+1, target_number_of_rays);
@@ -240,7 +248,7 @@ int main(int argc, char *argv[]) {
         if (multisample)
             render_loop_parallel_multisample(matrix, scene, number_of_bounces, number_of_samples);
         else
-            render_loop_parallel(matrix, scene, number_of_bounces);
+            render_loop_parallel(matrix, scene, number_of_bounces, russian_roulette_enabled);
     }
 
     const rt::screen scr(scene.width, scene.height);
@@ -270,7 +278,7 @@ int main(int argc, char *argv[]) {
             if (multisample)
                 render_loop_parallel_multisample(matrix, scene, number_of_bounces, number_of_samples);
             else
-                render_loop_parallel(matrix, scene, number_of_bounces);
+                render_loop_parallel(matrix, scene, number_of_bounces, russian_roulette_enabled);
         }
 
         printf("\rNumber of rays per pixel: %u", number_of_rays);

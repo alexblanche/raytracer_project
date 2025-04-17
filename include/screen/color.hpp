@@ -103,6 +103,13 @@ namespace rt  {
 			}
 
 			/**
+			 * Returns the average intensity of the components.
+			 */
+			inline real get_average() const {
+				return (red + green + blue) * 0.33333f;
+			}
+
+			/**
 			 * Comparison operator.
 			 */
 			bool operator==(const color& c) const;

@@ -135,6 +135,7 @@ rt::color background_case(const scene& scene, const ray& r,
    and an accumulator (emitted_colors) of the (product of a(j), j=n..k) * b(k). */
 
 rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
+    const bool russian_roulette,
     const real init_refr_index = 1.0f) {
 
     rt::color color_materials = rt::color::WHITE;
@@ -145,8 +146,20 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
 
     const bool bounding_method = scene.polygons_per_bounding != 0;
 
-
     for (unsigned int i = 0; i < bounce; i++) {
+
+        if (russian_roulette) {
+            const real avg = color_materials.get_average() / 255.0f;
+            if (avg < 1.0f) {
+                const real q = 1.0f - avg;
+                if (scene.rg.random_real(1.0f) > q) {
+                    color_materials = color_materials / (1.0f - q);
+                }
+                else {
+                    return emitted_colors;
+                }
+            }
+        }
 
         const std::optional<hit> opt_h =
             bounding_method ?

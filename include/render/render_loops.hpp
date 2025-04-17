@@ -6,11 +6,11 @@
 
 /* Sequential loop */
 void render_loop_seq(std::vector<vector<rt::color>>& matrix,
-    scene& scene, const unsigned int number_of_bounces);
+    scene& scene, const unsigned int number_of_bounces, const bool russian_roulette);
 
 /* Main render loop */
 void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
-    scene& scene, const unsigned int number_of_bounces);
+    scene& scene, const unsigned int number_of_bounces, const bool russian_roulette);
 
 /* Render loop that handles time measurement
    If time_all is true, all lines produce a time measurement and output the estimated total time.

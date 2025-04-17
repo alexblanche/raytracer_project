@@ -18,7 +18,7 @@
 
 /* Sequential version */
 void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
-    scene& scene, const unsigned int number_of_bounces) {
+    scene& scene, const unsigned int number_of_bounces, const bool russian_roulette) {
 
     for (int i = 0; i < scene.width; i++) {
         for (int j = 0; j < scene.height; j++) {
@@ -26,7 +26,7 @@ void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
             ray r = scene.cam.depth_of_field_enabled ?
                   scene.cam.gen_ray_dof(i, j, scene.rg)
                 : scene.cam.gen_ray_normal(i, j, scene.rg);
-            const rt::color pixel_col = pathtrace(r, scene, number_of_bounces);
+            const rt::color pixel_col = pathtrace(r, scene, number_of_bounces, russian_roulette);
 
             // Updating the color matrix
             matrix[i][j] = matrix[i][j] + pixel_col;
@@ -37,7 +37,7 @@ void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
 
 /* Main render loop */
 void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
-    scene& scene, const unsigned int number_of_bounces) {
+    scene& scene, const unsigned int number_of_bounces, const bool russian_roulette) {
 
     // static unsigned int cpt = 0;
 
@@ -51,7 +51,7 @@ void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
                   scene.cam.gen_ray_dof(i, j, scene.rg)
                 : scene.cam.gen_ray_normal(i, j, scene.rg);
 
-            const rt::color new_col = pathtrace(r, scene, number_of_bounces);
+            const rt::color new_col = pathtrace(r, scene, number_of_bounces, russian_roulette);
             output[j] = output[j] + new_col;
         }
 
@@ -81,7 +81,7 @@ void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
                   scene.cam.gen_ray_dof(i, j, scene.rg)
                 : scene.cam.gen_ray_normal(i, j, scene.rg);
 
-            const rt::color pixel_col = pathtrace(r, scene, number_of_bounces);
+            const rt::color pixel_col = pathtrace(r, scene, number_of_bounces, false);
             
             const rt::color& current_color = matrix[i][j];
             const rt::color new_color = current_color + pixel_col;
