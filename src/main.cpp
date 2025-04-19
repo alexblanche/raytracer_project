@@ -10,7 +10,7 @@
 
 // Folder creation
 #include <sys/stat.h>
-#include <bits/stdc++.h>
+//#include <bits/stdc++.h>
 #include <sys/types.h>
 #include <filesystem>
 
@@ -24,7 +24,63 @@
  * Esc:         Exit
  */
 
+#include "file_readers/hdr_reader.hpp"
+#include "scene/light_sources/infinite_area.hpp"
+
 int main(int argc, char *argv[]) {
+
+    ///// TEMP: testing low res infinite area
+
+    const char* file_name = "../../../raytracer_project/sky/dome/garden_8k.hdr";
+    std::optional<dimensions> size = read_hdr_size(file_name);
+    std::vector<std::vector<rt::color>> data(size.value().width, std::vector<rt::color>(size.value().height));
+    bool hdr_success = read_hdr(file_name, data);
+    if (!hdr_success) throw;
+
+    std::vector<real> lrt = compute_low_res_table(data);
+    std::vector<std::vector<rt::color>> lrdata(854, std::vector<rt::color>(480));
+    // for (unsigned int i = 0; i < LOWRES_DEFAULT_WIDTH; i++) {
+    //     for (unsigned int j = 0; j < LOWRES_DEFAULT_HEIGHT; j++) {
+    //         const real x = 255.0f * 100000.0f * lrt[j * LOWRES_DEFAULT_WIDTH + i];
+    //         //printf("%f\n", x);
+    //         lrdata[i][j] = rt::color(x, x, x);
+    //     }
+    // }
+
+    // const rt::screen test_scr(LOWRES_DEFAULT_WIDTH, LOWRES_DEFAULT_HEIGHT);
+    // test_scr.fast_copy(lrdata, LOWRES_DEFAULT_WIDTH, LOWRES_DEFAULT_HEIGHT, 1);
+    // test_scr.update_from_texture();
+    // test_scr.wait_keyboard_event();
+
+    alias_table alt(lrt, size.value().width, size.value().height, LOWRES_DEFAULT_WIDTH, LOWRES_DEFAULT_HEIGHT);
+    randomgen rand(ANTI_ALIASING);
+    // std::vector<unsigned int> samples(1000);
+    // for (unsigned int i = 0; i < samples.size(); i++) {
+    //     samples[i] = alt.sample(rand);
+    // }
+    // std::sort (samples.begin(), samples.end());
+
+    // for (unsigned int i = 0; i < samples.size(); i++) {
+    //     printf("%u %u\n", i, samples[i]);
+    // }
+
+    const rt::screen test_scr(LOWRES_DEFAULT_WIDTH, LOWRES_DEFAULT_HEIGHT);
+    const rt::color color_one(1.0f, 1.0f, 1.0f);
+    while (true) {
+        for (unsigned int i = 0; i < 1000000; i++) {
+            unsigned int s = alt.sample(rand);
+            rt::color& px = lrdata[s % LOWRES_DEFAULT_WIDTH][s / LOWRES_DEFAULT_WIDTH];
+            px = px + color_one;
+        }
+        test_scr.fast_copy(lrdata, LOWRES_DEFAULT_WIDTH, LOWRES_DEFAULT_HEIGHT, 1);
+        test_scr.update_from_texture();
+    }
+
+    // Works perfectly!
+    ////
+
+
+
 
     /* Specification of the parameters through console arguments:
     
@@ -155,19 +211,8 @@ int main(int argc, char *argv[]) {
         }
     };
 
-    // This screen causes the next one to initialize before crashing
-    // const rt::screen scr0(200, 300);
-    // scr0.update();
-    // scr0.wait_quit_event();
-
     /* *************************** */
     /* Scene description */
-    
-    /* Orientation of the space:
-       negative x to the left, positive x to the right
-       negative y to the top,  positive y to the bottom (/!\)
-       negative z toward the camera, positive x forward
-    */
 
     std::optional<scene> scene_opt = parse_scene_descriptor("../scene.txt", ANTI_ALIASING);
     

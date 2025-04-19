@@ -48,6 +48,7 @@ add_library(${libname} SHARED
 	src/scene/objects/bounding.cpp
 	src/scene/objects/cylinder.cpp
 	src/tracing/directions.cpp
+	src/scene/light_sources/infinite_area.cpp
 	src/tracing/tracing.cpp
 	src/scene/camera.cpp
 	src/file_readers/scene_parser.cpp
