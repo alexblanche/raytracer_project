@@ -373,7 +373,7 @@ rt::vector quad::sample(randomgen& rg) const {
     /* Incorrect version: does not sample uniformly (will do for now) */
 
     const real u = rg.random_real(1.0f);
-    const real v = rg.random_real(1.0f);
+    const real v = rg.random_real(1.0f - u);
 
     return (rg.random_real(1.0f) < 0.5f) ?
         position + (u * v1) + (v * v2)

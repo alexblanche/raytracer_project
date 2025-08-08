@@ -327,7 +327,7 @@ rt::vector triangle::sample(randomgen& rg) const {
     
     /* Incorrect version: does not sample uniformly (will do for now) */
     const real u = rg.random_real(1.0f);
-    const real v = rg.random_real(1.0f);
+    const real v = rg.random_real(1.0f - u);
 
     return position + (u * v1) + (v * v2);
 

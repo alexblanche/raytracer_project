@@ -32,9 +32,7 @@
 int main(int argc, char *argv[]) {
 
     // printf("real : %llu, color : %llu, vector : %llu\n", sizeof(real), sizeof(rt::color), sizeof(rt::vector));
-    printf("material : %llu\n", sizeof(material));
-
-
+    // printf("material : %llu\n", sizeof(material));
 
     ///// TEMP: testing low res infinite area
     /*
