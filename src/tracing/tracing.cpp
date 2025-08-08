@@ -54,16 +54,14 @@ void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real re
     const rt::vector central_dir = get_central_reflected_direction(h, local_normal, reflectivity, inward);
                     
     /* Direction according to Lambert's cosine law */
-    if (reflectivity >= 1.0f) {
-        r.set_direction(central_dir);
-    }
-    else {
-        r.set_direction(
-            (central_dir +
-                ((1.0f - reflectivity) * random_direction(rg, central_dir, PI))
-            ).unit()
-        );
-    }
+    const rt::vector dir = (reflectivity >= 1.0f) ?
+        central_dir
+        :
+        (central_dir +
+            ((1.0f - reflectivity) * random_direction(rg, central_dir, PI))
+        ).unit();
+    r.set_direction(dir);
+    
 
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
@@ -109,18 +107,16 @@ void refractive_case(ray& r, const hit& h, randomgen& rg, const real scattering,
 rt::color background_case(const scene& scene, const ray& r,
     const rt::color& color_materials, const rt::color& emitted_colors) {
 
-    if (scene.background.has_texture()) {
-        /* Determining the pixel of the background texture to display */
-        /* Determining the spherical coordinates of the direction,
-            then the UV-coordinates in the 360 image */
+    /* Determining the pixel of the background texture to display */
+    /* Determining the spherical coordinates of the direction,
+        then the UV-coordinates in the 360 image */
 
-        const rt::vector& dir = r.get_direction();
-        return (color_materials * (scene.background.get_color(dir))) + emitted_colors;
-
-    }
-    else {
-        return (color_materials * scene.background.get_color()) + emitted_colors;
-    }
+    return (color_materials *
+        (scene.background.has_texture() ?
+            scene.background.get_color(r.get_direction())
+            :
+            scene.background.get_color()))
+        + emitted_colors;
 }
 
 

@@ -33,16 +33,10 @@ const rt::color& background_container::get_color(const rt::vector& dir) const {
         phi = (dir_rotated.y > 0.0f) ? PI : 0;
     }
 
-    real theta;
-    if (dir_rotated.x > 0.0f) {
-        theta = atanf(dir_rotated.z / dir_rotated.x) + 1.5f * PI;
-    }
-    else if (dir_rotated.x < 0.0f) {
-        theta = atanf(dir_rotated.z / dir_rotated.x) + 0.5f * PI;
-    }
-    else {
-        theta = 0.0f;
-    }
+    const real theta = (dir_rotated.x != 0.0f) ?
+        atanf(dir_rotated.z / dir_rotated.x) + (dir_rotated.x > 0.0f ? 1.5f : 0.5f) * PI
+        :
+        0.0f;
 
     /* Determining the UV-coordinates */
     const real u = 1.0f - theta / (2.0f * PI);
