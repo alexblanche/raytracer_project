@@ -285,11 +285,26 @@ int main(int argc, char** argv) {
                 // Determining the cartesian coordinates of the pixel in world space
                 const rt::vector x_component = scaled_x_axis * (i - half_scr_width);
                 const rt::vector cartesian = pre_cartesian + x_component;
+                /*
                 // Converting the coordinates into spherical coordinates in world space
                 const spherical sph(cartesian);
 
                 // Reading the pixel of the image corresponding to the spherical coordinates of the pixel in world space
                 const int index_src = 3 * (((int) (sph.phi * img_scale_y)) * img_width + (int) (sph.theta * img_scale_x));
+                */
+                
+                const float theta =
+                    (cartesian.x != 0) ?
+                        atanf(cartesian.z / cartesian.x) + (cartesian.x > 0 ? 3.0f * PIOVER2 : PIOVER2)
+                        :
+                        3.0f * PIOVER2;
+        
+                const float phi = asinf(cartesian.y / cartesian.norm()) + PIOVER2;
+
+                // Reading the pixel of the image corresponding to the spherical coordinates of the pixel in world space
+                const int index_src = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
+                
+
                 // Copying its color onto the screen
                 const int index = 3 * (jwidth + i);
                 texture_pixels[index]     = orig_pixels[index_src];
