@@ -27,8 +27,6 @@
 #include "file_readers/hdr_reader.hpp"
 #include "scene/light_sources/infinite_area.hpp"
 
-#include "screen/color.hpp"
-
 int main(int argc, char *argv[]) {
 
     // printf("real : %llu, color : %llu, vector : %llu\n", sizeof(real), sizeof(rt::color), sizeof(rt::vector));
@@ -221,7 +219,7 @@ int main(int argc, char *argv[]) {
     /* *************************** */
     /* Scene description */
 
-    std::optional<scene> scene_opt = parse_scene_descriptor("../scene.txt", ANTI_ALIASING);
+    std::optional<scene> scene_opt = parse_scene_descriptor("../scene.txt");
     
     if (not scene_opt.has_value()) {
         printf("Scene creation failed\n");

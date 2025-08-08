@@ -12,7 +12,7 @@ using namespace std;
  * and abs_inv_dir = (abs(inv_d.x), abs(inv_d.y), abs(inv_z.z))
 */
 
-class ray {
+struct ray {
     
     protected:
         rt::vector origin;

@@ -313,7 +313,7 @@ std::optional<texture_info> parse_texture_info(FILE* file,
 
 /** Scene description parser **/
 
-std::optional<scene> parse_scene_descriptor(const char* file_name, const real std_dev_anti_aliasing) {
+std::optional<scene> parse_scene_descriptor(const char* file_name) {
 
     FILE* file = fopen(file_name, "r");
 
@@ -886,7 +886,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 std::move(background_texture),
                 rx, ry, rz,
                 width, height, cam, polygons_per_bounding,
-                std_dev_anti_aliasing, 1.0 / inverse_gamma);
+                1.0 / inverse_gamma);
         }
         else {
             scene_opt.emplace(std::move(object_set),
@@ -896,7 +896,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name, const real st
                 std::move(material_set),
                 background_color,
                 width, height, cam, polygons_per_bounding,
-                std_dev_anti_aliasing, 1.0 / inverse_gamma);
+                1.0 / inverse_gamma);
         }
 
         return scene_opt;

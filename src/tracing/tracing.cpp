@@ -134,7 +134,7 @@ rt::color background_case(const scene& scene, const ray& r,
    in iterative form, we have an accumulator color_materials of the product of the a(k), k=n..,
    and an accumulator (emitted_colors) of the (product of a(j), j=n..k) * b(k). */
 
-rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
+rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int bounce,
     const bool russian_roulette,
     const real init_refr_index = 1.0f) {
 
@@ -152,7 +152,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
             const real avg = color_materials.get_average() / 255.0f;
             if (avg < 1.0f) {
                 const real q = 1.0f - avg;
-                if (scene.rg.random_real(1.0f) > q) {
+                if (rg.random_real(1.0f) > q) {
                     color_materials = color_materials / (1.0f - q);
                 }
                 else {
@@ -227,10 +227,10 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
                     
                     /* Specular bounce */
 
-                    const bool is_specular = scene.rg.random_real(1.0f) <= m.get_specular_proba();
+                    const bool is_specular = rg.random_real(1.0f) <= m.get_specular_proba();
                     const real specular_reflectivity = is_specular ? reflectivity : m.get_secondary_reflectivity();
                     
-                    specular_reflective_case(r, h, scene.rg, specular_reflectivity, normal, inward);
+                    specular_reflective_case(r, h, rg, specular_reflectivity, normal, inward);
 
                     /* We update color_materials only if the material reflects colors (like a christmas tree ball),
                     otherwise the reflection has the original color (like a tomato) */
@@ -240,7 +240,7 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
 
                     /* Diffuse bounce */
 
-                    diffuse_case(r, h, normal, scene.rg, inward);
+                    diffuse_case(r, h, normal, rg, inward);
                     update_acc(true, color);
                 }
             }
@@ -267,12 +267,12 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
                 // const real kr = inward ? h.get_fresnel(sin_theta_2_sq, refr_index, next_refr_i) : 0.0f;
                 const real kr = inward ? get_schlick(h, normal, refr_index, next_refr_i) : 0.0f;
 	
-                if (inward && scene.rg.random_real(1.0f) * m.get_transparency() <= kr) {
+                if (inward && rg.random_real(1.0f) * m.get_transparency() <= kr) {
                 
                     /* The ray is reflected */
                     
                     /* Is it a pure specular or a mix of specular and diffuse just like in the previous case? */
-                    specular_reflective_case(r, h, scene.rg, reflectivity, normal, inward);
+                    specular_reflective_case(r, h, rg, reflectivity, normal, inward);
                     update_acc(false, color);
                 }
                 else {
@@ -283,13 +283,13 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
                     if (sin_theta_2_sq >= 1.0f) {
                         /* Total internal reflection */
 
-                        specular_reflective_case(r, h, scene.rg, reflectivity, normal, inward);
+                        specular_reflective_case(r, h, rg, reflectivity, normal, inward);
                         update_acc(false, color);
                     }
                     else {
                         /* Transmission */
 
-                        refractive_case(r, h, scene.rg, m.get_refraction_scattering(), normal,
+                        refractive_case(r, h, rg, m.get_refraction_scattering(), normal,
                             vx, sin_theta_2_sq, inward, refr_index, next_refr_i);
                         update_acc(true, color);
                     }
@@ -316,9 +316,9 @@ rt::color pathtrace(ray& r, scene& scene, const unsigned int bounce,
 /* Path tracing with multisample approach:
    After the first hit, multiple rays are cast */
 
-rt::vector random_dir(scene& scene, const rt::vector central_dir, const real scattering) {
+rt::vector random_dir(randomgen& rg, const rt::vector central_dir, const real scattering) {
     
-    return (central_dir + (1.0f - scattering) * random_direction(scene.rg, central_dir, PI)).unit();
+    return (central_dir + (1.0f - scattering) * random_direction(rg, central_dir, PI)).unit();
 }
 
 rt::vector compute_bias(const rt::vector& hit_point, const rt::vector& normal,
@@ -334,7 +334,7 @@ rt::vector compute_bias(const rt::vector& hit_point, const rt::vector& normal,
 void compute_bouncing_ray(const material& m, const hit& h,
     // Output
     rt::vector& orig1, rt::vector& orig2, rt::vector& central_dir1, std::optional<rt::vector>& central_dir2, real& scattering1, real& scattering2,
-    real& proba_1, // if scene.rg.random_real(1.0f) <= proba_1, choose central_dir1 with scattering1, otherwise central_dir2, scattering2
+    real& proba_1, // if rg.random_real(1.0f) <= proba_1, choose central_dir1 with scattering1, otherwise central_dir2, scattering2
     rt::color& color_materials1, rt::color& color_materials2, rt::color& emitted_colors, real& init_refr_index) {
 
     init_refr_index = 1.0f;
@@ -426,7 +426,7 @@ void compute_bouncing_ray(const material& m, const hit& h,
     }
 }
 
-rt::color pathtrace_multisample(ray& r, scene& scene, const unsigned int bounce, const unsigned int number_of_samples) {
+rt::color pathtrace_multisample(ray& r, scene& scene, randomgen& rg, const unsigned int bounce, const unsigned int number_of_samples) {
     
     const bool bounding_method = scene.polygons_per_bounding != 0;
 
@@ -482,9 +482,9 @@ rt::color pathtrace_multisample(ray& r, scene& scene, const unsigned int bounce,
 
             for (unsigned int i = 0; i < number_of_samples; i++) {
 
-                const rt::vector dir = random_dir(scene, central_dir1, scattering1);
+                const rt::vector dir = random_dir(rg, central_dir1, scattering1);
                 ray bouncing_ray(orig1, dir);
-                const rt::color sample_color = pathtrace(bouncing_ray, scene, bounce - 1, 1.0f);
+                const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, 1.0f);
                 output_color = output_color + sample_color;
             }
 
@@ -499,18 +499,18 @@ rt::color pathtrace_multisample(ray& r, scene& scene, const unsigned int bounce,
 
             for (unsigned int i = 0; i < number_of_samples; i++) {
 
-                const real p = scene.rg.random_real(1.0f);
+                const real p = rg.random_real(1.0f);
                 if (p <= proba_1) {
-                    const rt::vector dir = random_dir(scene, central_dir1, scattering1);
+                    const rt::vector dir = random_dir(rg, central_dir1, scattering1);
                     ray bouncing_ray(orig1, dir);
-                    const rt::color sample_color = pathtrace(bouncing_ray, scene, bounce - 1, init_refr_index);
+                    const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, init_refr_index);
                     output_color1 = output_color1 + sample_color;
                     nb_samples1++;
                 }
                 else {
-                    const rt::vector dir = random_dir(scene, central_dir2.value(), scattering2);
+                    const rt::vector dir = random_dir(rg, central_dir2.value(), scattering2);
                     ray bouncing_ray(orig2, dir);
-                    const rt::color sample_color = pathtrace(bouncing_ray, scene, bounce - 1, 1.0f);
+                    const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, 1.0f);
                     output_color2 = output_color2 + sample_color;
                     nb_samples2++;
                 }

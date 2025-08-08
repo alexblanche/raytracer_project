@@ -18,14 +18,14 @@ scene::scene(std::vector<const object*>&& object_set,
     const int width, const int height,
     const camera& cam,
     const unsigned int polygons_per_bounding,
-    const real std_dev_anti_aliasing, const real gamma)
+    const real gamma)
 
     : object_set(std::move(object_set)), bounding_set(bounding_set),
     texture_set(std::move(texture_set)), normal_map_set(std::move(normal_map_set)),
     material_set(std::move(material_set)),
     background(background_container(bg_color)),
     width(width), height(height),
-    cam(cam), rg(randomgen(std_dev_anti_aliasing)), polygons_per_bounding(polygons_per_bounding),
+    cam(cam), polygons_per_bounding(polygons_per_bounding),
     gamma(gamma) {}
 
 
@@ -39,14 +39,14 @@ scene::scene(std::vector<const object*>&& object_set,
     const int width, const int height,
     const camera& cam,
     const unsigned int polygons_per_bounding,
-    const real std_dev_anti_aliasing, const real gamma)
+    const real gamma)
 
     : object_set(std::move(object_set)), bounding_set(bounding_set),
     texture_set(std::move(texture_set)), normal_map_set(std::move(normal_map_set)),
     material_set(std::move(material_set)),
     background(background_container(std::move(bg_texture), rx, ry, rz)),
     width(width), height(height),
-    cam(cam), rg(randomgen(std_dev_anti_aliasing)), polygons_per_bounding(polygons_per_bounding),
+    cam(cam), polygons_per_bounding(polygons_per_bounding),
     gamma(gamma) {}
 
 
@@ -104,13 +104,11 @@ std::optional<hit> scene::find_closest_object(ray& r) const {
             closest_obj_index = i;
         }
     }
-
-    if (closest_obj_index.has_value()) {
-        return object_set[closest_obj_index.value()]->compute_intersection(r, distance_to_closest);
-    }
-    else {
-        return std::nullopt;
-    }
+    
+    return (closest_obj_index.has_value()) ?
+        std::optional<hit>(object_set[closest_obj_index.value()]->compute_intersection(r, distance_to_closest))
+        :
+        std::nullopt;
 }
 
 /* Tree-search through the bounding boxes */
@@ -152,12 +150,10 @@ std::optional<hit> scene::find_closest_object_bounding(ray& r) const {
     }
 
     /* Finally, return the hit corresponding to the closest object intersected by the ray */
-    if (closest_obj.has_value()) {
-        return closest_obj.value()->compute_intersection(r, distance_to_closest);
-    }
-    else {
-        return std::nullopt;
-    }
+    return (closest_obj.has_value()) ?
+        std::optional<hit>(closest_obj.value()->compute_intersection(r, distance_to_closest))
+        :
+        std::nullopt;
 }
 
 /* Returns the color of the pixel associated with UV-coordinates u, v */

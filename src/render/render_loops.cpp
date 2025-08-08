@@ -8,8 +8,6 @@
 #include "parallel/parallel.h"
 #include <mutex>
 
-//#define ANTI_ALIASING 0.3f
-
 // Parallel for-loop macros
 #define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](int start, int end){ for(int i = start; i < end; ++i)
 #define PARALLEL_FOR_END()})
@@ -20,13 +18,15 @@
 void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
     scene& scene, const unsigned int number_of_bounces, const bool russian_roulette) {
 
+    randomgen rg(ANTI_ALIASING);
+
     for (int i = 0; i < scene.width; i++) {
         for (int j = 0; j < scene.height; j++) {
 
             ray r = scene.cam.depth_of_field_enabled ?
-                  scene.cam.gen_ray_dof(i, j, scene.rg)
-                : scene.cam.gen_ray_normal(i, j, scene.rg);
-            const rt::color pixel_col = pathtrace(r, scene, number_of_bounces, russian_roulette);
+                  scene.cam.gen_ray_dof(i, j, rg)
+                : scene.cam.gen_ray_normal(i, j, rg);
+            const rt::color pixel_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette);
 
             // Updating the color matrix
             matrix[i][j] = matrix[i][j] + pixel_col;
@@ -39,24 +39,21 @@ void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
 void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
     scene& scene, const unsigned int number_of_bounces, const bool russian_roulette) {
 
-    // static unsigned int cpt = 0;
-
     PARALLEL_FOR_BEGIN(scene.width) {
+        
+        static thread_local randomgen rg(ANTI_ALIASING);
 
         std::vector<rt::color>& output = matrix[i];
 
         for (int j = 0; j < scene.height; j++) {
 
             ray r = scene.cam.depth_of_field_enabled ?
-                  scene.cam.gen_ray_dof(i, j, scene.rg)
-                : scene.cam.gen_ray_normal(i, j, scene.rg);
+                  scene.cam.gen_ray_dof(i, j, rg)
+                : scene.cam.gen_ray_normal(i, j, rg);
 
-            const rt::color new_col = pathtrace(r, scene, number_of_bounces, russian_roulette);
+            const rt::color new_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette);
             output[j] = output[j] + new_col;
         }
-
-        // cpt++;
-        // printf("%u\n", cpt);
         
     } PARALLEL_FOR_END();
 }
@@ -73,15 +70,17 @@ void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
     float x = 100.0f / (((float) scene.width) * ((float) scene.height));
     const long int t_init = time(0);
 
+    randomgen rg(ANTI_ALIASING);
+
     PARALLEL_FOR_BEGIN(scene.width) {
 
         for (int j = 0; j < scene.height; j++) {
 
             ray r = scene.cam.depth_of_field_enabled ?
-                  scene.cam.gen_ray_dof(i, j, scene.rg)
-                : scene.cam.gen_ray_normal(i, j, scene.rg);
+                  scene.cam.gen_ray_dof(i, j, rg)
+                : scene.cam.gen_ray_normal(i, j, rg);
 
-            const rt::color pixel_col = pathtrace(r, scene, number_of_bounces, false);
+            const rt::color pixel_col = pathtrace(r, scene, rg, number_of_bounces, false);
             
             const rt::color& current_color = matrix[i][j];
             const rt::color new_color = current_color + pixel_col;
@@ -129,6 +128,8 @@ void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
 void render_loop_parallel_multisample(std::vector<std::vector<rt::color>>& matrix,
     scene& scene, const unsigned int number_of_bounces, const unsigned int number_of_samples) {
 
+    randomgen rg(ANTI_ALIASING);
+
     PARALLEL_FOR_BEGIN(scene.width) {
 
         std::vector<rt::color>& output = matrix[i];
@@ -136,10 +137,10 @@ void render_loop_parallel_multisample(std::vector<std::vector<rt::color>>& matri
         for (int j = 0; j < scene.height; j++) {
 
             ray r = scene.cam.depth_of_field_enabled ?
-                  scene.cam.gen_ray_dof(i, j, scene.rg)
-                : scene.cam.gen_ray_normal(i, j, scene.rg);
+                  scene.cam.gen_ray_dof(i, j, rg)
+                : scene.cam.gen_ray_normal(i, j, rg);
 
-            const rt::color new_col = pathtrace_multisample(r, scene, number_of_bounces, number_of_samples);
+            const rt::color new_col = pathtrace_multisample(r, scene, rg, number_of_bounces, number_of_samples);
 
             output[j] = output[j] + new_col;
         }
