@@ -27,9 +27,6 @@ class material {
         /* Probability of a specular bounce */
         real specular_probability;
 
-        /* True if the material color is reflected in specular bounces, false if it is white */
-        bool reflects_color;
-
 
         /*** Transparency ***/
 
@@ -46,6 +43,9 @@ class material {
         bool opaque;
         bool emissive;
         bool has_spec_prob;
+
+        /* True if the material color is reflected in specular bounces, false if it is white */
+        bool reflects_color;
 
     public:
 

@@ -27,16 +27,23 @@
 #include "file_readers/hdr_reader.hpp"
 #include "scene/light_sources/infinite_area.hpp"
 
+#include "screen/color.hpp"
+
 int main(int argc, char *argv[]) {
 
-    ///// TEMP: testing low res infinite area
+    // printf("real : %llu, color : %llu, vector : %llu\n", sizeof(real), sizeof(rt::color), sizeof(rt::vector));
+    printf("material : %llu\n", sizeof(material));
 
+
+
+    ///// TEMP: testing low res infinite area
+    /*
     const char* file_name = "../../../raytracer_project/sky/dome/garden_8k.hdr";
     std::optional<dimensions> size = read_hdr_size(file_name);
     std::vector<std::vector<rt::color>> data(size.value().width, std::vector<rt::color>(size.value().height));
     bool hdr_success = read_hdr(file_name, data);
     if (!hdr_success) throw;
-
+    
     std::vector<real> lrt = compute_low_res_table(data);
     std::vector<std::vector<rt::color>> lrdata(854, std::vector<rt::color>(480));
     // for (unsigned int i = 0; i < LOWRES_DEFAULT_WIDTH; i++) {
@@ -51,7 +58,7 @@ int main(int argc, char *argv[]) {
     // test_scr.fast_copy(lrdata, LOWRES_DEFAULT_WIDTH, LOWRES_DEFAULT_HEIGHT, 1);
     // test_scr.update_from_texture();
     // test_scr.wait_keyboard_event();
-
+    
     alias_table alt(lrt, size.value().width, size.value().height, LOWRES_DEFAULT_WIDTH, LOWRES_DEFAULT_HEIGHT);
     randomgen rand(ANTI_ALIASING);
     // std::vector<unsigned int> samples(1000);
@@ -63,9 +70,10 @@ int main(int argc, char *argv[]) {
     // for (unsigned int i = 0; i < samples.size(); i++) {
     //     printf("%u %u\n", i, samples[i]);
     // }
-
+    
     const rt::screen test_scr(LOWRES_DEFAULT_WIDTH, LOWRES_DEFAULT_HEIGHT);
     const rt::color color_one(1.0f, 1.0f, 1.0f);
+    
     while (true) {
         for (unsigned int i = 0; i < 1000000; i++) {
             unsigned int s = alt.sample(rand);
@@ -77,6 +85,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Works perfectly!
+    */
     ////
 
 

@@ -253,7 +253,7 @@ bool box::is_hit_by(const ray& r) const {
 
     // See measure_distance
 
-    const rt::vector u = r.get_origin();
+    const rt::vector& u = r.get_origin();
     const real pmux = position.x - u.x;
     const real pmuy = position.y - u.y;
     const real pmuz = position.z - u.z;

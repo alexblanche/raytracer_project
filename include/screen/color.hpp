@@ -23,7 +23,7 @@ namespace rt  {
 	 * The color class represents a color through its
 	 * three components: red, green, blue (RGB).
 	 */
-	class color {
+	struct color {
 		private:
 			/* Red, green blue and alpha components */
 			real red, green, blue;

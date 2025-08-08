@@ -18,17 +18,18 @@ material material::WATER = material(rt::color(255,255,255), rt::color(0,0,0), 1,
 
 material::material() : color(rt::color::WHITE), reflectivity(0),
     emitted_color(rt::color::WHITE), emission_intensity(0),
-    specular_probability(0), reflects_color(false),
+    specular_probability(0),
     transparency(0), refraction_index(1),
-    opaque(true), emissive(false), has_spec_prob(false) {}
+    opaque(true), emissive(false), has_spec_prob(false), reflects_color(false) {}
 
 material::material(const rt::color& color, const real reflectivity)
 
     : color(color), reflectivity(reflectivity),
         emission_intensity(0),
-        specular_probability(0), reflects_color(false),
+        specular_probability(0),
         transparency(0), refraction_index(1),
-        opaque(true), emissive(false), has_spec_prob(false) {}
+        opaque(true), emissive(false), has_spec_prob(false), 
+        reflects_color(false) {}
 
 material::material(const rt::color& color, const rt::color& emitted_color,
     const real reflectivity, const real emission_intensity,
@@ -38,10 +39,11 @@ material::material(const rt::color& color, const rt::color& emitted_color,
 
     : color(color), reflectivity(reflectivity),
         emitted_color(emitted_color), emission_intensity(emission_intensity),
-        specular_probability(specular_probability), reflects_color(reflects_color),
+        specular_probability(specular_probability),
         transparency(transparency), refraction_scattering(refraction_scattering),
         refraction_index(refraction_index),
-        opaque(transparency == 0), emissive(emission_intensity != 0), has_spec_prob(specular_probability != 0) {}
+        opaque(transparency == 0), emissive(emission_intensity != 0), has_spec_prob(specular_probability != 0),
+        reflects_color(reflects_color) {}
 
 /* Constructor from mtl parameters */
 material::material(const real ns,
@@ -51,8 +53,8 @@ material::material(const real ns,
     : color(kd * 255), reflectivity(pow(ns / 1000, 0.25)),
       emitted_color(ke * 255),
       specular_probability((ks.get_red() + ks.get_green() + ks.get_blue()) / 3),
-      reflects_color(false),
-      refraction_scattering(0), refraction_index(ni) {
+      refraction_scattering(0), refraction_index(ni),
+      reflects_color(false) {
 
     /* Ambient light is unused and left to global illumination
        reflects_color is left to false
