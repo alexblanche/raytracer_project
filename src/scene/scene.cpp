@@ -7,6 +7,8 @@
 std::numeric_limits<real> realscene;
 const real infinity = realscene.infinity();
 
+#include "auxiliary/custom_stack.hpp"
+
 
 /* Constructor with only background color */
 scene::scene(std::vector<const object*>&& object_set,
@@ -64,7 +66,8 @@ scene::~scene() {
     }
 
     /* Recursive destruction of the bounding boxes */
-    std::stack<const bounding*> bd_stack;
+    //std::stack<const bounding*> bd_stack;
+    custom_stack<const bounding*> bd_stack(50);
     for (const bounding* bd : bounding_set) {
         bd_stack.push(bd);
     }
@@ -122,7 +125,10 @@ std::optional<hit> scene::find_closest_object_bounding(ray& r) const {
 
     real distance_to_closest = infinity;
     std::optional<const object*> closest_obj = std::nullopt;
-    std::stack<const bounding*> bounding_stack;
+    
+    //std::stack<const bounding*> bounding_stack;
+    static thread_local custom_stack<const bounding*> bounding_stack(50);
+    bounding_stack.set_empty();
 
     /* Pass through the set of first-level bounding boxes */
     for (const bounding* const& bd : bounding_set) {

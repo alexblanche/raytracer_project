@@ -7,8 +7,11 @@
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
 
-#include <stack>
+// #include <stack>
 #include <vector>
+#include "auxiliary/custom_stack.hpp"
+
+#include <stack>
 
 class bounding {
     
@@ -76,13 +79,16 @@ class bounding {
         */
         void check_box(const ray& r,
             real& distance_to_closest, std::optional<const object*>& closest_object,
-            std::stack<const bounding*>& bounding_stack) const;
+            //std::stack<const bounding*>& bounding_stack
+            custom_stack<const bounding*>& bounding_stack
+            ) const;
 
         /* Same as check_box, but the last child is stored in a pointer to avoid pushing and
            immediately popping on the stack */
         void check_box_next(const ray& r,
             real& distance_to_closest, std::optional<const object*>& closest_object,
-            std::stack<const bounding*>& bounding_stack,
+            //std::stack<const bounding*>& bounding_stack,
+            custom_stack<const bounding*>& bounding_stack,
             bool& bd_stored, const bounding*& next_bounding) const;
 };
 

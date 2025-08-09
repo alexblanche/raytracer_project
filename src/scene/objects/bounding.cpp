@@ -12,9 +12,6 @@ const real infinity = realbd.infinity();
 
 #include <optional>
 
-#include <stack>
-#include <vector>
-
 bounding::bounding()
     : is_terminal(true), b(std::nullopt) {}
 
@@ -51,7 +48,9 @@ bounding::bounding(const box* b, const std::vector<const bounding*>& children)
 */
 void bounding::check_box(const ray& r,
     real& distance_to_closest, std::optional<const object*>& closest_object,
-    std::stack<const bounding*>& bounding_stack) const {
+    //std::stack<const bounding*>& bounding_stack
+    custom_stack<const bounding*>& bounding_stack
+    ) const {
 
     real d_cl = distance_to_closest;
     std::optional<const object*> cl_obj = closest_object;
@@ -85,7 +84,8 @@ void bounding::check_box(const ray& r,
    immediately popping on the stack */
 void bounding::check_box_next(const ray& r,
     real& distance_to_closest, std::optional<const object*>& closest_object,
-    std::stack<const bounding*>& bounding_stack,
+    //std::stack<const bounding*>& bounding_stack,
+    custom_stack<const bounding*>& bounding_stack,
     bool& bd_stored, const bounding*& next_bounding) const {
 
     if (is_terminal) {

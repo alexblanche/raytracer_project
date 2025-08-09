@@ -9,7 +9,8 @@
 
 #include "tracing/directions.hpp" 
 
-#include <stack>
+//#include <stack>
+#include "auxiliary/custom_stack.hpp"
 
 #define PI 3.14159265358979323846f
 
@@ -138,7 +139,9 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
     rt::color emitted_colors = rt::color::BLACK;
     
     real refr_index = init_refr_index;
-    std::stack<real> refr_stack;
+    //std::stack<real> refr_stack;
+    static thread_local custom_stack<real> refr_stack(20);
+    refr_stack.set_empty();
 
     const bool bounding_method = scene.polygons_per_bounding != 0;
 
