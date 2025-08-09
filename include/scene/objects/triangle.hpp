@@ -20,8 +20,12 @@ class triangle : public object {
            and searched through for each ray-object intersection computation.
         */
 
-        rt::vector normal, v1, v2, vn0, vn1, vn2;
+        rt::vector normal, v1, v2, vn0, //vn1, vn2;
+            vn1mvn0, vn2mvn0;
         real d;
+        real det;
+        int case_det;
+
 
     public:
 

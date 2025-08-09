@@ -279,13 +279,10 @@ barycentric_info quad::get_barycentric(const rt::vector& p) const {
 }
 
 rt::vector quad::get_interpolated_normal(const barycentric_info& bary) const {
-    if (bary.lower_triangle) {
-        return (((1.0f - bary.l1 - bary.l2) * vn0) + (bary.l1 * vn1) + (bary.l2 * vn2));
-    }
-    else {
-        return (((1.0f - bary.l1 - bary.l2) * vn0) + (bary.l1 * vn3) + (bary.l2 * vn2));
-    }
     
+    return (((1.0f - bary.l1 - bary.l2) * vn0)
+        + (bary.l1 * ((bary.lower_triangle) ? vn1 : vn3))
+        + (bary.l2 * vn2));
 }
 
 hit quad::compute_intersection(ray& r, const real t) const {
