@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <filesystem>
 
+#include <ctime>
 
 /* ********* MAIN FUNCTION ********* */
 
@@ -251,6 +252,9 @@ int main(int argc, char *argv[]) {
         printf("Rendering...\n");
         printf("0 / %u", target_number_of_rays);
         fflush(stdout);
+
+        const unsigned long int t_init = time_enabled ? time(0) : 0;
+        unsigned long int t_export = 0;
         
         for (unsigned int i = 0; i < target_number_of_rays; i++) {
             if (multisample)
@@ -262,12 +266,20 @@ int main(int argc, char *argv[]) {
                 printf("\r%u / %u", i+1, target_number_of_rays);
                 fflush(stdout);
             //}
+
             /* Exporting as rtdata every 100 samples */
             if (i % 100 == 99) {
+                const unsigned long int t_export_init = time_enabled ? time(0) : 0;
                 create_dir();
                 export_raw("../output/image.rtdata", i+1, matrix);
-            } 
+                const unsigned long int t_export_end = time_enabled ? time(0) : 0;
+                t_export += t_export_end - t_export_init;
+            }
+
         }
+
+        const unsigned long int t_end = time_enabled ? time(0) : 0;
+        const unsigned long int elapsed = t_end - t_init - t_export;
 
         printf("\r%u / %u", target_number_of_rays, target_number_of_rays);
 
@@ -280,6 +292,17 @@ int main(int argc, char *argv[]) {
             printf("Save failed\n");
             return EXIT_FAILURE;
         }
+
+        if (time_enabled) {
+
+            if (elapsed < 60)
+                printf("Total duration: %lu seconds\n", elapsed);
+            else if (elapsed < 3600)
+                printf("Total duration: %lu minutes %lu seconds\n", elapsed / 60, elapsed % 60);
+            else
+                printf("Total duration: %lu hours %lu minutes %lu seconds\n", elapsed / 3600, (elapsed % 3600) / 60, elapsed % 60);
+        }
+            
 
         //export_raw("image.rtdata", target_number_of_rays, matrix);
         return EXIT_SUCCESS;
