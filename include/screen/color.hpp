@@ -58,7 +58,11 @@ namespace rt  {
 			/**
 			 * Assignment by copy
 			 */
-			void operator=(const color& c);
+			inline void operator=(const color& c) {
+				red   = c.red;
+				green = c.green;
+				blue  = c.blue;
+			}
 
 			/**
 			 * Sets the red component.
@@ -112,27 +116,51 @@ namespace rt  {
 			/**
 			 * Comparison operator.
 			 */
-			bool operator==(const color& c) const;
+			inline bool operator==(const color& c) const {
+				return (c.red   == red)
+					&& (c.green == green)
+					&& (c.blue  == blue);
+			}
 
 			/**
 			 * Scaling operator.
 			 */
-			color operator*(const real x) const;
+			inline color operator*(const real x) const {
+				return color(
+					x * red,
+					x * green,
+					x * blue);
+			}
 
 			/**
 			 * Addition operator.
 			 */
-			color operator+(const color& c) const;
+			inline color operator+(const color& c) const {
+				return color(
+					red   + c.red,
+					green + c.green,
+					blue  + c.blue);
+			}
 
 			/**
-	 		* Product operator.
-	 		*/
-			color operator*(const color& c) const;
-
-			/**
-			 * Division operator.
+			 * Product operator.
 			 */
-			color operator/(const real x) const;
+			inline color operator*(const color& c) const {
+				return color(
+					red 	* c.red 	/ 255.0,
+					green 	* c.green 	/ 255.0,
+					blue 	* c.blue 	/ 255.0);
+			}
+
+			/**
+			 * Division by a scalar operator.
+			 */
+			inline color operator/(const real x) const {
+				return color(
+					red 	/ x,
+					green 	/ x,
+					blue 	/ x);
+			}
 
 			/**
 			 * Maxing out color components at 255.

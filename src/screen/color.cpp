@@ -30,9 +30,9 @@ namespace rt {
 	 * Copy constructor.
 	 */
 	color::color(const color& c) {
-	 	red   = c.get_red();
-	 	green = c.get_green();
-	 	blue  = c.get_blue();
+	 	red   = c.red;
+	 	green = c.green;
+	 	blue  = c.blue;
 	}
 
 	/**
@@ -42,64 +42,6 @@ namespace rt {
 	color::color(const real r, const real g, const real b)
 		: red(r), green(g), blue(b) {}
 
-	
-	/**
-	 * Assignment by copy
-	 */
-	void color::operator=(const color& c) {
-		red   = c.get_red();
-		green = c.get_green();
-		blue  = c.get_blue();
-	}
-
-	/**
-	 * Comparison operator.
-	 */
-	bool color::operator==(const color& c) const {
-		return (c.get_red()   == get_red())
-			&& (c.get_green() == get_green())
-			&& (c.get_blue()  == get_blue());
-	}
-
-	/**
-	 * Scaling operator.
-	 */
-	color color::operator*(const real x) const {
-		return color(
-			x * get_red(),
-			x * get_green(),
-			x * get_blue());
-	}
-
-	/**
-	 * Addition operator.
-	 */
-	color color::operator+(const color& c) const {
-		return color(
-			get_red()   + c.get_red(),
-			get_green() + c.get_green(),
-			get_blue()  + c.get_blue());
-	}
-
-	/**
-	 * Product operator.
-	 */
-	color color::operator*(const color& c) const {
-		return color(
-			get_red() 	* c.get_red() 	/ 255.0,
-			get_green() * c.get_green() / 255.0,
-			get_blue() 	* c.get_blue() 	/ 255.0);
-	}
-
-	/**
-	 * Division by a scalar operator.
-	 */
-	color color::operator/(const real x) const {
-		return color(
-			get_red() 	/ x,
-			get_green() / x,
-			get_blue() 	/ x);
-	}
 
 	/**
 	 * Maxing out color components at 255.
