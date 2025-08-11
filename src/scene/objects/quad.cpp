@@ -79,10 +79,10 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
 
 // Constructor from four points with vertex normals
 quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
-    const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
+    const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
     const size_t material_index, const std::optional<texture_info>& info)
 
-    : object(p0, material_index, info), vn0(vn0.unit())
+    : object(p0, material_index, info), vn0(vn0init.unit())
     //, vn1(vn1.unit()), vn2(vn2.unit()), vn3(vn3.unit())
     {
     
@@ -141,10 +141,10 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
 
 // Constructor from four points with vertex normals and normal mapping enabled
 quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
-    const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
+    const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
     const size_t material_index, const std::optional<texture_info>& info, const bool normal_mapping)
 
-    : object(p0, material_index, info), vn0(vn0.unit())
+    : object(p0, material_index, info), vn0(vn0init.unit())
     //, vn1(vn1.unit()), vn2(vn2.unit()), vn3(vn3.unit())
     {
     
@@ -467,8 +467,9 @@ barycentric_info quad::get_barycentric(const rt::vector& p) const {
     default: l2 = 0;
         break;
     }
+    const real l11 = detv2 / det23;
 
-    return barycentric_info(l1, l2, false);
+    return barycentric_info(l11, l2, false);
 
 }
 

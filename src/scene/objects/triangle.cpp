@@ -64,10 +64,10 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
 
 // Constructor from three points with vertex normals
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
-    const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
+    const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2,
     const size_t material_index, const std::optional<texture_info>& info)
 
-    : object(p0, material_index, info), vn0(vn0.unit())
+    : object(p0, material_index, info), vn0(vn0init.unit())
     //, vn1(vn1.unit()), vn2(vn2.unit())
     {
     
@@ -141,10 +141,10 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
 
 // Constructor from three points with vertex normals and normal mapping enabled
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
-    const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
+    const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2,
     const size_t material_index, const std::optional<texture_info>& info, const bool normal_mapping)
 
-    : object(p0, material_index, info), vn0(vn0.unit())
+    : object(p0, material_index, info), vn0(vn0init.unit())
     //, vn1(vn1.unit()), vn2(vn2.unit())
     {
     
