@@ -75,6 +75,10 @@ struct screen_axes {
         const float sinphi = sinf(phi);
         const float costheta = cosf(theta);
         const float sintheta = sinf(theta);
+        // float cosphi, sinphi, costheta, sintheta;
+        // sincosf(phi, &sinphi, &cosphi);
+        // sincosf(theta, &sintheta, &costheta);
+
         //const float l = cosf(fov_x * PI);
         constexpr float l = 0.58778525229f; //cosf(0.3f * PI);
 
@@ -198,6 +202,39 @@ int main(int argc, char** argv) {
         }
     }
 
+    /////////////////////////////
+    // Test fused multiply add (fma)
+    // 16s classic, 11s fma
+    /*
+    rt::color colo(0, 0, 0);
+    rt::color colo_fma(0, 0, 0);
+    constexpr int nbiter = 100;
+    const unsigned long int tcolo = time(0);
+    for (int iter = 0; iter < nbiter; iter++) {
+        for (int i = 0; i < dwidth; i++) {
+            const std::vector<rt::color>& line = matrix[i];
+            for (int j = 0; j < dheight; j++) {
+                const rt::color& c = line[j];
+                colo = (c * 2.0f) + colo;
+            }
+        }
+    }
+    const unsigned long int tcolo_end = time(0);
+    for (int iter = 0; iter < nbiter; iter++) {
+        for (int i = 0; i < dwidth; i++) {
+            const std::vector<rt::color>& line = matrix[i];
+            for (int j = 0; j < dheight; j++) {
+                const rt::color& c = line[j];
+                colo_fma = fma(c, (real) 2.0f, colo_fma);
+            }
+        }
+    }
+    const unsigned long int tcolo_end_end = time(0);
+    printf("colo = (%f, %f, %f), colo_fma = (%f, %f, %f)\ntime colo = %lu s, colo_fma = %lu s\n", colo.get_red(), colo.get_green(), colo.get_blue(),
+        colo_fma.get_red(), colo_fma.get_green(), colo_fma.get_blue(), tcolo_end - tcolo, tcolo_end_end - tcolo_end);
+    */
+    /////////////////////////
+
     SDL_Surface* surface = SDL_CreateRGBSurfaceFrom((void*) pixels.data(),
             dwidth,
             dheight,
@@ -288,15 +325,17 @@ int main(int argc, char** argv) {
         for (int j = 0; j < height; j++) {
 
             // Pre-computation of the cartesian coordinates of the pixel in world space
-            const rt::vector y_component = scaled_y_axis * (j - half_scr_height);
-            const rt::vector pre_cartesian = axes.center + y_component;
+            // const rt::vector y_component = scaled_y_axis * (j - half_scr_height);
+            // const rt::vector pre_cartesian = axes.center + y_component;
+            const rt::vector pre_cartesian = fma(scaled_y_axis, j - half_scr_height, axes.center);
             // const int jwidth = j * width;
 
             for (int i = 0; i < width; i++) {
                 
                 // Determining the cartesian coordinates of the pixel in world space
-                const rt::vector x_component = scaled_x_axis * (i - half_scr_width);
-                const rt::vector cartesian = pre_cartesian + x_component;
+                // const rt::vector x_component = scaled_x_axis * (i - half_scr_width);
+                // const rt::vector cartesian = pre_cartesian + x_component;
+                const rt::vector cartesian = fma(scaled_x_axis, i - half_scr_width, pre_cartesian);
                 /*
                 // Converting the coordinates into spherical coordinates in world space
                 const spherical sph(cartesian);

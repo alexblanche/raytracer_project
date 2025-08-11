@@ -17,6 +17,8 @@
 #include "parameters.hpp"
 #include <vector>
 
+#include <cmath>
+
 namespace rt  {
 
 	/**
@@ -206,6 +208,16 @@ namespace rt  {
 		v.set_red  (v.get_red()   / a);
 		v.set_green(v.get_green() / a);
 		v.set_blue (v.get_blue()  / a);
+	}
+
+	// Returns c1 * a + c2
+	inline color fma(const color& c1, const real a, const color& c2) {
+		return
+			color(
+				std::fma(c1.get_red(),   a, c2.get_red()),
+				std::fma(c1.get_green(), a, c2.get_green()),
+				std::fma(c1.get_blue(),  a, c2.get_blue())
+			);
 	}
 }
 

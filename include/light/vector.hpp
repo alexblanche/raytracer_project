@@ -159,6 +159,17 @@ namespace rt {
 		v.y *= a;
 		v.z *= a;
 	}
+
+	// Returns v1 * a + v2, where a is a scalar
+
+	inline vector fma(const vector& v1, const real a, const vector& v2) {
+		return
+			vector(
+				std::fma(v1.x, a, v2.x),
+				std::fma(v1.y, a, v2.y),
+				std::fma(v1.z, a, v2.z)
+			);
+	}
 }
 
 
