@@ -218,8 +218,9 @@ namespace rt {
 		int texture_pitch;
 
 		SDL_LockTexture(texture, NULL, (void**) &texture_pixels, &texture_pitch);
-		/*
+		
 		const unsigned int padding = texture_pitch % 3;
+		/*
 		unsigned int index = 0;
 
 		for (size_t j = 0; j < height; j++) {
@@ -240,7 +241,7 @@ namespace rt {
         }
 		*/
 		
-		const unsigned int threewidth = 3 * width;
+		const unsigned int shift = 3 * width + padding;
 		for (size_t i = 0; i < width; i++) {
 			const std::vector<color>& line = matrix[i];
 			const unsigned int threei = 3 * i;
@@ -250,7 +251,7 @@ namespace rt {
 				const Uint8 g = std::min(pixel_col.get_green() * invN, (real) 255.0f);
 				const Uint8 b = std::min(pixel_col.get_blue()  * invN, (real) 255.0f);
 
-				unsigned int index = j * threewidth + threei;
+				unsigned int index = j * shift + threei;
 				texture_pixels[index] = r;
 				index++;
 				texture_pixels[index] = g;
@@ -258,7 +259,6 @@ namespace rt {
 				texture_pixels[index] = b;
 				index++;
             }
-			//index += padding;
         }
 		
         SDL_UnlockTexture(texture);
@@ -276,8 +276,8 @@ namespace rt {
 		int texture_pitch;
 
 		SDL_LockTexture(texture, NULL, (void**) &texture_pixels, &texture_pitch);
-		/*
 		const unsigned int padding = texture_pitch % 3;
+		/*
 		unsigned int index = 0;
 
 		for (size_t j = 0; j < height; j++) {
@@ -304,7 +304,7 @@ namespace rt {
         }
 		*/
 		
-		const unsigned int threewidth = 3 * width;
+		const unsigned int shift = 3 * width + padding;
 		for (size_t i = 0; i < width; i++) {
 			const std::vector<color>& line = matrix[i];
 			const unsigned int threei = 3 * i;
@@ -320,7 +320,7 @@ namespace rt {
 				const Uint8 g = std::min(gamma_corrected_green, (real) 255.0f);
 				const Uint8 b = std::min(gamma_corrected_blue,  (real) 255.0f);
 
-				unsigned int index = j * threewidth + threei;
+				unsigned int index = j * shift + threei;
 				texture_pixels[index] = r;
 				index++;
 				texture_pixels[index] = g;
@@ -328,7 +328,6 @@ namespace rt {
 				texture_pixels[index] = b;
 				index++;
             }
-			//index += padding;
         }
 		
         SDL_UnlockTexture(texture);
@@ -359,13 +358,13 @@ namespace rt {
 		int texture_pitch;
 
 		SDL_LockTexture(texture, NULL, (void**) &texture_pixels, &texture_pitch);
-		//const unsigned int padding = texture_pitch % 3;
+		const unsigned int padding = texture_pitch % 3;
         
 		//unsigned int index = 0;
 		constexpr real inv255 = 1.0f / 255.0f;
 		const real inv = inv255 * invN;
 
-		const unsigned int threewidth = 3 * width;
+		const unsigned int shift = 3 * width + padding;
 		for (size_t i = 0; i < width; i++) {
 			const std::vector<color>& line = matrix[i];
 			const unsigned int threei = 3 * i;
@@ -389,7 +388,7 @@ namespace rt {
 				const Uint8 g = std::min(gg, (real) 255.0f);
 				const Uint8 b = std::min(gb, (real) 255.0f);
 
-				unsigned int index = j * threewidth + threei;
+				unsigned int index = j * shift + threei;
 				texture_pixels[index] = r;
 				index++;
 				texture_pixels[index] = g;
@@ -397,7 +396,6 @@ namespace rt {
 				texture_pixels[index] = b;
 				index++;
             }
-			//index += padding;
         }
 		
         SDL_UnlockTexture(texture);
