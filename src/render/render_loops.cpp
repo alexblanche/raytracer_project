@@ -52,7 +52,8 @@ void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
                 : scene.cam.gen_ray_normal(i, j, rg);
 
             const rt::color new_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette);
-            output[j] = output[j] + new_col;
+            //output[j] = output[j] + new_col;
+            output[j] += new_col;
         }
         
     } PARALLEL_FOR_END();

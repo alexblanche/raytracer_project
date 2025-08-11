@@ -107,6 +107,14 @@ namespace rt {
 		 * Rotation around axis z by an angle theta
 		 * */
 		vector rotate_z(const real theta) const;
+
+		// In-place transformations	
+		inline void to_unit() {
+			const real n = norm();
+			x /= n;
+			y /= n;
+			z /= n;
+		}
 	};
 
 	/**
@@ -131,6 +139,25 @@ namespace rt {
 	 */
 	inline vector operator/(const vector& v, const real a) {
 		return vector(v.x / a, v.y / a, v.z / a);
+	}
+
+	// In-place transformations
+	inline void operator +=(vector& v, const vector& other) {
+		v.x += other.x;
+		v.y += other.y;
+		v.z += other.z;
+	}
+
+	inline void operator -=(vector& v, const vector& other) {
+		v.x -= other.x;
+		v.y -= other.y;
+		v.z -= other.z;
+	}
+
+	inline void operator *=(vector& v, const real a) {
+		v.x *= a;
+		v.y *= a;
+		v.z *= a;
 	}
 }
 

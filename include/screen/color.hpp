@@ -147,9 +147,9 @@ namespace rt  {
 			 */
 			inline color operator*(const color& c) const {
 				return color(
-					red 	* c.red 	/ 255.0,
-					green 	* c.green 	/ 255.0,
-					blue 	* c.blue 	/ 255.0);
+					red 	* c.red 	/ 255.0f,
+					green 	* c.green 	/ 255.0f,
+					blue 	* c.blue 	/ 255.0f);
 			}
 
 			/**
@@ -176,5 +176,36 @@ namespace rt  {
 
 	/* Applies gamma correction to the color data */
 	void apply_gamma(std::vector<std::vector<color>>& data, const real gamma);
+
+	// In-place transformations
+	inline void operator +=(color& v, const color& other) {
+		v.set_red  (v.get_red()   + other.get_red());
+		v.set_green(v.get_green() + other.get_green());
+		v.set_blue (v.get_blue()  + other.get_blue());
+	}
+
+	inline void operator -=(color& v, const color& other) {
+		v.set_red  (v.get_red()   - other.get_red());
+		v.set_green(v.get_green() - other.get_green());
+		v.set_blue (v.get_blue()  - other.get_blue());
+	}
+
+	inline void operator *=(color& v, const color& other) {
+		v.set_red  (v.get_red()   * other.get_red()   / ((real) 255.0f));
+		v.set_green(v.get_green() * other.get_green() / ((real) 255.0f));
+		v.set_blue (v.get_blue()  * other.get_blue()  / ((real) 255.0f));
+	}
+
+	inline void operator *=(color& v, const real a) {
+		v.set_red  (v.get_red()   * a);
+		v.set_green(v.get_green() * a);
+		v.set_blue (v.get_blue()  * a);
+	}
+
+	inline void operator /=(color& v, const real a) {
+		v.set_red  (v.get_red()   / a);
+		v.set_green(v.get_green() / a);
+		v.set_blue (v.get_blue()  / a);
+	}
 }
 

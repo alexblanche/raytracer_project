@@ -48,7 +48,7 @@ std::optional<real> sphere::measure_distance(const ray& r) const {
     */
 
     const rt::vector v = position - r.get_origin();
-    const rt::vector dir = r.get_direction(); // the direction is assumed to be a unit vector
+    const rt::vector& dir = r.get_direction(); // the direction is assumed to be a unit vector
 
     const real nv2 = v.normsq();
     const real dv = (dir | v);
@@ -66,15 +66,20 @@ std::optional<real> sphere::measure_distance(const ray& r) const {
         
         const real sqrtdelta = sqrt(delta);
         const real t1 = dv - sqrtdelta;
-        if (t1 >= 0.0f) {
-            return t1;
-        }
-        else {
-            const real t2 = dv + sqrtdelta;
-            if (t2 >= 0.0f) {
-                return t2;
-            }
-        }
+        // if (t1 >= 0.0f) {
+        //     return t1;
+        // }
+        // else {
+        //     const real t2 = dv + sqrtdelta;
+        //     if (t2 >= 0.0f) {
+        //         return t2;
+        //     }
+        // }
+        return (t1 >= 0.0f) ? std::optional<real>(t1)
+            :
+            (t1 >= -2.0f * sqrtdelta) ? std::optional<real>(dv + sqrtdelta)
+            :
+            std::nullopt;
     }
     
     return std::nullopt;

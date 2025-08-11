@@ -28,11 +28,13 @@ void update_accumulators(
 
     if (m.is_emissive()) {
         const rt::color emitted_light = m.get_emitted_color() * m.get_emission_intensity();
-        emitted_colors = emitted_colors + (color_materials * emitted_light);
+        //emitted_colors = emitted_colors + (color_materials * emitted_light);
+        emitted_colors += color_materials * emitted_light;
     }
     
     if (update_color_materials) {
-        color_materials = color_materials * local_color;
+        //color_materials = color_materials * local_color;
+        color_materials *= local_color;
     }
 }
 
@@ -152,7 +154,8 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
             if (avg < 1.0f) {
                 const real q = 1.0f - avg;
                 if (rg.random_real(1.0f) > q) {
-                    color_materials = color_materials / (1.0f - q);
+                    //color_materials = color_materials / (1.0f - q);
+                    color_materials /= (1.0f - q);
                 }
                 else {
                     return emitted_colors;
