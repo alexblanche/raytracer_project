@@ -335,7 +335,6 @@ int main(int argc, char *argv[]) {
     else
         scr.fast_copy(matrix, scene.width, scene.height, 1);
     
-    // 
     scr.update_from_texture();
 
     printf("\r                                                   ");
