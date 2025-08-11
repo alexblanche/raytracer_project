@@ -207,14 +207,14 @@ int main(int argc, char** argv) {
     srcrect.h = dims.value().height;
     dstrect.x = 0;
     dstrect.y = 0;
-    dstrect.w = scr.width();
-    dstrect.h = scr.height();
+    dstrect.w = width;
+    dstrect.h = height;
 
     /* Rendering texture */
     SDL_Texture* txt = SDL_CreateTexture(scr.renderer, SDL_PIXELFORMAT_BGR24, SDL_TEXTUREACCESS_STREAMING, scr.width(), scr.height());
 
     /* Variable declarations */
-    mouse_pos mouse(scr.width(), scr.height());
+    mouse_pos mouse(width, height);
 
     SDL_Event event;
     const uint64_t time_init = get_time();
@@ -227,8 +227,8 @@ int main(int argc, char** argv) {
     const int img_width = dims.value().width;
     const int img_height = dims.value().height;
 
-    const int half_scr_width = scr.width() / 2;
-    const int half_scr_height = scr.height() / 2;
+    const int half_scr_width = width / 2;
+    const int half_scr_height = height / 2;
 
     constexpr float fov_x = 0.3;
     const float fov_y = 0.15;
@@ -250,7 +250,7 @@ int main(int argc, char** argv) {
                 case SDL_MOUSEMOTION:
                     // std::cout << event.motion.xrel << ' ' << event.motion.yrel << std::endl;
                     mouse.set(event.motion.xrel, event.motion.yrel);
-                    SDL_WarpMouseInWindow(scr.window, scr.width() >> 1, scr.height() >> 1);
+                    SDL_WarpMouseInWindow(scr.window, width >> 1, height >> 1);
                     break;
                 case SDL_QUIT:
                 case SDL_KEYDOWN:
@@ -273,14 +273,15 @@ int main(int argc, char** argv) {
         const rt::vector scaled_y_axis = axes.screen_y_axis * y_step;
 
         SDL_LockTexture(txt, NULL, (void**) &texture_pixels, &texture_pitch);
-        for (int j = 0; j < scr.height(); j++) {
+        int index = 0;
+        for (int j = 0; j < height; j++) {
 
             // Pre-computation of the cartesian coordinates of the pixel in world space
             const rt::vector y_component = scaled_y_axis * (j - half_scr_height);
             const rt::vector pre_cartesian = axes.center + y_component;
-            const int jwidth = j * scr.width();
+            // const int jwidth = j * width;
 
-            for (int i = 0; i < scr.width(); i++) {
+            for (int i = 0; i < width; i++) {
                 
                 // Determining the cartesian coordinates of the pixel in world space
                 const rt::vector x_component = scaled_x_axis * (i - half_scr_width);
@@ -306,10 +307,12 @@ int main(int argc, char** argv) {
                 
 
                 // Copying its color onto the screen
-                const int index = 3 * (jwidth + i);
-                texture_pixels[index]     = orig_pixels[index_src];
-                texture_pixels[index + 1] = orig_pixels[index_src + 1];
-                texture_pixels[index + 2] = orig_pixels[index_src + 2];
+                // const int index = 3 * (jwidth + i);
+                // texture_pixels[index]     = orig_pixels[index_src];
+                // texture_pixels[index + 1] = orig_pixels[index_src + 1];
+                // texture_pixels[index + 2] = orig_pixels[index_src + 2];
+                memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                index += 3;
             }
         }
         SDL_UnlockTexture(txt);
