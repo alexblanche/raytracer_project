@@ -308,7 +308,8 @@ std::optional<real> triangle::measure_distance(const ray& r) const {
        In our case, when det = v1x * v2y - v1y * v2x,
        l1 = (cx * v2y - cy * v2x) / det and l2 = (v1x * cy - v1y * cx) / det */
 
-    const rt::vector c = u + (t * dir) - position;
+    //const rt::vector c = u + (t * dir) - position;
+    const rt::vector c = fma(dir, t, u) - position;
 
     // printf("c = (%lf, %lf, %lf), detxy = %lf, abs(detxy) = %lf, cond = %d\n", c.x, c.y, c.z, detxy, abs(detxy), abs(detxy) > 0.00000001);
 
@@ -408,12 +409,14 @@ barycentric_info triangle::get_barycentric(const rt::vector& p) const {
 
 inline rt::vector triangle::get_interpolated_normal(const barycentric_info& bary) const {
     // return (((1 - bary.l1 - bary.l2) * vn0) + (bary.l1 * vn1) + (bary.l2 * vn2));
-    return vn0 + (bary.l1 * vn1mvn0) + (bary.l2 * vn2mvn0);
+    //return vn0 + (bary.l1 * vn1mvn0) + (bary.l2 * vn2mvn0);
+    return fma(vn2mvn0, bary.l2, fma(vn1mvn0, bary.l1, vn0));
 }
 
 hit triangle::compute_intersection(ray& r, const real t) const {
     
-    const rt::vector p = r.get_origin() + t * r.get_direction();
+    //const rt::vector p = r.get_origin() + t * r.get_direction();
+    const rt::vector p = fma(r.get_direction(), t, r.get_origin());
     const object* pt_obj = this;
     ray* pt_ray = &r;
     

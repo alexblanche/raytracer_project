@@ -78,12 +78,10 @@ std::optional<real> box::measure_distance(const ray& r) const {
         const real t1 = pmun1 / pdt1 + a * l1 / abspdt1;
         // Check that t1 gives a point inside the face
         if (abs(pmun2 - t1 * pdt2) <= l2 && abs(pmun3 - t1 * pdt3) <= l3) {
-            if (t1 >= 0.0f) {
-                return t1;
-            }
-            else {
-                return std::nullopt;
-            }
+            return (t1 >= 0.0f) ?
+                std::optional<real>(t1)
+                :
+                std::nullopt;
         }
     }
 
@@ -91,21 +89,20 @@ std::optional<real> box::measure_distance(const ray& r) const {
     if (abspdt2 > 0.0000001f) {
         const real t2 = pmun2 / pdt2 + a * l2 / abspdt2;
         if (abs(pmun1 - t2 * pdt1) <= l1 && abs(pmun3 - t2 * pdt3) <= l3) {
-            if (t2 >= 0.0f) {
-                return t2;
-            }
-            else {
-                return std::nullopt;
-            }
+            return (t2 >= 0.0f) ?
+                std::optional<real>(t2)
+                :
+                std::nullopt;
         }
     }
 
     const real abspdt3 = abs(pdt3);
     if (abspdt3 > 0.0000001f) {
         const real t3 = pmun3 / pdt3 + a * l3 / abspdt3;
-        if (t3 >= 0.0f && abs(pmun1 - t3 * pdt1) <= l1 && abs(pmun2 - t3 * pdt2) <= l2) {
-            return t3;
-        }
+        return (t3 >= 0.0f && abs(pmun1 - t3 * pdt1) <= l1 && abs(pmun2 - t3 * pdt2) <= l2) ?
+            std::optional<real>(t3)
+            :
+            std::nullopt;
     }
 
     return std::nullopt;
@@ -177,7 +174,8 @@ std::optional<real> box::measure_distance(const ray& r) const {
 hit box::compute_intersection(ray& r, const real t) const {
     // Intersection point
     const rt::vector& u = r.get_origin();
-    const rt::vector p = u + t * r.get_direction();
+    //const rt::vector p = u + t * r.get_direction();
+    const rt::vector p = fma(r.get_direction(), t, u);
 
     // Re-computing the face of intersection
     // (not great, but the alternative is to return a hit object (with distance t) for every intersection check)

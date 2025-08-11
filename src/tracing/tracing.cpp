@@ -46,7 +46,8 @@ void update_accumulators(
 void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& normal,
     const bool inward, const bool outward_bias) {
 
-    r.set_origin(hit_point + ((inward == outward_bias) ? BIAS_NORM * normal : (-BIAS_NORM) * normal));
+    //r.set_origin(hit_point + ((inward == outward_bias) ? BIAS_NORM * normal : (-BIAS_NORM) * normal));
+    r.set_origin(fma(normal, (inward == outward_bias) ? BIAS_NORM : (-BIAS_NORM), hit_point));
 }
 
 
@@ -60,9 +61,10 @@ void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real re
     const rt::vector dir = (reflectivity >= 1.0f) ?
         central_dir
         :
-        (central_dir +
-            ((1.0f - reflectivity) * random_direction(rg, central_dir, PI))
-        ).unit();
+        // (central_dir +
+        //     ((1.0f - reflectivity) * random_direction(rg, central_dir, PI))
+        // ).unit();
+        (fma(random_direction(rg, central_dir, PI), 1.0f - reflectivity, central_dir)).unit();
     r.set_direction(dir);
     
 
@@ -114,12 +116,19 @@ rt::color background_case(const scene& scene, const ray& r,
     /* Determining the spherical coordinates of the direction,
         then the UV-coordinates in the 360 image */
 
-    return (color_materials *
-        (scene.background.has_texture() ?
-            scene.background.get_color(r.get_direction())
-            :
-            scene.background.get_color()))
-        + emitted_colors;
+    // return (color_materials *
+    //     (scene.background.has_texture() ?
+    //         scene.background.get_color(r.get_direction())
+    //         :
+    //         scene.background.get_color()))
+    //     + emitted_colors;
+    return fma(
+            color_materials,
+            scene.background.has_texture() ?
+                scene.background.get_color(r.get_direction())
+                :
+                scene.background.get_color(),
+            emitted_colors);
 }
 
 
@@ -186,16 +195,21 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
                     // Only polygons (triangles and quads) can be textured (for now)
                     
                     const barycentric_info bary = obj->get_barycentric(h.get_point());
-                    return
-                        (color_materials *
-                            (scene.sample_texture(obj->get_texture_info(), bary)
-                                * m.get_emission_intensity())
-                        )
-                        + emitted_colors;
+                    // return
+                    //     (color_materials *
+                    //         (scene.sample_texture(obj->get_texture_info(), bary)
+                    //             * m.get_emission_intensity())
+                    //     )
+                    //     + emitted_colors;
+                    return fma(
+                        color_materials,
+                        scene.sample_texture(obj->get_texture_info(), bary) * m.get_emission_intensity(),
+                        emitted_colors);
                 }
                 else {
 
-                    return (color_materials * (m.get_emitted_color() * m.get_emission_intensity())) + emitted_colors;
+                    //return (color_materials * (m.get_emitted_color() * m.get_emission_intensity())) + emitted_colors;
+                    return fma(color_materials, m.get_emitted_color() * m.get_emission_intensity(), emitted_colors);
                 }                
             }
 

@@ -90,8 +90,9 @@ hit sphere::compute_intersection(ray& r, const real t) const {
 
     // Intersection point
     const rt::vector& u = r.get_origin();
-    const rt::vector p = u + t * r.get_direction();
-    
+    //const rt::vector p = u + t * r.get_direction();
+    const rt::vector p = fma(r.get_direction(), t, u);
+
     const rt::vector n = (p - position) / radius;
     
     const object* pt_obj = this;
@@ -143,7 +144,8 @@ rt::vector sphere::compute_normal_from_map(const rt::vector& tangent_space_norma
 
 /* Uniformly samples a point on the sphere */
 rt::vector sphere::sample(randomgen& rg) const {
-    return position + (radius * random_direction(rg, rt::vector(0.0f, 1.0f, 0.0f), PI));
+    //return position + (radius * random_direction(rg, rt::vector(0.0f, 1.0f, 0.0f), PI));
+    return fma(random_direction(rg, rt::vector(0.0f, 1.0f, 0.0f), PI), radius, position);
 }
 
 /* Uniformly samples a point on the sphere that is visible from pt */

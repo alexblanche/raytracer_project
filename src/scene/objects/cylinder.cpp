@@ -169,17 +169,21 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
 
     // We may assume that (dir | direction) != 0, since otherwise we would have concluded at step 1
 
-    if (outside == (dirdirec >= 0.0f)) {
-        // v = position
-        // t = ((v - u) | direction) / (dir | direction)
-        return - umpdirec / dirdirec;
-    }
-    else {
-        // v = position + length * direction
-        // t = ((v - u) | direction) / (dir | direction) 
-        //   = (-umpdirec + length (direction | direction)) / dirdirec
-        return (- umpdirec + length) / dirdirec;
-    }
+    // if (outside == (dirdirec >= 0.0f)) {
+    //     // v = position
+    //     // t = ((v - u) | direction) / (dir | direction)
+    //     return - umpdirec / dirdirec;
+    // }
+    // else {
+    //     // v = position + length * direction
+    //     // t = ((v - u) | direction) / (dir | direction) 
+    //     //   = (-umpdirec + length (direction | direction)) / dirdirec
+    //     return (- umpdirec + length) / dirdirec;
+    // }
+    return (outside == (dirdirec >= 0.0f)) ?
+        - umpdirec / dirdirec
+        :
+        (- umpdirec + length) / dirdirec;
 }
 
 /* Returns the hit corresponding with the given intersection value t */
@@ -188,7 +192,7 @@ hit cylinder::compute_intersection(ray& r, const real t) const {
     // Intersection point
     const rt::vector& u = r.get_origin();
     const rt::vector& dir = r.get_direction();
-    const rt::vector p = u + t * dir;
+    const rt::vector p = fma(dir, t, u); //u + t * dir;
     const real rr = radius * radius;
     const rt::vector pmpos = p - position;
 

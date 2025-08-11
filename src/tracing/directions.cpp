@@ -31,7 +31,8 @@ rt::vector get_central_reflected_direction(const hit& h, const rt::vector& norma
     */
     const rt::vector right_normal = inward ? normal : (-1) * normal;
     const real cos = (-1.0f) * (u | right_normal);
-    return (reflectivity * (2.0f * cos - 1.0f) + 1.0f) * right_normal + reflectivity * u;
+    //return (reflectivity * (2.0f * cos - 1.0f) + 1.0f) * right_normal + reflectivity * u;
+    return fma(u, reflectivity, (reflectivity * (2.0f * cos - 1.0f) + 1.0f) * right_normal);
 }
 
 
@@ -137,10 +138,14 @@ rt::vector random_direction(randomgen& rg, const rt::vector& central_dir, const 
     const real cos_theta = 1.0f - p * (1.0f - cos_theta_max);
     const real sin_theta = sqrt(1.0f - cos_theta * cos_theta);
     
-    return (
-          (cos(phi) * sin_theta) * X
-        + (sin(phi) * sin_theta) * Y
-        + cos_theta * central_dir);
+    // return (
+    //       (cos(phi) * sin_theta) * X
+    //     + (sin(phi) * sin_theta) * Y
+    //     + cos_theta * central_dir);
+    return
+        fma(X, cos(phi) * sin_theta,
+        fma(Y, sin(phi) * sin_theta,
+        central_dir * cos_theta));
 }
 
 
@@ -157,7 +162,8 @@ rt::vector get_sin_refracted(const hit& h, const rt::vector& normal,
     /* It should be (current_refr_i / surface_refr_i) * ((((-1)*(dir | right_normal)) * right_normal) + dir)
        where right_normal = inward ? normal : (-1) * normal,
        but the next line is equivalent */
-    const rt::vector vx = (current_refr_i / surface_refr_i) * ((((-1.0f) * (dir | normal)) * normal) + dir);
+    //const rt::vector vx = (current_refr_i / surface_refr_i) * ((((-1.0f) * (dir | normal)) * normal) + dir);
+    const rt::vector vx = (current_refr_i / surface_refr_i) * fma(normal, (-1.0f) * (dir | normal), dir);
     sin_theta_2_sq = vx.normsq();
     return vx;
 }
@@ -184,7 +190,8 @@ rt::vector get_refracted_direction(const rt::vector& normal, const rt::vector& v
        so that v is a unit vector
     */
 
-    return vx + sqrt(1.0f - sin_theta_2_sq) * (inward ? (-1.0f) * normal : normal);
+    //return vx + sqrt(1.0f - sin_theta_2_sq) * (inward ? (-1.0f) * normal : normal);
+    return fma(inward ? (-1.0f) * normal : normal, sqrt(1.0f - sin_theta_2_sq), vx);
 }
 
 /* Returns a random unit direction in the cone whose center is the refracted direction, within solid angle refraction_scattering * pi */

@@ -94,18 +94,17 @@ std::optional<real> plane::measure_distance(const ray& r) const {
     
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
     
-    if (pdt * upln < 0.0f) {
-        return (- upln / pdt);
-    }
-    else {
-        return std::nullopt;
-    }
+    return (pdt * upln < 0.0f) ?
+        std::optional<real>(- upln / pdt)
+        :
+        std::nullopt;
 }
 
 hit plane::compute_intersection(ray& r, const real t) const {
 
     // Intersection point
-    const rt::vector p = r.get_origin() + t * r.get_direction();
+    //const rt::vector p = r.get_origin() + t * r.get_direction();
+    const rt::vector p = fma(r.get_direction(), t, r.get_origin());
 
     // The normal vector (a, b, c) is assumed to be a unit vector
 

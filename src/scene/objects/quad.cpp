@@ -473,12 +473,13 @@ barycentric_info quad::get_barycentric(const rt::vector& p) const {
 
 }
 
-rt::vector quad::get_interpolated_normal(const barycentric_info& bary) const {
+inline rt::vector quad::get_interpolated_normal(const barycentric_info& bary) const {
     
     // return (((1.0f - bary.l1 - bary.l2) * vn0)
     //     + (bary.l1 * ((bary.lower_triangle) ? vn1 : vn3))
     //     + (bary.l2 * vn2));
-    return vn0 + bary.l1 * ((bary.lower_triangle) ? vn1mvn0 : vn3mvn0) + bary.l2 * vn2mvn0;
+    //return vn0 + bary.l1 * ((bary.lower_triangle) ? vn1mvn0 : vn3mvn0) + bary.l2 * vn2mvn0;
+    return fma(vn2mvn0, bary.l2, fma(((bary.lower_triangle) ? vn1mvn0 : vn3mvn0), bary.l1, vn0));
 }
 
 hit quad::compute_intersection(ray& r, const real t) const {
@@ -489,7 +490,8 @@ hit quad::compute_intersection(ray& r, const real t) const {
     // printf("\n\np0 = (%lf, %lf, %lf), p1 = (%lf, %lf, %lf), p2 = (%lf, %lf, %lf), p3 = (%lf, %lf, %lf)\n\n",
     //     position.x, position.y, position.z, p1.x, p1.y, p1.z, p2.x, p2.y, p2.z, p3.x, p3.y, p3.z);
 
-    const rt::vector p = r.get_origin() + t * r.get_direction();
+    //const rt::vector p = r.get_origin() + t * r.get_direction();
+    const rt::vector p = fma(r.get_direction(), t, r.get_origin());
     const object* pt_obj = this;
     ray* pt_ray = &r;
 
