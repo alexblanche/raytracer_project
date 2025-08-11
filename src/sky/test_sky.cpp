@@ -70,13 +70,14 @@ struct screen_axes {
         center = rt::vector(0, 0, 1);
     }
 
-    void set(const float fov_x, const float theta, const float phi) {
-        const float cosphi = cos(phi);
-        const float sinphi = sin(phi);
-        const float costheta = cos(theta);
-        const float sintheta = sin(theta);
-        const float l = cos(fov_x * PI);
-        
+    void set(/*const float fov_x,*/ const float theta, const float phi) {
+        const float cosphi = cosf(phi);
+        const float sinphi = sinf(phi);
+        const float costheta = cosf(theta);
+        const float sintheta = sinf(theta);
+        //const float l = cosf(fov_x * PI);
+        constexpr float l = 0.58778525229f; //cosf(0.3f * PI);
+
         screen_x_axis.x = sintheta;
         screen_x_axis.z = costheta;
 
@@ -118,6 +119,7 @@ struct spherical {
     // (assuming sqrt(x*x + y*y + z*z) < 1)
     spherical(const rt::vector& u) {
 
+        // OBSOLETE : inlined in render loop
         if (u.x > 0) {
             theta = atanf(u.z / u.x) + 3.0f * PIOVER2;
         }
@@ -154,33 +156,42 @@ int main(int argc, char** argv) {
         std::cout << "File not found" << std::endl;
         return EXIT_FAILURE;
     }
-    std::vector<std::vector<rt::color>> matrix(dims.value().width, std::vector<rt::color>(dims.value().height));
+    const int dwidth = dims.value().width;
+    const int dheight = dims.value().height;
+    std::vector<std::vector<rt::color>> matrix(dwidth, std::vector<rt::color>(dheight));
     const bool read_success = read_bmp(file_name, matrix);
     if (not read_success) {
         return EXIT_FAILURE;
     }
 
     /* Screen dimensions */
-    int width = 1920, height = 1080;
+    constexpr int width = 1920, height = 1080;
     rt::screen scr(width, height);
     SDL_SetWindowFullscreen(scr.window, SDL_WINDOW_FULLSCREEN);
     SDL_ShowCursor(SDL_DISABLE);
 
     /* Creation of the surface containing the colors in char format */
-    const unsigned int depth = 3;
-    const unsigned int nbpix = depth * dims.value().width * dims.value().height;
+    constexpr unsigned int depth = 3;
+    const unsigned int nbpix = depth * dwidth * dheight;
     std::vector<char> pixels(nbpix);
     
-    for (int j = 0; j < dims.value().height; j++) {
+    // for (int j = 0; j < dims.value().height; j++) {
 
-        const int jwidth = j * dims.value().width;
+    //     const int jwidth = j * dims.value().width;
 
-        for (int i = 0; i < dims.value().width; i++) {
-            rt::color& c = matrix[i][j];
-            char r = c.get_red();
-            char g = c.get_green();
-            char b = c.get_blue();
-            const int index = depth * (jwidth + i);
+    //     for (int i = 0; i < dims.value().width; i++) {
+    //         rt::color& c = matrix[i][j];
+    const int dwidthdepth = dwidth * depth;
+    for (int i = 0; i < dwidth; i++) {
+        const std::vector<rt::color>& line = matrix[i];
+        const int idepth = i * depth;
+        for (int j = 0; j < dheight; j++) {
+            const rt::color& c = line[j];
+            const char r = c.get_red();
+            const char g = c.get_green();
+            const char b = c.get_blue();
+            const int index = //depth * (j * dwidth + i);
+                j * dwidthdepth + idepth;
             pixels[index]     = b;
             pixels[index + 1] = g;
             pixels[index + 2] = r;
@@ -188,10 +199,10 @@ int main(int argc, char** argv) {
     }
 
     SDL_Surface* surface = SDL_CreateRGBSurfaceFrom((void*) pixels.data(),
-            dims.value().width,
-            dims.value().height,
+            dwidth,
+            dheight,
             8 * depth, // depth bytes per pixel (in bits)
-            depth * dims.value().width, // depth * width
+            depth * dwidth, // depth * width
             0, 0, 0, 0);
     if (surface == NULL) {
         std::cout << "Error" << std::endl;
@@ -203,15 +214,15 @@ int main(int argc, char** argv) {
 
     srcrect.x = 0;
     srcrect.y = 0;
-    srcrect.w = dims.value().width;
-    srcrect.h = dims.value().height;
+    srcrect.w = dwidth;
+    srcrect.h = dheight;
     dstrect.x = 0;
     dstrect.y = 0;
     dstrect.w = width;
     dstrect.h = height;
 
     /* Rendering texture */
-    SDL_Texture* txt = SDL_CreateTexture(scr.renderer, SDL_PIXELFORMAT_BGR24, SDL_TEXTUREACCESS_STREAMING, scr.width(), scr.height());
+    SDL_Texture* txt = SDL_CreateTexture(scr.renderer, SDL_PIXELFORMAT_BGR24, SDL_TEXTUREACCESS_STREAMING, width, height);
 
     /* Variable declarations */
     mouse_pos mouse(width, height);
@@ -224,14 +235,14 @@ int main(int argc, char** argv) {
     int texture_pitch;
     char* orig_pixels = (char*) surface->pixels;
 
-    const int img_width = dims.value().width;
-    const int img_height = dims.value().height;
+    const int img_width = dwidth;
+    const int img_height = dheight;
 
     const int half_scr_width = width / 2;
     const int half_scr_height = height / 2;
 
     constexpr float fov_x = 0.3;
-    const float fov_y = 0.15;
+    constexpr float fov_y = 0.15;
 
     screen_axes axes;
 
@@ -268,7 +279,7 @@ int main(int argc, char** argv) {
 
         // Pre-computation of the cartesian coordinates of the pixel in world space
         //const rt::vector center = get_center(fov_x, mouse.theta, mouse.phi);
-        axes.set(fov_x, mouse.theta, mouse.phi);
+        axes.set(/*fov_x,*/ mouse.theta, mouse.phi);
         const rt::vector scaled_x_axis = axes.screen_x_axis * x_step;
         const rt::vector scaled_y_axis = axes.screen_y_axis * y_step;
 
