@@ -32,5 +32,3 @@
     then launches one ray, in a direction and with a color depending on the surface material,
     until it is too dim, or a light-emitting object is hit, or the maximum number of bounces is reached. */
 rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int bounce, const bool russian_roulette, const real init_refr_index = 1.0f);
-
-rt::color pathtrace_multisample(ray& r, scene& scene, randomgen& rg, const unsigned int bounce, const unsigned int number_of_samples);

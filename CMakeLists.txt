@@ -61,6 +61,7 @@ add_library(${libname} SHARED
 	src/auxiliary/clustering.cpp
 	src/file_readers/obj_parser.cpp
 	src/file_readers/mtl_parser.cpp
+	src/tracing/multisample.cpp
 	src/render/render_loops.cpp
 )
 

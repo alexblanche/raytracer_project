@@ -1,5 +1,6 @@
 #include "render/render_loops.hpp"
 #include "tracing/tracing.hpp"
+#include "tracing/multisample.hpp"
 
 #include <iostream>
 #include <cstdlib>
