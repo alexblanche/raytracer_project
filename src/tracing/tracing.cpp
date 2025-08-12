@@ -21,21 +21,26 @@
 /** Auxiliary functions **/
 
 /* Auxiliary function that updates the color accumulators */
-void update_accumulators(
+inline void update_accumulators(
     const material& m, rt::color& emitted_colors, rt::color& color_materials,
     const rt::color& local_color,
     const bool update_color_materials) {
 
+    /*
     if (m.is_emissive()) {
         const rt::color emitted_light = m.get_emitted_color() * m.get_emission_intensity();
         //emitted_colors = emitted_colors + (color_materials * emitted_light);
         emitted_colors += color_materials * emitted_light;
+        //emitted_colors = fma(color_materials, emitted_light, emitted_colors);
     }
     
     if (update_color_materials) {
         //color_materials = color_materials * local_color;
         color_materials *= local_color;
     }
+    */
+   emitted_colors = m.is_emissive() ? fma(color_materials, m.get_emitted_color() * m.get_emission_intensity(), emitted_colors) : emitted_colors;
+   color_materials = update_color_materials ? color_materials * local_color : color_materials;
 }
 
 #define BIAS_NORM 1.0E-3f
@@ -43,7 +48,7 @@ void update_accumulators(
 /* Auxiliary function that applies a bias of 1.0E-3 times the normal to the ray position,
    outward the surface contact point if outward_bias is true (so in the direction of the normal),
    inward otherwise (in the opposite direction to the normal) */
-void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& normal,
+inline void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& normal,
     const bool inward, const bool outward_bias) {
 
     //r.set_origin(hit_point + ((inward == outward_bias) ? BIAS_NORM * normal : (-BIAS_NORM) * normal));

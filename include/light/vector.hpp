@@ -70,22 +70,27 @@ namespace rt {
 		 * Scalar product
 		 * ((a,b,c) | (d,e,f)) = ad + be + cf
 		 */
+		// inline real operator|(const vector& other) const {
+		// 	return (x*other.x + y*other.y + z*other.z);
+		// }
 		inline real operator|(const vector& other) const {
-			return (x*other.x + y*other.y + z*other.z);
+			return std::fma(x, other.x, std::fma(y, other.y, z * other.z));
 		}
 
 		/**
 		 * Returns the norm of the vector
 		 */
 		inline real norm() const {
-			return std::sqrt(x*x + y*y + z*z);
+			//return std::sqrt(x*x + y*y + z*z);
+			return std::sqrt(std::fma(x, x, std::fma(y, y, z * z)));
 		}
 
 		/**
 		 * Returns the squared norm of the vector (x^2+y^2+z^2)
 		 */
 		inline real normsq() const {
-			return x*x + y*y + z*z;
+			//return x*x + y*y + z*z;
+			return std::fma(x, x, std::fma(y, y, z * z));
 		}
 
 		/**
