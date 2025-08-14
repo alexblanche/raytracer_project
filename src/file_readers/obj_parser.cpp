@@ -45,6 +45,7 @@ void correct(int& v, const unsigned int n) {
 void add_triangle(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    const std::vector<rt::vector>& normal_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
+   std::vector<texture_info>& texture_info_set,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
    const rt::vector& shift, const real scale,
    const unsigned int v1,  const unsigned int v2,  const unsigned int v3,
@@ -53,16 +54,16 @@ void add_triangle(const std::vector<rt::vector>& vertex_set, const std::vector<r
    const unsigned int current_texture_index, const unsigned int current_material_index,
    const bool apply_texture) {
 
-   const std::optional<texture_info> info =
-      apply_texture ?
-               
-      std::optional<texture_info>(texture_info(current_texture_index,
-         std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-         {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
-         uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
-         uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y}))
-      :
-      std::nullopt;
+   if (apply_texture) {
+      texture_info_set.push_back(
+         texture_info(
+            current_texture_index,
+            std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
+            {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
+            uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
+            uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y})
+      );
+   }
 
    const triangle* tr =
       new triangle(
@@ -70,7 +71,8 @@ void add_triangle(const std::vector<rt::vector>& vertex_set, const std::vector<r
          shift + scale * vertex_set[v2],
          shift + scale * vertex_set[v3],
          normal_set[vn1], normal_set[vn2], normal_set[vn3],
-         current_material_index, info);
+         current_material_index,
+         apply_texture ? texture_info_set.size() - 1 : (unsigned int) (-1));
 
    obj_set.push_back(tr);
 
@@ -86,6 +88,7 @@ void add_triangle(const std::vector<rt::vector>& vertex_set, const std::vector<r
 void add_triangle_subdiv(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    const std::vector<rt::vector>& normal_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
+   std::vector<texture_info>& texture_info_set,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
    const rt::vector& shift, const real scale,
    const unsigned int vj,  const unsigned int vi,  const rt::vector& final_v,
@@ -94,16 +97,16 @@ void add_triangle_subdiv(const std::vector<rt::vector>& vertex_set, const std::v
    const unsigned int current_texture_index, const unsigned int current_material_index,
    const bool apply_texture) {
 
-   const std::optional<texture_info> info =
-      apply_texture ?
-
-      std::optional<texture_info>(texture_info(current_texture_index,
-         std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-         {uv_coord_set[vtj].x, 1-uv_coord_set[vtj].y,
-         uv_coord_set[vti].x, 1-uv_coord_set[vti].y,
-         final_vt.x, 1-final_vt.y}))
-      :
-      std::nullopt;
+   if (apply_texture) {
+      texture_info_set.push_back(
+         texture_info(
+            current_texture_index,
+            std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
+            {uv_coord_set[vtj].x, 1-uv_coord_set[vtj].y,
+            uv_coord_set[vti].x, 1-uv_coord_set[vti].y,
+            final_vt.x, 1-final_vt.y})
+      );
+   }
 
    const triangle* tr =
       new triangle(
@@ -111,7 +114,7 @@ void add_triangle_subdiv(const std::vector<rt::vector>& vertex_set, const std::v
          shift + scale * vertex_set[vi],
          shift + scale * final_v,
          normal_set[vnj], normal_set[vni], final_vn,
-         current_material_index, info);
+         current_material_index, apply_texture ? texture_info_set.size() - 1 : (unsigned int) (-1));
 
    obj_set.push_back(tr);
 
@@ -127,6 +130,7 @@ void add_triangle_subdiv(const std::vector<rt::vector>& vertex_set, const std::v
 void add_quad(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    const std::vector<rt::vector>& normal_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
+   std::vector<texture_info>& texture_info_set,
    unsigned int& number_of_polygons, unsigned int& number_of_quads,
    const rt::vector& shift, const real scale,
    const unsigned int v1,  const unsigned int v2,  const unsigned int v3,  const unsigned int v4,
@@ -135,17 +139,17 @@ void add_quad(const std::vector<rt::vector>& vertex_set, const std::vector<rt::v
    const unsigned int current_texture_index, const unsigned int current_material_index,
    const bool apply_texture) {
 
-   const std::optional<texture_info> info =
-      apply_texture ?
-
-      std::optional<texture_info>(texture_info(current_texture_index,
-         std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-         {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
-         uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
-         uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y,
-         uv_coord_set[vt4].x,  1-uv_coord_set[vt4].y}))
-      :
-      std::nullopt;
+   if (apply_texture) {
+      texture_info_set.push_back(
+         texture_info(
+            current_texture_index,
+            std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
+            {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
+            uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
+            uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y,
+            uv_coord_set[vt4].x,  1-uv_coord_set[vt4].y})
+      );
+   }
 
    const quad* q =
       new quad(
@@ -154,7 +158,7 @@ void add_quad(const std::vector<rt::vector>& vertex_set, const std::vector<rt::v
          shift + scale * vertex_set[v3],
          shift + scale * vertex_set[v4],
          normal_set[vn1], normal_set[vn2], normal_set[vn3], normal_set[vn4],
-         current_material_index, info);
+         current_material_index, apply_texture ? texture_info_set.size() - 1 : (unsigned int) (-1));
 
    obj_set.push_back(q);
                
@@ -170,6 +174,7 @@ void add_quad(const std::vector<rt::vector>& vertex_set, const std::vector<rt::v
 /* Auxiliary function that adds a trianlge with no vertex normal */
 void add_triangle_no_normal(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
+   std::vector<texture_info>& texture_info_set,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
    const rt::vector& shift, const real scale,
    const unsigned int v1,  const unsigned int v2,  const unsigned int v3,
@@ -177,23 +182,23 @@ void add_triangle_no_normal(const std::vector<rt::vector>& vertex_set, const std
    const unsigned int current_texture_index, const unsigned int current_material_index,
    const bool apply_texture) {
 
-   const std::optional<texture_info> info =
-      apply_texture ?
-               
-      std::optional<texture_info>(texture_info(current_texture_index,
-         std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-         {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
-         uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
-         uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y}))
-      :
-      std::nullopt;
+   if (apply_texture) {
+      texture_info_set.push_back(
+         texture_info(
+            current_texture_index,
+            std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
+            {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
+            uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
+            uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y})
+      );
+   }
 
    const triangle* tr =
       new triangle(
          shift + scale * vertex_set[v1],
          shift + scale * vertex_set[v2],
          shift + scale * vertex_set[v3],
-         current_material_index, info);
+         current_material_index, apply_texture ? texture_info_set.size() - 1 : (unsigned int) (-1));
 
    obj_set.push_back(tr);
 
@@ -208,6 +213,7 @@ void add_triangle_no_normal(const std::vector<rt::vector>& vertex_set, const std
 /* Auxiliary function that adds a trianlge in a subdivided polygon with more than 5 sides, with no vertex normal */
 void add_triangle_subdiv_no_normal(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
+   std::vector<texture_info>& texture_info_set,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
    const rt::vector& shift, const real scale,
    const unsigned int vj,  const unsigned int vi,  const rt::vector& final_v,
@@ -215,23 +221,23 @@ void add_triangle_subdiv_no_normal(const std::vector<rt::vector>& vertex_set, co
    const unsigned int current_texture_index, const unsigned int current_material_index,
    const bool apply_texture) {
 
-   const std::optional<texture_info> info =
-      apply_texture ?
-
-      std::optional<texture_info>(texture_info(current_texture_index,
-         std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-         {uv_coord_set[vtj].x, 1-uv_coord_set[vtj].y,
-         uv_coord_set[vti].x, 1-uv_coord_set[vti].y,
-         final_vt.x, 1-final_vt.y}))
-      :
-      std::nullopt;
+   if (apply_texture) {
+      texture_info_set.push_back(
+         texture_info(
+            current_texture_index,
+            std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
+            {uv_coord_set[vtj].x, 1-uv_coord_set[vtj].y,
+            uv_coord_set[vti].x, 1-uv_coord_set[vti].y,
+            final_vt.x, 1-final_vt.y})
+      );
+   }
 
    const triangle* tr =
       new triangle(
          shift + scale * vertex_set[vj],
          shift + scale * vertex_set[vi],
          shift + scale * final_v,
-         current_material_index, info);
+         current_material_index, apply_texture ? texture_info_set.size() - 1 : (unsigned int) (-1));
 
    obj_set.push_back(tr);
 
@@ -246,6 +252,7 @@ void add_triangle_subdiv_no_normal(const std::vector<rt::vector>& vertex_set, co
 /* Auxiliary function that adds a quad with no vertex normal */
 void add_quad_no_normal(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
+   std::vector<texture_info>& texture_info_set,
    unsigned int& number_of_polygons, unsigned int& number_of_quads,
    const rt::vector& shift, const real scale,
    const unsigned int v1,  const unsigned int v2,  const unsigned int v3,  const unsigned int v4,
@@ -253,17 +260,17 @@ void add_quad_no_normal(const std::vector<rt::vector>& vertex_set, const std::ve
    const unsigned int current_texture_index, const unsigned int current_material_index,
    const bool apply_texture) {
 
-   const std::optional<texture_info> info =
-      apply_texture ?
-
-      std::optional<texture_info>(texture_info(current_texture_index,
-         std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-         {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
-         uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
-         uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y,
-         uv_coord_set[vt4].x,  1-uv_coord_set[vt4].y}))
-      :
-      std::nullopt;
+   if (apply_texture) {
+      texture_info_set.push_back(
+         texture_info(
+            current_texture_index,
+            std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
+            {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
+            uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
+            uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y,
+            uv_coord_set[vt4].x,  1-uv_coord_set[vt4].y})
+      );
+   }
 
    const quad* q =
       new quad(
@@ -271,7 +278,7 @@ void add_quad_no_normal(const std::vector<rt::vector>& vertex_set, const std::ve
          shift + scale * vertex_set[v2],
          shift + scale * vertex_set[v3],
          shift + scale * vertex_set[v4],
-         current_material_index, info);
+         current_material_index, apply_texture ? texture_info_set.size() - 1 : (unsigned int) (-1));
 
    obj_set.push_back(q);
                
@@ -289,6 +296,7 @@ void add_subdivided_polygon(FILE* file,
    const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    const std::vector<rt::vector>& normal_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
+   std::vector<texture_info>& texture_info_set,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
    const rt::vector& shift, const real scale,
    const unsigned int v1, const unsigned int v2, const unsigned int v3, const unsigned int v4, const unsigned int v5,
@@ -377,6 +385,7 @@ void add_subdivided_polygon(FILE* file,
       const unsigned int vnj = vn_stack.top();
 
       add_triangle_subdiv(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+         texture_info_set,
          number_of_polygons, number_of_triangles,
          shift, scale,
          vj, vi, final_v,
@@ -387,6 +396,7 @@ void add_subdivided_polygon(FILE* file,
             
    // Adding the last triangle
    add_triangle_subdiv(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+      texture_info_set,
       number_of_polygons, number_of_triangles,
       shift, scale,
       last_v, v1, final_v,
@@ -400,6 +410,7 @@ void add_subdivided_polygon(FILE* file,
 void add_subdivided_polygon_no_normal(FILE* file,
    const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
+   std::vector<texture_info>& texture_info_set,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
    const rt::vector& shift, const real scale,
    const unsigned int v1,  const unsigned int v2,  const unsigned int v3,  const unsigned int v4,  const unsigned int v5,
@@ -471,6 +482,7 @@ void add_subdivided_polygon_no_normal(FILE* file,
       if (apply_texture) { vtj = vt_stack.top(); }
 
       add_triangle_subdiv_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+         texture_info_set,
          number_of_polygons, number_of_triangles,
          shift, scale,
          vj, vi, final_v,
@@ -480,6 +492,7 @@ void add_subdivided_polygon_no_normal(FILE* file,
             
    // Adding the last triangle
    add_triangle_subdiv_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+      texture_info_set,
       number_of_polygons, number_of_triangles,
       shift, scale,
       last_v, v1, final_v,
@@ -506,6 +519,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
    std::vector<const object*>& obj_set,
    std::vector<wrapper<material>>& material_wrapper_set,
    std::vector<wrapper<texture>>& texture_wrapper_set,
+   std::vector<texture_info>& texture_info_set,
    const real scale, const rt::vector& shift,
    const bool bounding_enabled, const unsigned int polygons_per_bounding,
    const bounding*& output_bd, const real gamma) {
@@ -755,6 +769,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                /* Triangle */
 
                add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                  texture_info_set,
                   number_of_polygons, number_of_triangles,
                   shift, scale,
                   v1, v2, v3,
@@ -776,6 +791,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                   /* Non-coplanar vertices: splitting the quad into two triangles */
 
                   add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                     texture_info_set,
                      number_of_polygons, number_of_triangles,
                      shift, scale,
                      v1, v2, v3,
@@ -784,6 +800,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                      current_texture_index, current_material_index, apply_texture);
 
                   add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                     texture_info_set,
                      number_of_polygons, number_of_triangles,
                      shift, scale,
                      v1, v3, v4,
@@ -795,6 +812,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                   /* Coplanar vertices: keeping the quad */
                   
                   add_quad(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                     texture_info_set,
                      number_of_polygons, number_of_quads,
                      shift, scale,
                      v1, v2, v3, v4,
@@ -807,6 +825,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                /* Polygons with more than 4 sides */
 
                add_subdivided_polygon(file, vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                  texture_info_set,
                   number_of_polygons, number_of_triangles,
                   shift, scale,
                   v1, v2, v3, v4, v5,
@@ -833,6 +852,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                   if (ret2 == 2) {
                      // Triangle with no texture and normal
                      add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                        texture_info_set,
                         number_of_polygons, number_of_triangles,
                         shift, scale,
                         v1, v2, v3,
@@ -847,6 +867,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                      if ((n12 - n23).normsq() > QUAD_SPLIT_THRESHOLD) {
                         // Splitting into triangles with no texture and normal
                         add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                           texture_info_set,
                            number_of_polygons, number_of_triangles,
                            shift, scale,
                            v1, v2, v3,
@@ -854,6 +875,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                            0, current_material_index, false);
 
                         add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                           texture_info_set,
                            number_of_polygons, number_of_triangles,
                            shift, scale,
                            v1, v3, v4,
@@ -863,6 +885,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                      else {
                         // Keeping the quad with no texture and normal
                         add_quad_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                           texture_info_set,
                            number_of_polygons, number_of_quads,
                            shift, scale,
                            v1, v2, v3, v4,
@@ -873,6 +896,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                   else {
                      // Untextured polygon with more than 5 sides
                      add_subdivided_polygon_no_normal(file, vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                        texture_info_set,
                         number_of_polygons, number_of_triangles,
                         shift, scale,
                         v1, v2, v3, v4, v5,
@@ -908,6 +932,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                   if (ret2 == 5) {
                      // Untextured triangle
                      add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                        texture_info_set,
                         number_of_polygons, number_of_triangles,
                         shift, scale,
                         v1, v2, v3,
@@ -923,6 +948,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                      if ((n12 - n23).normsq() > QUAD_SPLIT_THRESHOLD) {
                         // Splitting into two untextured triangles
                         add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                           texture_info_set,
                            number_of_polygons, number_of_triangles,
                            shift, scale,
                            v1, v2, v3,
@@ -931,6 +957,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                            0, current_material_index, false);
 
                         add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                           texture_info_set,
                            number_of_polygons, number_of_triangles,
                            shift, scale,
                            v1, v3, v4,
@@ -941,6 +968,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                      else {
                         // Keeping the untextured quad
                         add_quad(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                           texture_info_set,
                            number_of_polygons, number_of_quads,
                            shift, scale,
                            v1, v2, v3, v4,
@@ -952,6 +980,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                   else {
                      // Untextured polygon with more than 5 sides
                      add_subdivided_polygon(file, vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                        texture_info_set,
                         number_of_polygons, number_of_triangles,
                         shift, scale,
                         v1, v2, v3, v4, v5,
@@ -990,6 +1019,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                if (ret2 == 4) {
                   // Triangle with no normal
                   add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                     texture_info_set,
                      number_of_polygons, number_of_triangles,
                      shift, scale,
                      v1, v2, v3,
@@ -1004,6 +1034,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                   if ((n12 - n23).normsq() > QUAD_SPLIT_THRESHOLD) {
                      // Splitting into two triangles with no normal
                      add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                        texture_info_set,
                         number_of_polygons, number_of_triangles,
                         shift, scale,
                         v1, v2, v3,
@@ -1011,6 +1042,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                         current_texture_index, current_material_index, apply_texture);
 
                      add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                        texture_info_set,
                         number_of_polygons, number_of_triangles,
                         shift, scale,
                         v1, v3, v4,
@@ -1020,6 +1052,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                   else {
                      // Keeping the quad with no normal
                      add_quad_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                        texture_info_set,
                         number_of_polygons, number_of_quads,
                         shift, scale,
                         v1, v2, v3, v4,
@@ -1030,6 +1063,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                else {
                   // Polygon with more than 5 sides with no normal
                   add_subdivided_polygon_no_normal(file, vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                     texture_info_set,
                      number_of_polygons, number_of_triangles,
                      shift, scale,
                      v1, v2, v3, v4, v5,

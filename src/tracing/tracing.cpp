@@ -195,7 +195,7 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
             // }
 
             return obj->is_textured() ?
-                acc.combine(scene.sample_texture(obj->get_texture_info(), obj->get_barycentric(h.get_point())) * m.get_emission_intensity())
+                acc.combine(scene.sample_texture(obj->get_texture_info_index(), obj->get_barycentric(h.get_point())) * m.get_emission_intensity())
                 :
                 acc.combine(m.get_emitted_color() * m.get_emission_intensity());
         }
@@ -208,12 +208,12 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
 
         // Contains the material local color, the local normal and (soon) the reflectivity and displacement
         const map_sample ms = (obj->is_textured()) ?
-            scene.sample_maps(obj->get_texture_info(), obj->get_barycentric(h.get_point()),
+            scene.sample_maps(obj->get_texture_info_index(), obj->get_barycentric(h.get_point()),
                 m.get_color(), h.get_normal(), m.get_reflectivity())
             :
             map_sample(m.get_color(), h.get_normal()); // reflectivity, displacement);
 
-        const rt::vector normal = (obj->is_textured() && obj->get_texture_info().has_normal_information()) ?
+        const rt::vector normal = (obj->is_textured() && scene.texture_info_set[obj->get_texture_info_index()].has_normal_information()) ?
             obj->compute_normal_from_map(ms.normal_map_vector, h.get_normal())
             :
             h.get_normal();

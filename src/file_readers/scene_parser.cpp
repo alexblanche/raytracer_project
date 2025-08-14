@@ -500,6 +500,8 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
 
         std::vector<wrapper<texture>> texture_wrapper_set;
         std::vector<wrapper<normal_map>> normal_map_wrapper_set;
+        
+        std::vector<texture_info> texture_info_set;
 
         std::vector<const bounding*> bounding_set;
 
@@ -618,8 +620,9 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                         const rt::vector forward(info_vect[0], info_vect[1], info_vect[2]);
                         const rt::vector right  (info_vect[3], info_vect[4], info_vect[5]);
                         info_vect.clear();
-                        const sphere* sph = new sphere(rt::vector(x, y, z), r, m_index.value(), info, forward, right);
+                        const sphere* sph = new sphere(rt::vector(x, y, z), r, m_index.value(), texture_info_set.size(), forward, right);
                         object_set.push_back(sph);
+                        texture_info_set.push_back(info.value());
                         
                         if (bounding_enabled) {
                             other_content.push_back(sph);
@@ -657,9 +660,10 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                         const rt::vector right(info_vect[0], info_vect[1], info_vect[2]);
                         const real scale = info_vect[3];
                         info_vect.clear();
-                        const plane* pln = new plane(nx, ny, nz, rt::vector(px, py, pz), m_index.value(), info, right, scale);
+                        const plane* pln = new plane(nx, ny, nz, rt::vector(px, py, pz), m_index.value(), texture_info_set.size(), right, scale);
                         object_set.push_back(pln);
-                            
+                        texture_info_set.push_back(info.value());
+
                         if (bounding_enabled) {
                             other_content.push_back(pln);
                         }
@@ -717,16 +721,25 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                     throw std::runtime_error("Parsing error in scene constructor (triangle declaration)");
                 }
                 const std::optional<unsigned int> m_index = get_material(file, material_wrapper_set, inverse_gamma);
-                const std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, TRIANGLE_TYPE);
+                std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, TRIANGLE_TYPE);
                 const bool normal_mapping = info.has_value() && info.value().has_normal_information();
                 if (m_index.has_value()) {
                 
-                    const triangle* tr = new triangle(
-                        rt::vector(x0, y0, z0),
-                        rt::vector(x1, y1, z1),
-                        rt::vector(x2, y2, z2),
-                        m_index.value(), info, normal_mapping);
+                    const triangle* tr = normal_mapping ?
+                        new triangle(
+                            rt::vector(x0, y0, z0),
+                            rt::vector(x1, y1, z1),
+                            rt::vector(x2, y2, z2),
+                            m_index.value(), texture_info_set.size(), normal_mapping, info.value())
+                        :
+                        new triangle(
+                            rt::vector(x0, y0, z0),
+                            rt::vector(x1, y1, z1),
+                            rt::vector(x2, y2, z2),
+                            m_index.value(), info.has_value() ? texture_info_set.size() : (unsigned int) (-1));
                     object_set.push_back(tr);
+                    if (info.has_value())
+                        texture_info_set.push_back(info.value());
                             
                     if (bounding_enabled) {
                         other_content.push_back(tr);
@@ -752,15 +765,25 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
 
                 if (m_index.has_value()) {
                 
-                    const std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, QUAD_TYPE);
+                    std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, QUAD_TYPE);
                     const bool normal_mapping = info.has_value() && info.value().has_normal_information();
-                    const quad* q = new quad(
-                        rt::vector(x0, y0, z0),
-                        rt::vector(x1, y1, z1),
-                        rt::vector(x2, y2, z2),
-                        rt::vector(x3, y3, z3),
-                        m_index.value(), info, normal_mapping);
+                    const quad* q = normal_mapping ?
+                        new quad(
+                            rt::vector(x0, y0, z0),
+                            rt::vector(x1, y1, z1),
+                            rt::vector(x2, y2, z2),
+                            rt::vector(x3, y3, z3),
+                            m_index.value(), texture_info_set.size(), normal_mapping, info.value())
+                        :
+                        new quad(
+                            rt::vector(x0, y0, z0),
+                            rt::vector(x1, y1, z1),
+                            rt::vector(x2, y2, z2),
+                            rt::vector(x3, y3, z3),
+                            m_index.value(), info.has_value() ? texture_info_set.size() : (unsigned int) (-1));
                     object_set.push_back(q);
+                    if (info.has_value())
+                        texture_info_set.push_back(info.value());
                             
                     if (bounding_enabled) {
                         other_content.push_back(q);
@@ -830,6 +853,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 const bounding* output_bd;
                 const bool parsing_successful = parse_obj_file(ofile_name, t_index, object_set,
                     material_wrapper_set, texture_wrapper_set,
+                    texture_info_set,
                     scale, rt::vector(sx, sy, sz),
                     bounding_enabled, polygons_per_bounding, output_bd, inverse_gamma);
 
@@ -883,6 +907,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 std::move(texture_set),
                 std::move(normal_map_set),
                 std::move(material_set),
+                std::move(texture_info_set),
                 std::move(background_texture),
                 rx, ry, rz,
                 width, height, cam, polygons_per_bounding,
@@ -894,6 +919,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 std::move(texture_set),
                 std::move(normal_map_set),
                 std::move(material_set),
+                std::move(texture_info_set),
                 background_color,
                 width, height, cam, polygons_per_bounding,
                 1.0 / inverse_gamma);

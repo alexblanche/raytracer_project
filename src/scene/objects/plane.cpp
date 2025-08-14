@@ -61,9 +61,9 @@ plane::plane(const real pa, const real pb, const real pc, const rt::vector& posi
 // Constructor for textured planes
 plane::plane(const real pa, const real pb, const real pc, const rt::vector& position,
     const unsigned int material_index,
-    const std::optional<texture_info>& info, const rt::vector& right, const real scale)
+    const unsigned int texture_info_index, const rt::vector& right, const real scale)
 
-    : object(position, material_index, info) {
+    : object(position, material_index, texture_info_index) {
 
     normal = rt::vector(pa, pb, pc).unit();
     a = normal.x;

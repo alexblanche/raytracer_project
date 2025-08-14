@@ -55,9 +55,9 @@ void set_up_det(const rt::vector& v1, const rt::vector& v2, const rt::vector& v3
 // Constructor from four points
 // We do not check whether the four points are coplanar
 quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3, 
-    const unsigned int material_index, const std::optional<texture_info>& info)
+    const unsigned int material_index, const unsigned int texture_info_index)
 
-    : object(p0, material_index, info) {
+    : object(p0, material_index, texture_info_index) {
 
     v1 = p1 - p0;
     v2 = p2 - p0;
@@ -80,9 +80,9 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
 // Constructor from four points with vertex normals
 quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
-    const unsigned int material_index, const std::optional<texture_info>& info)
+    const unsigned int material_index, const unsigned int texture_info_index)
 
-    : object(p0, material_index, info), vn0(vn0init.unit())
+    : object(p0, material_index, texture_info_index), vn0(vn0init.unit())
     //, vn1(vn1.unit()), vn2(vn2.unit()), vn3(vn3.unit())
     {
     
@@ -102,9 +102,10 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
 
 // Constructor from four points with normal mapping enabled
 quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
-    const unsigned int material_index, const std::optional<texture_info>& info, const bool normal_mapping)
+    const unsigned int material_index, const unsigned int texture_info_index, const bool normal_mapping,
+    texture_info& info)
 
-    : object(p0, material_index, info) {
+    : object(p0, material_index, texture_info_index) {
     
     v1 = p1 - p0;
     v2 = p2 - p0;
@@ -122,11 +123,11 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
 
     set_up_det(v1, v2, v3, det12, det23, case_det);
 
-    if (normal_mapping && info.has_value()) {
+    if (normal_mapping) {
         
         /* Same as triangle */
     
-        const std::vector<real>& uvc = texture_information.value().uv_coordinates;
+        const std::vector<real>& uvc = info.uv_coordinates;
         // uvc = (u0, v0, u1, v1, u2, v2)
         const real x1 = uvc[2] - uvc[0];
         const real x2 = uvc[4] - uvc[0];
@@ -135,16 +136,17 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
         const real r = 1.0f / (x1 * y2 - x2 * y1);
         const rt::vector t = r * ( y2 * v1 + -y1 * v2);
         const rt::vector b = r * (-x2 * v1 +  x1 * v2);
-        texture_information.value().set_tangent_space(t.unit(), b.unit());
+        info.set_tangent_space(t.unit(), b.unit());
     }
 }
 
 // Constructor from four points with vertex normals and normal mapping enabled
 quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
-    const unsigned int material_index, const std::optional<texture_info>& info, const bool normal_mapping)
+    const unsigned int material_index, const unsigned int texture_info_index, const bool normal_mapping,
+    texture_info& info)
 
-    : object(p0, material_index, info), vn0(vn0init.unit())
+    : object(p0, material_index, texture_info_index), vn0(vn0init.unit())
     //, vn1(vn1.unit()), vn2(vn2.unit()), vn3(vn3.unit())
     {
     
@@ -161,11 +163,11 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
 
     set_up_det(v1, v2, v3, det12, det23, case_det);
 
-    if (normal_mapping && info.has_value()) {
+    if (normal_mapping) {
         
         /* Same as triangle */
     
-        const std::vector<real>& uvc = texture_information.value().uv_coordinates;
+        const std::vector<real>& uvc = info.uv_coordinates;
         // uvc = (u0, v0, u1, v1, u2, v2)
         const real x1 = uvc[2] - uvc[0];
         const real x2 = uvc[4] - uvc[0];
@@ -175,7 +177,7 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
         const rt::vector t = r * ( y2 * v1 + -y1 * v2);
         const rt::vector b = r * (-x2 * v1 +  x1 * v2);
         // printf("\n\nSetting tangent space: t %f %f %f, b %f %f %f\n", t.x, t.y, t.z, b.x, b.y, b.z);
-        texture_information.value().set_tangent_space(t.unit(), b.unit());
+        info.set_tangent_space(t.unit(), b.unit());
     }
 }
 
@@ -542,10 +544,10 @@ void quad::print() const {
 
 /* Normal map vector computation at render time
     Local normal may be the normal of the quad (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
-rt::vector quad::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal) const {
+rt::vector quad::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const {
 
 #ifdef SMOOTH_SHADING
-    const rt::vector& t = texture_information.value().tangent;
+    const rt::vector& t = info.tangent;
     
     // Recompute the tangent space with Gram-Schmidt's method
     const rt::vector t2 = (t - ((t | local_normal) * local_normal)).unit();
@@ -554,8 +556,8 @@ rt::vector quad::compute_normal_from_map(const rt::vector& tangent_space_normal,
     return tangent_space_normal.x * t2 + tangent_space_normal.y * b2 + tangent_space_normal.z * local_normal;
 #else
     // Flat shading
-    const rt::vector& t = texture_information.value().tangent;
-    const rt::vector& b = texture_information.value().bitangent;
+    const rt::vector& t = info.tangent;
+    const rt::vector& b = info.bitangent;
 
     return tangent_space_normal.x * t + tangent_space_normal.y * b + tangent_space_normal.z * local_normal;
 #endif

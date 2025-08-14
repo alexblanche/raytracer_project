@@ -21,9 +21,9 @@ class polygon : public object {
 
         /* For untextured polygons, provided nullopt for info */
         polygon(const rt::vector& position, const unsigned int material_index,
-            const std::optional<texture_info>& info)
+            const unsigned int texture_info_index)
             
-            : object(position, material_index, info), info(info) {}
+            : object(position, material_index, texture_info_index), info(info) {}
 
         // virtual ~polygon() {}
 

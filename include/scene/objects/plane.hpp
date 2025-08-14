@@ -42,7 +42,7 @@ class plane : public object {
 
         plane(const real a, const real b, const real c, const rt::vector& position,
             const unsigned int material_index,
-            const std::optional<texture_info>& info, const rt::vector& right, const real scale);
+            const unsigned int texture_info_index, const rt::vector& right, const real scale);
 
         /* Accessors */
 

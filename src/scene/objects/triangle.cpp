@@ -42,9 +42,9 @@ std::pair<real, int> set_up_det(const rt::vector& v1, const rt::vector& v2) {
 
 // Constructor from three points without vertex normals
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, 
-    const unsigned int material_index, const std::optional<texture_info>& info)
+    const unsigned int material_index, const unsigned int texture_info_index)
 
-    : object(p0, material_index, info) {
+    : object(p0, material_index, texture_info_index) {
 
     v1 = p1 - p0;
     v2 = p2 - p0;
@@ -65,9 +65,9 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
 // Constructor from three points with vertex normals
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2,
-    const unsigned int material_index, const std::optional<texture_info>& info)
+    const unsigned int material_index, const unsigned int texture_info_index)
 
-    : object(p0, material_index, info), vn0(vn0init.unit())
+    : object(p0, material_index, texture_info_index), vn0(vn0init.unit())
     //, vn1(vn1.unit()), vn2(vn2.unit())
     {
     
@@ -87,9 +87,10 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
 
 // Constructor from three points with normal mapping enabled
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
-    const unsigned int material_index, const std::optional<texture_info>& info, const bool normal_mapping)
+    const unsigned int material_index, const unsigned int texture_info_index, const bool normal_mapping,
+    texture_info& info)
 
-    : object(p0, material_index, info) {
+    : object(p0, material_index, texture_info_index) {
     
     v1 = p1 - p0;
     v2 = p2 - p0;
@@ -107,7 +108,7 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     det = p.first;
     case_det = p.second;
 
-    if (normal_mapping && info.has_value()) {
+    if (normal_mapping) {
         
         /*
         Computation of tangent space
@@ -126,7 +127,7 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
         (x2 y2)   = (1 / (x1 * y2 - x2 * y1)) (-x2  x1)
         */
     
-        const std::vector<real>& uvc = texture_information.value().uv_coordinates;
+        const std::vector<real>& uvc = info.uv_coordinates;
         // uvc = (u0, v0, u1, v1, u2, v2)
         const real x1 = uvc[2] - uvc[0];
         const real x2 = uvc[4] - uvc[0];
@@ -135,16 +136,17 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
         const real r = 1.0f / (x1 * y2 - x2 * y1);
         const rt::vector t = r * ( y2 * v1 + -y1 * v2);
         const rt::vector b = r * (-x2 * v1 +  x1 * v2);
-        texture_information.value().set_tangent_space(t.unit(), b.unit());
+        info.set_tangent_space(t.unit(), b.unit());
     }
 }
 
 // Constructor from three points with vertex normals and normal mapping enabled
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2,
-    const unsigned int material_index, const std::optional<texture_info>& info, const bool normal_mapping)
+    const unsigned int material_index, const unsigned int texture_info_index, const bool normal_mapping,
+    texture_info& info)
 
-    : object(p0, material_index, info), vn0(vn0init.unit())
+    : object(p0, material_index, texture_info_index), vn0(vn0init.unit())
     //, vn1(vn1.unit()), vn2(vn2.unit())
     {
     
@@ -161,7 +163,7 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     det = p.first;
     case_det = p.second;
 
-    if (normal_mapping && info.has_value()) {
+    if (normal_mapping) {
         
         /*
         Computation of tangent space
@@ -180,7 +182,7 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
         (x2 y2)   = (1 / (x1 * y2 - x2 * y1)) (-x2  x1)
         */
     
-        const std::vector<real>& uvc = texture_information.value().uv_coordinates;
+        const std::vector<real>& uvc = info.uv_coordinates;
         // uvc = (u0, v0, u1, v1, u2, v2)
         const real x1 = uvc[2] - uvc[0];
         const real x2 = uvc[4] - uvc[0];
@@ -189,7 +191,7 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
         const real r = 1.0f / (x1 * y2 - x2 * y1);
         const rt::vector t = r * ( y2 * v1 + -y1 * v2);
         const rt::vector b = r * (-x2 * v1 +  x1 * v2);
-        texture_information.value().set_tangent_space(t.unit(), b.unit());
+        info.set_tangent_space(t.unit(), b.unit());
     }
 }
 
@@ -467,10 +469,10 @@ void triangle::print() const {
 
 /* Normal map vector computation at render time
     Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
-rt::vector triangle::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal) const {
+rt::vector triangle::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const {
 
 #ifdef SMOOTH_SHADING
-    const rt::vector& t = texture_information.value().tangent;
+    const rt::vector& t = info.tangent;
     // Recompute the tangent space with Gram-Schmidt's method
     const rt::vector t2 = (t - (t | local_normal) * local_normal).unit();
     const rt::vector b2 = t2 ^ local_normal;
@@ -478,8 +480,8 @@ rt::vector triangle::compute_normal_from_map(const rt::vector& tangent_space_nor
     return tangent_space_normal.x * t2 + tangent_space_normal.y * b2 + tangent_space_normal.z * local_normal;
 #else
     // Flat shading
-    const rt::vector& t = texture_information.value().tangent;
-    const rt::vector& b = texture_information.value().bitangent;
+    const rt::vector& t = info.tangent;
+    const rt::vector& b = info.bitangent;
 
     return tangent_space_normal.x * t + tangent_space_normal.y * b + tangent_space_normal.z * local_normal;
 #endif

@@ -16,6 +16,7 @@ scene::scene(std::vector<const object*>&& object_set,
     std::vector<texture>&& texture_set,
     std::vector<normal_map>&& normal_map_set,
     std::vector<material>&& material_set,
+    std::vector<texture_info>&& texture_info_set,
     const rt::color& bg_color,
     const int width, const int height,
     const camera& cam,
@@ -24,7 +25,7 @@ scene::scene(std::vector<const object*>&& object_set,
 
     : object_set(std::move(object_set)), bounding_set(bounding_set),
     texture_set(std::move(texture_set)), normal_map_set(std::move(normal_map_set)),
-    material_set(std::move(material_set)),
+    material_set(std::move(material_set)), texture_info_set(std::move(texture_info_set)),
     background(background_container(bg_color)),
     width(width), height(height),
     cam(cam), polygons_per_bounding(polygons_per_bounding),
@@ -37,6 +38,7 @@ scene::scene(std::vector<const object*>&& object_set,
     std::vector<texture>&& texture_set,
     std::vector<normal_map>&& normal_map_set,
     std::vector<material>&& material_set,
+    std::vector<texture_info>&& texture_info_set,
     texture&& bg_texture, const real rx, const real ry, const real rz,
     const int width, const int height,
     const camera& cam,
@@ -45,7 +47,7 @@ scene::scene(std::vector<const object*>&& object_set,
 
     : object_set(std::move(object_set)), bounding_set(bounding_set),
     texture_set(std::move(texture_set)), normal_map_set(std::move(normal_map_set)),
-    material_set(std::move(material_set)),
+    material_set(std::move(material_set)), texture_info_set(std::move(texture_info_set)),
     background(background_container(std::move(bg_texture), rx, ry, rz)),
     width(width), height(height),
     cam(cam), polygons_per_bounding(polygons_per_bounding),
@@ -163,17 +165,19 @@ std::optional<hit> scene::find_closest_object_bounding(ray& r) const {
 }
 
 /* Returns the color of the pixel associated with UV-coordinates u, v */
-const rt::color& scene::sample_texture(const texture_info& ti, const barycentric_info& bary) const {
+const rt::color& scene::sample_texture(const unsigned int texture_info_index, const barycentric_info& bary) const {
     
+    const texture_info& ti = texture_info_set[texture_info_index];
     const uvcoord uvc = ti.get_barycenter(bary);
     return texture_set[ti.texture_index].get_color(uvc.u, uvc.v);
 
     /* HERE: we can introduce texture filtering */
 }
 
-map_sample scene::sample_maps(const texture_info& ti, const barycentric_info& bary,
+map_sample scene::sample_maps(const unsigned int texture_info_index, const barycentric_info& bary,
     const rt::color& default_color, const rt::vector& default_vector, const real /*default_reflectivity*/) const {
 
+    const texture_info& ti = texture_info_set[texture_info_index];
     const uvcoord uvc = ti.get_barycenter(bary);
     const rt::color& t_col = (ti.has_texture_information()) ?
         texture_set[ti.texture_index].get_color(uvc.u, uvc.v)

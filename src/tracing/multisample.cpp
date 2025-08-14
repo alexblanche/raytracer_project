@@ -160,7 +160,7 @@ rt::color pathtrace_multisample(ray& r, scene& scene, randomgen& rg, const unsig
                 
                 const barycentric_info bary = obj->get_barycentric(h.get_point());
                 return
-                    scene.sample_texture(obj->get_texture_info(), bary)
+                    scene.sample_texture(obj->get_texture_info_index(), bary)
                         * m.get_emission_intensity();
             }
             else {
@@ -196,7 +196,7 @@ rt::color pathtrace_multisample(ray& r, scene& scene, randomgen& rg, const unsig
 
                 const rt::vector dir = random_dir(rg, central_dir1, scattering1);
                 ray bouncing_ray(orig1, dir);
-                const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, 1.0f);
+                const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, false, 1.0f);
                 output_color = output_color + sample_color;
             }
 
@@ -215,14 +215,14 @@ rt::color pathtrace_multisample(ray& r, scene& scene, randomgen& rg, const unsig
                 if (p <= proba_1) {
                     const rt::vector dir = random_dir(rg, central_dir1, scattering1);
                     ray bouncing_ray(orig1, dir);
-                    const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, init_refr_index);
+                    const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, false, init_refr_index);
                     output_color1 = output_color1 + sample_color;
                     nb_samples1++;
                 }
                 else {
                     const rt::vector dir = random_dir(rg, central_dir2.value(), scattering2);
                     ray bouncing_ray(orig2, dir);
-                    const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, 1.0f);
+                    const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, false, 1.0f);
                     output_color2 = output_color2 + sample_color;
                     nb_samples2++;
                 }

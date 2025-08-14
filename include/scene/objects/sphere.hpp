@@ -34,7 +34,7 @@ class sphere : public object {
         sphere(const rt::vector& center, const real radius, const unsigned int material_index);
 
         sphere(const rt::vector& center, const real radius, const unsigned int material_index,
-            const std::optional<texture_info>& info, const rt::vector& forward_dir, const rt::vector& right_dir);
+            const unsigned int texture_info_index, const rt::vector& forward_dir, const rt::vector& right_dir);
 
         
         /* Intersection determination */

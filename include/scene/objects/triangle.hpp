@@ -35,21 +35,23 @@ class triangle : public object {
         
         // Constructor from three points
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, 
-            const unsigned int material_index, const std::optional<texture_info>& info);
+            const unsigned int material_index, const unsigned int texture_info_index);
 
         // Constructor from three points with vertex normals
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
             const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
-            const unsigned int material_index, const std::optional<texture_info>& info);
+            const unsigned int material_index, const unsigned int texture_info_index);
 
         // Constructor from three points with normal mapping enabled
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
-            const unsigned int material_index, const std::optional<texture_info>& info, const bool normal_mapping);
+            const unsigned int material_index, const unsigned int texture_info_index, const bool normal_mapping,
+            texture_info& info);
 
         // Constructor from three points with vertex normals and normal mapping enabled
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
             const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
-            const unsigned int material_index, const std::optional<texture_info>& info, const bool normal_mapping);
+            const unsigned int material_index, const unsigned int texture_info_index, const bool normal_mapping,
+            texture_info& info);
 
         /* Returns the barycenter of the triangle */
         rt::vector get_barycenter() const;
@@ -78,7 +80,7 @@ class triangle : public object {
 
         /* Normal map vector computation at render time
         Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
-        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal) const;
+        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const;
 
         rt::vector sample(randomgen& rg) const;
         

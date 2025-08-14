@@ -46,6 +46,9 @@ class scene {
         /* Set containing all the materials from the scene */
         std::vector<material> material_set;
 
+        /* Set containing all the texture_info structures for the objects */
+        std::vector<texture_info> texture_info_set;
+
         // Color or texture of the background
         background_container background;
 
@@ -69,6 +72,7 @@ class scene {
             std::vector<texture>&& texture_set,
             std::vector<normal_map>&& normal_map_set,
             std::vector<material>&& material_set,
+            std::vector<texture_info>&& texture_info_set,
             const rt::color& bg_color,
             const int width, const int height,
             const camera& cam,
@@ -81,6 +85,7 @@ class scene {
             std::vector<texture>&& texture_set,
             std::vector<normal_map>&& normal_map_set,
             std::vector<material>&& material_set,
+            std::vector<texture_info>&& texture_info_set,
             texture&& bg_texture, const real bg_rx, const real bg_ry, const real bg_rz,
             const int width, const int height,
             const camera& cam,
@@ -116,9 +121,9 @@ class scene {
         }
 
         /* Returns the color of the pixel associated with UV-coordinates u, v */
-        const rt::color& sample_texture(const texture_info& ti, const barycentric_info& bary) const;
+        const rt::color& sample_texture(const unsigned int texture_info_index, const barycentric_info& bary) const;
 
         /* Sampling maps */
-        map_sample sample_maps(const texture_info& ti, const barycentric_info& bary,
+        map_sample sample_maps(const unsigned int texture_info_index, const barycentric_info& bary,
             const rt::color& default_color, const rt::vector& default_normal, const real default_reflectivity = 0.0f) const;
 };

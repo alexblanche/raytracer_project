@@ -39,7 +39,7 @@ class object {
         const unsigned int material_index;
 
         /* Contains a texture_info if the object is textured */
-        std::optional<texture_info> texture_information;
+        const unsigned int texture_information_index;
 
     public:
 
@@ -51,7 +51,7 @@ class object {
 
         object(const rt::vector& pos, const unsigned int material_index);
 
-        object(const rt::vector& pos, const unsigned int material_index, const std::optional<texture_info>& info);
+        object(const rt::vector& pos, const unsigned int material_index, const unsigned int texture_info_index);
 
         /* Accessors */
 
@@ -64,11 +64,11 @@ class object {
         }
 
         inline bool is_textured() const {
-            return texture_information.has_value();
+            return texture_information_index != (unsigned int) (-1);
         }
 
-        inline const texture_info& get_texture_info() const {
-            return texture_information.value();
+        inline unsigned int get_texture_info_index() const {
+            return texture_information_index;
         }
 
         
