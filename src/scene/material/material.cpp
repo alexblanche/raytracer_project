@@ -52,7 +52,7 @@ material::material(const real ns,
     
     : color(kd * 255), reflectivity(pow(ns / 1000, 0.25)),
       emitted_color(ke * 255),
-      specular_probability((ks.get_red() + ks.get_green() + ks.get_blue()) / 3),
+      specular_probability(ks.get_average()),
       refraction_scattering(0), refraction_index(ni),
       reflects_color(false) {
 

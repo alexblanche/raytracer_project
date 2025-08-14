@@ -62,10 +62,8 @@ const rt::color& texture::get_color(const real u, const real v) const {
     const int y = v * height_minus_one;
     // Due to floating-point imprecision, some "unit" vector have a norm slightly larger than 1,
     // producing out of range coordinates
-    if (x < 0 || x >= width || y < 0 || y >= height) {
-        return data[std::min(width - 1, std::max(0, x))][std::min(height - 1, std::max(0, y))];
-    }
-    else {
-        return data[x][y];
-    }
+    return (x < 0 || x >= width || y < 0 || y >= height) ?
+        data[std::min(width - 1, std::max(0, x))][std::min(height - 1, std::max(0, y))]
+        :
+        data[x][y];
 }

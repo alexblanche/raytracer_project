@@ -26,18 +26,19 @@ uvcoord texture_info::get_barycenter(const barycentric_info& bary) const {
         // Spheres or Planes
         return uvcoord(bary.l1, bary.l2);
     }
-    else if (n == 6 || bary.lower_triangle) {
+    
+    real u, v;
+    if (n == 6 || bary.lower_triangle) {
         // Triangles or Quads with (u0, v0), (u1, v1), (u2, v2) considered
-        const real u = (1.0f - bary.l1 - bary.l2) * uv_coordinates[0] + bary.l1 * uv_coordinates[2] + bary.l2 * uv_coordinates[4];
-        const real v = (1.0f - bary.l1 - bary.l2) * uv_coordinates[1] + bary.l1 * uv_coordinates[3] + bary.l2 * uv_coordinates[5];
-        return uvcoord(u, v);
+        u = (1.0f - bary.l1 - bary.l2) * uv_coordinates[0] + bary.l1 * uv_coordinates[2] + bary.l2 * uv_coordinates[4];
+        v = (1.0f - bary.l1 - bary.l2) * uv_coordinates[1] + bary.l1 * uv_coordinates[3] + bary.l2 * uv_coordinates[5];
     }
     else {
         // Quads with (u0, v0), (u3, v3), (u2, v2) (in this order) considered
-        const real u = (1.0f - bary.l1 - bary.l2) * uv_coordinates[0] + bary.l1 * uv_coordinates[6] + bary.l2 * uv_coordinates[4];
-        const real v = (1.0f - bary.l1 - bary.l2) * uv_coordinates[1] + bary.l1 * uv_coordinates[7] + bary.l2 * uv_coordinates[5];
-        return uvcoord(u, v);
+        u = (1.0f - bary.l1 - bary.l2) * uv_coordinates[0] + bary.l1 * uv_coordinates[6] + bary.l2 * uv_coordinates[4];
+        v = (1.0f - bary.l1 - bary.l2) * uv_coordinates[1] + bary.l1 * uv_coordinates[7] + bary.l2 * uv_coordinates[5];
     }
+    return uvcoord(u, v);
 }
 
 /* Sets the tangent and bitangent vectors */
