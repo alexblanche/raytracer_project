@@ -115,6 +115,11 @@ namespace rt  {
 				return (red + green + blue) * 0.33333f;
 			}
 
+			// Same between 0 and 1
+			inline real get_average_ratio() const {
+				return (red + green + blue) / (3.0f * 255.0f);
+			}
+
 			/**
 			 * Comparison operator.
 			 */

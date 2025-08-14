@@ -108,6 +108,13 @@ class scene {
         /* Tree-search through the bounding boxes */
         std::optional<hit> find_closest_object_bounding(ray& r) const;
 
+        inline std::optional<hit> find_closest(ray& r, const bool bounding_method) {
+            return bounding_method ?
+                find_closest_object_bounding(r)
+                :
+                find_closest_object(r);
+        }
+
         /* Returns the color of the pixel associated with UV-coordinates u, v */
         const rt::color& sample_texture(const texture_info& ti, const barycentric_info& bary) const;
 

@@ -11,7 +11,9 @@ class randomgen {
     public:
         //unsigned int seed;
         std::default_random_engine engine;
-        real std_dev;
+        std::uniform_real_distribution<real> unif_ratio;
+        std::uniform_real_distribution<real> unif_angle;
+        std::normal_distribution<real> normal_dist;
         
         randomgen(const real std_dev_anti_aliasing);
 
@@ -19,6 +21,16 @@ class randomgen {
         
         /* Returns a random real between 0 and m */
         real random_real(const real m);
+
+        /* Returns a random real between 0 and 1 */
+        inline real random_ratio() {
+            return unif_ratio(engine);
+        }
+
+        /* Returns a random real between 0 and 2 * pi */
+        inline real random_angle() {
+            return unif_angle(engine);
+        }
 
         /* Returns an array of n random reals between 0 and m */
         //std::vector<real> random_real_array(const size_t n, const real m);
@@ -30,5 +42,9 @@ class randomgen {
         /* Returns two random reals chosen according to a normal distribution
            of mean m and standard deviation std_dev */
         //std::pair<real, real> random_pair_normal(const real m, const real std_dev);
-        std::pair<real, real> random_pair_normal();
+        //std::pair<real, real> random_pair_normal();
+
+        inline std::pair<real, real> random_pair_normal() {
+            return std::pair(normal_dist(engine), normal_dist(engine));
+        } 
 };

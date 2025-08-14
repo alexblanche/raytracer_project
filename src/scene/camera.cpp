@@ -32,36 +32,48 @@ camera::camera(const rt::vector& origin, const rt::vector& direction, const rt::
 
 /* Returns the ray that goes toward the pixel i,j of the screen */
 ray camera::gen_ray(const int i, const int j) const {
-    rt::vector dir = (mhalf_fovw + ((real) i) * di) * to_the_right
-        + (mhalf_fovh + ((real) j) * dj) * to_the_bottom
-        + distance * direction;
-    return ray(origin, dir.unit());
+    // const rt::vector dir = ((mhalf_fovw + ((real) i) * di) * to_the_right
+    //     + (mhalf_fovh + ((real) j) * dj) * to_the_bottom
+    //     + distance * direction).unit();
+    const rt::vector dir =
+        (fma(to_the_right, mhalf_fovw + ((real) i) * di,
+        fma(to_the_bottom, mhalf_fovh + ((real) j) * dj,
+        distance * direction))).unit();
+    return ray(origin, dir);
 }
 
 /* Returns the ray that goes toward the pixel i,j of the screen in average,
    following a normal distribution around to center of the pixel, with given stardard deviation */
 ray camera::gen_ray_normal(const int i, const int j, randomgen& rg) const {
     std::pair<real, real> shift = rg.random_pair_normal(); //rg.random_pair_normal(0.0f, std_dev);
-    rt::vector dir = (mhalf_fovw + (((real) i) + shift.first) * di) * to_the_right
-        + (mhalf_fovh + (((real) j) + shift.second) * dj) * to_the_bottom
-        + distance * direction;
-    return ray(origin, dir.unit());
+    // const rt::vector dir = ((mhalf_fovw + (((real) i) + shift.first) * di) * to_the_right
+    //     + (mhalf_fovh + (((real) j) + shift.second) * dj) * to_the_bottom
+    //     + distance * direction).unit();
+    const rt::vector dir =
+        (fma(to_the_right, mhalf_fovw + (((real) i) + shift.first) * di,
+        fma(to_the_bottom, mhalf_fovh + (((real) j) + shift.second) * dj,
+        distance * direction))).unit();
+    return ray(origin, dir);
 }
 
 /* Returns the ray that goes toward the pixel i,j of the screen, with depth of field */
 ray camera::gen_ray_dof(const int i, const int j, randomgen& rg) const {
-    rt::vector focus_point =
+    const rt::vector focus_point =
         focal_length *
-        (((mhalf_fovw + ((real) i) * di) * to_the_right
-          + (mhalf_fovh + ((real) j) * dj) * to_the_bottom
-          + distance * direction).unit()
-        );
-    const real r = rg.random_real(1.0f);
-    const real phi = rg.random_real(TWOPI);
+        // (((mhalf_fovw + ((real) i) * di) * to_the_right
+        //   + (mhalf_fovh + ((real) j) * dj) * to_the_bottom
+        //   + distance * direction).unit()
+        // );
+        (fma(to_the_right, mhalf_fovw + ((real) i) * di,
+        fma(to_the_bottom, mhalf_fovh + ((real) j) * dj,
+        distance * direction)).unit());
+        
+    const real r = rg.random_ratio();
+    const real phi = rg.random_angle();
     const real apr_r = aperture * sqrt(r);
     const rt::vector starting_point =
-          ((apr_r * cos(phi)) * to_the_right)
-        + ((apr_r * sin(phi)) * to_the_bottom);
+          fma(to_the_right, apr_r * cos(phi),
+            (apr_r * sin(phi)) * to_the_bottom);
     const rt::vector dir = (focus_point - starting_point).unit();
     return ray(origin + starting_point, dir);
 }

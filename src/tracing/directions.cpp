@@ -29,7 +29,7 @@ rt::vector get_central_reflected_direction(const hit& h, const rt::vector& norma
     reflectivity * reflected_dir + (1 - reflectivity) * right_normal
         = (r * (2 * cos - 1) + 1) * right_normal + r * u
     */
-    const rt::vector right_normal = inward ? normal : (-1) * normal;
+    const rt::vector right_normal = inward ? normal : (-1.0f) * normal;
     const real cos = (-1.0f) * (u | right_normal);
     //return (reflectivity * (2.0f * cos - 1.0f) + 1.0f) * right_normal + reflectivity * u;
     return fma(u, reflectivity, (reflectivity * (2.0f * cos - 1.0f) + 1.0f) * right_normal);
@@ -103,8 +103,8 @@ std::vector<ray> random_reflect(const size_t n, randomgen& rg,
 /* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
 rt::vector random_direction(randomgen& rg, const rt::vector& central_dir, const real theta_max) {
 
-    const real p = rg.random_real(1.0f);
-    const real phi = rg.random_real(TWOPI);
+    const real p = rg.random_ratio();
+    const real phi = rg.random_angle();
 
     // Central direction of the rays
     const real a = central_dir.x;
@@ -114,8 +114,9 @@ rt::vector random_direction(randomgen& rg, const rt::vector& central_dir, const 
     // Orthonormal base of the plane orthogonal to central_dir
     rt::vector X, Y;
     if (a != 0.0f) {
-        X = rt::vector(- b, a, 0.0f).unit();
-        Y = rt::vector(a * c, b * c, (-1.0f) * (a*a + b*b)).unit();
+        const real nX = a * a + b * b;
+        X = rt::vector(- b, a, 0.0f) / nX; // = ".unit()"
+        Y = rt::vector(a * c, b * c, -nX).unit();
     } else if (b != 0.0f) {
         // central_dir = (0,b,c)
         X = rt::vector(0.0f, - c, b).unit();

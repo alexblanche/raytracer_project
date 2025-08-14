@@ -75,13 +75,8 @@ void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real re
     const rt::vector dir = (reflectivity >= 1.0f) ?
         central_dir
         :
-        // (central_dir +
-        //     ((1.0f - reflectivity) * random_direction(rg, central_dir, PI))
-        // ).unit();
         (fma(random_direction(rg, central_dir, PI), 1.0f - reflectivity, central_dir)).unit();
     r.set_direction(dir);
-    
-
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
     /* Apply the bias outward the surface */
@@ -170,23 +165,16 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
     for (unsigned int i = 0; i < bounce; i++) {
 
         if (russian_roulette) {
-            const real avg = acc.color_materials.get_average() / 255.0f;
+            const real avg = acc.color_materials.get_average_ratio();
             if (avg < 1.0f) {
-                const real q = 1.0f - avg;
-                if (rg.random_real(1.0f) > q) {
-                    acc.color_materials /= (1.0f - q);
-                }
-                else {
+                if (rg.random_ratio() <= 1.0f - avg)
                     return acc.emitted_colors;
-                }
+                else
+                    acc.color_materials /= avg;
             }
         }
 
-        const std::optional<hit> opt_h =
-            bounding_method ?
-                scene.find_closest_object_bounding(r)
-                :
-                scene.find_closest_object(r);
+        const std::optional<hit> opt_h = scene.find_closest(r, bounding_method);
 
         if (not opt_h.has_value()) /* No object hit: background color or background texture */
             return background_case(scene, r, acc);
@@ -242,7 +230,7 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
                 
                 /* Specular bounce */
 
-                const bool is_specular = rg.random_real(1.0f) <= m.get_specular_proba();
+                const bool is_specular = rg.random_ratio() <= m.get_specular_proba();
                 const real specular_reflectivity = is_specular ? reflectivity : m.get_secondary_reflectivity();
                 
                 specular_reflective_case(r, h, rg, specular_reflectivity, normal, inward);
@@ -282,7 +270,7 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
             // const real kr = inward ? h.get_fresnel(sin_theta_2_sq, refr_index, next_refr_i) : 0.0f;
             const real kr = inward ? get_schlick(h, normal, refr_index, next_refr_i) : 0.0f;
 
-            if (inward && rg.random_real(1.0f) * m.get_transparency() <= kr) {
+            if (inward && rg.random_ratio() * m.get_transparency() <= kr) {
             
                 /* The ray is reflected */
                 

@@ -4,10 +4,14 @@
 
 #include "auxiliary/randomgen.hpp"
 
+#define TWOPI 6.2831853071795862f
+
 randomgen::randomgen(const real std_dev_anti_aliasing) {
     const unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
     engine = std::default_random_engine(seed);
-    std_dev = std_dev_anti_aliasing;
+    unif_ratio = std::uniform_real_distribution<real>(0.0f, 1.0f);
+    unif_angle = std::uniform_real_distribution<real>(0.0f, TWOPI);
+    normal_dist = std::normal_distribution<real>(0.0f, std_dev_anti_aliasing);
 }
 
 // void randomgen::update_seed() {
@@ -69,7 +73,7 @@ real randomgen::random_real_normal(const real& m, const real& std_dev) {
 //     return std::pair(distribution(engine), distribution(engine));
 // }
 
-std::pair<real, real> randomgen::random_pair_normal() {
-    std::normal_distribution<real> distribution(0.0f, std_dev);
-    return std::pair(distribution(engine), distribution(engine));
-}
+// std::pair<real, real> randomgen::random_pair_normal() {
+//     std::normal_distribution<real> distribution(0.0f, std_dev);
+//     return std::pair(distribution(engine), distribution(engine));
+// }
