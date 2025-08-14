@@ -35,21 +35,21 @@ class triangle : public object {
         
         // Constructor from three points
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, 
-            const size_t material_index, const std::optional<texture_info>& info);
+            const unsigned int material_index, const std::optional<texture_info>& info);
 
         // Constructor from three points with vertex normals
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
             const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
-            const size_t material_index, const std::optional<texture_info>& info);
+            const unsigned int material_index, const std::optional<texture_info>& info);
 
         // Constructor from three points with normal mapping enabled
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
-            const size_t material_index, const std::optional<texture_info>& info, const bool normal_mapping);
+            const unsigned int material_index, const std::optional<texture_info>& info, const bool normal_mapping);
 
         // Constructor from three points with vertex normals and normal mapping enabled
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
             const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
-            const size_t material_index, const std::optional<texture_info>& info, const bool normal_mapping);
+            const unsigned int material_index, const std::optional<texture_info>& info, const bool normal_mapping);
 
         /* Returns the barycenter of the triangle */
         rt::vector get_barycenter() const;

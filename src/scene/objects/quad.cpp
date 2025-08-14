@@ -55,7 +55,7 @@ void set_up_det(const rt::vector& v1, const rt::vector& v2, const rt::vector& v3
 // Constructor from four points
 // We do not check whether the four points are coplanar
 quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3, 
-    const size_t material_index, const std::optional<texture_info>& info)
+    const unsigned int material_index, const std::optional<texture_info>& info)
 
     : object(p0, material_index, info) {
 
@@ -80,7 +80,7 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
 // Constructor from four points with vertex normals
 quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
-    const size_t material_index, const std::optional<texture_info>& info)
+    const unsigned int material_index, const std::optional<texture_info>& info)
 
     : object(p0, material_index, info), vn0(vn0init.unit())
     //, vn1(vn1.unit()), vn2(vn2.unit()), vn3(vn3.unit())
@@ -102,7 +102,7 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
 
 // Constructor from four points with normal mapping enabled
 quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
-    const size_t material_index, const std::optional<texture_info>& info, const bool normal_mapping)
+    const unsigned int material_index, const std::optional<texture_info>& info, const bool normal_mapping)
 
     : object(p0, material_index, info) {
     
@@ -142,7 +142,7 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
 // Constructor from four points with vertex normals and normal mapping enabled
 quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
-    const size_t material_index, const std::optional<texture_info>& info, const bool normal_mapping)
+    const unsigned int material_index, const std::optional<texture_info>& info, const bool normal_mapping)
 
     : object(p0, material_index, info), vn0(vn0init.unit())
     //, vn1(vn1.unit()), vn2(vn2.unit()), vn3(vn3.unit())

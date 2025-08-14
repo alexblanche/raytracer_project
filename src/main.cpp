@@ -28,10 +28,22 @@
 #include "file_readers/hdr_reader.hpp"
 #include "scene/light_sources/infinite_area.hpp"
 
+#include "scene/objects/triangle.hpp"
+#include "scene/objects/sphere.hpp"
+#include "scene/objects/plane.hpp"
+
 int main(int argc, char *argv[]) {
 
     // printf("real : %llu, color : %llu, vector : %llu\n", sizeof(real), sizeof(rt::color), sizeof(rt::vector));
-    // printf("material : %llu\n", sizeof(material));
+    printf("size_t : %llu ; unsigned int : %llu\n", sizeof(size_t), sizeof(unsigned int));
+
+    printf("material : %llu\n", sizeof(material));
+    printf("object : %llu\n", sizeof(object));
+    printf("texture_info : %llu\n", sizeof(texture_info));
+    printf("triangle : %llu\n", sizeof(triangle));
+    printf("sphere : %llu\n", sizeof(sphere));
+    printf("vector : %llu\n", sizeof(rt::vector));
+    printf("plane : %llu\n", sizeof(plane));
 
     ///// TEMP: testing low res infinite area
     /*

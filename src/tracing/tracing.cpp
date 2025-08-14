@@ -213,7 +213,7 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
             :
             map_sample(m.get_color(), h.get_normal()); // reflectivity, displacement);
 
-        const rt::vector normal = (obj->is_textured() && obj->get_texture_info().normal_map_index.has_value()) ?
+        const rt::vector normal = (obj->is_textured() && obj->get_texture_info().has_normal_information()) ?
             obj->compute_normal_from_map(ms.normal_map_vector, h.get_normal())
             :
             h.get_normal();

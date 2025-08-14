@@ -166,7 +166,6 @@ namespace rt {
 	}
 
 	// Returns v1 * a + v2, where a is a scalar
-
 	inline vector fma(const vector& v1, const real a, const vector& v2) {
 		return
 			vector(
@@ -174,6 +173,17 @@ namespace rt {
 				std::fma(v1.y, a, v2.y),
 				std::fma(v1.z, a, v2.z)
 			);
+	}
+
+	// Returns a1 * v1 + a2 * v2 + a3 * v3
+	inline vector matprod(const vector& v1, const real a1,
+		const vector& v2, const real a2,
+		const vector& v3, const real a3) {
+		
+		return
+			fma(v1, a1,
+			fma(v2, a2,
+			v3 * a3));
 	}
 }
 

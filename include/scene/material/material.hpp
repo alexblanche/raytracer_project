@@ -16,7 +16,7 @@ class material {
         real reflectivity;
 
         /* Color emitted by the material */
-        rt::color emitted_color;
+        // rt::color emitted_color;
 
         /* Real between 0 and 1: 0 does not emit light, 1 is maximum intensity */
         real emission_intensity;
@@ -91,7 +91,7 @@ class material {
         }
 
         inline const rt::color& get_emitted_color() const {
-            return emitted_color;
+            return color;//emitted_color;
         }
 
         inline real get_reflectivity() const {

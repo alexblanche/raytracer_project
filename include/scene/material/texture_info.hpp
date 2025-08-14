@@ -20,12 +20,6 @@ struct uvcoord {
 class texture_info {
 
     public:
-        /* Index in the scene's sets */
-        std::optional<size_t> texture_index;
-        std::optional<size_t> normal_map_index;
-        // std::optional<size_t> roughness_map_index;
-        // std::optional<size_t> displacement_map_index;
-
         /* Vector of UV coordinates (between 0 and 1)
            6 for a triangle (u0,v0,u1,v1,u2,v2) and 8 for a quad */
         std::vector<real> uv_coordinates;
@@ -34,10 +28,17 @@ class texture_info {
         rt::vector tangent;
         rt::vector bitangent;
 
+        /* Index in the scene's sets */
+        // -1 = none
+        int texture_index;
+        int normal_map_index;
+        // int roughness_map_index;
+        // int displacement_map_index;
+
         texture_info();
 
-        texture_info(std::optional<size_t> t_index,
-            std::optional<size_t> n_index,
+        texture_info(std::optional<int> t_index,
+            std::optional<int> n_index,
             std::vector<real>&& uv_coordinates);
 
         /* Sets the tangent and bitangent vectors */
@@ -47,4 +48,12 @@ class texture_info {
         In the case of quads, the boolean lower_triangle indicates that the three points to
         consider are (u0, v0), (u1, v1), (u2, v2) or (u0, v0), (u3, v3), (u2, v2) (in this order) */
         uvcoord get_barycenter(const barycentric_info& bary) const;
+
+        inline bool has_texture_information() const {
+            return texture_index >= 0;
+        }
+
+        inline bool has_normal_information() const {
+            return normal_map_index >= 0;
+        }
 };

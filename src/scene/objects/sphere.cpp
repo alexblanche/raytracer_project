@@ -16,18 +16,22 @@ sphere::sphere() {
     radius = 0;
 }
 
-sphere::sphere(const rt::vector& center, const real radius, const size_t material_index)
+sphere::sphere(const rt::vector& center, const real radius, const unsigned int material_index)
 
-    : object(center, material_index), radius(radius), forward_dir(std::nullopt), right_dir(std::nullopt) {}
+    : object(center, material_index), radius(radius) {}
 
 // Constructor for textured spheres
-sphere::sphere(const rt::vector& center, const real radius, const size_t material_index,
+sphere::sphere(const rt::vector& center, const real radius, const unsigned int material_index,
     const std::optional<texture_info>& info, const rt::vector& forward, const rt::vector& right)
 
-    : object(center, material_index, info), radius(radius),
-        forward_dir(forward.unit()), right_dir(right.unit()) {
+    : object(center, material_index, info), radius(radius)
+        {
+        // forward_dir(forward.unit()), right_dir(right.unit())
+        // up_dir = right_dir.value() ^ forward_dir.value();
 
-        up_dir = right_dir.value() ^ forward_dir.value();
+        orientation.forward_dir = forward.unit();
+        orientation.right_dir   = right.unit();
+        orientation.up_dir = orientation.right_dir ^ orientation.forward_dir;
     }
 
 
@@ -119,9 +123,9 @@ min_max_coord sphere::get_min_max_coord() const {
 /* Returns the barycentric info for the object (l1 = longitude, l2 = latitude) (both between 0 and 1) */
 barycentric_info sphere::get_barycentric(const rt::vector& p) const {
     const rt::vector v = (p - position).unit();
-    const real forward_component = (v | forward_dir.value());
-    const real right_component   = (v | right_dir.value());
-    const real up_component      = (v | up_dir.value());
+    const real forward_component = (v | orientation.forward_dir);
+    const real right_component   = (v | orientation.right_dir);
+    const real up_component      = (v | orientation.up_dir);
 
     const real theta = asin(up_component);
     const real x = acos(forward_component / cos(theta));
@@ -134,10 +138,15 @@ barycentric_info sphere::get_barycentric(const rt::vector& p) const {
 rt::vector sphere::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal) const {
 
     // Computation of tangent space
-    const rt::vector t = (up_dir.value() ^ local_normal).unit();
+    const rt::vector t = (orientation.up_dir ^ local_normal).unit();
     const rt::vector b = t ^ local_normal;
 
-    return tangent_space_normal.x * t + tangent_space_normal.y * b + tangent_space_normal.z * local_normal;
+    // return tangent_space_normal.x * t + tangent_space_normal.y * b + tangent_space_normal.z * local_normal;
+    return matprod(
+        t,            tangent_space_normal.x,
+        b,            tangent_space_normal.y,
+        local_normal, tangent_space_normal.z
+    );
 }
 
 /* Sampling */

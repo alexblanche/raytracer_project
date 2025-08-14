@@ -3,16 +3,16 @@
 /** Texture infos **/
 
 texture_info::texture_info()
-    : texture_index((size_t) -1), uv_coordinates({}) {}
+    : uv_coordinates({}), texture_index(-1) {}
 
-texture_info::texture_info(std::optional<size_t> t_index,
-    std::optional<size_t> n_index,
+texture_info::texture_info(std::optional<int> t_index,
+    std::optional<int> n_index,
     // std::optional<size_t> roughness_map_index,
     // std::optional<size_t> displacement_map_index,
     std::vector<real>&& uv_coordinates)
-    : texture_index(t_index),
-    normal_map_index(n_index),
-    uv_coordinates(std::move(uv_coordinates)) {}
+    : uv_coordinates(std::move(uv_coordinates)),
+    texture_index(t_index.has_value() ? t_index.value() : -1),
+    normal_map_index(n_index.has_value() ? n_index.value() : -1) {}
 
 /* Texturing */
 

@@ -104,8 +104,8 @@ void bounding::check_box_next(const ray& r,
     }
     else {
         if (b.value()->is_hit_by(r)) {
-            const size_t last_index = children.size() - 1;
-            for (size_t i = 0; i < last_index; i++) {
+            const unsigned int last_index = children.size() - 1;
+            for (unsigned int i = 0; i < last_index; i++) {
                 bounding_stack.push(children[i]);
             }
             // Last element of children

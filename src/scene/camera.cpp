@@ -36,9 +36,11 @@ ray camera::gen_ray(const int i, const int j) const {
     //     + (mhalf_fovh + ((real) j) * dj) * to_the_bottom
     //     + distance * direction).unit();
     const rt::vector dir =
-        (fma(to_the_right, mhalf_fovw + ((real) i) * di,
-        fma(to_the_bottom, mhalf_fovh + ((real) j) * dj,
-        distance * direction))).unit();
+        (matprod(
+            to_the_right,  mhalf_fovw + ((real) i) * di,
+            to_the_bottom, mhalf_fovh + ((real) j) * dj,
+            direction, distance)
+        ).unit();
     return ray(origin, dir);
 }
 
@@ -50,9 +52,11 @@ ray camera::gen_ray_normal(const int i, const int j, randomgen& rg) const {
     //     + (mhalf_fovh + (((real) j) + shift.second) * dj) * to_the_bottom
     //     + distance * direction).unit();
     const rt::vector dir =
-        (fma(to_the_right, mhalf_fovw + (((real) i) + shift.first) * di,
-        fma(to_the_bottom, mhalf_fovh + (((real) j) + shift.second) * dj,
-        distance * direction))).unit();
+        (matprod(
+            to_the_right,  mhalf_fovw + (((real) i) + shift.first) * di,
+            to_the_bottom, mhalf_fovh + (((real) j) + shift.second) * dj,
+            direction,     distance))
+        .unit();
     return ray(origin, dir);
 }
 

@@ -17,9 +17,9 @@
 class texture {
 
     private:
-        int width, height;
         std::vector<std::vector<rt::color>> data;
         real width_minus_one, height_minus_one;
+        int width, height;
 
     public:      
 

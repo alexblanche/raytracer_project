@@ -17,7 +17,8 @@ material material::WATER = material(rt::color(255,255,255), rt::color(0,0,0), 1,
 /* Constructors */
 
 material::material() : color(rt::color::WHITE), reflectivity(0),
-    emitted_color(rt::color::WHITE), emission_intensity(0),
+    /*emitted_color(rt::color::WHITE),*/
+    emission_intensity(0),
     specular_probability(0),
     transparency(0), refraction_index(1),
     opaque(true), emissive(false), has_spec_prob(false), reflects_color(false) {}
@@ -31,14 +32,15 @@ material::material(const rt::color& color, const real reflectivity)
         opaque(true), emissive(false), has_spec_prob(false), 
         reflects_color(false) {}
 
-material::material(const rt::color& color, const rt::color& emitted_color,
+material::material(const rt::color& color, const rt::color& /*emitted_color*/,
     const real reflectivity, const real emission_intensity,
     const real specular_probability, const bool reflects_color,
     const real transparency, const real refraction_scattering,
     const real refraction_index)
 
     : color(color), reflectivity(reflectivity),
-        emitted_color(emitted_color), emission_intensity(emission_intensity),
+        //emitted_color(emitted_color),
+        emission_intensity(emission_intensity),
         specular_probability(specular_probability),
         transparency(transparency), refraction_scattering(refraction_scattering),
         refraction_index(refraction_index),
@@ -51,7 +53,7 @@ material::material(const real ns,
     const real ni, const real d, const unsigned int illum, const real gamma)
     
     : color(kd * 255), reflectivity(pow(ns / 1000, 0.25)),
-      emitted_color(ke * 255),
+      //emitted_color(ke * 255),
       specular_probability(ks.get_average()),
       refraction_scattering(0), refraction_index(ni),
       reflects_color(false) {
@@ -92,10 +94,10 @@ material::material(const real ns,
         const real gb = pow(color.get_blue()  / 255.0f, gamma) * 255.0f;
         color = rt::color(gr, gg, gb);
 
-        const real ger = pow(emitted_color.get_red()   / 255.0f, gamma) * 255.0f;
-        const real geg = pow(emitted_color.get_green() / 255.0f, gamma) * 255.0f;
-        const real geb = pow(emitted_color.get_blue()  / 255.0f, gamma) * 255.0f;
-        emitted_color = rt::color(ger, geg, geb);
+        // const real ger = pow(emitted_color.get_red()   / 255.0f, gamma) * 255.0f;
+        // const real geg = pow(emitted_color.get_green() / 255.0f, gamma) * 255.0f;
+        // const real geb = pow(emitted_color.get_blue()  / 255.0f, gamma) * 255.0f;
+        // emitted_color = rt::color(ger, geg, geb);
     }
 }
 

@@ -8,6 +8,14 @@
 
 #include <optional>
 
+struct plane_orientation {
+    rt::vector right_dir;
+    rt::vector down_dir;
+    real inv_texture_scale;
+
+    plane_orientation() : inv_texture_scale(1.0f) {}
+};
+
 class plane : public object {
     
     private:
@@ -15,9 +23,7 @@ class plane : public object {
         rt::vector normal;
         real a, b, c, d;
         // Used to orient the texture
-        std::optional<rt::vector> right_dir;
-        std::optional<rt::vector> down_dir;
-        real inv_texture_scale;
+        plane_orientation orientation;
 
         /* A plane (P) of equation (P): ax + by + cz + d = 0
          defined by 4 reals a,b,c,d */

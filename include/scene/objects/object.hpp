@@ -36,7 +36,7 @@ class object {
         rt::vector position;
 
         /* Index of the material in the material_set vector of the scene */
-        const size_t material_index;
+        const unsigned int material_index;
 
         /* Contains a texture_info if the object is textured */
         std::optional<texture_info> texture_information;
@@ -49,9 +49,9 @@ class object {
 
         object();
 
-        object(const rt::vector& pos, const size_t material_index);
+        object(const rt::vector& pos, const unsigned int material_index);
 
-        object(const rt::vector& pos, const size_t material_index, const std::optional<texture_info>& info);
+        object(const rt::vector& pos, const unsigned int material_index, const std::optional<texture_info>& info);
 
         /* Accessors */
 

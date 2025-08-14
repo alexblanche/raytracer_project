@@ -91,10 +91,10 @@ scene::~scene() {
 std::optional<hit> scene::find_closest_object(ray& r) const {
     
     real distance_to_closest = infinity;
-    std::optional<size_t> closest_obj_index = std::nullopt;
+    std::optional<unsigned int> closest_obj_index = std::nullopt;
 
     // Looking for the closest object
-    for (size_t i = 0; i < object_set.size(); i++) {
+    for (unsigned int i = 0; i < object_set.size(); i++) {
         
         // We do not test the intersection with the object the rays is cast from
         const std::optional<real> d = object_set[i]->measure_distance(r);
@@ -166,7 +166,7 @@ std::optional<hit> scene::find_closest_object_bounding(ray& r) const {
 const rt::color& scene::sample_texture(const texture_info& ti, const barycentric_info& bary) const {
     
     const uvcoord uvc = ti.get_barycenter(bary);
-    return texture_set[ti.texture_index.value()].get_color(uvc.u, uvc.v);
+    return texture_set[ti.texture_index].get_color(uvc.u, uvc.v);
 
     /* HERE: we can introduce texture filtering */
 }
@@ -175,12 +175,12 @@ map_sample scene::sample_maps(const texture_info& ti, const barycentric_info& ba
     const rt::color& default_color, const rt::vector& default_vector, const real /*default_reflectivity*/) const {
 
     const uvcoord uvc = ti.get_barycenter(bary);
-    const rt::color& t_col = (ti.texture_index.has_value()) ?
-        texture_set[ti.texture_index.value()].get_color(uvc.u, uvc.v)
+    const rt::color& t_col = (ti.has_texture_information()) ?
+        texture_set[ti.texture_index].get_color(uvc.u, uvc.v)
         :
         default_color;
-    const rt::vector& n_vec = (ti.normal_map_index.has_value()) ?
-        normal_map_set[ti.normal_map_index.value()].get_tangent_space_normal(uvc.u, uvc.v)
+    const rt::vector& n_vec = (ti.has_normal_information()) ?
+        normal_map_set[ti.normal_map_index].get_tangent_space_normal(uvc.u, uvc.v)
         :
         default_vector;
     // const real reflectivity = (ti.roughness_map_index.has_value()) ?

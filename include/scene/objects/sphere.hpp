@@ -9,15 +9,21 @@
 
 #include <optional>
 
+struct sphere_orientation {
+    rt::vector forward_dir;
+    rt::vector right_dir;
+    rt::vector up_dir;
+
+    sphere_orientation() {}
+};
+
 class sphere : public object {
     
     private:
 
         real radius;
         // Direction vectors, used to orient the texture
-        std::optional<rt::vector> forward_dir;
-        std::optional<rt::vector> right_dir;
-        std::optional<rt::vector> up_dir;
+        sphere_orientation orientation;
 
     public:
 
@@ -25,9 +31,9 @@ class sphere : public object {
         
         sphere();
 
-        sphere(const rt::vector& center, const real radius, const size_t material_index);
+        sphere(const rt::vector& center, const real radius, const unsigned int material_index);
 
-        sphere(const rt::vector& center, const real radius, const size_t material_index,
+        sphere(const rt::vector& center, const real radius, const unsigned int material_index,
             const std::optional<texture_info>& info, const rt::vector& forward_dir, const rt::vector& right_dir);
 
         

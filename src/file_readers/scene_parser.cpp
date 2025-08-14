@@ -78,7 +78,7 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
 
 /* Auxiliary function: parses the name of a material and returns its index in material_set,
    or parses a new material, stores it in material_set and returns its index */
-std::optional<size_t> get_material(FILE* file, std::vector<wrapper<material>>& material_wrapper_set, const real gamma) {
+std::optional<unsigned int> get_material(FILE* file, std::vector<wrapper<material>>& material_wrapper_set, const real gamma) {
     const long int position = ftell(file);
 
     const char firstchar = fgetc(file);
@@ -108,7 +108,7 @@ std::optional<size_t> get_material(FILE* file, std::vector<wrapper<material>>& m
             return std::nullopt;
         }
 
-        std::optional<size_t> vindex = std::nullopt;
+        std::optional<unsigned int> vindex = std::nullopt;
         
         for (wrapper<material> const& mat_wrap : material_wrapper_set) {
             if (mat_wrap.name.has_value() && mat_wrap.name.value().compare(vname) == 0) {
@@ -150,8 +150,8 @@ std::optional<texture_info> parse_texture_info(FILE* file,
         return std::nullopt;
     }
     
-    std::optional<size_t> vindex = std::nullopt;
-    std::optional<size_t> nindex = std::nullopt;
+    std::optional<unsigned int> vindex = std::nullopt;
+    std::optional<unsigned int> nindex = std::nullopt;
     double u0, v0, u1, v1, u2, v2, u3, v3;
     double x0, y0, z0, x1, y1, z1;
 
@@ -609,7 +609,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 if (ret != 4) {
                     throw std::runtime_error("Parsing error in scene constructor (sphere declaration)");
                 }
-                const std::optional<size_t> m_index = get_material(file, material_wrapper_set, inverse_gamma);
+                const std::optional<unsigned int> m_index = get_material(file, material_wrapper_set, inverse_gamma);
                 if (m_index.has_value()) {
                     std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, SPHERE_TYPE);
                     if (info.has_value()) {
@@ -648,7 +648,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 if (ret != 6) {
                     throw std::runtime_error("Parsing error in scene constructor (plane declaration)");
                 }
-                const std::optional<size_t> m_index = get_material(file, material_wrapper_set, inverse_gamma);
+                const std::optional<unsigned int> m_index = get_material(file, material_wrapper_set, inverse_gamma);
                 if (m_index.has_value()) {
                     std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, PLANE_TYPE);
                     if (info.has_value()) {
@@ -688,7 +688,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 if (ret != 12) {
                     throw std::runtime_error("Parsing error in scene constructor (box declaration)");
                 }
-                const std::optional<size_t> m_index = get_material(file, material_wrapper_set, inverse_gamma);
+                const std::optional<unsigned int> m_index = get_material(file, material_wrapper_set, inverse_gamma);
                 if (m_index.has_value()) {
                     const box* bx = new box(
                         rt::vector(cx, cy, cz),
@@ -716,9 +716,9 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 if (ret != 9) {
                     throw std::runtime_error("Parsing error in scene constructor (triangle declaration)");
                 }
-                const std::optional<size_t> m_index = get_material(file, material_wrapper_set, inverse_gamma);
+                const std::optional<unsigned int> m_index = get_material(file, material_wrapper_set, inverse_gamma);
                 const std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, TRIANGLE_TYPE);
-                const bool normal_mapping = info.has_value() && info.value().normal_map_index.has_value();
+                const bool normal_mapping = info.has_value() && info.value().has_normal_information();
                 if (m_index.has_value()) {
                 
                     const triangle* tr = new triangle(
@@ -748,12 +748,12 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 if (ret != 12) {
                     throw std::runtime_error("Parsing error in scene constructor (quad declaration)");
                 }
-                const std::optional<size_t> m_index = get_material(file, material_wrapper_set, inverse_gamma);
+                const std::optional<unsigned int> m_index = get_material(file, material_wrapper_set, inverse_gamma);
 
                 if (m_index.has_value()) {
                 
                     const std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, QUAD_TYPE);
-                    const bool normal_mapping = info.has_value() && info.value().normal_map_index.has_value();
+                    const bool normal_mapping = info.has_value() && info.value().has_normal_information();
                     const quad* q = new quad(
                         rt::vector(x0, y0, z0),
                         rt::vector(x1, y1, z1),
@@ -780,7 +780,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 if (ret != 8) {
                     throw std::runtime_error("Parsing error in scene constructor (cylinder declaration)");
                 }
-                const std::optional<size_t> m_index = get_material(file, material_wrapper_set, inverse_gamma);
+                const std::optional<unsigned int> m_index = get_material(file, material_wrapper_set, inverse_gamma);
 
                 if (m_index.has_value()) {
 
@@ -810,7 +810,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                     throw std::runtime_error("Parsing error in scene constructor (obj file loading)");
                 }
                 
-                std::optional<size_t> t_index = std::nullopt;
+                std::optional<unsigned int> t_index = std::nullopt;
 
                 if (ret == 6 && strcmp(t_name, "none") != 0) {
                     /* Looking up the texture name in the vector of already declared texture names */

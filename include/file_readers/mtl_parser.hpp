@@ -27,4 +27,4 @@
 bool parse_mtl_file(const char* file_name, const std::string& path,
     std::vector<wrapper<material>>& material_wrapper_set,
     std::vector<wrapper<texture>>& texture_wrapper_set,
-    std::map<size_t, size_t>& mt_assoc, const real gamma);
+    std::map<unsigned int, unsigned int>& mt_assoc, const real gamma);

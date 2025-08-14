@@ -20,14 +20,15 @@ plane::plane() : a(0), b(0), c(0), d(0) {}
 plane::plane(const real pa, const real pb, const real pc, const real pd,
     const unsigned int material_index)
     
-    : object(rt::vector(), material_index), right_dir(std::nullopt), down_dir(std::nullopt), inv_texture_scale(1.0f) {
+    : object(rt::vector(), material_index) {
 
     /* Normalization of the normal vector */
-    normal = rt::vector(pa, pb, pc).unit();
+    const rt::vector normal_vector(pa, pb, pc);
+    normal = normal_vector.unit();
     a = normal.x;
     b = normal.y;
     c = normal.z;
-    d = pd / sqrt(pa*pa + pb*pb + pc*pc);
+    d = pd / normal_vector.norm();
     
     if (pa != 0) {
         position = rt::vector(-d/a, 0, 0);
@@ -47,7 +48,7 @@ plane::plane(const real pa, const real pb, const real pc, const real pd,
 plane::plane(const real pa, const real pb, const real pc, const rt::vector& position,
     const unsigned int material_index)
 
-    : object(position, material_index), right_dir(std::nullopt), down_dir(std::nullopt), inv_texture_scale(1.0f) {
+    : object(position, material_index) {
 
     normal = rt::vector(pa, pb, pc).unit();
     a = normal.x;
@@ -62,7 +63,7 @@ plane::plane(const real pa, const real pb, const real pc, const rt::vector& posi
     const unsigned int material_index,
     const std::optional<texture_info>& info, const rt::vector& right, const real scale)
 
-    : object(position, material_index, info), right_dir(right.unit()), inv_texture_scale(1.0 / scale) {
+    : object(position, material_index, info) {
 
     normal = rt::vector(pa, pb, pc).unit();
     a = normal.x;
@@ -71,7 +72,9 @@ plane::plane(const real pa, const real pb, const real pc, const rt::vector& posi
 
     d = -(normal | position); // = -aX-bY-cZ if position = (X,Y,Z)
 
-    down_dir = right_dir.value() ^ normal;
+    orientation.right_dir = right.unit();
+    orientation.down_dir = orientation.right_dir ^ normal;
+    orientation.inv_texture_scale = 1.0f / scale;
 }
 
 /* Intersection determination */
@@ -116,11 +119,11 @@ hit plane::compute_intersection(ray& r, const real t) const {
 /* Returns the barycentric info (tiles according to texture_scale) */
 barycentric_info plane::get_barycentric(const rt::vector& p) const {
 
-    const real right_component = (p | right_dir.value()) * inv_texture_scale;
+    const real right_component = (p | orientation.right_dir) * orientation.inv_texture_scale;
     real x_value = fmod(right_component, (real) 1.0f);
     if (x_value < 0) x_value += 1.0f;
 
-    const real down_component = (p | down_dir.value()) * inv_texture_scale;
+    const real down_component = (p | orientation.down_dir) * orientation.inv_texture_scale;
     real y_value = fmod(down_component, (real) 1.0f);
     if (y_value < 0) y_value += 1.0f;
 
@@ -130,7 +133,12 @@ barycentric_info plane::get_barycentric(const rt::vector& p) const {
 /* Normal map vector computation at render time */
 rt::vector plane::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal) const {
 
-    return tangent_space_normal.x * right_dir.value() + tangent_space_normal.y * down_dir.value() + tangent_space_normal.z * local_normal;
+    //return tangent_space_normal.x * right_dir.value() + tangent_space_normal.y * down_dir.value() + tangent_space_normal.z * local_normal;
+    return matprod(
+        orientation.right_dir, tangent_space_normal.x,
+        orientation.down_dir,  tangent_space_normal.y,
+        local_normal,          tangent_space_normal.z
+    );
 }
 
 
