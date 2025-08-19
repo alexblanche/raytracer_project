@@ -267,12 +267,13 @@ int main(int argc, char *argv[]) {
 
         const unsigned long int t_init = time_enabled ? time(0) : 0;
         unsigned long int t_export = 0;
+        unsigned long int t_end = 0;
         
         for (unsigned int i = 0; i < target_number_of_rays; i++) {
             if (multisample)
                 render_loop_parallel_multisample(matrix, scene, number_of_bounces, number_of_samples);
             else
-                render_loop_parallel(matrix, scene, number_of_bounces, russian_roulette_enabled);
+                render_loop_parallel(matrix, scene, number_of_bounces, russian_roulette_enabled, i);
 
             //if (target_number_of_rays <= 10 || i % 10 == 9) {
                 printf("\r%u / %u", i+1, target_number_of_rays);
@@ -281,16 +282,15 @@ int main(int argc, char *argv[]) {
 
             /* Exporting as rtdata every 100 samples */
             if (i % 100 == 99) {
-                const unsigned long int t_export_init = time_enabled ? time(0) : 0;
+                t_end = time_enabled ? time(0) : 0;
                 create_dir();
                 export_raw("../output/image.rtdata", i+1, matrix);
                 const unsigned long int t_export_end = time_enabled ? time(0) : 0;
-                t_export += t_export_end - t_export_init;
+                t_export += t_export_end - t_end;
             }
 
         }
-
-        const unsigned long int t_end = time_enabled ? time(0) : 0;
+        if (not t_end) t_end = time(0);
         const unsigned long int elapsed = t_end - t_init - t_export;
 
         printf("\r%u / %u", target_number_of_rays, target_number_of_rays);
@@ -333,7 +333,7 @@ int main(int argc, char *argv[]) {
         if (multisample)
             render_loop_parallel_multisample(matrix, scene, number_of_bounces, number_of_samples);
         else
-            render_loop_parallel(matrix, scene, number_of_bounces, russian_roulette_enabled);
+            render_loop_parallel(matrix, scene, number_of_bounces, russian_roulette_enabled, 1);
     }
 
     const rt::screen scr(scene.width, scene.height);
@@ -362,7 +362,7 @@ int main(int argc, char *argv[]) {
             if (multisample)
                 render_loop_parallel_multisample(matrix, scene, number_of_bounces, number_of_samples);
             else
-                render_loop_parallel(matrix, scene, number_of_bounces, russian_roulette_enabled);
+                render_loop_parallel(matrix, scene, number_of_bounces, russian_roulette_enabled, number_of_rays);
         }
 
         printf("\rNumber of rays per pixel: %u", number_of_rays);

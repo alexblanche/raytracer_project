@@ -22,15 +22,12 @@ void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
     randomgen rg(ANTI_ALIASING);
 
     for (int i = 0; i < scene.width; i++) {
+        std::vector<rt::color>& data_line = matrix[i];
         for (int j = 0; j < scene.height; j++) {
 
-            ray r = scene.cam.depth_of_field_enabled ?
-                  scene.cam.gen_ray_dof(i, j, rg)
-                : scene.cam.gen_ray_normal(i, j, rg);
+            ray r = scene.cam.gen_ray(i, j, rg, 0);
             const rt::color pixel_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette);
-
-            // Updating the color matrix
-            matrix[i][j] = matrix[i][j] + pixel_col;
+            data_line[j] += pixel_col;
         }
     }
 }
@@ -38,23 +35,19 @@ void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
 
 /* Main render loop */
 void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
-    scene& scene, const unsigned int number_of_bounces, const bool russian_roulette) {
+    scene& scene, const unsigned int number_of_bounces, const bool russian_roulette, const unsigned int iteration) {
 
     PARALLEL_FOR_BEGIN(scene.width) {
         
         static thread_local randomgen rg(ANTI_ALIASING);
 
-        std::vector<rt::color>& output = matrix[i];
+        std::vector<rt::color>& data_line = matrix[i];
 
         for (int j = 0; j < scene.height; j++) {
 
-            ray r = scene.cam.depth_of_field_enabled ?
-                  scene.cam.gen_ray_dof(i, j, rg)
-                : scene.cam.gen_ray_normal(i, j, rg);
-
+            ray r = scene.cam.gen_ray(i, j, rg, iteration);
             const rt::color new_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette);
-            //output[j] = output[j] + new_col;
-            output[j] += new_col;
+            data_line[j] += new_col;
         }
         
     } PARALLEL_FOR_END();
@@ -64,6 +57,7 @@ void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
    If time_all is true, all lines produce a time measurement and output the estimated total time.
    It time_all is false, only the total time is output at the end.
  */
+// TO BE REWRITTEN
 void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
     scene& scene, const unsigned int number_of_bounces, const bool time_all) {
     
@@ -78,10 +72,7 @@ void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
 
         for (int j = 0; j < scene.height; j++) {
 
-            ray r = scene.cam.depth_of_field_enabled ?
-                  scene.cam.gen_ray_dof(i, j, rg)
-                : scene.cam.gen_ray_normal(i, j, rg);
-
+            ray r = scene.cam.gen_ray(i, j, rg, 0);
             const rt::color pixel_col = pathtrace(r, scene, rg, number_of_bounces, false);
             
             const rt::color& current_color = matrix[i][j];
@@ -134,17 +125,13 @@ void render_loop_parallel_multisample(std::vector<std::vector<rt::color>>& matri
 
     PARALLEL_FOR_BEGIN(scene.width) {
 
-        std::vector<rt::color>& output = matrix[i];
+        std::vector<rt::color>& data_line = matrix[i];
 
         for (int j = 0; j < scene.height; j++) {
 
-            ray r = scene.cam.depth_of_field_enabled ?
-                  scene.cam.gen_ray_dof(i, j, rg)
-                : scene.cam.gen_ray_normal(i, j, rg);
-
+            ray r = scene.cam.gen_ray(i, j, rg, 0);
             const rt::color new_col = pathtrace_multisample(r, scene, rg, number_of_bounces, number_of_samples);
-
-            output[j] = output[j] + new_col;
+            data_line[j] += new_col;
         }
         
     } PARALLEL_FOR_END();

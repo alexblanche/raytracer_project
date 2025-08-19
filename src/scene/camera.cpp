@@ -16,7 +16,7 @@ camera::camera(const rt::vector& origin, const rt::vector& direction, const rt::
       to_the_bottom((direction ^ to_the_right).unit()), distance(dist),
       di(fov_w / ((real) width)), dj(fov_h / ((real) height)),
       mhalf_fovw(-fov_w/2), mhalf_fovh(-fov_h/2),
-      focal_length(-1), aperture(-1), depth_of_field_enabled(false) {}
+      focal_length(-1), aperture(-1), mode(CAM_NORMAL_AA | CAM_STRATIFIED) {}
 
 camera::camera(const rt::vector& origin, const rt::vector& direction, const rt::vector& to_the_right,
     const real fov_w, const real fov_h, const real dist,
@@ -27,50 +27,49 @@ camera::camera(const rt::vector& origin, const rt::vector& direction, const rt::
       to_the_bottom((direction ^ to_the_right).unit()), distance(dist),
       di(fov_w / ((real) width)), dj(fov_h / ((real) height)),
       mhalf_fovw(-fov_w/2), mhalf_fovh(-fov_h/2),
-      focal_length(focal_length), aperture(aperture), depth_of_field_enabled(true) {}
+      focal_length(focal_length), aperture(aperture), mode(CAM_DEPTH_OF_FIELD | CAM_STRATIFIED) {}
 
 
 /* Returns the ray that goes toward the pixel i,j of the screen */
-ray camera::gen_ray(const int i, const int j) const {
-    // const rt::vector dir = ((mhalf_fovw + ((real) i) * di) * to_the_right
-    //     + (mhalf_fovh + ((real) j) * dj) * to_the_bottom
-    //     + distance * direction).unit();
+ray camera::gen_ray_classic(const int i, const int j, const unsigned int iteration) const {
+
+    const real ishift = mhalf_fovw + (static_cast<real>(i) + (mode & CAM_STRATIFIED ? 0.25f * ( iteration &  3)       : 0.0f)) * di;
+    const real jshift = mhalf_fovh + (static_cast<real>(j) + (mode & CAM_STRATIFIED ? 0.25f * ((iteration & 15) >> 2) : 0.0f)) * dj;
     const rt::vector dir =
         (matprod(
-            to_the_right,  mhalf_fovw + ((real) i) * di,
-            to_the_bottom, mhalf_fovh + ((real) j) * dj,
-            direction, distance)
+            to_the_right,  ishift,
+            to_the_bottom, jshift,
+            direction,     distance)
         ).unit();
     return ray(origin, dir);
 }
 
 /* Returns the ray that goes toward the pixel i,j of the screen in average,
    following a normal distribution around to center of the pixel, with given stardard deviation */
-ray camera::gen_ray_normal(const int i, const int j, randomgen& rg) const {
+ray camera::gen_ray_normal(const int i, const int j, randomgen& rg, const unsigned int iteration) const {
+
     std::pair<real, real> shift = rg.random_pair_normal(); //rg.random_pair_normal(0.0f, std_dev);
-    // const rt::vector dir = ((mhalf_fovw + (((real) i) + shift.first) * di) * to_the_right
-    //     + (mhalf_fovh + (((real) j) + shift.second) * dj) * to_the_bottom
-    //     + distance * direction).unit();
+    const real ishift = mhalf_fovw + (static_cast<real>(i) + shift.first  + (mode & CAM_STRATIFIED ? 0.25f * ( iteration &  3)       : 0.0f)) * di;
+    const real jshift = mhalf_fovh + (static_cast<real>(j) + shift.second + (mode & CAM_STRATIFIED ? 0.25f * ((iteration & 15) >> 2) : 0.0f)) * dj;
     const rt::vector dir =
         (matprod(
-            to_the_right,  mhalf_fovw + (((real) i) + shift.first) * di,
-            to_the_bottom, mhalf_fovh + (((real) j) + shift.second) * dj,
+            to_the_right,  ishift,
+            to_the_bottom, jshift,
             direction,     distance))
         .unit();
     return ray(origin, dir);
 }
 
 /* Returns the ray that goes toward the pixel i,j of the screen, with depth of field */
-ray camera::gen_ray_dof(const int i, const int j, randomgen& rg) const {
+ray camera::gen_ray_dof(const int i, const int j, randomgen& rg, const unsigned int iteration) const {
+
+    const real ishift = mhalf_fovw + (static_cast<real>(i) + (mode & CAM_STRATIFIED ? 0.25f * ( iteration &  3)       : 0.0f)) * di;
+    const real jshift = mhalf_fovh + (static_cast<real>(j) + (mode & CAM_STRATIFIED ? 0.25f * ((iteration & 15) >> 2) : 0.0f)) * dj;
     const rt::vector focus_point =
         focal_length *
-        // (((mhalf_fovw + ((real) i) * di) * to_the_right
-        //   + (mhalf_fovh + ((real) j) * dj) * to_the_bottom
-        //   + distance * direction).unit()
-        // );
-        (fma(to_the_right, mhalf_fovw + ((real) i) * di,
-        fma(to_the_bottom, mhalf_fovh + ((real) j) * dj,
-        distance * direction)).unit());
+            (fma(to_the_right, ishift,
+            fma(to_the_bottom, jshift,
+            distance * direction)).unit());
         
     const real r = rg.random_ratio();
     const real phi = rg.random_angle();

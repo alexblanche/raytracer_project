@@ -3,6 +3,12 @@
 #include "light/vector.hpp"
 #include "light/ray.hpp"
 
+// Sampling modes
+#define CAM_DEFAULT         0
+#define CAM_DEPTH_OF_FIELD  1
+#define CAM_NORMAL_AA       2
+#define CAM_STRATIFIED      4
+
 class camera {
     
     private:
@@ -39,7 +45,7 @@ class camera {
 
 
     public:
-        bool depth_of_field_enabled;
+        int mode;
 
         /* Constructors */
         camera();
@@ -54,12 +60,20 @@ class camera {
             const real focal_length, const real aperture);
 
         /* Returns the ray that goes toward the pixel i,j of the screen */
-        ray gen_ray(const int i, const int j) const;
+        ray gen_ray_classic(const int i, const int j, const unsigned int iteration) const;
 
         /* Returns the ray that goes toward the pixel i,j of the screen in average,
            following a normal distribution around to center of the pixel, with given stardard deviation */
-        ray gen_ray_normal(const int i, const int j, randomgen& rg) const;
+        ray gen_ray_normal(const int i, const int j, randomgen& rg, const unsigned int iteration) const;
 
         /* Returns the ray that goes toward the pixel i,j of the screen, with depth of field */
-        ray gen_ray_dof(const int i, const int j, randomgen& rg) const;
+        ray gen_ray_dof(const int i, const int j, randomgen& rg, const unsigned int iteration) const;
+
+        ray gen_ray(const int i, const int j, randomgen& rg, const unsigned int iteration) const {
+            return
+                mode & CAM_DEPTH_OF_FIELD ?
+                    gen_ray_dof(i, j, rg, iteration)
+                    :
+                    gen_ray_normal(i, j, rg, iteration);
+        }
 };
