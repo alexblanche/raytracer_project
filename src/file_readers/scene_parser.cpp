@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <string>
+#include <sstream>
 
 #include "scene/objects/bounding.hpp"
 #include "scene/objects/sphere.hpp"
@@ -38,10 +39,18 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
         See the file structure below.    
     */
 
-    double r, g, b, er, eg, eb, refl, em_int, spec_p, transp, scattering, refr_i;
-    bool refl_color = false;
+    double r = 255.0f, g = 255.0f, b = 255.0f;
+    double er = 0.0f, eg = 0.0f, eb = 0.0f;
+    double refl = 0.0f;
+    double em_int = 0.0f;
+    double spec_p = 0.0f;
+    double transp = 0.0f;
+    double scattering = 0.0f;
+    double refr_i = 1.0f;
     char refl_c[6];
+    bool refl_color = false;
 
+    /*
     const int ret = fscanf(file, "color:(%lf,%lf,%lf) emitted_color:(%lf,%lf,%lf) reflectivity:%lf emission:%lf specular_p:%lf reflects_color:%5s transparency:%lf scattering:%lf refraction_index:%lf)", 
         &r, &g, &b, &er, &eg, &eb, &refl, &em_int, &spec_p, refl_c, &transp, &scattering, &refr_i);
 
@@ -49,9 +58,179 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
         printf("Parsing error in parse_material\n");
         return std::nullopt;
     }
+    */
+    char buffer[256];
+    const int ret = fscanf(file, "%255[^\n]", buffer);
+    if (ret != 1) {
+        printf("Parsing error in parse_material\n");
+        return std::nullopt;
+    }
 
-    if (strcmp(refl_c, "true") == 0) {
-        refl_color = true;
+    bool color_is_set       = false;
+    bool em_color_is_set    = false;
+    bool refl_is_set        = false;
+    bool em_int_is_set      = false;
+    bool spec_p_is_set      = false;
+    bool transp_is_set      = false;
+    bool scattering_is_set  = false;
+    bool refr_i_is_set      = false;
+    bool refl_col_is_set    = false;
+
+    std::istringstream stream(buffer); 
+    std::string word;
+    while (stream >> word) {
+
+        if (word.starts_with("color:")) {
+            if (color_is_set) {
+                printf("Parsing error in parse_material: duplicate color definition\n");
+                return std::nullopt;
+            }
+            const int ret1 = sscanf(word.data(), "color:(%lf,%lf,%lf)", &r, &g, &b);
+            int ret2 = 0, ret3 = 0;
+            if (ret1 == 1) {
+                stream >> word;
+                ret2 = sscanf(word.data(), "%lf,%lf)", &g, &b);
+                if (ret2 == 1) {
+                    stream >> word;
+                    ret3 = sscanf(word.data(), "%lf)", &b);
+                }
+            }
+            else if (ret1 == 2) {
+                stream >> word;
+                ret3 = sscanf(word.data(), "%lf)", &b);
+            }
+            if (ret1 + ret2 + ret3 != 3) {
+                printf("Parsing error in parse_material: color\n");
+                return std::nullopt;
+            }
+            color_is_set = true;
+        }
+
+        else if (word.starts_with("emitted_color:")) {
+            if (em_color_is_set) {
+                printf("Parsing error in parse_material: duplicate emitted color definition\n");
+                return std::nullopt;
+            }
+            const int ret1 = sscanf(word.data(), "emitted_color:(%lf,%lf,%lf)", &er, &eg, &eb);
+            int ret2 = 0, ret3 = 0;
+            if (ret1 == 1) {
+                stream >> word;
+                ret2 = sscanf(word.data(), "%lf,%lf)", &eg, &eb);
+                if (ret2 == 1) {
+                    stream >> word;
+                    ret3 = sscanf(word.data(), "%lf)", &eb);
+                }
+            }
+            else if (ret1 == 2) {
+                stream >> word;
+                ret3 = sscanf(word.data(), "%lf)", &eb);
+            }
+            if (ret1 + ret2 + ret3 != 3) {
+                // printf("Faulty word: %s\n", word.data());
+                printf("Parsing error in parse_material: emitted color\n");
+                return std::nullopt;
+            }
+            em_color_is_set = true;
+        }
+
+        else if (word.starts_with("reflectivity:")) {
+            if (refl_is_set) {
+                printf("Parsing error in parse_material: duplicate reflectivity definition\n");
+                return std::nullopt;
+            }
+            const int ret = sscanf(word.data(), "reflectivity:%lf", &refl);
+            if (ret != 1) {
+                printf("Parsing error in parse_material: reflectivity\n");
+                return std::nullopt;
+            }
+            refl_is_set = true;
+        }
+
+        else if (word.starts_with("emission:")) {
+            if (em_int_is_set) {
+                printf("Parsing error in parse_material: duplicate emission definition\n");
+                return std::nullopt;
+            }
+            const int ret = sscanf(word.data(), "emission:%lf", &em_int);
+            if (ret != 1) {
+                printf("Parsing error in parse_material: emission\n");
+                return std::nullopt;
+            }
+            em_int_is_set = true;
+        }
+
+        else if (word.starts_with("specular_p:")) {
+            if (spec_p_is_set) {
+                printf("Parsing error in parse_material: duplicate specular_p definition\n");
+                return std::nullopt;
+            }
+            const int ret = sscanf(word.data(), "specular_p:%lf", &spec_p);
+            if (ret != 1) {
+                printf("Parsing error in parse_material: specular_p\n");
+                return std::nullopt;
+            }
+            spec_p_is_set = true;
+        }
+
+        else if (word.starts_with("transparency:")) {
+            if (transp_is_set) {
+                printf("Parsing error in parse_material: duplicate transparency definition\n");
+                return std::nullopt;
+            }
+            const int ret = sscanf(word.data(), "transparency:%lf", &transp);
+            if (ret != 1) {
+                printf("Parsing error in parse_material: transparency\n");
+                return std::nullopt;
+            }
+            transp_is_set = true;
+        }
+
+        else if (word.starts_with("scattering:")) {
+            if (scattering_is_set) {
+                printf("Parsing error in parse_material: duplicate scattering definition\n");
+                return std::nullopt;
+            }
+            const int ret = sscanf(word.data(), "scattering:%lf", &scattering);
+            if (ret != 1) {
+                printf("Parsing error in parse_material: scattering\n");
+                return std::nullopt;
+            }
+            scattering_is_set = true;
+        }
+
+        else if (word.starts_with("refraction_index:")) {
+            if (refr_i_is_set) {
+                printf("Parsing error in parse_material: duplicate refraction_index definition\n");
+                return std::nullopt;
+            }
+            const int ret = sscanf(word.data(), "refraction_index:%lf", &refr_i);
+            if (ret != 1) {
+                printf("Parsing error in parse_material: refraction_index\n");
+                return std::nullopt;
+            }
+            refr_i_is_set = true;
+        }
+
+        else if (word.starts_with("reflects_color:")) {
+            if (refl_col_is_set) {
+                printf("Parsing error in parse_material: duplicate reflects_color definition\n");
+                return std::nullopt;
+            }
+            const int ret = sscanf(word.data(), "reflects_color:%5s", refl_c);
+            if (ret != 1) {
+                printf("Parsing error in parse_material: reflects_color\n");
+                return std::nullopt;
+            }
+            if (strcmp(refl_c, "true") == 0) {
+                refl_color = true;
+            }
+            refl_col_is_set = true;
+        }
+
+        else {
+            printf("Parsing error in parse_material: %s\n", word.data());
+            return std::nullopt;
+        }
     }
 
     rt::color mat_color;

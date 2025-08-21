@@ -60,7 +60,7 @@ class material {
 
         material();
 
-        /* Constructs a material with no emitted light, with specular probability 1 */
+        /* Constructs a material with no emitted light, with specular probability 0 */
         material(const rt::color& color, const real reflectivity);
 
         /* Main constructor */
