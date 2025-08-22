@@ -1,27 +1,46 @@
-resolution width:1366 height:768
-camera position:(0, 200, 0) direction:(0, 0, 1) rightdir:(1, 0, 0) fov_width:1366 distance:350
+resolution width:1920 height:1080
+camera position:(2.212, 1.488, 3.4) direction:(-0.72, -0.28, -1) rightdir:(1, 0, -0.72) fov_width:1.33 distance:1.0
 background_color 190 235 255
-polygons_per_bounding 0
+background_texture ../../../raytracer_project/sky/dome/urban_street.hdr rotate_x:3.14 rotate_y:5.835 rotate_z:0 gamma:2.2
+polygons_per_bounding 10
+
+# background_texture ../../../raytracer_project/sky/dome/urban_street.bmp rotate_x:3.14 rotate_y:5.835 rotate_z:0
+
+# Camera for Porsche in street
+# camera position:(2.212, 1.488, 3.4) direction:(-0.72, -0.28, -1) rightdir:(1, 0, -0.72) fov_width:1.33 distance:1.0
+
+# Camera for dragon tests
+# camera position:(-2.212, 1.488, -3.4) direction:(0.72, -0.28, 1) rightdir:(-1, -0, 0.72) fov_width:1.33 distance:1.0
+
+# Camera for...?
+# camera position:(4.72, 1.8, -1.88) direction:(-1, -0.28, 0.50) rightdir:(-0.50, 0, -1) fov_width:1.33 distance:1.0
+
+# Right placement of the background and car, wrong FOV for the car
+# camera position:(2.22, 1.4, 3.5) direction:(-0.72, -0.28, -1) rightdir:(1, 0, -0.72) fov_width:1.595 distance:1.2
+
+material white_light (emission:5)
+
+# Ground
+# plane normal:(0,1,0) position:(0, 0, 0) material:(color:(10, 10, 10) reflectivity:0.5)
+
+# load_texture asphalt ../../../raytracer_project/texture_assets/asphalt2.bmp
+material road_mat (diffuse)
+# quad (2.372, 0, 0.6) (-0.527, 0, 2.7) (-3.372, 0, -1.4) (-0.5, 0, -3.5) material:diffuse texture:(asphalt (0, 0) (0, 1) (1, 1) (1, 0))
+# sphere center:(2.3, 0, 0.5) radius:0.1 material:white_light
+# sphere center:(-0.492, 0, 2.6) radius:0.1 material:white_light
+# sphere center:(-0.5, 0, -3.5) radius:0.1 material:white_light
+# sphere center:(-3.372, 0, -1.4) radius:0.1 material:white_light
+
+load_texture asphalt ../../../raytracer_project/texture_assets/asphalt/asphalt.bmp
+load_normal_map asphaltn ../../../raytracer_project/texture_assets/asphalt/asphalt_nor.bmp
+quad (2.372, 0, 0.6) (-0.527, 0, 2.7) (-3.372, 0, -1.4) (-0.5, 0, -3.5) material:diffuse texture:(asphalt normal:asphaltn (0, 0) (0, 1) (1, 1) (1, 0))
+
+# Model
+load_obj ../../../raytracer_project/3d_models/porsche_2016/porsche_obj.obj
+# Box for camera and parameters testing
+# material diffuse_red (color:(255, 5, 5))
+# box center:(0, 0.642, 0) x_axis:(1, 0, 0) y_axis:(0, 1, 0) 1.98 1.284 4.5 material:diffuse_red
+
+# load_obj ../../../raytracer_project/3d_models/porsche_highres/porsche_highres.obj
 
 
-plane normal:(0, -1, 0) position:(0, 600, 0)   material:(color:(10, 10, 10)    specular_p:0.2)
-plane normal:(0, 0, -1) position:(0, 0, 1200)  material:(color:(255, 255, 255) specular_p:0)
-plane normal:(1, 0, 0)  position:(-1000, 0, 0) material:(color:(255, 80, 80)   specular_p:0)
-plane normal:(-1, 0, 0) position:(1000, 0, 0)  material:(color:(80, 255, 80)   specular_p:0)
-plane normal:(0, 0, 1)  position:(0, 0, 0)     material:(color:(10, 180, 255)  specular_p:0)
-plane normal:(0, 1, 0)  position:(0, -600, 0)  material:(color:(10, 10, 10)    specular_p:0.5)
-
-material white_light (color:(255, 255, 255) emission:10)
-quad (-400, -599, 800) (-400, -599, 400) (400, -599, 400) (400, -599, 800) material:white_light
-
-# material blue_mirror (color:(10, 180, 255) reflectivity:1 specular_p:1 reflects_color:true)
-
-# box center:(0,0,600) x_axis:(-1,1,-1) y_axis:(-1,-2,-1) 200 200 200 material:blue_mirror
-# sphere center:(0,-150,600) radius:200 material:blue_mirror
-
-sphere center:(-400, 350, 950) radius:250 material:mirror
-sphere center:( 400, 350, 650) radius:250 material:glass
-
-# quad (-950, -550, 1150) (-950, -550, 50) (950, -550, 50) (950, -550, 1150) material:diffuse
-
-# sphere center:( 0, 350, 650) radius:250 material:glass

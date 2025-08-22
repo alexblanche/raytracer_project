@@ -40,10 +40,9 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
     */
 
     double r = 255.0f, g = 255.0f, b = 255.0f;
-    double er = 0.0f, eg = 0.0f, eb = 0.0f;
-    double refl = 0.0f;
+    double smooth = 0.0f;
     double em_int = 0.0f;
-    double spec_p = 0.0f;
+    double refl = 0.0f;
     double transp = 0.0f;
     double scattering = 0.0f;
     double refr_i = 1.0f;
@@ -51,7 +50,7 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
     bool refl_color = false;
 
     /*
-    const int ret = fscanf(file, "color:(%lf,%lf,%lf) emitted_color:(%lf,%lf,%lf) reflectivity:%lf emission:%lf specular_p:%lf reflects_color:%5s transparency:%lf scattering:%lf refraction_index:%lf)", 
+    const int ret = fscanf(file, "color:(%lf,%lf,%lf) smoothness:%lf emission:%lf reflectivity:%lf reflects_color:%5s transparency:%lf scattering:%lf refraction_index:%lf)", 
         &r, &g, &b, &er, &eg, &eb, &refl, &em_int, &spec_p, refl_c, &transp, &scattering, &refr_i);
 
     if (ret != 13) {
@@ -67,18 +66,62 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
     }
 
     bool color_is_set       = false;
-    bool em_color_is_set    = false;
-    bool refl_is_set        = false;
+    bool smooth_is_set      = false;
     bool em_int_is_set      = false;
-    bool spec_p_is_set      = false;
+    bool refl_is_set        = false;
     bool transp_is_set      = false;
     bool scattering_is_set  = false;
     bool refr_i_is_set      = false;
     bool refl_col_is_set    = false;
+    int nb_param_set = 0;
 
     std::istringstream stream(buffer); 
     std::string word;
     while (stream >> word) {
+        if (nb_param_set >= 9) {
+            printf("Parsing error in parse_material: too many parameters set\n");
+            return std::nullopt;
+        }
+
+        if (word.starts_with("diffuse")) {
+            if (nb_param_set) {
+                printf("Parsing error in parse_material: no parameter should be set in addition to diffuse\n");
+                return std::nullopt;
+            }
+            // Default is diffuse white
+            break;
+        }
+        else if (word.starts_with("mirror")) {
+            if (nb_param_set) {
+                printf("Parsing error in parse_material: no parameter should be set in addition to mirror\n");
+                return std::nullopt;
+            }
+            smooth = 1.0f;
+            refl = 1.0f;
+            break;
+        }
+        else if (word.starts_with("glass")) {
+            if (nb_param_set) {
+                printf("Parsing error in parse_material: no parameter should be set in addition to glass\n");
+                return std::nullopt;
+            }
+            smooth = 1.0f;
+            refl = 1.0f;
+            transp = 0.95f;
+            refr_i = 1.52f;
+            break;
+        }
+        else if (word.starts_with("water")) {
+            if (nb_param_set) {
+                printf("Parsing error in parse_material: no parameter should be set in addition to water\n");
+                return std::nullopt;
+            }
+            smooth = 1.0f;
+            refl = 1.0f;
+            transp = 1.0f;
+            refr_i = 1.33f;
+            break;
+        }
 
         if (word.starts_with("color:")) {
             if (color_is_set) {
@@ -106,6 +149,7 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
             color_is_set = true;
         }
 
+        /*
         else if (word.starts_with("emitted_color:")) {
             if (em_color_is_set) {
                 printf("Parsing error in parse_material: duplicate emitted color definition\n");
@@ -132,18 +176,19 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
             }
             em_color_is_set = true;
         }
+        */
 
-        else if (word.starts_with("reflectivity:")) {
-            if (refl_is_set) {
-                printf("Parsing error in parse_material: duplicate reflectivity definition\n");
+        else if (word.starts_with("smoothness:")) {
+            if (smooth_is_set) {
+                printf("Parsing error in parse_material: duplicate smoothness definition\n");
                 return std::nullopt;
             }
-            const int ret = sscanf(word.data(), "reflectivity:%lf", &refl);
+            const int ret = sscanf(word.data(), "smoothness:%lf", &smooth);
             if (ret != 1) {
-                printf("Parsing error in parse_material: reflectivity\n");
+                printf("Parsing error in parse_material: smoothness\n");
                 return std::nullopt;
             }
-            refl_is_set = true;
+            smooth_is_set = true;
         }
 
         else if (word.starts_with("emission:")) {
@@ -159,17 +204,17 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
             em_int_is_set = true;
         }
 
-        else if (word.starts_with("specular_p:")) {
-            if (spec_p_is_set) {
-                printf("Parsing error in parse_material: duplicate specular_p definition\n");
+        else if (word.starts_with("reflectivity:")) {
+            if (refl_is_set) {
+                printf("Parsing error in parse_material: duplicate reflectivity definition\n");
                 return std::nullopt;
             }
-            const int ret = sscanf(word.data(), "specular_p:%lf", &spec_p);
+            const int ret = sscanf(word.data(), "reflectivity:%lf", &refl);
             if (ret != 1) {
-                printf("Parsing error in parse_material: specular_p\n");
+                printf("Parsing error in parse_material: reflectivity\n");
                 return std::nullopt;
             }
-            spec_p_is_set = true;
+            refl_is_set = true;
         }
 
         else if (word.starts_with("transparency:")) {
@@ -241,17 +286,17 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
         const real gb = pow(b / 255.0f, gamma) * 255.0f;
         mat_color = rt::color(gr, gg, gb);
 
-        const real ger = pow(er / 255.0f, gamma) * 255.0f;
-        const real geg = pow(eg / 255.0f, gamma) * 255.0f;
-        const real geb = pow(eb / 255.0f, gamma) * 255.0f;
-        em_color = rt::color(ger, geg, geb);
+        // const real ger = pow(er / 255.0f, gamma) * 255.0f;
+        // const real geg = pow(eg / 255.0f, gamma) * 255.0f;
+        // const real geb = pow(eb / 255.0f, gamma) * 255.0f;
+        // em_color = rt::color(ger, geg, geb);
     }
     else {
         mat_color = rt::color(r, g, b);
-        em_color = rt::color(er, eg, eb);
+        // em_color = rt::color(er, eg, eb);
     }
 
-    return material(mat_color, em_color, refl, em_int, spec_p, refl_color, transp, scattering, refr_i);
+    return material(mat_color, smooth, em_int, refl, refl_color, transp, scattering, refr_i);
 }
 
 

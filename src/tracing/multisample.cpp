@@ -24,7 +24,7 @@ inline void update_accumulators(
         color_materials *= local_color;
     }
     */
-   emitted_colors = m.is_emissive() ? fma(color_materials, m.get_emitted_color() * m.get_emission_intensity(), emitted_colors) : emitted_colors;
+   emitted_colors = m.is_emissive() ? fma(color_materials, m.get_color() * m.get_emission_intensity(), emitted_colors) : emitted_colors;
    color_materials = update_color_materials ? color_materials * local_color : color_materials;
 }
 
@@ -65,14 +65,14 @@ void compute_bouncing_ray(const material& m, const hit& h,
     if (m.is_opaque()) {
         /* Diffuse or specular reflection */
 
-        if (m.has_specular_proba()) {
+        if (m.is_specular()) {
             // Mix of specular and diffuse
-            central_dir1 = get_central_reflected_direction(h, h.get_normal(), m.get_reflectivity(), inward);
-            scattering1 = m.get_reflectivity();
+            central_dir1 = get_central_reflected_direction(h, h.get_normal(), m.get_smoothness(), inward);
+            scattering1 = m.get_smoothness();
             orig1 = compute_bias(h.get_point(), h.get_normal(), inward, true);
             update_acc(m.does_reflect_color(), m.get_color(), FIRST);
 
-            proba_1 = m.get_specular_proba();
+            proba_1 = m.get_reflectivity();
 
             const rt::vector& normal = h.get_normal();
             central_dir2 = inward ? normal : (-1.0f) * normal;
@@ -107,8 +107,8 @@ void compute_bouncing_ray(const material& m, const hit& h,
         if (sin_theta_2_sq >= 1.0f) {
             // Total internal reflection
 
-            central_dir1 = get_central_reflected_direction(h, h.get_normal(), m.get_reflectivity(), inward);
-            scattering1 = m.get_reflectivity();
+            central_dir1 = get_central_reflected_direction(h, h.get_normal(), m.get_smoothness(), inward);
+            scattering1 = m.get_smoothness();
             orig1 = compute_bias(h.get_point(), h.get_normal(), inward, true);
 
             update_acc(false, m.get_color(), FIRST);
@@ -126,8 +126,8 @@ void compute_bouncing_ray(const material& m, const hit& h,
 
             if (inward) {
                 // Reflection
-                central_dir2 = get_central_reflected_direction(h, h.get_normal(), m.get_reflectivity(), inward);
-                scattering2 = m.get_reflectivity();
+                central_dir2 = get_central_reflected_direction(h, h.get_normal(), m.get_smoothness(), inward);
+                scattering2 = m.get_smoothness();
                 orig2 = compute_bias(h.get_point(), h.get_normal(), inward, true);
 
                 update_acc(false, m.get_color(), SECOND);
@@ -164,7 +164,7 @@ rt::color pathtrace_multisample(ray& r, scene& scene, randomgen& rg, const unsig
                         * m.get_emission_intensity();
             }
             else {
-                return m.get_emitted_color() * m.get_emission_intensity();
+                return m.get_color() * m.get_emission_intensity();
             }                
         }
 

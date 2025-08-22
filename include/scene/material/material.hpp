@@ -6,29 +6,18 @@
 class material {
     
     private:
-
-        /*** Reflectivity ***/
     
         /* Color of the material */
         rt::color color;
 
         /* Real between 0 and 1: 0 is a pure diffuse surface, 1 is a pure mirror */
-        real reflectivity;
-
-        /* Color emitted by the material */
-        // rt::color emitted_color;
+        real smoothness;
 
         /* Real between 0 and 1: 0 does not emit light, 1 is maximum intensity */
         real emission_intensity;
 
-
-        /*** Specular bounce ***/
-
         /* Probability of a specular bounce */
-        real specular_probability;
-
-
-        /*** Transparency ***/
+        real reflectivity;
 
         /* Transparency: real between 0 and 1 */
         real transparency;
@@ -42,7 +31,7 @@ class material {
         /* Booleans to speed up the tracing function */
         bool opaque;
         bool emissive;
-        bool has_spec_prob;
+        bool has_specularity;
 
         /* True if the material color is reflected in specular bounces, false if it is white */
         bool reflects_color;
@@ -61,12 +50,12 @@ class material {
         material();
 
         /* Constructs a material with no emitted light, with specular probability 0 */
-        material(const rt::color& color, const real reflectivity);
+        material(const rt::color& color, const real smoothness);
 
         /* Main constructor */
-        material(const rt::color& color, const rt::color& emitted_color,
-            const real reflectivity, const real emission_intensity,
-            const real specular_probability, const bool reflects_color,
+        material(const rt::color& color,
+            const real smoothness, const real emission_intensity,
+            const real reflectivity, const bool reflects_color,
             const real transparency, const real refraction_scattering,
             const real refraction_index_in);
 
@@ -90,24 +79,16 @@ class material {
             return color;
         }
 
-        inline const rt::color& get_emitted_color() const {
-            return color;//emitted_color;
-        }
-
-        inline real get_reflectivity() const {
-            return reflectivity;
-        }
-
-        inline real get_secondary_reflectivity() const {
-            return 0.f;
+        inline real get_smoothness() const {
+            return smoothness;
         }
 
         inline real get_emission_intensity() const {
             return emission_intensity;
         }
 
-        inline real get_specular_proba() const {
-            return specular_probability;
+        inline real get_reflectivity() const {
+            return reflectivity;
         }
 
         inline bool does_reflect_color() const {
@@ -134,8 +115,8 @@ class material {
             return emissive;
         }
 
-        inline bool has_specular_proba() const {
-            return has_spec_prob;
+        inline bool is_specular() const {
+            return has_specularity;
         }
 };
 

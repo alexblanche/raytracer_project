@@ -39,7 +39,7 @@ struct accumulators {
 
         emitted_colors =
             m.is_emissive() ?
-                combine(m.get_emitted_color() * m.get_emission_intensity())
+                combine(m.get_color() * m.get_emission_intensity())
                 :
                 emitted_colors;
         color_materials =
@@ -66,16 +66,16 @@ inline void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& no
 
 
 /* Auxiliary function that handles the specular reflective case */
-void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real reflectivity,
+void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real smoothness,
     const rt::vector& local_normal, const bool inward) {
 
-    const rt::vector central_dir = get_central_reflected_direction(h, local_normal, reflectivity, inward);
+    const rt::vector central_dir = get_central_reflected_direction(h, local_normal, smoothness, inward);
                     
     /* Direction according to Lambert's cosine law */
-    const rt::vector dir = (reflectivity >= 1.0f) ?
+    const rt::vector dir = (smoothness >= 1.0f) ?
         central_dir
         :
-        (fma(random_direction(rg, central_dir, PI), 1.0f - reflectivity, central_dir)).unit();
+        (fma(random_direction(rg, central_dir, PI), 1.0f - smoothness, central_dir)).unit();
     r.set_direction(dir);
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
@@ -197,7 +197,7 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
             return obj->is_textured() ?
                 acc.combine(scene.sample_texture(obj->get_texture_info_index(), obj->get_barycentric(h.get_point())) * m.get_emission_intensity())
                 :
-                acc.combine(m.get_emitted_color() * m.get_emission_intensity());
+                acc.combine(m.get_color() * m.get_emission_intensity());
         }
 
         /* The ray can either be transmitted (and refracted) through the surface,
@@ -209,7 +209,7 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
         // Contains the material local color, the local normal and (soon) the reflectivity and displacement
         const map_sample ms = (obj->is_textured()) ?
             scene.sample_maps(obj->get_texture_info_index(), obj->get_barycentric(h.get_point()),
-                m.get_color(), h.get_normal(), m.get_reflectivity())
+                m.get_color(), h.get_normal(), m.get_smoothness())
             :
             map_sample(m.get_color(), h.get_normal()); // reflectivity, displacement);
 
@@ -219,25 +219,25 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
             h.get_normal();
 
         const rt::color& color = ms.texture_color;
-        const real reflectivity = m.get_reflectivity(); // ms.reflectivity;
+        const real smoothness = m.get_smoothness(); // ms.smoothness;
         //
 
         if (m.is_opaque()) {
             /* Diffuse or specular reflection */
 
             /* Testing whether the ray is reflected specularly or diffusely */
-            if (m.has_specular_proba()) {
+            if (m.is_specular()) {
                 
                 /* Specular bounce */
 
-                const bool is_specular = rg.random_ratio() <= m.get_specular_proba();
-                const real specular_reflectivity = is_specular ? reflectivity : m.get_secondary_reflectivity();
+                const bool is_specular_bounce = rg.random_ratio() <= m.get_reflectivity();
+                const real specular_smoothness = is_specular_bounce ? smoothness : 0.0f;
                 
-                specular_reflective_case(r, h, rg, specular_reflectivity, normal, inward);
+                specular_reflective_case(r, h, rg, specular_smoothness, normal, inward);
 
                 /* We update color_materials only if the material reflects colors (like a christmas tree ball),
                 otherwise the reflection has the original color (like a tomato) */
-                acc.update(m, color, !is_specular || m.does_reflect_color());
+                acc.update(m, color, !is_specular_bounce || m.does_reflect_color());
             }
             else {
 
@@ -275,7 +275,7 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
                 /* The ray is reflected */
                 
                 /* Is it a pure specular or a mix of specular and diffuse just like in the previous case? */
-                specular_reflective_case(r, h, rg, reflectivity, normal, inward);
+                specular_reflective_case(r, h, rg, smoothness, normal, inward);
                 acc.update(m, color, false);
             }
             else {
@@ -286,7 +286,7 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
                 if (sin_theta_2_sq >= 1.0f) {
                     /* Total internal reflection */
 
-                    specular_reflective_case(r, h, rg, reflectivity, normal, inward);
+                    specular_reflective_case(r, h, rg, smoothness, normal, inward);
                     acc.update(m, color, false);
                 }
                 else {

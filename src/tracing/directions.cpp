@@ -19,20 +19,20 @@ ray get_reflected_ray() {
 
 /* Returns the interpolated direction between the normal and the reflected direction */
 /* inward = ((direction | normal) <= 0) */
-rt::vector get_central_reflected_direction(const hit& h, const rt::vector& normal, const real reflectivity, const bool inward) {
+rt::vector get_central_reflected_direction(const hit& h, const rt::vector& normal, const real smoothness, const bool inward) {
     const rt::vector& u = h.get_generator_ray()->get_direction();
     /*
     inward = (u | normal) <= 0;
     right_normal = inward ? normal : (-1)*normal;
     cos = -(u | normal)
     reflected_dir = (2*cos) * right_normal + u
-    reflectivity * reflected_dir + (1 - reflectivity) * right_normal
+    smoothness * reflected_dir + (1 - smoothness) * right_normal
         = (r * (2 * cos - 1) + 1) * right_normal + r * u
     */
     const rt::vector right_normal = inward ? normal : (-1.0f) * normal;
     const real cos = (-1.0f) * (u | right_normal);
-    //return (reflectivity * (2.0f * cos - 1.0f) + 1.0f) * right_normal + reflectivity * u;
-    return fma(u, reflectivity, (reflectivity * (2.0f * cos - 1.0f) + 1.0f) * right_normal);
+    //return (smoothness * (2.0f * cos - 1.0f) + 1.0f) * right_normal + smoothness * u;
+    return fma(u, smoothness, (smoothness * (2.0f * cos - 1.0f) + 1.0f) * right_normal);
 }
 
 

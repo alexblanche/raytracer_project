@@ -422,9 +422,10 @@ int main(int argc, char *argv[]) {
     }
 
     create_dir();
-    const bool success = write_bmp("../output/image_final.bmp", matrix, MAX_RAYS, gamma);
+    bool success = write_bmp("../output/image_final.bmp", matrix, MAX_RAYS, gamma);
+    success = success && export_raw("../output/image_final.rtdata", MAX_RAYS, matrix);
     if (success) {
-        printf("\nSaved as output/image_final.bmp\n");
+        printf("\nSaved as output/image_final.bmp and output/image_final.rtdata\n");
         return EXIT_SUCCESS;
     }
     else {
