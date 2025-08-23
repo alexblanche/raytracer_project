@@ -129,7 +129,26 @@ int main(int argc, char *argv[]) {
     bool reinhardt_enabled = false;
     bool russian_roulette_enabled = false;
 
-    if (argc == 1|| atoi(argv[1]) == 0) {
+    constexpr char const* const default_filename = "../scene.txt";
+    const char* filename = default_filename;
+
+    if (!atoi(argv[1])) {
+        // file specified
+
+        filename = argv[1];
+        if (std::filesystem::is_regular_file(filename)) {
+            argc --;
+            argv ++;
+        }
+        else {
+            printf("Scene description %s not found\n", filename);
+            return EXIT_FAILURE;
+        }
+    }
+
+    printf("Scene descriptor: %s\n", filename);
+
+    if (argc == 1 || atoi(argv[1]) == 0) {
         printf("Number of bounces: %u (default)\n", number_of_bounces);
     }
     else {
@@ -232,7 +251,7 @@ int main(int argc, char *argv[]) {
     /* *************************** */
     /* Scene description */
 
-    std::optional<scene> scene_opt = parse_scene_descriptor("../scene.txt");
+    std::optional<scene> scene_opt = parse_scene_descriptor(filename);
     
     if (not scene_opt.has_value()) {
         printf("Scene creation failed\n");

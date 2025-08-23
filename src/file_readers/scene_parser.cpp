@@ -273,6 +273,10 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
             refl_col_is_set = true;
         }
 
+        else if (word.starts_with("texture:") || word.starts_with(")")) {
+            break;
+        }
+
         else {
             printf("Parsing error in parse_material: %s\n", word.data());
             return std::nullopt;
