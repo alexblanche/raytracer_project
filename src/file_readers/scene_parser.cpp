@@ -46,7 +46,6 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
     double transp = 0.0f;
     double scattering = 0.0f;
     double refr_i = 1.0f;
-    char refl_c[6];
     bool refl_color = false;
 
     /*
@@ -261,13 +260,15 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
                 printf("Parsing error in parse_material: duplicate reflects_color definition\n");
                 return std::nullopt;
             }
-            const int ret = sscanf(word.data(), "reflects_color:%5s", refl_c);
-            if (ret != 1) {
+            if (word.starts_with("reflects_color:true")) {
+                refl_color = true;
+            }
+            else if (word.starts_with("reflects_color:false")) {
+                refl_color = false;
+            }
+            else {
                 printf("Parsing error in parse_material: reflects_color\n");
                 return std::nullopt;
-            }
-            if (strcmp(refl_c, "true") == 0) {
-                refl_color = true;
             }
             refl_col_is_set = true;
         }

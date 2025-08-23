@@ -38,13 +38,16 @@ material::material(const rt::color& color,
     const real refraction_index)
 
     : color(color), smoothness(smoothness),
-        //emitted_color(emitted_color),
         emission_intensity(emission_intensity),
         reflectivity(reflectivity),
         transparency(transparency), refraction_scattering(refraction_scattering),
         refraction_index(refraction_index),
         opaque(transparency == 0), emissive(emission_intensity != 0), has_specularity(reflectivity != 0),
-        reflects_color(reflects_color) {}
+        reflects_color(reflects_color) {
+        
+            // printf("material: color:(%d, %d, %d), smooth:%lf, refl:%lf, has_spec:%d, refl_col:%d\n",
+            //     (int) color.get_red(), (int) color.get_green(), (int) color.get_blue(), smoothness, reflectivity, has_specularity, reflects_color);
+        }
 
 /* Constructor from mtl parameters */
 material::material(const real ns,
