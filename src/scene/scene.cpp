@@ -175,7 +175,7 @@ const rt::color& scene::sample_texture(const unsigned int texture_info_index, co
 }
 
 map_sample scene::sample_maps(const unsigned int texture_info_index, const barycentric_info& bary,
-    const rt::color& default_color, const rt::vector& default_vector, const real /*default_reflectivity*/) const {
+    const rt::color& default_color, const rt::vector& default_vector, const real /*default_smoothness*/) const {
 
     const texture_info& ti = texture_info_set[texture_info_index];
     const uvcoord uvc = ti.get_barycenter(bary);
@@ -187,14 +187,14 @@ map_sample scene::sample_maps(const unsigned int texture_info_index, const baryc
         normal_map_set[ti.normal_map_index].get_tangent_space_normal(uvc.u, uvc.v)
         :
         default_vector;
-    // const real reflectivity = (ti.roughness_map_index.has_value()) ?
-    //     roughness_map_set[ti.roughness_map_index.value()].get_roughness(uvc.u, uvc.v)
+    // const real smoothness = (ti.roughness_map_index.has_value()) ?
+    //     1.0f - roughness_map_set[ti.roughness_map_index.value()].get_roughness(uvc.u, uvc.v)
     //     :
-    //     default_reflectivity;
+    //     default_smoothness;
     // const real displacement = displacement_map_set[ti.displacement_map_index].get_displacement(uvc.u, uvc.v);
 
     return map_sample(t_col, n_vec//,
-        // reflectivity,
+        // smoothness,
         // displacement
         );
 }

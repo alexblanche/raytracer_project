@@ -115,7 +115,7 @@ rt::vector random_direction(randomgen& rg, const rt::vector& central_dir, const 
     rt::vector X, Y;
     if (a != 0.0f) {
         const real nX = a * a + b * b;
-        X = rt::vector(- b, a, 0.0f) / nX; // = ".unit()"
+        X = rt::vector(- b, a, 0.0f) / sqrt(nX); // = ".unit()"
         Y = rt::vector(a * c, b * c, -nX).unit();
     } else if (b != 0.0f) {
         // central_dir = (0,b,c)
