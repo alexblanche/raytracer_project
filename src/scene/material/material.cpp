@@ -8,7 +8,7 @@
 
 /* Static element */
 
-material material::DIFFUSE = material();
+material material::DIFFUSE = material(rt::color(255,255,255), 1); // rt::color::WHITE is not yet set to (255, 255, 255)
 material material::MIRROR = material(rt::color(255,255,255), 1, 0, 1, false, 0, 0, 1.0);
 material material::GLASS = material(rt::color(255,255,255), 1, 0, 1, false, 0.95, 0, 1.52);
 material material::WATER = material(rt::color(255,255,255), 1, 0, 1, false, 1, 0, 1.33);

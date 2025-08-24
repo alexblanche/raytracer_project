@@ -705,6 +705,13 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                throw std::runtime_error("(material reading)");
             }
             else {
+
+               // const material& m = material_wrapper_set[vindex.value()].content;
+               // printf("material %s: color:(%d, %d, %d), smooth:%lf, refl:%lf, has_spec:%d, refl_col:%d\n",
+               //    material_wrapper_set[vindex.value()].name.value().data(),
+               //    (int) m.get_color().get_red(), (int) m.get_color().get_green(), (int) m.get_color().get_blue(),
+               //    m.get_smoothness(), m.get_reflectivity(), m.is_specular(), m.does_reflect_color());
+
                current_material_index = vindex.value();
                if (mt_assoc.count(current_material_index) > 0) {
                   // A texture was associated with the material by an mtl file
