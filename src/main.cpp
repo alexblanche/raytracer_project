@@ -25,12 +25,12 @@
  * Esc:         Exit
  */
 
-#include "file_readers/hdr_reader.hpp"
-#include "scene/light_sources/infinite_area.hpp"
+// #include "file_readers/hdr_reader.hpp"
+// #include "scene/light_sources/infinite_area.hpp"
 
-#include "scene/objects/triangle.hpp"
-#include "scene/objects/sphere.hpp"
-#include "scene/objects/plane.hpp"
+// #include "scene/objects/triangle.hpp"
+// #include "scene/objects/sphere.hpp"
+// #include "scene/objects/plane.hpp"
 
 int main(int argc, char *argv[]) {
 
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    printf("Scene descriptor: %s\n", filename);
+    printf("Scene descriptor: %s\n", std::filesystem::path(filename).filename().generic_string().data());
 
     if (argc == 1 || atoi(argv[1]) == 0) {
         printf("Number of bounces: %u (default)\n", number_of_bounces);
