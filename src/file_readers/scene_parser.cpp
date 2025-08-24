@@ -58,9 +58,22 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
     }
     */
     char buffer[256];
-    const int ret = fscanf(file, "%255[^\n]", buffer);
-    if (ret != 1) {
-        printf("Parsing error in parse_material\n");
+    //const int ret = fscanf(file, "%255[^\n]", buffer);
+    // Manual extraction (to avoid going over texture declaration)
+    int depth = 0;
+    int i;
+    for (i = 0; i < 256; i++) {
+        const char c = fgetc(file);
+        if (c == '(') depth++;
+        else if (c == ')') {
+            if (depth == 0) break;
+            else depth--;
+        }
+        buffer[i] = c;
+    }
+    // printf("Extracted s: %s\n", buffer);
+    if (i == 256) {
+        printf("Parsing error in parse_material: material definition is too long\n");
         return std::nullopt;
     }
 
