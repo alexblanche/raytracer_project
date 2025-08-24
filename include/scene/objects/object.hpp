@@ -25,6 +25,8 @@ struct min_max_coord {
     min_max_coord() {}
 };
 
+#define EMPTY_INDEX ((unsigned int) -1)
+
 
 /* Main class for objects of a scene
    Each object type is a derived class */
@@ -35,11 +37,11 @@ class object {
         /* Position of the object (depends on the type of object) */
         rt::vector position;
 
-        /* Index of the material in the material_set vector of the scene */
-        const unsigned int material_index;
-
         /* Contains a texture_info if the object is textured */
         const unsigned int texture_information_index;
+
+        /* Index of the material in the material_set vector of the scene */
+        const unsigned int material_index;
 
     public:
 
@@ -64,7 +66,7 @@ class object {
         }
 
         inline bool is_textured() const {
-            return texture_information_index != (unsigned int) (-1);
+            return texture_information_index != EMPTY_INDEX;
         }
 
         inline unsigned int get_texture_info_index() const {

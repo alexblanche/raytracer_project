@@ -6,16 +6,19 @@
 /* Constructors */
 
 object::object()
-    : position(rt::vector()), material_index((unsigned int) -1),
-        texture_information_index((unsigned int) -1) {}
+    : position(rt::vector()),
+        texture_information_index(EMPTY_INDEX),
+        material_index(EMPTY_INDEX) {}
 
 object::object(const rt::vector& position, const unsigned int material_index)
-    : position(position), material_index(material_index),
-        texture_information_index((unsigned int) -1) {}
+    : position(position),
+        texture_information_index(EMPTY_INDEX),
+        material_index(material_index) {}
 
 object::object(const rt::vector& position, const unsigned int material_index, const unsigned int texture_info_index)
-    : position(position), material_index(material_index),
-        texture_information_index(texture_info_index) {}
+    : position(position),
+        texture_information_index(texture_info_index),
+        material_index(material_index) {}
 
 
 

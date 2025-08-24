@@ -35,15 +35,17 @@
 int main(int argc, char *argv[]) {
 
     // printf("real : %llu, color : %llu, vector : %llu\n", sizeof(real), sizeof(rt::color), sizeof(rt::vector));
-    printf("size_t : %llu ; unsigned int : %llu\n", sizeof(size_t), sizeof(unsigned int));
-
-    printf("material : %llu\n", sizeof(material));
-    printf("object : %llu\n", sizeof(object));
-    printf("texture_info : %llu\n", sizeof(texture_info));
-    printf("triangle : %llu\n", sizeof(triangle));
-    printf("sphere : %llu\n", sizeof(sphere));
-    printf("vector : %llu\n", sizeof(rt::vector));
-    printf("plane : %llu\n", sizeof(plane));
+    // printf("real : %llu\n", sizeof(real));
+    // printf("size_t : %llu ; unsigned int : %llu\n", sizeof(size_t), sizeof(unsigned int));
+    // printf("unsigned short : %llu ; unsigned char : %llu\n", sizeof(unsigned short int), sizeof(unsigned char));
+    // printf("material : %llu with alignment %llu\n", sizeof(material), alignof(material));
+    // printf("object : %llu with alignment %llu\n", sizeof(object), alignof(object));
+    // printf("texture_info : %llu with alignment %llu\n", sizeof(texture_info), alignof(texture_info));
+    // printf("triangle : %llu with alignment %llu\n", sizeof(triangle), alignof(triangle));
+    // printf("sphere : %llu with alignment %llu\n", sizeof(sphere), alignof(sphere));
+    // printf("vector : %llu with alignment %llu\n", sizeof(rt::vector), alignof(rt::vector));
+    // printf("plane : %llu with alignment %llu\n", sizeof(plane), alignof(plane));
+    // printf("\n");
 
     ///// TEMP: testing low res infinite area
     /*
