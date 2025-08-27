@@ -69,8 +69,16 @@ inline void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& no
     r.set_origin(fma(normal, (inward == outward_bias) ? BIAS_NORM : (-BIAS_NORM), hit_point));
 }
 
+template <bool inward_eq_outward_bias>
+inline void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& normal) {
+
+    constexpr real right_bias = (inward_eq_outward_bias ? 1.0 : -1.0) * BIAS_NORM;
+    r.set_origin(fma(normal, right_bias, hit_point));
+}
+
 
 /* Auxiliary function that handles the specular reflective case */
+// Run-time
 void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real smoothness,
     const rt::vector& local_normal, const bool inward) {
 
@@ -88,8 +96,28 @@ void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real sm
     apply_bias(r, h.get_point(), h.get_normal(), inward, true);
 }
 
+// Compile-time
+template<bool inward>
+void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real smoothness,
+    const rt::vector& local_normal) {
+
+    const rt::vector central_dir = get_central_reflected_direction(h, local_normal, smoothness, inward);
+                    
+    /* Direction according to Lambert's cosine law */
+    const rt::vector dir = (smoothness >= 1.0f) ?
+        central_dir
+        :
+        (fma(random_direction<PI>(rg, central_dir), 1.0f - smoothness, central_dir)).unit();
+    r.set_direction(dir);
+    // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
+
+    /* Apply the bias outward the surface */
+    apply_bias<inward>(r, h.get_point(), h.get_normal());
+}
+
 
 /* Auxiliary function that handles the diffuse reflective case */
+// Run-time
 void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, randomgen& rg, const bool inward) {
 
     r.set_direction(((inward ? local_normal : (-1.0f) * local_normal) + random_direction<PI>(rg, local_normal)).unit());
@@ -97,6 +125,24 @@ void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, randomge
 
     /* Apply the bias outward the surface */
     apply_bias(r, h.get_point(), h.get_normal(), inward, true);
+}
+
+// Compile-time
+template <bool inward>
+void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, randomgen& rg) {
+
+    if constexpr (inward) {
+        r.set_direction((local_normal + random_direction<PI>(rg, local_normal)).unit());
+    }
+    else {
+        r.set_direction((((-1.0f) * local_normal) + random_direction<PI>(rg, local_normal)).unit());
+    }
+    
+    
+    // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
+
+    /* Apply the bias outward the surface */
+    apply_bias<inward>(r, h.get_point(), h.get_normal());
 }
 
 
@@ -272,14 +318,13 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
 
             /* Computation of the Fresnel coefficient */
             // const real kr = inward ? h.get_fresnel(sin_theta_2_sq, refr_index, next_refr_i) : 0.0f;
-            const real kr = inward ? get_schlick(h, normal, refr_index, next_refr_i) : 0.0f;
 
-            if (inward && rg.random_ratio() * m.get_transparency() <= kr) {
+            if (inward && rg.random_ratio() * m.get_transparency() <= get_schlick(h, normal, refr_index, next_refr_i)) {
             
                 /* The ray is reflected */
                 
                 /* Is it a pure specular or a mix of specular and diffuse just like in the previous case? */
-                specular_reflective_case(r, h, rg, smoothness, normal, inward);
+                specular_reflective_case<true>(r, h, rg, smoothness, normal);
                 //acc.update(m, color, false);
                 if (m.is_emissive()) acc.update_emitted_col(m);
             }
@@ -304,7 +349,7 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
 
                     refractive_case(r, h, rg, m.get_refraction_scattering(), normal,
                         vx, sin_theta_2_sq, inward, refr_index, next_refr_i);
-                    //acc.update(m, color, true);
+                    // acc.update(m, color, true);
                     if (m.is_emissive()) acc.update_emitted_col(m);
                     acc.update_color_mat(color);
                 }

@@ -39,7 +39,8 @@ quad (2.372, 0, 0.6) (-0.527, 0, 2.7) (-3.372, 0, -1.4) (-0.5, 0, -3.5) material
 load_obj ../../../raytracer_project/3d_models/porsche_2016/porsche_obj.obj
 # Box for camera and parameters testing
 # material diffuse_red (color:(255, 5, 5))
-# box center:(0, 0.642, 0) x_axis:(1, 0, 0) y_axis:(0, 1, 0) 1.98 1.284 4.5 material:diffuse_red
+# box center:(0, 0.642, 0) x_axis:(1, 0, 0) y_axis:(0, 1, 0) 1.98 1.284 4.5 material:(color:(20, 20, 20) reflectivity:0.2 smoothness:1)
+# sphere center:(0, 0.642, 0) radius:1 material:mirror
 
 # load_obj ../../../raytracer_project/3d_models/porsche_highres/porsche_highres.obj
 

@@ -27,10 +27,10 @@ rt::vector get_central_reflected_direction(const hit& h, const rt::vector& norma
     smoothness * reflected_dir + (1 - smoothness) * right_normal
         = (r * (2 * cos - 1) + 1) * right_normal + r * u
     */
-    const rt::vector right_normal = inward ? normal : (-1.0f) * normal;
-    const real cos = (-1.0f) * (u | right_normal);
+    const real correcting_factor = inward ? 1.0f : -1.0f;
+    const real cos = (-correcting_factor) * (u | normal);
     //return (smoothness * (2.0f * cos - 1.0f) + 1.0f) * right_normal + smoothness * u;
-    return fma(u, smoothness, (smoothness * (2.0f * cos - 1.0f) + 1.0f) * right_normal);
+    return fma(u, smoothness, ((smoothness * (2.0f * cos - 1.0f) + 1.0f) * correcting_factor) * normal);
 }
 
 
@@ -98,7 +98,7 @@ std::vector<ray> random_reflect(const size_t n, randomgen& rg,
 }
 */
 
-
+// Run-time version (compile-time in hpp)
 rt::vector random_direction(randomgen& rg, const rt::vector& central_dir, const real theta_max) {
 
     const real p = rg.random_ratio();
@@ -126,7 +126,7 @@ rt::vector random_direction(randomgen& rg, const rt::vector& central_dir, const 
     }
 
     const real cos_theta_max = std::cos(theta_max);
-    const real cos_theta = 1.0f - p * 1.0f - cos_theta_max;
+    const real cos_theta = 1.0f - p * (1.0f - cos_theta_max);
     const real sin_theta = sqrt(1.0f - cos_theta * cos_theta);
     
     return
@@ -180,7 +180,7 @@ rt::vector get_refracted_direction(const rt::vector& normal, const rt::vector& v
     */
 
     //return vx + sqrt(1.0f - sin_theta_2_sq) * (inward ? (-1.0f) * normal : normal);
-    return fma(inward ? (-1.0f) * normal : normal, sqrt(1.0f - sin_theta_2_sq), vx);
+    return fma(normal, (inward ? (-1.0f) : 1.0f) * sqrt(1.0f - sin_theta_2_sq), vx);
 }
 
 /* Returns a random unit direction in the cone whose center is the refracted direction, within solid angle refraction_scattering * pi */

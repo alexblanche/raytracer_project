@@ -23,7 +23,7 @@ rt::vector get_central_reflected_direction(const hit& h, const rt::vector& norma
 template <real theta_max>
 rt::vector random_direction(randomgen& rg, const rt::vector& central_dir) {
 
-    constexpr real cos_theta_max = std::cos(theta_max);
+    constexpr real cos_theta_max = cos(theta_max);
     constexpr real one_m_costhetamax = 1.0f - cos_theta_max;
 
     // random ray in the cone of angle theta_max to central_dir
