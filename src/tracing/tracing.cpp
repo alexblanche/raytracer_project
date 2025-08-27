@@ -12,8 +12,6 @@
 //#include <stack>
 #include "auxiliary/custom_stack.hpp"
 
-#define PI 3.14159265358979323846f
-
 
 /* ******************************************************************** */
 /* *************************** Path tracing *************************** */
@@ -48,11 +46,18 @@ struct accumulators {
                 :
                 color_materials;
     }
+
+    inline void update_emitted_col(const material& m) {
+        emitted_colors = combine(m.get_color() * m.get_emission_intensity());
+    }
+    inline void update_color_mat(const rt::color& local_color) {
+        color_materials *= local_color;
+    }
 };
 
 /** Auxiliary functions **/
 
-#define BIAS_NORM 1.0E-3f
+constexpr real BIAS_NORM = 1.0E-3f;
 
 /* Auxiliary function that applies a bias of 1.0E-3 times the normal to the ray position,
    outward the surface contact point if outward_bias is true (so in the direction of the normal),
@@ -75,7 +80,7 @@ void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real sm
     const rt::vector dir = (smoothness >= 1.0f) ?
         central_dir
         :
-        (fma(random_direction(rg, central_dir, PI), 1.0f - smoothness, central_dir)).unit();
+        (fma(random_direction<PI>(rg, central_dir), 1.0f - smoothness, central_dir)).unit();
     r.set_direction(dir);
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
@@ -87,7 +92,7 @@ void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real sm
 /* Auxiliary function that handles the diffuse reflective case */
 void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, randomgen& rg, const bool inward) {
 
-    r.set_direction(((inward ? local_normal : (-1.0f) * local_normal) + random_direction(rg, local_normal, PI)).unit());
+    r.set_direction(((inward ? local_normal : (-1.0f) * local_normal) + random_direction<PI>(rg, local_normal)).unit());
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
     /* Apply the bias outward the surface */
@@ -244,7 +249,10 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
                 /* Diffuse bounce */
 
                 diffuse_case(r, h, normal, rg, inward);
-                acc.update(m, color, true);
+                
+                //acc.update(m, color, true);
+                if (m.is_emissive()) acc.update_emitted_col(m);
+                acc.update_color_mat(color);
             }
         }
         else {
@@ -262,10 +270,6 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
                 refr_stack.pop();
             }
 
-            /* Pre-computation of the refracted direction */
-            real sin_theta_2_sq;
-            const rt::vector vx = get_sin_refracted(h, normal, refr_index, next_refr_i, sin_theta_2_sq);
-
             /* Computation of the Fresnel coefficient */
             // const real kr = inward ? h.get_fresnel(sin_theta_2_sq, refr_index, next_refr_i) : 0.0f;
             const real kr = inward ? get_schlick(h, normal, refr_index, next_refr_i) : 0.0f;
@@ -276,9 +280,14 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
                 
                 /* Is it a pure specular or a mix of specular and diffuse just like in the previous case? */
                 specular_reflective_case(r, h, rg, smoothness, normal, inward);
-                acc.update(m, color, false);
+                //acc.update(m, color, false);
+                if (m.is_emissive()) acc.update_emitted_col(m);
             }
             else {
+
+                /* Pre-computation of the refracted direction */
+                real sin_theta_2_sq;
+                const rt::vector vx = get_sin_refracted(h, normal, refr_index, next_refr_i, sin_theta_2_sq);
                 
                 /* The ray is transmitted */
 
@@ -287,14 +296,17 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
                     /* Total internal reflection */
 
                     specular_reflective_case(r, h, rg, smoothness, normal, inward);
-                    acc.update(m, color, false);
+                    //acc.update(m, color, false);
+                    if (m.is_emissive()) acc.update_emitted_col(m);
                 }
                 else {
                     /* Transmission */
 
                     refractive_case(r, h, rg, m.get_refraction_scattering(), normal,
                         vx, sin_theta_2_sq, inward, refr_index, next_refr_i);
-                    acc.update(m, color, true);
+                    //acc.update(m, color, true);
+                    if (m.is_emissive()) acc.update_emitted_col(m);
+                    acc.update_color_mat(color);
                 }
 
             }

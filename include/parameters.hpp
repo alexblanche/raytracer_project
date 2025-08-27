@@ -4,7 +4,7 @@
 using real = double;
 
 // Comment for flat-shading of polygon meshes
-#define SMOOTH_SHADING
+constexpr bool SMOOTH_SHADING = true;
 
-#define MAX_RAYS 1000
-#define ANTI_ALIASING 0.3f
+constexpr unsigned int MAX_RAYS = 1000;
+constexpr float ANTI_ALIASING = 0.3f;

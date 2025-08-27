@@ -6,8 +6,6 @@
 
 #include <optional>
 
-#define PI 3.14159265359f
-#define INVPI 0.31830988618f
 
 
 /* Constructors */
@@ -130,7 +128,7 @@ barycentric_info sphere::get_barycentric(const rt::vector& p) const {
     const real x = acos(forward_component / cos(theta));
     const real phi = (right_component < 0.0f) ? -x + 2.0f * PI : x;
 
-    return barycentric_info(phi * INVPI * 0.5f, theta * INVPI + 0.5f);
+    return barycentric_info(phi * ((1.0 / PI) * 0.5f), theta * (1.0 / PI + 0.5f));
 }
 
 /* Normal map vector computation at render time */
@@ -153,7 +151,7 @@ rt::vector sphere::compute_normal_from_map(const rt::vector& tangent_space_norma
 /* Uniformly samples a point on the sphere */
 rt::vector sphere::sample(randomgen& rg) const {
     //return position + (radius * random_direction(rg, rt::vector(0.0f, 1.0f, 0.0f), PI));
-    return fma(random_direction(rg, rt::vector(0.0f, 1.0f, 0.0f), PI), radius, position);
+    return fma(random_direction<PI>(rg, rt::vector(0.0f, 1.0f, 0.0f)), radius, position);
 }
 
 /* Uniformly samples a point on the sphere that is visible from pt */
@@ -166,5 +164,6 @@ rt::vector sphere::sample_visible(randomgen& rg, const rt::vector& pt) const {
         return 2.0f * position - v;
     */
     // Optimized
-    return random_direction(rg, (pt - position).unit(), PI / 2.0f);
+    constexpr real HALFPI = PI / 2.0;
+    return random_direction<HALFPI>(rg, (pt - position).unit());
 }

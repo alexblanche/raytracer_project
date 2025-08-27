@@ -5,8 +5,6 @@
 #include <optional>
 #include <cmath>
 
-#define PI 3.14159265358979323846f
-
 /* Struct containing the background color, the background texture and its orientation */
 struct background_container {
     rt::color bg_color;

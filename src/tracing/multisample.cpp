@@ -1,6 +1,7 @@
 #include "tracing/directions.hpp"
 #include "tracing/tracing.hpp"
 
+
 /* ******************************************************************** */
 /* Path tracing with multisample approach:
    After the first hit, multiple rays are cast */
@@ -30,7 +31,7 @@ inline void update_accumulators(
 
 rt::vector random_dir(randomgen& rg, const rt::vector central_dir, const real scattering) {
     
-    return (central_dir + (1.0f - scattering) * random_direction(rg, central_dir, PI)).unit();
+    return (central_dir + (1.0f - scattering) * random_direction<PI>(rg, central_dir)).unit();
 }
 
 rt::vector compute_bias(const rt::vector& hit_point, const rt::vector& normal,
@@ -39,8 +40,8 @@ rt::vector compute_bias(const rt::vector& hit_point, const rt::vector& normal,
     return hit_point + ((inward == outward_bias) ? (1.0E-3f)*normal : (-1.0E-3f)*normal);
 }
 
-#define FIRST true
-#define SECOND false
+constexpr bool FIRST = true;
+constexpr bool SECOND = false;
 
 /* Computation of the new central direction and scattering */
 void compute_bouncing_ray(const material& m, const hit& h,

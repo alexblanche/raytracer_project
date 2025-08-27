@@ -67,9 +67,11 @@ ray camera::gen_ray_dof(const int i, const int j, randomgen& rg, const unsigned 
     const real jshift = mhalf_fovh + (static_cast<real>(j) + (mode & CAM_STRATIFIED ? 0.25f * ((iteration & 15) >> 2) : 0.0f)) * dj;
     const rt::vector focus_point =
         focal_length *
-            (fma(to_the_right, ishift,
-            fma(to_the_bottom, jshift,
-            distance * direction)).unit());
+        (matprod(
+            to_the_right,  ishift,
+            to_the_bottom, jshift,
+            direction,     distance))
+        .unit();
         
     const real r = rg.random_ratio();
     const real phi = rg.random_angle();

@@ -1,7 +1,5 @@
 #include "tracing/directions.hpp"
 
-#define TWOPI 6.2831853071795862f
-
 /* Returns the reflected ray at the point of contact */
 /* Unused */
 /*
@@ -53,7 +51,7 @@ std::vector<ray> random_reflect(const size_t n, randomgen& rg,
 
     // n random reals between 0 and 1, and n between 0 and 2*pi
     const std::vector<real> rands01 = rg.random_real_array(n, 1.0f);
-    const std::vector<real> rands0twopi = rg.random_real_array(n, TWOPI);
+    const std::vector<real> rands0twopi = rg.random_real_array(n, 2.0 * PI);
 
     // Central direction of the rays
     const real a = central_dir.x;
@@ -100,7 +98,7 @@ std::vector<ray> random_reflect(const size_t n, randomgen& rg,
 }
 */
 
-/* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
+
 rt::vector random_direction(randomgen& rg, const rt::vector& central_dir, const real theta_max) {
 
     const real p = rg.random_ratio();
@@ -115,7 +113,7 @@ rt::vector random_direction(randomgen& rg, const rt::vector& central_dir, const 
     rt::vector X, Y;
     if (a != 0.0f) {
         const real nX = a * a + b * b;
-        X = rt::vector(- b, a, 0.0f) / sqrt(nX); // = ".unit()"
+        X = rt::vector(- b, a, 0.0f) / sqrt(nX);
         Y = rt::vector(a * c, b * c, -nX).unit();
     } else if (b != 0.0f) {
         // central_dir = (0,b,c)
@@ -127,26 +125,16 @@ rt::vector random_direction(randomgen& rg, const rt::vector& central_dir, const 
         Y = rt::vector(0.0f, 1.0f, 0.0f);
     }
 
-    const real cos_theta_max = cos(theta_max);
-
-    // random ray in the cone of angle theta_max to central_dir
-    /*
-    theta = acos(1 - p(1 - cos(theta_max)))
-    x = cos(phi) sin(theta) = cos(phi) * sqrt(1 - (1 - p(1-cos(theta_max))^2))
-    y = sin(phi) sin(theta) = sin(phi) * sqrt(1 - (1 - p(1-cos(theta_max))^2))
-    z = cos(theta)          = 1 - p(1-cos(theta_max))
-    */
-    const real cos_theta = 1.0f - p * (1.0f - cos_theta_max);
+    const real cos_theta_max = std::cos(theta_max);
+    const real cos_theta = 1.0f - p * 1.0f - cos_theta_max;
     const real sin_theta = sqrt(1.0f - cos_theta * cos_theta);
     
-    // return (
-    //       (cos(phi) * sin_theta) * X
-    //     + (sin(phi) * sin_theta) * Y
-    //     + cos_theta * central_dir);
     return
-        fma(X, cos(phi) * sin_theta,
-        fma(Y, sin(phi) * sin_theta,
-        central_dir * cos_theta));
+        matprod(
+            X,           cos(phi) * sin_theta,
+            Y,           sin(phi) * sin_theta,
+            central_dir, cos_theta
+        );
 }
 
 
@@ -201,7 +189,7 @@ rt::vector get_random_refracted_direction(randomgen& rg, const real refraction_s
     const rt::vector& vx, const real sin_theta_2_sq, const bool inward) {
 
     const rt::vector refr_dir = get_refracted_direction(normal, vx, sin_theta_2_sq, inward);
-    return random_direction(rg, refr_dir, refraction_scattering * 1.57079632679f);
+    return random_direction(rg, refr_dir, refraction_scattering * (PI / 2.0));
 }
 
 /* Computes the Fresnel coefficient Kr */

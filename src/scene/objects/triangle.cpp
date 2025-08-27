@@ -378,6 +378,7 @@ barycentric_info triangle::get_barycentric_orig(const rt::vector& p) const {
     }
 }
 #endif
+
 barycentric_info triangle::get_barycentric(const rt::vector& p) const {
 
     const rt::vector c = p - position;
@@ -422,20 +423,19 @@ hit triangle::compute_intersection(ray& r, const real t) const {
     const object* pt_obj = this;
     ray* pt_ray = &r;
     
-#ifdef SMOOTH_SHADING
+    if constexpr (SMOOTH_SHADING) {
     
-    // Computation of the interpolated normal vector
-    const barycentric_info bary = get_barycentric(p);
-    // inward uses the face normal to avoid artefacts at the edge of the mesh
-    const bool inward = (r.get_direction() | normal) <= 0.0f;
+        // Computation of the interpolated normal vector
+        const barycentric_info bary = get_barycentric(p);
+        // inward uses the face normal to avoid artefacts at the edge of the mesh
+        const bool inward = (r.get_direction() | normal) <= 0.0f;
 
-    return hit(pt_ray, p, get_interpolated_normal(bary), pt_obj, inward);
-
-#else // Flat shading
-    
-    return hit(pt_ray, p, normal, pt_obj);
-
-#endif
+        return hit(pt_ray, p, get_interpolated_normal(bary), pt_obj, inward);
+    }
+    else { // Flat shading
+        
+        return hit(pt_ray, p, normal, pt_obj);
+    }
 }
 
 
@@ -471,21 +471,43 @@ void triangle::print() const {
     Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
 rt::vector triangle::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const {
 
-#ifdef SMOOTH_SHADING
-    const rt::vector& t = info.tangent;
-    // Recompute the tangent space with Gram-Schmidt's method
-    const rt::vector t2 = (t - (t | local_normal) * local_normal).unit();
-    const rt::vector b2 = t2 ^ local_normal;
+    if constexpr (SMOOTH_SHADING) {
+        const rt::vector& t = info.tangent;
+        // Recompute the tangent space with Gram-Schmidt's method
+        /*
+        const rt::vector t2 = (t - ((t | local_normal) * local_normal)).unit();
+        const rt::vector b2 = t2 ^ local_normal;
 
-    return tangent_space_normal.x * t2 + tangent_space_normal.y * b2 + tangent_space_normal.z * local_normal;
-#else
-    // Flat shading
-    const rt::vector& t = info.tangent;
-    const rt::vector& b = info.bitangent;
+        //return tangent_space_normal.x * t2 + tangent_space_normal.y * b2 + tangent_space_normal.z * local_normal;
+        return matprod(
+            t2,             tangent_space_normal.x,
+            b2,             tangent_space_normal.y,
+            local_normal,   tangent_space_normal.z
+        );
+        */
+        const rt::vector t2_non_unit = t - ((t | local_normal) * local_normal);
+        const rt::vector b2_non_unit = t2_non_unit ^ local_normal;
+        const real norm_t2 = t2_non_unit.norm();
 
-    return tangent_space_normal.x * t + tangent_space_normal.y * b + tangent_space_normal.z * local_normal;
-#endif
+        //return tangent_space_normal.x * t2 + tangent_space_normal.y * b2 + tangent_space_normal.z * local_normal;
+        return matprod(
+            t2_non_unit,  tangent_space_normal.x / norm_t2,
+            b2_non_unit,  tangent_space_normal.y / norm_t2,
+            local_normal, tangent_space_normal.z
+        );
+    }
+    else {
+        // Flat shading
+        const rt::vector& t = info.tangent;
+        const rt::vector& b = info.bitangent;
 
+        //return tangent_space_normal.x * t + tangent_space_normal.y * b + tangent_space_normal.z * local_normal;
+        return matprod(
+            t,            tangent_space_normal.x,
+            b,            tangent_space_normal.y,
+            local_normal, tangent_space_normal.z
+        );
+    }
 }
 
 
