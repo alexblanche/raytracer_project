@@ -154,12 +154,15 @@ void refractive_case(ray& r, const hit& h, randomgen& rg, const real scattering,
 
     /* Setting the refracted direction */
     r.set_direction(
-        get_random_refracted_direction(
-            rg,
-            scattering,
-            local_normal,
-            vx, sin_theta_2_sq, inward
-        )
+        scattering != 0.0f ?
+            get_random_refracted_direction(
+                rg,
+                scattering,
+                local_normal,
+                vx, sin_theta_2_sq, inward
+            )
+            :
+            get_refracted_direction(local_normal, vx, sin_theta_2_sq, inward)
     );
 
     /* Updating the refraction index */
@@ -237,18 +240,12 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
         /* Full-intensity light source reached */
         if (m.is_emissive() && m.get_emission_intensity() >= 1.0f) {
 
-            // if (obj->is_textured()) {
-            //     const barycentric_info bary = obj->get_barycentric(h.get_point());
-            //     return acc.combine(scene.sample_texture(obj->get_texture_info(), bary) * m.get_emission_intensity());
-            // }
-            // else {
-            //     return acc.combine(m.get_emitted_color() * m.get_emission_intensity());
-            // }
-
-            return obj->is_textured() ?
-                acc.combine(scene.sample_texture(obj->get_texture_info_index(), obj->get_barycentric(h.get_point())) * m.get_emission_intensity())
+            const rt::color& color = obj->is_textured() ?
+                scene.sample_texture(obj->get_texture_info_index(), obj->get_barycentric(h.get_point()))
                 :
-                acc.combine(m.get_color() * m.get_emission_intensity());
+                m.get_color();
+
+            return acc.combine(color * m.get_emission_intensity());
         }
 
         /* The ray can either be transmitted (and refracted) through the surface,
@@ -319,12 +316,15 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
             /* Computation of the Fresnel coefficient */
             // const real kr = inward ? h.get_fresnel(sin_theta_2_sq, refr_index, next_refr_i) : 0.0f;
 
-            if (inward && rg.random_ratio() * m.get_transparency() <= get_schlick(h, normal, refr_index, next_refr_i)) {
+            if (inward
+                &&
+                rg.random_ratio() * m.get_transparency() <= get_schlick(h, normal, refr_index, next_refr_i)) {
             
                 /* The ray is reflected */
                 
                 /* Is it a pure specular or a mix of specular and diffuse just like in the previous case? */
                 specular_reflective_case<true>(r, h, rg, smoothness, normal);
+
                 //acc.update(m, color, false);
                 if (m.is_emissive()) acc.update_emitted_col(m);
             }
