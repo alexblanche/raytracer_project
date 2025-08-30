@@ -6,8 +6,7 @@
 #include <chrono>
 #include <cmath>
 
-#define PI 3.14159265359f
-#define PIOVER2 1.57079632679f
+constexpr float PI = 3.14159265359f;
 
 /* Prototype: real-time skydome, to be cleaned-up */
 
@@ -44,11 +43,11 @@ struct mouse_pos {
         }
         
         // phi is capped between -PI/2 and PI/2
-        if (phi > PIOVER2) {
-            phi = PIOVER2;
+        if (phi > (PI / 2.0f)) {
+            phi = (PI / 2.0f);
         }
-        else if (phi < -PIOVER2) {
-            phi = -PIOVER2;
+        else if (phi < -(PI / 2.0f)) {
+            phi = -(PI / 2.0f);
         }
     }
 };
@@ -125,19 +124,22 @@ struct spherical {
 
         // OBSOLETE : inlined in render loop
         if (u.x > 0) {
-            theta = atanf(u.z / u.x) + 3.0f * PIOVER2;
+            theta = atanf(u.z / u.x) + 3.0f * (PI / 2.0f);
         }
         else if (u.x < 0) {
-            theta = atanf(u.z / u.x) + PIOVER2;
+            theta = atanf(u.z / u.x) + (PI / 2.0f);
         }
         else {
-            theta = 3.0f * PIOVER2;
+            theta = 3.0f * (PI / 2.0f);
         }
 
-        phi = asinf(u.y / u.norm()) + PIOVER2;
+        phi = asinf(u.y / u.norm()) + (PI / 2.0f);
     }
 };
 
+inline float absf(const float x) {
+    return x > 0 ? x : -x;
+}
 
 
 int main(int argc, char** argv) {
@@ -275,16 +277,16 @@ int main(int argc, char** argv) {
     const int img_width = dwidth;
     const int img_height = dheight;
 
-    const int half_scr_width = width / 2;
-    const int half_scr_height = height / 2;
+    constexpr int half_scr_width = width / 2;
+    constexpr int half_scr_height = height / 2;
 
     constexpr float fov_x = 0.3;
     constexpr float fov_y = 0.15;
 
     screen_axes axes;
 
-    const float x_step = fov_x * PI / half_scr_width;
-    const float y_step = fov_y * PI / half_scr_height;
+    constexpr float x_step = fov_x * PI / half_scr_width;
+    constexpr float y_step = fov_y * PI / half_scr_height;
 
     // Scaling factor to convert [0, 2pi] (resp. [0, pi]) to [0, img_width-1] (resp. [0, img_height-1])
     const float img_scale_x = (img_width - 1) / (2 * PI);
@@ -330,6 +332,7 @@ int main(int argc, char** argv) {
             const rt::vector pre_cartesian = fma(scaled_y_axis, j - half_scr_height, axes.center);
             // const int jwidth = j * width;
 
+#if 0
             for (int i = 0; i < width; i++) {
                 
                 // Determining the cartesian coordinates of the pixel in world space
@@ -346,11 +349,11 @@ int main(int argc, char** argv) {
                 
                 const float theta =
                     (cartesian.x != 0) ?
-                        atanf(cartesian.z / cartesian.x) + (cartesian.x > 0 ? 3.0f * PIOVER2 : PIOVER2)
+                        atanf(cartesian.z / cartesian.x) + (cartesian.x > 0 ? 3.0f * (PI / 2.0f) : (PI / 2.0f))
                         :
-                        3.0f * PIOVER2;
+                        3.0f * (PI / 2.0f);
         
-                const float phi = asinf(cartesian.y / cartesian.norm()) + PIOVER2;
+                const float phi = asinf(cartesian.y / cartesian.norm()) + (PI / 2.0f);
 
                 // Reading the pixel of the image corresponding to the spherical coordinates of the pixel in world space
                 const int index_src = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
@@ -364,6 +367,60 @@ int main(int argc, char** argv) {
                 memcpy(texture_pixels + index, orig_pixels + index_src, 3);
                 index += 3;
             }
+#else
+            /*
+                cartesian.x == 0 iff
+                    scaled_x_axis.x * (i - half_scr_width) + pre_cartesian.x == 0
+                    i == half_scr_width - pre_cartesian.x / scaled_x_axis.x
+                    if (-pre_cartesian.x / scaled_x_axis.x) is an integer
+            */
+            
+            const float lim = half_scr_width + ((scaled_x_axis.x != 0) ? -pre_cartesian.x / scaled_x_axis.x : 1e30f);
+            const bool lim_pos = 0 <= lim;
+            const bool two_loops_needed = lim_pos && (lim < width);
+            const bool need_limit_case = two_loops_needed && (lim - nearbyintf(lim) < 1e-5);
+            const float init_x = fma(scaled_x_axis.x, 0 - half_scr_width, pre_cartesian.x);
+            const bool starts_pos = init_x > 0;
+            const float const_before = starts_pos ? 3.0f * (PI / 2.0f) : (PI / 2.0f);
+            const float const_after = (2.0f * PI) - const_before;
+            const int lim_int = static_cast<int>(lim);
+            int last_first_loop = !lim_pos ?
+                width
+                :
+                std::max(0, std::min(lim_int + (!need_limit_case), width));
+            
+            rt::vector cartesian = fma(scaled_x_axis, (-1) - half_scr_width, pre_cartesian);
+
+            int i;
+            for (i = 0; i < last_first_loop; i++) {
+                cartesian += scaled_x_axis;
+                const float theta = atanf(cartesian.z / cartesian.x) + const_before;
+                const float phi = asinf(cartesian.y / cartesian.norm()) + (PI / 2.0f);
+                const int index_src = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
+                memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                index += 3;
+            }
+            if (two_loops_needed && i != width) {
+                if (need_limit_case) {
+                    cartesian += scaled_x_axis;
+                    const float theta = starts_pos ? 0 : PI;
+                    const float phi = asinf(cartesian.y / sqrt(cartesian.y * cartesian.y + cartesian.z * cartesian.z)) + (PI / 2.0f);
+                    const int index_src = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
+                    memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                    index += 3;
+                    i = lim_int + 1;
+                }
+                
+                for (; i < width; i++) {
+                    cartesian += scaled_x_axis;
+                    const float theta = atanf(cartesian.z / cartesian.x) + const_after;
+                    const float phi = asinf(cartesian.y / cartesian.norm()) + (PI / 2.0f);
+                    const int index_src = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
+                    memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                    index += 3;
+                }
+            }
+#endif
         }
         SDL_UnlockTexture(txt);
         SDL_RenderClear(scr.renderer);
