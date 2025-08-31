@@ -291,6 +291,8 @@ int main(int argc, char** argv) {
     // Scaling factor to convert [0, 2pi] (resp. [0, pi]) to [0, img_width-1] (resp. [0, img_height-1])
     const float img_scale_x = (img_width - 1) / (2 * PI);
     const float img_scale_y = (img_height - 1) / PI;
+    
+    //const int max_index_src = img_width * img_height * 3 - 1;
 
     while(true) {
         /* Event handling */
@@ -422,8 +424,19 @@ int main(int argc, char** argv) {
                 //if (needs_reset_phi) atan_cpt++;
                 y = ny;
 
-                const int index_src = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
+                const int index_src_r = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
+                // if (index_src_r < 0) printf("FIRST LOOP index_src < 0\n");
+                // if (index_src_r > max_index_src) printf("FIRST LOOP index_src >= max\n");
+                //const int index_src = std::clamp(index_src_r, 0, max_index_src);
+                const int index_src = std::max(0, index_src_r);
                 memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+
+                // if (needs_reset_theta || needs_reset_phi) {
+                //     texture_pixels[index]     = 255 * needs_reset_theta;
+                //     texture_pixels[index + 1] = 255 * (needs_reset_theta && needs_reset_phi);
+                //     texture_pixels[index + 2] = 255 * needs_reset_phi;
+                // }
+
                 index += 3;
             }
             if (two_loops_needed && i != width) {
@@ -443,13 +456,23 @@ int main(int argc, char** argv) {
                     //if (needs_reset_phi) atan_cpt++;
                     y = ny;
 
-                    const int index_src = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
+                    const int index_src_r = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
+                    // if (index_src_r < 0) printf("MID index_src < 0\n");
+                    // if (index_src_r > max_index_src) printf("MID index_src >= max\n");
+                    //const int index_src = std::clamp(index_src_r, 0, max_index_src);
+                    const int index_src = std::max(0, index_src_r);
                     memcpy(texture_pixels + index, orig_pixels + index_src, 3);
                     // if (!starts_pos) {
                     //     texture_pixels[index]     = 0;
                     //     texture_pixels[index + 1] = 0;
                     //     texture_pixels[index + 2] = 255;
                     // }
+                    // if (needs_reset_phi) {
+                    //     texture_pixels[index]     = 0;
+                    //     texture_pixels[index + 1] = 0;
+                    //     texture_pixels[index + 2] = 255 * needs_reset_phi;
+                    // }
+
                     index += 3;
                     i = lim_int + 1;
                 }
@@ -479,8 +502,20 @@ int main(int argc, char** argv) {
                     //if (needs_reset_phi) atan_cpt++;
                     y = ny;
 
-                    const int index_src = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
+                    const int index_src_r = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
+                    // if (index_src_r < 0) printf("SECOND LOOP index_src < 0, theta %f, phi %f, theta * img_scale_x %f, phi * img_scale_y %f, index_src %d\n",
+                    //     theta, phi, theta * img_scale_x, phi * img_scale_y, index_src_r);
+                    // if (index_src_r > max_index_src) printf("SECOND LOOP index_src >= max\n");
+                    //const int index_src = std::clamp(index_src_r, 0, max_index_src);
+                    const int index_src = std::max(0, index_src_r);
                     memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                    
+                    // if (needs_reset_theta || needs_reset_phi) {
+                    //     texture_pixels[index]     = 255 * needs_reset_theta;
+                    //     texture_pixels[index + 1] = 255 * (needs_reset_theta && needs_reset_phi);
+                    //     texture_pixels[index + 2] = 255 * needs_reset_phi;
+                    // }
+
                     index += 3;
                 }
             }
