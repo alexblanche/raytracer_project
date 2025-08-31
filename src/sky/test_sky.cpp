@@ -300,7 +300,7 @@ int main(int argc, char** argv) {
                 case SDL_MOUSEMOTION:
                     // std::cout << event.motion.xrel << ' ' << event.motion.yrel << std::endl;
                     mouse.set(event.motion.xrel, event.motion.yrel);
-                    SDL_WarpMouseInWindow(scr.window, width >> 1, height >> 1);
+                    SDL_WarpMouseInWindow(scr.window, width / 2, height / 2);
                     break;
                 case SDL_QUIT:
                 case SDL_KEYDOWN:
@@ -321,6 +321,7 @@ int main(int argc, char** argv) {
         axes.set(/*fov_x,*/ mouse.theta, mouse.phi);
         const rt::vector scaled_x_axis = axes.screen_x_axis * x_step;
         const rt::vector scaled_y_axis = axes.screen_y_axis * y_step;
+        constexpr float tan_reset_threshold = 1.0f;
 
         SDL_LockTexture(txt, NULL, (void**) &texture_pixels, &texture_pitch);
         int index = 0;
@@ -380,8 +381,8 @@ int main(int argc, char** argv) {
             const bool lim_pos = 0 <= lim;
             const bool two_loops_needed = lim_pos && (lim < width);
             const bool need_limit_case = two_loops_needed && (lim - nearbyintf(lim) < 1e-5);
-            const float init_x = fma(scaled_x_axis.x, 0 - half_scr_width, pre_cartesian.x);
-            const bool starts_pos = init_x > 0;
+            const float init_cartx = fma(scaled_x_axis.x, 0 - half_scr_width, pre_cartesian.x);
+            const bool starts_pos = init_cartx >= 0;
             const float const_before = starts_pos ? 3.0f * (PI / 2.0f) : (PI / 2.0f);
             const float const_after = (2.0f * PI) - const_before;
             const int lim_int = static_cast<int>(lim);
@@ -393,22 +394,34 @@ int main(int argc, char** argv) {
             rt::vector cartesian = fma(scaled_x_axis, (-1) - half_scr_width, pre_cartesian);
 
             int i;
-            float theta = (cartesian.x != 0) ? (atanf(cartesian.z / cartesian.x) + const_before) : (starts_pos ? 0 : PI);
             float x = (cartesian.x != 0) ? cartesian.z / cartesian.x : (cartesian.z + 0.1 * scaled_x_axis.z) / (cartesian.x + 0.1 * scaled_x_axis.x);
+            float theta = (cartesian.x != 0) ? (atanf(x) + const_before) : (starts_pos ? 0 : PI);
+            float y = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
+            float phi = atanf(y) + (PI / 2.0f);
+            
             for (i = 0; i < last_first_loop; i++) {
                 cartesian += scaled_x_axis;
                 
                 //const float theta = atanf(cartesian.z / cartesian.x) + const_before;
                 const float nx = cartesian.z / cartesian.x;
                 const float dx = nx - x;
-#define THRESHOLD 1.0f
-                const bool needs_reset = absf(dx) > THRESHOLD;
+                const bool needs_reset_theta = absf(dx) > tan_reset_threshold;
                 const float mx = (x + nx) * 0.5f;
-                theta = needs_reset ? (atanf(nx) + const_before) : theta + (dx / (1 + mx * mx));
-                //if (needs_reset) atan_cpt++;
+                theta = needs_reset_theta ? (atanf(nx) + const_before) : theta + (dx / (1 + mx * mx));
+                //if (needs_reset_theta) atan_cpt++;
                 x = nx;
 
-                const float phi = asinf(cartesian.y / cartesian.norm()) + (PI / 2.0f);
+                //  float phi = asinf(cartesian.y / cartesian.norm()) + (PI / 2.0f);
+                //const float phi = atanf(cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z)) + (PI / 2.0f);
+                //if (cartesian.x * cartesian.x + cartesian.z * cartesian.z == 0) printf("First loop: div by 0\n");
+                const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
+                const float dy = ny - y;
+                const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
+                const float my = (y + ny) * 0.5f;
+                phi = needs_reset_phi ? (atanf(y) + (PI / 2.0f)) : phi + (dy / (1 + my * my));
+                //if (needs_reset_phi) atan_cpt++;
+                y = ny;
+
                 const int index_src = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
                 memcpy(texture_pixels + index, orig_pixels + index_src, 3);
                 index += 3;
@@ -416,11 +429,27 @@ int main(int argc, char** argv) {
             if (two_loops_needed && i != width) {
                 if (need_limit_case) {
                     cartesian += scaled_x_axis;
-                    //const float theta = starts_pos ? 0 : PI;
+                    //theta = (absf(theta) < (PI / 2.0f)) ? 0 : PI;
                     theta = starts_pos ? 0 : PI;
-                    const float phi = asinf(cartesian.y / sqrt(cartesian.y * cartesian.y + cartesian.z * cartesian.z)) + (PI / 2.0f);
+                    
+                    //const float phi = asinf(cartesian.y / sqrt(cartesian.y * cartesian.y + cartesian.z * cartesian.z)) + (PI / 2.0f);
+                    //const float phi = atanf(cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z)) + (PI / 2.0f);
+                    //if (cartesian.x * cartesian.x + cartesian.z * cartesian.z == 0) printf("Limit case: div by 0\n");
+                    const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
+                    const float dy = ny - y;
+                    const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
+                    const float my = (y + ny) * 0.5f;
+                    phi = needs_reset_phi ? (atanf(y) + (PI / 2.0f)) : phi + (dy / (1 + my * my));
+                    //if (needs_reset_phi) atan_cpt++;
+                    y = ny;
+
                     const int index_src = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
                     memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                    // if (!starts_pos) {
+                    //     texture_pixels[index]     = 0;
+                    //     texture_pixels[index + 1] = 0;
+                    //     texture_pixels[index + 2] = 255;
+                    // }
                     index += 3;
                     i = lim_int + 1;
                 }
@@ -433,13 +462,23 @@ int main(int argc, char** argv) {
                     // atan_cpt++;
                     const float nx = cartesian.z / cartesian.x;
                     const float dx = nx - x;
-                    const bool needs_reset = absf(dx) > THRESHOLD;
+                    const bool needs_reset_theta = absf(dx) > tan_reset_threshold;
                     const float mx = (x + nx) * 0.5f;
-                    theta = needs_reset ? (atanf(nx) + const_after) : theta + (dx / (1 + mx * mx));
-                    //if (needs_reset) atan_cpt++;
+                    theta = needs_reset_theta ? (atanf(nx) + const_after) : theta + (dx / (1 + mx * mx));
+                    //if (needs_reset_theta) atan_cpt++;
                     x = nx;
 
-                    const float phi = asinf(cartesian.y / cartesian.norm()) + (PI / 2.0f);
+                    //const float phi = asinf(cartesian.y / cartesian.norm()) + (PI / 2.0f);
+                    //const float phi = atanf(cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z)) + (PI / 2.0f);
+                    //if (cartesian.x * cartesian.x + cartesian.z * cartesian.z == 0) printf("Second loop: div by 0\n");
+                    const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
+                    const float dy = ny - y;
+                    const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
+                    const float my = (y + ny) * 0.5f;
+                    phi = needs_reset_phi ? (atanf(y) + (PI / 2.0f)) : phi + (dy / (1 + my * my));
+                    //if (needs_reset_phi) atan_cpt++;
+                    y = ny;
+
                     const int index_src = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
                     memcpy(texture_pixels + index, orig_pixels + index_src, 3);
                     index += 3;
@@ -447,7 +486,7 @@ int main(int argc, char** argv) {
             }
 #endif
         }
-        //printf("atan per pixel : %f pcts\n", 100 * static_cast<float>(atan_cpt) / (width * height));
+        //printf("atan per pixel : %f pcts\n", 100 * static_cast<float>(atan_cpt) / (width * height * 2));
         SDL_UnlockTexture(txt);
         SDL_RenderClear(scr.renderer);
         SDL_RenderCopy(scr.renderer, txt, &srcrect, &dstrect);
