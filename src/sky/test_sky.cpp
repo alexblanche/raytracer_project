@@ -324,6 +324,7 @@ int main(int argc, char** argv) {
 
         SDL_LockTexture(txt, NULL, (void**) &texture_pixels, &texture_pitch);
         int index = 0;
+        //unsigned int atan_cpt = 0;
         for (int j = 0; j < height; j++) {
 
             // Pre-computation of the cartesian coordinates of the pixel in world space
@@ -392,9 +393,21 @@ int main(int argc, char** argv) {
             rt::vector cartesian = fma(scaled_x_axis, (-1) - half_scr_width, pre_cartesian);
 
             int i;
+            float theta = (cartesian.x != 0) ? (atanf(cartesian.z / cartesian.x) + const_before) : (starts_pos ? 0 : PI);
+            float x = (cartesian.x != 0) ? cartesian.z / cartesian.x : (cartesian.z + 0.1 * scaled_x_axis.z) / (cartesian.x + 0.1 * scaled_x_axis.x);
             for (i = 0; i < last_first_loop; i++) {
                 cartesian += scaled_x_axis;
-                const float theta = atanf(cartesian.z / cartesian.x) + const_before;
+                
+                //const float theta = atanf(cartesian.z / cartesian.x) + const_before;
+                const float nx = cartesian.z / cartesian.x;
+                const float dx = nx - x;
+#define THRESHOLD 1.0f
+                const bool needs_reset = absf(dx) > THRESHOLD;
+                const float mx = (x + nx) * 0.5f;
+                theta = needs_reset ? (atanf(nx) + const_before) : theta + (dx / (1 + mx * mx));
+                //if (needs_reset) atan_cpt++;
+                x = nx;
+
                 const float phi = asinf(cartesian.y / cartesian.norm()) + (PI / 2.0f);
                 const int index_src = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
                 memcpy(texture_pixels + index, orig_pixels + index_src, 3);
@@ -403,7 +416,8 @@ int main(int argc, char** argv) {
             if (two_loops_needed && i != width) {
                 if (need_limit_case) {
                     cartesian += scaled_x_axis;
-                    const float theta = starts_pos ? 0 : PI;
+                    //const float theta = starts_pos ? 0 : PI;
+                    theta = starts_pos ? 0 : PI;
                     const float phi = asinf(cartesian.y / sqrt(cartesian.y * cartesian.y + cartesian.z * cartesian.z)) + (PI / 2.0f);
                     const int index_src = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
                     memcpy(texture_pixels + index, orig_pixels + index_src, 3);
@@ -411,9 +425,20 @@ int main(int argc, char** argv) {
                     i = lim_int + 1;
                 }
                 
+                x = (cartesian.z + 0.5 * scaled_x_axis.z) / (cartesian.x + 0.5 * scaled_x_axis.x);
                 for (; i < width; i++) {
                     cartesian += scaled_x_axis;
-                    const float theta = atanf(cartesian.z / cartesian.x) + const_after;
+                    
+                    // const float theta = atanf(cartesian.z / cartesian.x) + const_after;
+                    // atan_cpt++;
+                    const float nx = cartesian.z / cartesian.x;
+                    const float dx = nx - x;
+                    const bool needs_reset = absf(dx) > THRESHOLD;
+                    const float mx = (x + nx) * 0.5f;
+                    theta = needs_reset ? (atanf(nx) + const_after) : theta + (dx / (1 + mx * mx));
+                    //if (needs_reset) atan_cpt++;
+                    x = nx;
+
                     const float phi = asinf(cartesian.y / cartesian.norm()) + (PI / 2.0f);
                     const int index_src = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
                     memcpy(texture_pixels + index, orig_pixels + index_src, 3);
@@ -422,6 +447,7 @@ int main(int argc, char** argv) {
             }
 #endif
         }
+        //printf("atan per pixel : %f pcts\n", 100 * static_cast<float>(atan_cpt) / (width * height));
         SDL_UnlockTexture(txt);
         SDL_RenderClear(scr.renderer);
         SDL_RenderCopy(scr.renderer, txt, &srcrect, &dstrect);
