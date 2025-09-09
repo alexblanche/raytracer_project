@@ -17,38 +17,46 @@ uint64_t get_time() {
     ).count();
 }
 
+inline float absf(const float x) {
+    return std::signbit(x) ? -x : x;
+}
+
+
 /* Struct containing the spherical coordinates controlled by the mouse */
 struct mouse_pos {
-    const float width;
-    const float height;
+    const float invwidth;
+    const float invheight;
     float theta, phi;
 
     mouse_pos(int width, int height)
-        : width(width), height(height),
+        : invwidth(1.0f / ((float) width)), invheight(1.0f / ((float) height)),
           theta(PI), phi(0) {}
 
     // xr and yr are relative positions
     void set(int xr, int yr) {
         // Mouse to the right = decreasing theta
-        theta -= xr / width;
+        theta -= xr * invwidth;
         // Mouse to the top = increasing phi
-        phi += yr / height;
+        phi += yr * invheight;
 
         // theta is circular in [-PI, PI]
-        if (theta > PI) {
-            theta -= 2 * PI;
-        }
-        else if (theta < -PI) {
-            theta += 2 * PI;
-        }
+        // if (theta > PI) {
+        //     theta -= 2 * PI;
+        // }
+        // else if (theta < -PI) {
+        //     theta += 2 * PI;
+        // }
         
-        // phi is capped between -PI/2 and PI/2
-        if (phi > (PI / 2.0f)) {
-            phi = (PI / 2.0f);
-        }
-        else if (phi < -(PI / 2.0f)) {
-            phi = -(PI / 2.0f);
-        }
+        // // phi is capped between -PI/2 and PI/2
+        // if (phi > (PI / 2.0f)) {
+        //     phi = (PI / 2.0f);
+        // }
+        // else if (phi < -(PI / 2.0f)) {
+        //     phi = -(PI / 2.0f);
+        // }
+
+        theta = (absf(theta) > PI) ? theta + (std::signbit(theta) ? 2*PI : -2*PI): theta;
+        phi = (absf(phi) > PI/2) ? (std::signbit(phi) ? -PI/2 : PI/2) : phi;
     }
 };
 
@@ -114,6 +122,7 @@ rt::vector get_cartesian(screen_axes& axes,
 */
 
 // Struct for spherical coordinates of pixels in world space
+#if 0
 struct spherical {
     float theta;
     float phi;
@@ -136,11 +145,7 @@ struct spherical {
         phi = asinf(u.y / u.norm()) + (PI / 2.0f);
     }
 };
-
-inline float absf(const float x) {
-    return x > 0 ? x : -x;
-}
-
+#endif
 
 int main(int argc, char** argv) {
 
@@ -296,12 +301,15 @@ int main(int argc, char** argv) {
 
     while(true) {
         /* Event handling */
+
+        // int cpt_mouse = 0;
         while(SDL_PollEvent(&event)) {
             
             switch (event.type) {
                 case SDL_MOUSEMOTION:
                     // std::cout << event.motion.xrel << ' ' << event.motion.yrel << std::endl;
                     mouse.set(event.motion.xrel, event.motion.yrel);
+                    // cpt_mouse++;
                     SDL_WarpMouseInWindow(scr.window, width / 2, height / 2);
                     break;
                 case SDL_QUIT:
@@ -313,6 +321,7 @@ int main(int argc, char** argv) {
                     }
             }
         }
+        // printf("mouse set: %d\n", cpt_mouse);
 
         // std::cout << "Theta = " << mouse.theta << "; Phi = " << mouse.phi << std::endl;
 
@@ -399,6 +408,30 @@ int main(int argc, char** argv) {
             float theta = (cartesian.x != 0) ? (atanf(x) + const_before) : (starts_pos ? 0 : PI);
             float y = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
             float phi = atanf(y) + (PI / 2.0f);
+
+            // Optim? Buffering the memcpy?
+            // How can I initialize index_src_last and _first correctly?
+            // int index_first = index;
+            // int index_src_last = -4; // so that index_src != index_src_last + 3 == -1
+            // int index_src_first = -3; // so that index - index_first - 3 == index == 0
+            // if (index_src != index_src_last + 3)
+            //     memcpy(texture_pixels + index_first, orig_pixels + index_src_first, index - index_first - 3);
+            //     index_src_first = index_src;
+            // }
+            // index_src_last = index_src;
+
+            // Sol to needs_reset_theta k1, k2
+            // for (0 .. k1)            deriv
+            // for (k1 .. limit)        tan
+            // limit case
+            // for (limit + 1 .. k2)    tan
+            // for (k2+1 .. width)      deriv
+            // -------
+            // b1 = std::min(k1, width) -> for (0 .. b1)
+            // b2 = std::max(0, k1)     -> for (b2, limit)
+            // b3 = std::min(k2, width) -> for (limit + 1 .. b3)
+            // b4 = std::min(k2+1, width) -> for(b4, width)
+            // or if no limit case: for (0 .. b1); for (b2 .. b3); for (max(k2+1, 0) .. b4)
             
             int i;
             for (i = 0; i < last_first_loop; i++) {
@@ -424,11 +457,12 @@ int main(int argc, char** argv) {
                 //if (needs_reset_phi) atan_cpt++;
                 y = ny;
 
-                const int index_src_r = 3 * ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
+                const int index_src_1 = ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
+                const int index_src_2 = (index_src_1 << 1) + index_src_1;
                 // if (index_src_r < 0) printf("FIRST LOOP index_src < 0\n");
                 // if (index_src_r > max_index_src) printf("FIRST LOOP index_src >= max\n");
                 //const int index_src = std::clamp(index_src_r, 0, max_index_src);
-                const int index_src = std::max(0, index_src_r);
+                const int index_src = std::max(0, index_src_2);
                 memcpy(texture_pixels + index, orig_pixels + index_src, 3);
 
 #ifdef DRAW_RESET
@@ -441,7 +475,7 @@ int main(int argc, char** argv) {
 
                 index += 3;
             }
-            if (two_loops_needed && i != width) {
+            if (two_loops_needed) {
                 if (need_limit_case) {
                     cartesian += scaled_x_axis;
 
@@ -480,16 +514,6 @@ int main(int argc, char** argv) {
                 x = 1e30f;
                 for (; i < width; i++) {
                     cartesian += scaled_x_axis;
-                    
-                    // const float theta = atanf(cartesian.z / cartesian.x) + const_after;
-                    // atan_cpt++;
-                    const float nx = cartesian.z / cartesian.x;
-                    const float dx = nx - x;
-                    const bool needs_reset_theta = absf(dx) > tan_reset_threshold;
-                    const float mx = (x + nx) * 0.5f;
-                    theta = needs_reset_theta ? (atanf(nx) + const_after) : theta + (dx / (1 + mx * mx));
-                    //if (needs_reset_theta) atan_cpt++;
-                    x = nx;
 
                     //const float phi = asinf(cartesian.y / cartesian.norm()) + (PI / 2.0f);
                     //const float phi = atanf(cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z)) + (PI / 2.0f);
@@ -502,16 +526,23 @@ int main(int argc, char** argv) {
                     //if (needs_reset_phi) atan_cpt++;
                     y = ny;
 
-                    //
-                    theta = needs_reset_phi ? (atanf(nx) + const_after) : theta;
-                    //
+                    // const float theta = atanf(cartesian.z / cartesian.x) + const_after;
+                    // atan_cpt++;
+                    const float nx = cartesian.z / cartesian.x;
+                    const float dx = nx - x;
+                    const bool needs_reset_theta = absf(dx) > tan_reset_threshold;
+                    const float mx = (x + nx) * 0.5f;
+                    theta = needs_reset_theta || needs_reset_phi ? (atanf(nx) + const_after) : theta + (dx / (1 + mx * mx));
+                    //if (needs_reset_theta) atan_cpt++;
+                    x = nx;
 
-                    const int index_src_r = 3 * ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
+                    const int index_src_1 = ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
+                    const int index_src_2 = (index_src_1 << 1) + index_src_1;
                     // if (index_src_r < 0) printf("SECOND LOOP index_src < 0, theta %f, phi %f, theta * img_scale_x %f, phi * img_scale_y %f, index_src %d\n",
                     //     theta, phi, theta * img_scale_x, phi * img_scale_y, index_src_r);
                     // if (index_src_r > max_index_src) printf("SECOND LOOP index_src >= max\n");
                     //const int index_src = std::clamp(index_src_r, 0, max_index_src);
-                    const int index_src = std::max(0, index_src_r);
+                    const int index_src = std::max(0, index_src_2);
                     memcpy(texture_pixels + index, orig_pixels + index_src, 3);
                     
 #ifdef DRAW_RESET
