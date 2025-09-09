@@ -394,13 +394,13 @@ int main(int argc, char** argv) {
                 std::max(0, std::min(lim_int + (!need_limit_case), width));
             
             rt::vector cartesian = fma(scaled_x_axis, (-1) - half_scr_width, pre_cartesian);
-
-            int i;
+            
             float x = (cartesian.x != 0) ? cartesian.z / cartesian.x : (cartesian.z + 0.1 * scaled_x_axis.z) / (cartesian.x + 0.1 * scaled_x_axis.x);
             float theta = (cartesian.x != 0) ? (atanf(x) + const_before) : (starts_pos ? 0 : PI);
             float y = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
             float phi = atanf(y) + (PI / 2.0f);
             
+            int i;
             for (i = 0; i < last_first_loop; i++) {
                 cartesian += scaled_x_axis;
                 
@@ -424,26 +424,28 @@ int main(int argc, char** argv) {
                 //if (needs_reset_phi) atan_cpt++;
                 y = ny;
 
-                const int index_src_r = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
+                const int index_src_r = 3 * ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
                 // if (index_src_r < 0) printf("FIRST LOOP index_src < 0\n");
                 // if (index_src_r > max_index_src) printf("FIRST LOOP index_src >= max\n");
                 //const int index_src = std::clamp(index_src_r, 0, max_index_src);
                 const int index_src = std::max(0, index_src_r);
                 memcpy(texture_pixels + index, orig_pixels + index_src, 3);
 
-                // if (needs_reset_theta || needs_reset_phi) {
-                //     texture_pixels[index]     = 255 * needs_reset_theta;
-                //     texture_pixels[index + 1] = 255 * (needs_reset_theta && needs_reset_phi);
-                //     texture_pixels[index + 2] = 255 * needs_reset_phi;
-                // }
+#ifdef DRAW_RESET
+                if (needs_reset_theta || needs_reset_phi) {
+                    texture_pixels[index]     = 255 * needs_reset_theta;
+                    texture_pixels[index + 1] = 255 * (needs_reset_theta && needs_reset_phi);
+                    texture_pixels[index + 2] = 255 * needs_reset_phi;
+                }
+#endif
 
                 index += 3;
             }
             if (two_loops_needed && i != width) {
                 if (need_limit_case) {
                     cartesian += scaled_x_axis;
-                    //theta = (absf(theta) < (PI / 2.0f)) ? 0 : PI;
-                    theta = starts_pos ? 0 : PI;
+
+                    theta = (theta < PI/2) || (theta > 3*PI/2) ? 0 : PI;
                     
                     //const float phi = asinf(cartesian.y / sqrt(cartesian.y * cartesian.y + cartesian.z * cartesian.z)) + (PI / 2.0f);
                     //const float phi = atanf(cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z)) + (PI / 2.0f);
@@ -456,28 +458,26 @@ int main(int argc, char** argv) {
                     //if (needs_reset_phi) atan_cpt++;
                     y = ny;
 
-                    const int index_src_r = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
+                    const int index_src_r = 3 * ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
                     // if (index_src_r < 0) printf("MID index_src < 0\n");
                     // if (index_src_r > max_index_src) printf("MID index_src >= max\n");
                     //const int index_src = std::clamp(index_src_r, 0, max_index_src);
                     const int index_src = std::max(0, index_src_r);
                     memcpy(texture_pixels + index, orig_pixels + index_src, 3);
-                    // if (!starts_pos) {
-                    //     texture_pixels[index]     = 0;
-                    //     texture_pixels[index + 1] = 0;
-                    //     texture_pixels[index + 2] = 255;
-                    // }
-                    // if (needs_reset_phi) {
-                    //     texture_pixels[index]     = 0;
-                    //     texture_pixels[index + 1] = 0;
-                    //     texture_pixels[index + 2] = 255 * needs_reset_phi;
-                    // }
+
+#ifdef DRAW_RESET
+                    if (needs_reset_phi) {
+                        texture_pixels[index]     = 0;
+                        texture_pixels[index + 1] = 0;
+                        texture_pixels[index + 2] = 255 * needs_reset_phi;
+                    }
+#endif
 
                     index += 3;
                     i = lim_int + 1;
                 }
                 
-                x = (cartesian.z + 0.5 * scaled_x_axis.z) / (cartesian.x + 0.5 * scaled_x_axis.x);
+                x = 1e30f;
                 for (; i < width; i++) {
                     cartesian += scaled_x_axis;
                     
@@ -502,7 +502,11 @@ int main(int argc, char** argv) {
                     //if (needs_reset_phi) atan_cpt++;
                     y = ny;
 
-                    const int index_src_r = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
+                    //
+                    theta = needs_reset_phi ? (atanf(nx) + const_after) : theta;
+                    //
+
+                    const int index_src_r = 3 * ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
                     // if (index_src_r < 0) printf("SECOND LOOP index_src < 0, theta %f, phi %f, theta * img_scale_x %f, phi * img_scale_y %f, index_src %d\n",
                     //     theta, phi, theta * img_scale_x, phi * img_scale_y, index_src_r);
                     // if (index_src_r > max_index_src) printf("SECOND LOOP index_src >= max\n");
@@ -510,11 +514,13 @@ int main(int argc, char** argv) {
                     const int index_src = std::max(0, index_src_r);
                     memcpy(texture_pixels + index, orig_pixels + index_src, 3);
                     
-                    // if (needs_reset_theta || needs_reset_phi) {
-                    //     texture_pixels[index]     = 255 * needs_reset_theta;
-                    //     texture_pixels[index + 1] = 255 * (needs_reset_theta && needs_reset_phi);
-                    //     texture_pixels[index + 2] = 255 * needs_reset_phi;
-                    // }
+#ifdef DRAW_RESET
+                    if (needs_reset_theta || needs_reset_phi) {
+                        texture_pixels[index]     = 255 * needs_reset_theta;
+                        texture_pixels[index + 1] = 255 * (needs_reset_theta && needs_reset_phi);
+                        texture_pixels[index + 2] = 255 * needs_reset_phi;
+                    }
+#endif
 
                     index += 3;
                 }
