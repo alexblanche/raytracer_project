@@ -395,7 +395,10 @@ int main(int argc, char** argv) {
             const float init_cartx = fma(scaled_x_axis.x, 0 - half_scr_width, pre_cartesian.x);
             const bool starts_pos = init_cartx >= 0;
             const float const_before = starts_pos ? 3.0f * (PI / 2.0f) : (PI / 2.0f);
+#define POLYNOMIAL_SOLVE
+#ifndef POLYNOMIAL_SOLVE
             const float const_after = (2.0f * PI) - const_before;
+#endif
             const int lim_int = static_cast<int>(lim);
             int last_first_loop = !lim_pos ?
                 width
@@ -420,18 +423,140 @@ int main(int argc, char** argv) {
             // }
             // index_src_last = index_src;
 
-            // Sol to needs_reset_theta k1, k2
-            // for (0 .. k1)            deriv
-            // for (k1 .. limit)        tan
-            // limit case
-            // for (limit + 1 .. k2)    tan
-            // for (k2+1 .. width)      deriv
-            // -------
-            // b1 = std::min(k1, width) -> for (0 .. b1)
-            // b2 = std::max(0, k1)     -> for (b2, limit)
-            // b3 = std::min(k2, width) -> for (limit + 1 .. b3)
-            // b4 = std::min(k2+1, width) -> for(b4, width)
-            // or if no limit case: for (0 .. b1); for (b2 .. b3); for (max(k2+1, 0) .. b4)
+
+#ifdef POLYNOMIAL_SOLVE
+            // Computations of the solutions of abs(dx) = threshold
+            const float u0 = cartesian.z;
+            const float v0 = cartesian.x;
+            const float du = scaled_x_axis.z;
+            const float dv = scaled_x_axis.x;
+            const float a = dv * dv;
+            const float b = a + 2 * dv * v0;
+            const float c = v0 * dv + v0 * v0;
+            const float d = v0 * du - u0 * dv;
+            const float M = tan_reset_threshold;
+            // ak2 + bk + c -> delta = (calc) dv4 -> sqrt(delta) = a
+            // -> 2 sol : (-b-a)/2a et (-b+a)/2a
+            // hors des sols : ak2 + bk + c >= 0, entre : ak2 + bk + c <= 0
+            
+
+            const float delta = b * b - 4 * a * (c - d/M);
+            int k1 = -1;
+            int k2 = -1;
+            const float twoa = 2 * a;
+            if (delta > 0) {
+                const float sqrtdelta = sqrt(delta);
+                k1 = static_cast<int>((-b - sqrtdelta) / twoa);
+                k2 = static_cast<int>((-b + sqrtdelta) / twoa);
+
+                if (k1 > k2) {
+                    exit(EXIT_FAILURE);
+                }
+            }
+            bool skip = false;
+            
+            const int bound1 = (-b-a) / twoa;
+            const int bound2 = (-b+a) / twoa;
+            if (delta < 0 || (k1 >= bound1 && k1 <= bound2) || (k2 >= bound1 && k2 <= bound2)) {
+                // Replace a, b, c with -a, -b, -c
+                float alt_delta = std::max(b * b - 4 * a * (c + d/M), 0.0f);
+                const float sqrtaltdelta = sqrt(alt_delta);
+                k1 = static_cast<int>(-(b + sqrtaltdelta) / twoa);
+                k2 = static_cast<int>(-(b - sqrtaltdelta) / twoa);
+                if (k1 > k2) {
+                    const int temp = k1;
+                    k1 = k2;
+                    k2 = temp;
+                }
+            }
+            
+
+            if (!skip && !(k2 < 0 || k1 >= width)) {
+            // if ((k1 >= 0 && k1 < width) || (k2 >= 0 && k2 < width)) {
+                //const int index_start = index;
+                const int b1 = std::min(k1, width);
+                const int b2 = std::min(k2, std::min(lim_int, width));
+                const int b3 = std::min(k2, width);
+                int i;
+                for (i = 0; i < b1; i++) {
+                    // deriv
+                    texture_pixels[index] = 0; texture_pixels[index + 1] = 0; texture_pixels[index + 2] = 255; // Red
+                    index += 3;
+                }
+                for (; i < b2; i++) {
+                    // tan (before)
+                    texture_pixels[index] = 255; texture_pixels[index + 1] = 0; texture_pixels[index + 2] = 0; // Blue
+                    index += 3;
+                }
+                if (need_limit_case) {
+                    texture_pixels[index] = 255; texture_pixels[index + 1] = 255; texture_pixels[index + 2] = 255; // White
+                    index += 3;
+                    i++;
+                }
+                for (; i < b3; i++) {
+                    // tan (after)
+                    texture_pixels[index] = 0; texture_pixels[index + 1] = 255; texture_pixels[index + 2] = 0; // Green
+                    index += 3;
+                }
+                for (; i < width; i++) {
+                    // deriv
+                    texture_pixels[index] = 0; texture_pixels[index + 1] = 255; texture_pixels[index + 2] = 255; // Yellow
+                    index += 3;
+                }
+                continue;
+            }
+            else {
+                // one loop
+                for (int i = 0; i < last_first_loop; i++) {
+                    cartesian += scaled_x_axis;
+                    
+                    //const float theta = atanf(cartesian.z / cartesian.x) + const_before;
+                    const float nx = cartesian.z / cartesian.x;
+                    const float dx = nx - x;
+                    const float mx = (x + nx) * 0.5f;
+                    theta += dx / (1 + mx * mx);
+                    //if (needs_reset_theta) atan_cpt++;
+                    x = nx;
+    
+                    //  float phi = asinf(cartesian.y / cartesian.norm()) + (PI / 2.0f);
+                    //const float phi = atanf(cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z)) + (PI / 2.0f);
+                    //if (cartesian.x * cartesian.x + cartesian.z * cartesian.z == 0) printf("First loop: div by 0\n");
+                    const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
+                    const float dy = ny - y;
+                    const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
+                    const float my = (y + ny) * 0.5f;
+                    phi = needs_reset_phi ? (atanf(y) + (PI / 2.0f)) : phi + (dy / (1 + my * my));
+                    //if (needs_reset_phi) atan_cpt++;
+                    y = ny;
+    
+                    const int index_src_1 = ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
+                    const int index_src_2 = (index_src_1 << 1) + index_src_1;
+                    // if (index_src_r < 0) printf("FIRST LOOP index_src < 0\n");
+                    // if (index_src_r > max_index_src) printf("FIRST LOOP index_src >= max\n");
+                    //const int index_src = std::clamp(index_src_r, 0, max_index_src);
+                    const int index_src = std::max(0, index_src_2);
+                    memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+//#define DRAW_RESET
+#ifdef DRAW_RESET
+                    if (needs_reset_theta || needs_reset_phi) {
+                        texture_pixels[index]     = 255 * needs_reset_theta;
+                        texture_pixels[index + 1] = 255 * (needs_reset_theta && needs_reset_phi);
+                        texture_pixels[index + 2] = 255 * needs_reset_phi;
+                    }
+#endif
+#define SHOULD_BE_POLY
+#ifdef SHOULD_BE_POLY
+                    // if (needs_reset_theta) {
+                    //     texture_pixels[index]     = 0;
+                    //     texture_pixels[index + 1] = 128;
+                    //     texture_pixels[index + 2] = 255;
+                    // }
+#endif
+    
+                    index += 3;
+                }
+            }
+#else
             
             int i;
             for (i = 0; i < last_first_loop; i++) {
@@ -464,12 +589,20 @@ int main(int argc, char** argv) {
                 //const int index_src = std::clamp(index_src_r, 0, max_index_src);
                 const int index_src = std::max(0, index_src_2);
                 memcpy(texture_pixels + index, orig_pixels + index_src, 3);
-
+//#define DRAW_RESET
 #ifdef DRAW_RESET
                 if (needs_reset_theta || needs_reset_phi) {
                     texture_pixels[index]     = 255 * needs_reset_theta;
                     texture_pixels[index + 1] = 255 * (needs_reset_theta && needs_reset_phi);
                     texture_pixels[index + 2] = 255 * needs_reset_phi;
+                }
+#endif
+#define SHOULD_BE_POLY
+#ifdef SHOULD_BE_POLY
+                if (needs_reset_theta) {
+                    texture_pixels[index]     = 0;
+                    texture_pixels[index + 1] = 128;
+                    texture_pixels[index + 2] = 255;
                 }
 #endif
 
@@ -503,8 +636,13 @@ int main(int argc, char** argv) {
                     if (needs_reset_phi) {
                         texture_pixels[index]     = 0;
                         texture_pixels[index + 1] = 0;
-                        texture_pixels[index + 2] = 255 * needs_reset_phi;
+                        texture_pixels[index + 2] = 255;
                     }
+#endif
+#ifdef SHOULD_BE_POLY
+                    texture_pixels[index]     = 0;
+                    texture_pixels[index + 1] = 128;
+                    texture_pixels[index + 2] = 255;
 #endif
 
                     index += 3;
@@ -552,10 +690,18 @@ int main(int argc, char** argv) {
                         texture_pixels[index + 2] = 255 * needs_reset_phi;
                     }
 #endif
+#ifdef SHOULD_BE_POLY
+                    if (needs_reset_theta) {
+                        texture_pixels[index]     = 0;
+                        texture_pixels[index + 1] = 128;
+                        texture_pixels[index + 2] = 255;
+                    }
+#endif
 
                     index += 3;
                 }
             }
+#endif
 #endif
         }
         //printf("atan per pixel : %f pcts\n", 100 * static_cast<float>(atan_cpt) / (width * height * 2));
