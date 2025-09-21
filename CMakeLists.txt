@@ -148,6 +148,7 @@ add_executable(sky
 	src/screen/image.cpp
 	src/screen/screen.cpp
 	src/light/vector.cpp
+	src/sky/sky_render.cpp
 	src/sky/test_sky.cpp
 )
 target_link_libraries(sky
