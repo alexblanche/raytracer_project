@@ -75,11 +75,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
         const float init_cartx = fma(scaled_x_axis.x, 0 - half_scr_width, pre_cartesian.x);
         const bool starts_pos = init_cartx >= 0;
         const float const_before = starts_pos ? 3.0f * (PI / 2.0f) : (PI / 2.0f);
-
-//#define TEST_SPLIT
-#ifndef TEST_SPLIT
         const float const_after = (2.0f * PI) - const_before;
-#endif
         const int lim_int = static_cast<int>(lim);
         int last_first_loop = !lim_pos ?
             width
@@ -150,6 +146,8 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
             const int b1 = std::min(k1, width);
             const int b3 = std::min(k2, width);
             const int b2 = std::min(b3, lim_int);
+
+//#define TEST_SPLIT
 #ifdef TEST_SPLIT
             int i;
             for (i = 0; i < b1; i++) {
@@ -179,6 +177,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
             }
             continue;
 #else
+
             int i;
             for (i = 0; i < b1; i++) {
                 // deriv
@@ -204,6 +203,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
 
                 index += 3;
             }
+            // const int i0 = i;
             for (; i < b2; i++) {
                 // tan (before)
                 cartesian += scaled_x_axis;
@@ -224,6 +224,12 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 const int index_src = std::max(0, index_src_2);
                 memcpy(texture_pixels + index, orig_pixels + index_src, 3);
 
+                // if (i == i0 || i == b2 - 1) {
+                //     texture_pixels[index]     = 0;
+                //     texture_pixels[index + 1] = 255;
+                //     texture_pixels[index + 2] = 255;
+                // }
+
                 index += 3;
             }
             if (need_limit_case) {
@@ -243,16 +249,22 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 const int index_src = std::max(0, index_src_r);
                 memcpy(texture_pixels + index, orig_pixels + index_src, 3);
 
+                // texture_pixels[index]     = 0;
+                // texture_pixels[index + 1] = 0;
+                // texture_pixels[index + 2] = 255;
+
                 index += 3;
                 i = lim_int + 1;
             }
+            //const bool blue = i == 0;
+            //if (j == 0) printf("theta %f\n", theta);
+            const float const_correct = (!two_loops_needed) ? const_before : const_after;
             for (; i < b3; i++) {
                 // tan (after)
                 cartesian += scaled_x_axis;
             
-                const float nx = cartesian.z / cartesian.x;
-                theta = atanf(nx) + const_after;
-                x = nx;
+                x = cartesian.z / cartesian.x;
+                theta = atanf(x) + const_correct;
 
                 const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
                 const float dy = ny - y;
@@ -266,11 +278,14 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 const int index_src = std::max(0, index_src_2);
                 memcpy(texture_pixels + index, orig_pixels + index_src, 3);
 
-                if (i == b2 || i == b2 + 1 || i == b3 - 1) {
-                    texture_pixels[index]     = 0;
-                    texture_pixels[index + 1] = 0;
-                    texture_pixels[index + 2] = 255;
-                }
+                // if (i == b2 || i == b2 + 1 || i == b3 - 1) {
+                //     texture_pixels[index]     = 0;
+                //     texture_pixels[index + 1] = 0;
+                //     texture_pixels[index + 2] = 255;
+                // }
+                // if (blue) {
+                //     texture_pixels[index] = 255;
+                // }
 
                 index += 3;
             }
@@ -322,6 +337,11 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 const int index_src_2 = (index_src_1 << 1) + index_src_1;
                 const int index_src = std::max(0, index_src_2);
                 memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+
+                // if (starts_pos) {
+                //     texture_pixels[index] = 255;
+                // }
+                // texture_pixels[index + 2] = 255;
                 
 //#define DRAW_RESET
 #ifdef DRAW_RESET
