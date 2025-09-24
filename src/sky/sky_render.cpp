@@ -106,10 +106,10 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
         const float b = a + 2 * scaled_x_axis.x * cartesian.x;
         const float c = cartesian.x * (scaled_x_axis.x + cartesian.x);
         const float d = cartesian.x * scaled_x_axis.z - cartesian.z * scaled_x_axis.x;
-        const float b2 = b * b;
+        const float bsq = b * b;
         const float foura = 4 * a;
         const float doverM = d / tan_reset_threshold;
-        const float delta = b2 - foura * (c - doverM);
+        const float delta = bsq - foura * (c - doverM);
         
         int k1 = -1;
         int k2 = -1;
@@ -123,13 +123,12 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
             //     exit(EXIT_FAILURE);
             // }
         }
-        bool skip = false;
         
         const int bound1 = (-b-a) / twoa;
         const int bound2 = (-b+a) / twoa;
         if (delta < 0 || (k1 >= bound1 && k1 <= bound2) || (k2 >= bound1 && k2 <= bound2)) {
             // Replace a, b, c with -a, -b, -c
-            float alt_delta = std::max(b2 - foura * (c + doverM), 0.0f);
+            float alt_delta = std::max(bsq - foura * (c + doverM), 0.0f);
             const float sqrtaltdelta = sqrt(alt_delta);
             k1 = static_cast<int>(-(b + sqrtaltdelta) / twoa);
             k2 = static_cast<int>(-(b - sqrtaltdelta) / twoa);
@@ -140,12 +139,12 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
             // }
         }
 
-        if (!skip && !(k2 < 0 || k1 >= width)) {
+        if (!(k2 < 0 || k1 >= width)) {
         // if ((k1 >= 0 && k1 < width) || (k2 >= 0 && k2 < width)) {
             //const int index_start = index;
             const int b1 = std::min(k1, width);
             const int b3 = std::min(k2, width);
-            const int b2 = std::min(b3, lim_int);
+            const int b2 = std::min(b3, lim_int + (!need_limit_case));
 
 //#define TEST_SPLIT
 #ifdef TEST_SPLIT
@@ -259,12 +258,13 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
             //const bool blue = i == 0;
             //if (j == 0) printf("theta %f\n", theta);
             const float const_correct = (!two_loops_needed) ? const_before : const_after;
+            //const int i0 = i;
             for (; i < b3; i++) {
                 // tan (after)
                 cartesian += scaled_x_axis;
             
                 x = cartesian.z / cartesian.x;
-                theta = atanf(x) + const_correct;
+                theta = atanf(x) + const_correct;//(i==i0 && !need_limit_case ? const_before : const_correct); // UGLY, but correct. Proper fix to be found
 
                 const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
                 const float dy = ny - y;
@@ -303,7 +303,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 const float nx = cartesian.z / cartesian.x;
                 const float dx = nx - x;
                 const float mx = (x + nx) * 0.5f;
-                theta = needs_reset_phi ? (atanf(nx) + const_after) : theta + (dx / (1 + mx * mx));
+                theta = needs_reset_phi ? (atanf(nx) + const_correct) : theta + (dx / (1 + mx * mx));
                 x = nx;
 
                 const int index_src_1 = ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
