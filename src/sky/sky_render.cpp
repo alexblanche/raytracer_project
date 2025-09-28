@@ -2,6 +2,7 @@
 
 constexpr float PI = 3.14159265359f;
 constexpr float tan_reset_threshold = 1.0f;
+constexpr float tan_reset_threshold_phi = 40.0f;
 
 inline float absf(const float x) {
     return std::signbit(x) ? -x : x;
@@ -25,8 +26,9 @@ inline void segment_loop(float& theta, float& phi,
     float& x, float& y, int& index,
     const float img_scale_x, const float img_scale_y, const int img_width,
     char* const texture_pixels, char* const orig_pixels,
-    int& i, const int bound, const float const_theta) {
-
+    int& index_loop, const int bound, const float const_theta) {
+    
+    int i = index_loop;
     for (; i < bound; i++) {
 
         cartesian += scaled_x_axis;
@@ -85,12 +87,114 @@ inline void segment_loop(float& theta, float& phi,
         const int index_src = std::max(0, index_src_2);
         memcpy(texture_pixels + index, orig_pixels + index_src, 3);
 
+        // if constexpr (vphi == TestPhi) {
+        //     const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
+        //     if (needs_reset_phi) {
+        //         texture_pixels[index + 1] = 255;
+        //     }
+        //     texture_pixels[index + 2] = 255;
+        // }
+
         index += 3;
 
         if constexpr (vlim == LimitCase) {
             break;
         }
     }
+    index_loop = i;
+}
+
+void compute_bounds_theta_update(int& k1_io, int& k2_io,
+    const rt::vector& v, const rt::vector& dv) {
+
+    // Computations of the solutions of abs(dx) = threshold
+    // const float u0 = cartesian.z;
+    // const float v0 = cartesian.x;
+    // const float du = scaled_x_axis.z;
+    // const float dv = scaled_x_axis.x;
+    // const float a = dv * dv;
+    // const float b = a + 2 * dv * v0;
+    // const float c = v0 * dv + v0 * v0;
+    // const float d = v0 * du - u0 * dv;
+    // const float M = tan_reset_threshold;
+    // const float delta = b * b - 4 * a * (c - d/M);
+    const float a = dv.x * dv.x;
+    const float b = a + 2 * dv.x * v.x;
+    const float c = v.x * (dv.x + v.x);
+    const float d = v.x * dv.z - v.z * dv.x;
+    const float bsq = b * b;
+    const float foura = 4 * a;
+    const float doverM = d / tan_reset_threshold;
+    const float delta = bsq - foura * (c - doverM);
+
+    int k1 = -1;
+    int k2 = -1;
+    const float twoa = 2 * a;
+    if (delta > 0) {
+        const float sqrtdelta = sqrt(delta);
+        k1 = static_cast<int>((-b - sqrtdelta) / twoa);
+        k2 = static_cast<int>((-b + sqrtdelta) / twoa);
+
+        // if (k1 > k2) {
+        //     exit(EXIT_FAILURE);
+        // }
+    }
+
+    const int bound1 = (-b-a) / twoa;
+    const int bound2 = (-b+a) / twoa;
+    if (delta < 0 || (k1 >= bound1 && k1 <= bound2) || (k2 >= bound1 && k2 <= bound2)) {
+        // Replace a, b, c with -a, -b, -c
+        float alt_delta = std::max(bsq - foura * (c + doverM), 0.0f);
+        const float sqrtaltdelta = sqrt(alt_delta);
+        k1 = static_cast<int>(-(b + sqrtaltdelta) / twoa);
+        k2 = static_cast<int>(-(b - sqrtaltdelta) / twoa);
+        // if (k1 > k2) {
+        //     const int temp = k1;
+        //     k1 = k2;
+        //     k2 = temp;
+        // }
+    }
+
+    k1_io = k1;
+    k2_io = k2;
+}
+
+enum phi_test_bounds {
+    AlwaysTest, NeverTest, TestBetween, TestOutside
+};
+
+void print_ptb(phi_test_bounds ptb) {
+    switch (ptb) {
+        case AlwaysTest:  printf("AlwaysTest\n");  break;
+        case NeverTest:   printf("NeverTest\n");   break;
+        case TestBetween: printf("TestBetween\n"); break;
+        case TestOutside: printf("TestOutside\n"); break;
+    }
+}
+
+// Returns true if a non-empty test of phi has to be done, between k1 and k2
+// False if no solution was found
+phi_test_bounds compute_bounds_phi_update(int& k1_io, int& k2_io,
+    const rt::vector& v, const rt::vector& dv) {
+    
+    // Resolution of ak^2 + bk + c < 0
+    const float m2 = tan_reset_threshold_phi * tan_reset_threshold_phi;
+    const float a = m2 * dv.x * dv.x - dv.y * dv.y + m2 * dv.z * dv.z;
+    const float b = 2 * (m2 * (v.x * dv.x + v.z * dv.z) - v.y * dv.y);
+    const float c = m2 * (v.x * v.x + v.z * v.z) - v.y * v.y;
+
+    const float delta = b * b - 4 * a * c;
+    if (delta < 0) {
+        // a > 0: never < 0 => no test needed. a < 0 : always test
+        return (a > 0) ? NeverTest : AlwaysTest;
+    }
+    
+    const float twoa = 2 * a;
+    const float sqrtdelta = sqrt(delta);
+    k1_io = (-b-sqrtdelta) / twoa;
+    k2_io = (-b+sqrtdelta) / twoa;
+
+    return (a > 0) ? TestBetween : TestOutside;
 }
 
 
@@ -180,59 +284,18 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
 
 #define POLYNOMIAL_SOLVE
 #ifdef POLYNOMIAL_SOLVE
-        // Computations of the solutions of abs(dx) = threshold
-        // const float u0 = cartesian.z;
-        // const float v0 = cartesian.x;
-        // const float du = scaled_x_axis.z;
-        // const float dv = scaled_x_axis.x;
-        // const float a = dv * dv;
-        // const float b = a + 2 * dv * v0;
-        // const float c = v0 * dv + v0 * v0;
-        // const float d = v0 * du - u0 * dv;
-        // const float M = tan_reset_threshold;
-        // const float delta = b * b - 4 * a * (c - d/M);
-        const float a = scaled_x_axis.x * scaled_x_axis.x;
-        const float b = a + 2 * scaled_x_axis.x * cartesian.x;
-        const float c = cartesian.x * (scaled_x_axis.x + cartesian.x);
-        const float d = cartesian.x * scaled_x_axis.z - cartesian.z * scaled_x_axis.x;
-        const float bsq = b * b;
-        const float foura = 4 * a;
-        const float doverM = d / tan_reset_threshold;
-        const float delta = bsq - foura * (c - doverM);
-        
-        int k1 = -1;
-        int k2 = -1;
-        const float twoa = 2 * a;
-        if (delta > 0) {
-            const float sqrtdelta = sqrt(delta);
-            k1 = static_cast<int>((-b - sqrtdelta) / twoa);
-            k2 = static_cast<int>((-b + sqrtdelta) / twoa);
 
-            // if (k1 > k2) {
-            //     exit(EXIT_FAILURE);
-            // }
-        }
-        
-        const int bound1 = (-b-a) / twoa;
-        const int bound2 = (-b+a) / twoa;
-        if (delta < 0 || (k1 >= bound1 && k1 <= bound2) || (k2 >= bound1 && k2 <= bound2)) {
-            // Replace a, b, c with -a, -b, -c
-            float alt_delta = std::max(bsq - foura * (c + doverM), 0.0f);
-            const float sqrtaltdelta = sqrt(alt_delta);
-            k1 = static_cast<int>(-(b + sqrtaltdelta) / twoa);
-            k2 = static_cast<int>(-(b - sqrtaltdelta) / twoa);
-            // if (k1 > k2) {
-            //     const int temp = k1;
-            //     k1 = k2;
-            //     k2 = temp;
-            // }
-        }
+        int k1_theta, k2_theta;
+        compute_bounds_theta_update(k1_theta, k2_theta, cartesian, scaled_x_axis);
 
-        if (!(k2 < 0 || k1 >= width)) {
-        // if ((k1 >= 0 && k1 < width) || (k2 >= 0 && k2 < width)) {
+        int k1_phi, k2_phi;
+        phi_test_bounds ptb = compute_bounds_phi_update(k1_phi, k2_phi, cartesian, scaled_x_axis);
+
+        if (!(k2_theta < 0 || k1_theta >= width)) {
+        // if ((k1_theta >= 0 && k1_theta < width) || (k2_theta >= 0 && k2_theta < width)) {
             //const int index_start = index;
-            const int b1 = std::min(k1, width);
-            const int b3 = std::min(k2, width);
+            const int b1 = std::min(k1_theta, width);
+            const int b3 = std::min(k2_theta, width);
             const int b2 = std::min(b3, lim_int + (!need_limit_case));
 
 //#define TEST_SPLIT
@@ -267,25 +330,59 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
 #else
 #define TEMPLATE_LOOPS
 #ifdef TEMPLATE_LOOPS
-            int i = 0;
-            segment_loop<UpdateThetaDerivative, TestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
-                x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
-                b1, const_before);
-            segment_loop<UpdateThetaAtanBefore, TestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
-                x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
-                b2, const_before);
-            if (need_limit_case) {
-                segment_loop<UpdateThetaAtanBefore, TestPhi, LimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
-                    x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
-                    lim_int + 1, const_before);
+            //print_ptb(ptb);
+            ptb = (ptb == NeverTest) || ((!(ptb == AlwaysTest)) && (((ptb == TestOutside) && (k1_phi < 0 && k2_phi >= width)) || ((ptb == TestBetween) && (k2_phi < 0 || k1_phi >= width)))) ?
+                NeverTest : AlwaysTest;
+            
+            switch (ptb) {
+                case NeverTest: {
+                    int i = 0;
+                    segment_loop<UpdateThetaDerivative, NoTestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
+                        x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
+                        b1, 0.0f);
+                    segment_loop<UpdateThetaAtanBefore, NoTestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
+                        x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
+                        b2, const_before);
+                    if (need_limit_case) {
+                        segment_loop<UpdateThetaAtanBefore, NoTestPhi, LimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
+                            x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
+                            lim_int + 1, 0.0f);
+                    }
+                    const float const_correct = (!two_loops_needed) ? const_before : const_after;
+                    segment_loop<UpdateThetaAtanAfter, NoTestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
+                        x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
+                        b3, const_correct);
+                    segment_loop<UpdateThetaTestPhi, NoTestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
+                        x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
+                        width, const_correct);
+                    break;
+                }
+                case AlwaysTest: {
+
+                    int i = 0;
+                    segment_loop<UpdateThetaDerivative, TestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
+                        x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
+                        b1, 0.0f);
+                    segment_loop<UpdateThetaAtanBefore, TestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
+                        x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
+                        b2, const_before);
+                    if (need_limit_case) {
+                        segment_loop<UpdateThetaAtanBefore, TestPhi, LimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
+                            x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
+                            lim_int + 1, 0.0f);
+                    }
+                    const float const_correct = (!two_loops_needed) ? const_before : const_after;
+                    segment_loop<UpdateThetaAtanAfter, TestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
+                        x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
+                        b3, const_correct);
+                    segment_loop<UpdateThetaTestPhi, TestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
+                        x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
+                        width, const_correct);
+                    break;
+                }
+                default: break;
             }
-            const float const_correct = (!two_loops_needed) ? const_before : const_after;
-            segment_loop<UpdateThetaAtanAfter, TestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
-                x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
-                b3, const_correct);
-            segment_loop<UpdateThetaTestPhi, TestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
-                x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
-                width, const_correct);
+            
 #else
             int i;
             for (i = 0; i < b1; i++) {
@@ -428,6 +525,22 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
         }
         else {
             // one loop
+#ifdef TEMPLATE_LOOPS
+            ptb = (ptb == NeverTest) || ((!(ptb == AlwaysTest)) && (((ptb == TestOutside) && (k1_phi < 0 && k2_phi >= width)) || ((ptb == TestBetween) && (k2_phi < 0 || k1_phi >= width)))) ?
+                NeverTest : AlwaysTest;
+            int i = 0;
+            if (ptb == NeverTest) {
+                segment_loop<UpdateThetaDerivative, NoTestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
+                    x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
+                    last_first_loop, 0.0f);
+            }
+            else {
+                segment_loop<UpdateThetaDerivative, TestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
+                    x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
+                    last_first_loop, 0.0f);
+            }
+            
+#else
             for (int i = 0; i < last_first_loop; i++) {
                 cartesian += scaled_x_axis;
                 
@@ -473,6 +586,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
 
                 index += 3;
             }
+#endif
         }
 #else
         
