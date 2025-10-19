@@ -4,10 +4,6 @@ constexpr float PI = 3.14159265359f;
 constexpr float tan_reset_threshold = 1.0f;
 constexpr float tan_reset_threshold_phi = 40.0f;
 
-inline float absf(const float x) {
-    return std::signbit(x) ? -x : x;
-}
-
 enum loop_version_theta {
     UpdateThetaDerivative, UpdateThetaTestPhi,
     UpdateThetaAtanBefore, UpdateThetaAtanAfter,
@@ -32,6 +28,10 @@ inline void segment_loop(float& theta, float& phi,
     for (; i < bound; i++) {
 
         cartesian += scaled_x_axis;
+        const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
+        const float dy = ny - y;
+        const float my = (y + ny) * 0.5f;
+        y = ny;
 
         if constexpr (vlim == LimitCase) {
             theta = (theta < PI/2) || (theta > 3*PI/2) ? 0 : PI;
@@ -48,13 +48,9 @@ inline void segment_loop(float& theta, float& phi,
             }
             else if constexpr (vtheta == UpdateThetaTestPhi) {
                 const float dx = nx - x;
-                const float mx = (x + nx) * 0.5f;        
-                const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
-                const float dy = ny - y;
-                const float my = (y + ny) * 0.5f;
-                const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
+                const float mx = (x + nx) * 0.5f;
+                const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
                 phi = needs_reset_phi ? (atanf(ny) + (PI / 2.0f)) : phi + (dy / (1 + my * my));
-                y = ny;
                 theta = needs_reset_phi ? (atanf(nx) + const_theta) : theta + (dx / (1 + mx * mx));
             }
             else if constexpr (vtheta == UpdateThetaAtanBefore || vtheta == UpdateThetaAtanAfter) {
@@ -63,32 +59,29 @@ inline void segment_loop(float& theta, float& phi,
             else if constexpr (vtheta == UpdateThetaBothBefore || vtheta == UpdateThetaBothAfter) {
                 const float dx = nx - x;
                 const float mx = (x + nx) * 0.5f;
-                const bool needs_reset_theta = absf(dx) > tan_reset_threshold;
+                const bool needs_reset_theta = std::abs(dx) > tan_reset_threshold;
                 theta = needs_reset_theta ? (atanf(nx) + const_theta) : theta + (dx / (1 + mx * mx));
             }
             x = nx;
         }
 
-        const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
-        const float dy = ny - y;
-        const float my = (y + ny) * 0.5f;
-
-        if constexpr (vphi == TestPhi || vlim == LimitCase) {
-            const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
-            phi = needs_reset_phi ? (atanf(ny) + (PI / 2.0f)) : phi + (dy / (1 + my * my));    
+        if constexpr (!(vlim == NotLimitCase && vtheta == UpdateThetaTestPhi && vphi != NoTestPhi)) { // phi already updated
+            if constexpr (vphi == TestPhi || vlim == LimitCase) {
+                const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
+                phi = needs_reset_phi ? (atanf(ny) + (PI / 2.0f)) : phi + (dy / (1 + my * my));    
+            }
+            else if constexpr (vphi == NoTestPhi) {
+                phi += dy / (1 + my * my);
+            }
         }
-        else if constexpr (vphi == NoTestPhi) {
-            phi += dy / (1 + my * my);
-        }
-        y = ny;
 
-        const int index_src_1 = ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
+        const int index_src_1 = (static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x);
         const int index_src_2 = (index_src_1 << 1) + index_src_1;
         const int index_src = std::max(0, index_src_2);
         memcpy(texture_pixels + index, orig_pixels + index_src, 3);
 
         // if constexpr (vphi == TestPhi) {
-        //     const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
+        //     const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
         //     if (needs_reset_phi) {
         //         texture_pixels[index + 1] = 255;
         //     }
@@ -197,6 +190,39 @@ phi_test_bounds compute_bounds_phi_update(int& k1_io, int& k2_io,
     return (a > 0) ? TestBetween : TestOutside;
 }
 
+/*
+segment_loop<UpdateThetaDerivative, NoTestPhi, NotLimitCase> b1
+segment_loop<UpdateThetaAtanBefore, NoTestPhi, NotLimitCase> b2, const_before
+segment_loop<UpdateThetaAtanBefore, NoTestPhi, LimitCase> lim_int + 1
+const float const_correct = (!two_loops_needed) ? const_before : const_after;
+segment_loop<UpdateThetaAtanAfter, NoTestPhi, NotLimitCase> b3, const_correct
+segment_loop<UpdateThetaTestPhi, NoTestPhi, NotLimitCase> width, const_correct
+
+
+0,  b1 : UTDeriv
+b1, b2 : ATan, const_before
+lim_int : Limit case
+lim_int + 1, b3 : ATan, const_correct
+b3, width : UTTestPhi
+
+TestBetween
+0, k1 : NoTestPhi
+k1, k2 : TestPhi
+k2, width : NoTestPhi
+
+TestOutside
+0, k1 : TestPhi
+k1, k2 : NoTestPhi
+k2, width : TestPhi
+
+NeverTest : NoTestPhi
+AlwaysTest : TestPhi
+*/
+
+void sequencing() {
+
+    return;
+}
 
 
 
