@@ -29,6 +29,25 @@ inline void segment_loop(float& theta, float& phi,
 
         cartesian += scaled_x_axis;
         const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
+        // Test: approximation of sqrt(1 + X) by (1 + 0.5f * X * (1 - 0.25f * X))
+        // Sufficiently precise, but does not improve speed, even without tests ("abs(x) > abs(z)")
+        // ////////
+        // const float absx = std::abs(cartesian.x);
+        // //const float absz = std::abs(cartesian.z);
+        // //const bool casexz = absx > absz;
+        // // float nx;
+        // // if constexpr (NotLimitCase) {
+        // //     nx = cartesian.z / cartesian.x;
+        // // }
+        // //const float X = casexz ? nx : cartesian.x / cartesian.z;
+        // const float X = cartesian.z / cartesian.x;
+        // //
+        // const float X2 = X * X;
+        // //const float max_xz = casexz ? absx : absz;
+        // const float max_xz = absx;
+        // const float ny = cartesian.y / (max_xz * fma(fma(-0.125f, X2, 0.5f), X2, 1.0f));
+        // ////////
+
         const float dy = ny - y;
         const float my = (y + ny) * 0.5f;
         y = ny;
@@ -189,41 +208,6 @@ phi_test_bounds compute_bounds_phi_update(int& k1_io, int& k2_io,
 
     return (a > 0) ? TestBetween : TestOutside;
 }
-
-/*
-segment_loop<UpdateThetaDerivative, NoTestPhi, NotLimitCase> b1
-segment_loop<UpdateThetaAtanBefore, NoTestPhi, NotLimitCase> b2, const_before
-segment_loop<UpdateThetaAtanBefore, NoTestPhi, LimitCase> lim_int + 1
-const float const_correct = (!two_loops_needed) ? const_before : const_after;
-segment_loop<UpdateThetaAtanAfter, NoTestPhi, NotLimitCase> b3, const_correct
-segment_loop<UpdateThetaTestPhi, NoTestPhi, NotLimitCase> width, const_correct
-
-
-0,  b1 : UTDeriv
-b1, b2 : ATan, const_before
-lim_int : Limit case
-lim_int + 1, b3 : ATan, const_correct
-b3, width : UTTestPhi
-
-TestBetween
-0, k1 : NoTestPhi
-k1, k2 : TestPhi
-k2, width : NoTestPhi
-
-TestOutside
-0, k1 : TestPhi
-k1, k2 : NoTestPhi
-k2, width : TestPhi
-
-NeverTest : NoTestPhi
-AlwaysTest : TestPhi
-*/
-
-void sequencing() {
-
-    return;
-}
-
 
 
 void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* orig_pixels,
