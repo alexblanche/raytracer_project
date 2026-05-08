@@ -469,7 +469,7 @@ void triangle::print() const {
 
 /* Normal map vector computation at render time
     Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
-rt::vector triangle::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const {
+rt::vector triangle::compute_normal_from_map_with_info(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const {
 
     if constexpr (SMOOTH_SHADING) {
         const rt::vector& t = info.tangent;

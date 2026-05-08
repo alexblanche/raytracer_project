@@ -3,12 +3,11 @@ project(raytracer VERSION "0.0.1")
 
 # SET (CMAKE_CXX_COMPILER "/usr/bin/g++")
 
-set(CMAKE_CXX_STANDARD 23)
-add_compile_options(-std=c++23)
-add_compile_options(-Wall -Wextra -Werror -O3)
+set(CMAKE_CXX_STANDARD 26)
+add_compile_options(-std=c++26)
+add_compile_options(-Wall -Wextra -Werror)
 add_compile_options(-fdiagnostics-color)
-add_compile_options(-march=native)
-add_compile_options(-ffast-math)
+add_compile_options(-O3 -ffast-math -march=native)
 
 include_directories(include/)
 

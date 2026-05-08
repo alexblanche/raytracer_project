@@ -78,7 +78,7 @@ class quad : public object {
 
         /* Normal map vector computation at render time
         Local normal may be the normal of the quad (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
-        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const;
+        rt::vector compute_normal_from_map_with_info(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const;
 
         rt::vector sample(randomgen& rg) const;
         
