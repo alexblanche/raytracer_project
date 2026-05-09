@@ -21,10 +21,6 @@
 
 namespace rt  {
 
-	/**
-	 * The color class represents a color through its
-	 * three components: red, green, blue (RGB).
-	 */
 	struct color {
 		private:
 			/* Red, green blue and alpha components */
@@ -32,141 +28,130 @@ namespace rt  {
 
 		public:
 
-			/**
-			 * Preset colors
-			*/
 			static const color WHITE;
 			static const color BLACK;
 			static const color BLUE;
 			static const color GREEN;
 			static const color RED;
 
-			/**
-			 * Default constructor. Builds a white color.
-			 */
-			color();
+			constexpr color()
+				: red(0), green(0), blue(0) {}
 
-			/**
-			 * Copy constructor.
-			 */
-			color(const color& c);
+			constexpr color(const real r, const real g, const real b)
+				: red(r), green(g), blue(b) {}
 
-			/**
-			 * Builds a color from its red, green and blue components.
-			 * Alpha is set to 255.
-			 */
-			color(const real r, const real g, const real b);
+			constexpr color(const color&) 	= default;
+			constexpr color(color&&) 		= default;
 
-			/**
-			 * Assignment by copy
-			 */
 			inline void operator=(const color& c) {
 				red   = c.red;
 				green = c.green;
 				blue  = c.blue;
 			}
 
-			/**
-			 * Sets the red component.
-			 */
 			inline void set_red(const real r) {
 				red = r;
 			}
 
-			/**
-			 * Returns the red component.
-			 */
 			inline real get_red() const {
 				return red;
 			}
 
-			/**
-			 * Sets the green component.
-			 */
 			inline void set_green(const real g) {
 				green = g;
 			}
 
-			/**
-			 * Returns the green component.
-			 */
 			inline real get_green() const {
 				return green;
 			}
 
-			/**
-			 * Sets the blue component.
-			 */
 			inline void set_blue(const real b) {
 				blue = b;
 			}
 
-			/**
-			 * Returns the blue component.
-			 */
 			inline real get_blue() const {
 				return blue;
 			}
 
-			/**
-			 * Returns the average intensity of the components.
-			 */
 			inline real get_average() const {
-				return (red + green + blue) * 0.33333f;
+				return (red + green + blue) * (1.0f / 3.0f);
 			}
 
 			// Same between 0 and 1
 			inline real get_average_ratio() const {
-				return (red + green + blue) / (3.0f * 255.0f);
+				return (red + green + blue) * (1.0f / (3.0f * 255.0f));
 			}
 
-			/**
-			 * Comparison operator.
-			 */
 			inline bool operator==(const color& c) const {
 				return (c.red   == red)
 					&& (c.green == green)
 					&& (c.blue  == blue);
 			}
 
-			/**
-			 * Scaling operator.
-			 */
 			inline color operator*(const real x) const {
 				return color(
 					x * red,
 					x * green,
-					x * blue);
+					x * blue
+				);
 			}
 
-			/**
-			 * Addition operator.
-			 */
 			inline color operator+(const color& c) const {
 				return color(
 					red   + c.red,
 					green + c.green,
-					blue  + c.blue);
+					blue  + c.blue
+				);
 			}
 
-			/**
-			 * Product operator.
-			 */
 			inline color operator*(const color& c) const {
+				constexpr real inv255 = 1.0f / 255.0f;
 				return color(
-					red 	* c.red 	/ 255.0f,
-					green 	* c.green 	/ 255.0f,
-					blue 	* c.blue 	/ 255.0f);
+					red   * c.red   * inv255,
+					green * c.green * inv255,
+					blue  * c.blue  * inv255
+				);
+			}
+			
+			inline color operator/(const real x) const {
+				const real invx = 1.0f / x;
+				return color(
+					red   * invx,
+					green * invx,
+					blue  * invx
+				);
 			}
 
-			/**
-			 * Division by a scalar operator.
-			 */
-			inline color operator/(const real x) const {
-				return color(
-					red 	/ x,
-					green 	/ x,
-					blue 	/ x);
+			// In-place transformations
+			inline void operator +=(const color& other) {
+				red   += other.red;
+				green += other.green;
+				blue  += other.blue;
+			}
+
+			inline void operator -=(const color& other) {
+				red   -= other.red;
+				green -= other.green;
+				blue  -= other.blue;
+			}
+
+			inline void operator *=(const color& other) {
+				constexpr real inv255 = 1.0f / 255.0f;
+				red   *= other.red   * inv255;
+				green *= other.green * inv255;
+				blue  *= other.blue  * inv255;
+			}
+
+			inline void operator *=(const real a) {
+				red   *= a;
+				green *= a;
+				blue  *= a;
+			}
+
+			inline void operator /=(const real a) {
+				red   /= a;
+				green /= a;
+				blue  /= a;
 			}
 
 			/**
@@ -183,37 +168,6 @@ namespace rt  {
 
 	/* Applies gamma correction to the color data */
 	void apply_gamma(std::vector<std::vector<color>>& data, const real gamma);
-
-	// In-place transformations
-	inline void operator +=(color& v, const color& other) {
-		v.set_red  (v.get_red()   + other.get_red());
-		v.set_green(v.get_green() + other.get_green());
-		v.set_blue (v.get_blue()  + other.get_blue());
-	}
-
-	inline void operator -=(color& v, const color& other) {
-		v.set_red  (v.get_red()   - other.get_red());
-		v.set_green(v.get_green() - other.get_green());
-		v.set_blue (v.get_blue()  - other.get_blue());
-	}
-
-	inline void operator *=(color& v, const color& other) {
-		v.set_red  (v.get_red()   * other.get_red()   / ((real) 255.0f));
-		v.set_green(v.get_green() * other.get_green() / ((real) 255.0f));
-		v.set_blue (v.get_blue()  * other.get_blue()  / ((real) 255.0f));
-	}
-
-	inline void operator *=(color& v, const real a) {
-		v.set_red  (v.get_red()   * a);
-		v.set_green(v.get_green() * a);
-		v.set_blue (v.get_blue()  * a);
-	}
-
-	inline void operator /=(color& v, const real a) {
-		v.set_red  (v.get_red()   / a);
-		v.set_green(v.get_green() / a);
-		v.set_blue (v.get_blue()  / a);
-	}
 
 	// Returns c1 * a + c2
 	inline color fma(const color& c1, const real a, const color& c2) {

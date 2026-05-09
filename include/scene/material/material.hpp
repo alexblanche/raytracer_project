@@ -37,22 +37,15 @@ class material {
         bool reflects_color;
 
     public:
-
-        /* Mirror surface */
         static material DIFFUSE;
         static material MIRROR;
         static material GLASS;
         static material WATER;
 
-
-        /* Constructors */
-
         material();
 
-        /* Constructs a material with no emitted light, with specular probability 0 */
         material(const rt::color& color, const real smoothness);
 
-        /* Main constructor */
         material(const rt::color& color,
             const real smoothness, const real emission_intensity,
             const real reflectivity, const bool reflects_color,
@@ -64,16 +57,12 @@ class material {
             const rt::color& ka, const rt::color& kd, const rt::color& ks, const rt::color& ke,
             const real ni, const real d, const unsigned int illum, const real gamma);
 
-        material(const material&) = delete;
 
+        material(material&&)                 = default;
+        material& operator=(material&&)      = default;
+
+        material(const material&)            = delete;
         material& operator=(const material&) = delete;
-
-        material(material&&) = default;
-
-        material& operator=(material&&) = default;
-
-
-        /* Accessors */
 
         inline const rt::color& get_color() const {
             return color;

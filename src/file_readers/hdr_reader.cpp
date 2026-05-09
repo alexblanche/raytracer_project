@@ -77,7 +77,6 @@ bool print_hdr_info(const char* file_name) {
 
         // bool run_active = false;
         // unsigned int run_remaining = 0;
-        rt::color current_pixel_color(0, 0, 0);
 
         for (unsigned int j = 0; j < height; j++) {
             // const unsigned int indexj = (y_orientation) ? j : height - j - 1;
@@ -297,8 +296,6 @@ bool read_hdr(const char* file_name, std::vector<std::vector<rt::color>>& data) 
         // Filling pixel data
         std::vector<unsigned char[4]> data_buffer(width * height);
         // https://www.flipcode.com/archives/HDR_Image_Reader.shtml
-
-        rt::color current_pixel_color(0, 0, 0);
 
         for (unsigned int j = 0; j < height; j++) {
             const unsigned int indexj = j * width;

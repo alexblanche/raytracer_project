@@ -51,11 +51,6 @@ scene::scene(std::vector<const object*>&& object_set,
     gamma(gamma) {}
 
 
-
-/*********************************************************************/
-
-/* Destructor */
-
 scene::~scene() {
     // printf("Destroying scene\n");
 

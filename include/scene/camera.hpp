@@ -80,6 +80,12 @@ class camera {
             const int width, const int height,
             const real focal_length, const real aperture);
 
+        camera(camera&&) = default;
+
+        camera(const camera&)               = delete;
+        camera& operator=(const camera&)    = delete;
+        camera& operator=(camera&&)         = delete;
+
         /* Returns the ray that goes toward the pixel i,j of the screen */
         ray gen_ray_classic(const int i, const int j, const unsigned int iteration) const;
 

@@ -92,15 +92,11 @@ class scene {
             const unsigned int polygons_per_bounding,
             const real gamma);
 
-        /* For testing purposes: forbidding copy */
-        scene(const scene&) = delete;
-
-        scene& operator=(const scene&) = delete;
-
-        /* Only move operations allowed */
         scene(scene&&) = default;
 
-        scene& operator=(scene&&) = default;
+        scene(const scene&)             = delete;
+        scene& operator=(const scene&)  = delete;
+        scene& operator=(scene&&)       = delete;
 
         ~scene();
 

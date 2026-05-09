@@ -20,13 +20,11 @@ class normal_map {
            Writes true in parsing_successful if the operation was successful */
         normal_map(const char* file_name, bool& parsing_successful);
 
-        normal_map(const normal_map&) = delete;
+        normal_map(normal_map&&)                    = default;
+        normal_map& operator=(normal_map&&)         = default;
 
-        normal_map& operator=(const normal_map&) = delete;
-
-        normal_map(normal_map&&) = default;
-
-        normal_map& operator=(normal_map&&) = default;
+        normal_map(const normal_map&)               = delete;
+        normal_map& operator=(const normal_map&)    = delete;
 
         /* Returns the normal in tangent space at the given UV-coordinates u, v (between 0 and 1) */
         /* Returns the local normal at the given UV-coordinates u, v (between 0 and 1) */

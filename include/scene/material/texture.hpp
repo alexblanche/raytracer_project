@@ -42,12 +42,10 @@ class texture {
         ~texture() {
             // printf("Destruction of a texture (width = %d, height = %d, data = %lu)\n", width, height, data.size());
         }
-        
-        texture(const texture&) = delete;
 
-        texture& operator=(const texture&) = delete;
+        texture(texture&&)                  = default;
+        texture& operator=(texture&&)       = default;
 
-        texture(texture&&) = default;
-
-        texture& operator=(texture&&) = default;
+        texture(const texture&)             = delete;
+        texture& operator=(const texture&)  = delete;
 };

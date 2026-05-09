@@ -294,7 +294,7 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
     }
 
     rt::color mat_color;
-    rt::color em_color;
+    // rt::color em_color;
     if (gamma != 1.0f) {
         const real gr = pow(r / 255.0f, gamma) * 255.0f;
         const real gg = pow(g / 255.0f, gamma) * 255.0f;
@@ -1120,7 +1120,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
 
 
         // Creation of the final structures
-        std::vector<material> material_set(wrapper<material>::counter);
+        std::vector<material> material_set((wrapper<material>::counter));
         for (wrapper<material>& mat_wrap : material_wrapper_set) {
             material_set[mat_wrap.index] = std::move(mat_wrap.content);
         }

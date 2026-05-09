@@ -6,36 +6,34 @@
 /* Struct containing a material or texture, its name and the index objects are going to store */
 
 template <typename T>
-struct wrapper {
-    T content;
-    std::optional<std::string> name;
-    size_t index;
+class wrapper {
+    public:
+        T content;
+        std::optional<std::string> name;
+        size_t index;
 
-    static inline size_t counter = 0;
+        static inline size_t counter = 0;
 
-    wrapper(T&& t, const std::string& name)
-        : content(std::move(t)), name(name), index(counter) {
+        wrapper(T&& t, const std::string& name)
+            : content(std::forward<T>(t)), name(name), index(counter) {
 
-        counter ++;
-    }
+            counter ++;
+        }
 
-    wrapper(T&& t)
-        : content(std::move(t)), name(std::nullopt), index(counter) {
+        wrapper(T&& t)
+            : content(std::forward<T>(t)), name(std::nullopt), index(counter) {
 
-        counter ++;
-    }
+            counter ++;
+        }
 
-    /* Initialization of the counter */
-    static void init() {
-        counter = 0;
-    }
+        /* Initialization of the counter */
+        static void init() {
+            counter = 0;
+        }
 
-    wrapper(const wrapper& sc) = delete;
+        wrapper(wrapper&&)                  = default;
+        wrapper& operator=(wrapper&&)       = default;
 
-    wrapper& operator=(const wrapper& sc) = delete;
-
-    /* Only move operations allowed */
-    wrapper(wrapper&& sc) = default;
-
-    wrapper& operator=(wrapper&& sc) = default;
+        wrapper(const wrapper&)             = delete;
+        wrapper& operator=(const wrapper&)  = delete;
 };

@@ -14,6 +14,10 @@
 /* ******************************************************************** */
 /* *************************** Path tracing *************************** */
 
+enum class update_option {
+    UpdateColorMaterials, DoNotUpdateColorMaterials
+};
+
 struct accumulators {
     rt::color color_materials;
     rt::color emitted_colors;
@@ -31,7 +35,7 @@ struct accumulators {
     }
 
     inline void update(const material& m, const rt::color& local_color,
-        const bool update_color_materials) {
+        const update_option update_option) {
 
         emitted_colors =
             m.is_emissive() ?
@@ -39,7 +43,7 @@ struct accumulators {
                 :
                 emitted_colors;
         color_materials =
-            update_color_materials ?
+            (update_option == update_option::UpdateColorMaterials) ?
                 color_materials * local_color
                 :
                 color_materials;
@@ -283,7 +287,12 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
 
                 /* We update color_materials only if the material reflects colors (like a christmas tree ball),
                 otherwise the reflection has the original color (like a tomato) */
-                acc.update(m, color, !is_specular_bounce || m.does_reflect_color());
+                const update_option update_option =
+                    (!is_specular_bounce || m.does_reflect_color()) ?
+                    update_option::UpdateColorMaterials
+                    :
+                    update_option::DoNotUpdateColorMaterials;
+                acc.update(m, color, update_option);
             }
             else {
 
