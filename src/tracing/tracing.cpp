@@ -2,14 +2,12 @@
 #include "light/ray.hpp"
 #include "screen/color.hpp"
 #include "scene/objects/object.hpp"
-// #include "scene/objects/polygon.hpp"
 #include "scene/scene.hpp"
 #include "scene/objects/bounding.hpp"
 #include "scene/material/texture.hpp"
 
 #include "tracing/directions.hpp" 
 
-//#include <stack>
 #include "auxiliary/custom_stack.hpp"
 
 
@@ -88,7 +86,7 @@ void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real sm
     const rt::vector dir = (smoothness >= 1.0f) ?
         central_dir
         :
-        (fma(random_direction<PI>(rg, central_dir), 1.0f - smoothness, central_dir)).unit();
+        (fma(random_direction<Angle::Pi>(rg, central_dir), 1.0f - smoothness, central_dir)).unit();
     r.set_direction(dir);
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
@@ -107,7 +105,7 @@ void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real sm
     const rt::vector dir = (smoothness >= 1.0f) ?
         central_dir
         :
-        (fma(random_direction<PI>(rg, central_dir), 1.0f - smoothness, central_dir)).unit();
+        (fma(random_direction<Angle::Pi>(rg, central_dir), 1.0f - smoothness, central_dir)).unit();
     r.set_direction(dir);
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
@@ -120,7 +118,7 @@ void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real sm
 // Run-time
 void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, randomgen& rg, const bool inward) {
 
-    r.set_direction(((inward ? local_normal : (-1.0f) * local_normal) + random_direction<PI>(rg, local_normal)).unit());
+    r.set_direction(((inward ? local_normal : (-1.0f) * local_normal) + random_direction<Angle::Pi>(rg, local_normal)).unit());
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
     /* Apply the bias outward the surface */
@@ -132,10 +130,10 @@ template <bool inward>
 void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, randomgen& rg) {
 
     if constexpr (inward) {
-        r.set_direction((local_normal + random_direction<PI>(rg, local_normal)).unit());
+        r.set_direction((local_normal + random_direction<Angle::Pi>(rg, local_normal)).unit());
     }
     else {
-        r.set_direction((((-1.0f) * local_normal) + random_direction<PI>(rg, local_normal)).unit());
+        r.set_direction((((-1.0f) * local_normal) + random_direction<Angle::Pi>(rg, local_normal)).unit());
     }
     
     

@@ -5,11 +5,6 @@
 #include "light/vector.hpp"
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
-
-#include<limits>
-numeric_limits<real> realbd;
-const real infinity = realbd.infinity();
-
 #include <optional>
 
 bounding::bounding()

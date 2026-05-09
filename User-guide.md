@@ -177,11 +177,11 @@ The ``merge`` executable can be compiled with ```make merge```. It is used to me
 The syntax is the following:  
 ``./merge dest.bmp dest.rtdata source1.rtdata source2.rtdata ... sourcen.rtdata``  
 When the source files are rtdata files ``source1.rtdata``, ..., ``sourcen.rtdata`` and the destination files are ``dest.bmp`` and ``dest.rtdata``.  
-The gamma correction value can be specified with the command ``-gamma:2.2`` between ``dest.rtdata`` and ``source1.rtdata``.
+The gamma correction value can be specified with the command ``-gamma 2.2`` between ``dest.rtdata`` and ``source1.rtdata``.
 
-## Postprocessing <a name="post"></a>
+<!-- ## Postprocessing <a name="post"></a>
 
 The postprocessing glow effect can be applied to raw data files with the ``postprocess`` executable, which can be compiled with ``make postprocess``. It generates an output bmp image. A threshold can be specified to only affect lights of a certain minimum brightness (the threshold cannot be lower than 4), and a glow intensity parameter can also be specified.
 The syntax is the following:  
 ``./postprocess -threshold 10 -glow 3 source.rtdata dest.bmp``  
-When the source file is ``source.rtdata`` and the destination file is ``dest.bmp``. The ``-threshold`` and ``-glow`` arguments are optional.
+When the source file is ``source.rtdata`` and the destination file is ``dest.bmp``. The ``-threshold`` and ``-glow`` arguments are optional. -->

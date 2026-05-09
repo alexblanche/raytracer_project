@@ -3,8 +3,6 @@
 #include "light/hit.hpp"
 #include "auxiliary/randomgen.hpp"
 
-constexpr real PI = 3.14159265358979323846;
-
 /* Returns the reflected ray at the point of contact */
 // ray get_reflected_ray() const;
 
@@ -17,13 +15,17 @@ rt::vector get_central_reflected_direction(const hit& h, const rt::vector& norma
 // std::vector<ray> random_reflect(const size_t n, randomgen& rg,
 //     const rt::vector& central_dir, const real theta_max) const;
 
+enum class Angle {
+    Pi
+};
+
 /* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
 // Constexpr theta_max
 /* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
-template <real theta_max>
+template <Angle theta_max>
 rt::vector random_direction(randomgen& rg, const rt::vector& central_dir) {
 
-    constexpr real cos_theta_max = cos(theta_max);
+    constexpr real cos_theta_max = (theta_max == Angle::Pi) ? -1.0f : /* placeholder */ 0.f;
     constexpr real one_m_costhetamax = 1.0f - cos_theta_max;
 
     // random ray in the cone of angle theta_max to central_dir

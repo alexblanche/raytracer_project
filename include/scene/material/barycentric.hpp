@@ -1,5 +1,7 @@
 #pragma once
 
+#include "parameters.hpp"
+
 /* Structure that contains information for barycentric coordinates
    l1, l2: ST-coordinates (coordinates in object space)
    lower_triangle: true if the point lies in the lower_triangle (p0, p1, p2) of a quad */

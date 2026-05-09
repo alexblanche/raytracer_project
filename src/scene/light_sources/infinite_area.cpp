@@ -3,8 +3,6 @@
 #include <cmath>
 #include <stack>
 
-#define PI 3.14159265358979323846f
-
 /* Infinite area light sample */
 
 std::vector<real> compute_low_res_table(std::vector<std::vector<rt::color>>& matrix) {

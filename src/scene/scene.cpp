@@ -3,9 +3,6 @@
 #include "file_readers/scene_parser.hpp"
 
 #include <optional>
-#include <limits>
-std::numeric_limits<real> realscene;
-const real infinity = realscene.infinity();
 
 #include "auxiliary/custom_stack.hpp"
 

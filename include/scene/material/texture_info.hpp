@@ -10,6 +10,8 @@
 // #include "scene/material/roughness_map.hpp"
 // #include "scene/material/displacement_map.hpp"
 
+#include <optional>
+
 /* Struct representing UV-coordinates */
 struct uvcoord {
     real u, v;

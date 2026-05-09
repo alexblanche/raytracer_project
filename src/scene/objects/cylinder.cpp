@@ -1,7 +1,7 @@
 #include "scene/objects/cylinder.hpp"
 #include "light/vector.hpp"
 #include "scene/material/material.hpp"
-#include <math.h>
+#include <cmath>
 #include <stdexcept>
 #include <optional>
 

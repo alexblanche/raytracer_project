@@ -201,7 +201,7 @@ unsigned int compute_subregion_index(const search_tree& tree, const rt::vector& 
 std::pair<real, std::optional<unsigned int>> compute_min_dist_sq(const std::vector<rt::vector>& means, const search_tree& tree,
     const rt::vector& v, const unsigned int index) {
 
-    real min_dist_sq = std::numeric_limits<float>::infinity();
+    real min_dist_sq = infinity;
     std::optional<unsigned int> closest_index;
 
     for (const unsigned int centroid_index : tree.leaves[index]) {
@@ -271,7 +271,7 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
     ) {
 
     unsigned int index = 0;
-    real min_dist = std::numeric_limits<float>::infinity();
+    real min_dist = infinity;
     std::optional<unsigned int> closest_centroid_index;
 
     std::stack<tree_search_info> stack;

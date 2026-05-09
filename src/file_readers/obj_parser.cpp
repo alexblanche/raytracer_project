@@ -9,10 +9,6 @@
 #include "auxiliary/clustering.hpp"
 #include "file_readers/mtl_parser.hpp"
 
-#include<limits>
-numeric_limits<real> realobj; 
-const real infinity = realobj.infinity();
-
 #include <string.h>
 #include <string>
 

@@ -1,7 +1,5 @@
 #include "scene/material/background.hpp"
 
-#define PI 3.14159265358979323846f
-
 /* Struct containing the background color, the background texture and its orientation */
 background_container::background_container(const rt::color& col)
     : bg_color(col),
@@ -29,7 +27,7 @@ const rt::color& background_container::get_color(const rt::vector& dir) const {
     /* Determining the pixel of the background texture to display */      
     real phi = asinf(dir_rotated.y) + 0.5f * PI;
     // dir is a unit vector, but due to floating-point imprecision, dir.y can be greater than 1
-    if (abs(dir_rotated.y) >= 1.0f) {
+    if (std::abs(dir_rotated.y) >= 1.0f) {
         phi = (dir_rotated.y > 0.0f) ? PI : 0;
     }
 

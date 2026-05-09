@@ -10,8 +10,6 @@
 
 // Folder creation
 #include <sys/stat.h>
-//#include <bits/stdc++.h>
-#include <sys/types.h>
 #include <filesystem>
 
 #include <ctime>
@@ -163,12 +161,14 @@ int main(int argc, char *argv[]) {
         int index_arg = 2;
         while (index_arg < argc) {
 
-            if (strcmp(argv[index_arg], "-time") == 0) {
+            const std::string arg = argv[index_arg];
+
+            if (arg.compare("-time") == 0) {
                 time_enabled = true;
                 index_arg++;
 
                 if (index_arg < argc) {
-                    if (strcmp(argv[index_arg], "all") == 0) {
+                    if (std::string(argv[index_arg]).compare("all") == 0) {
                         time_all = true;
                         index_arg++;
                     }
@@ -176,7 +176,7 @@ int main(int argc, char *argv[]) {
                 continue;
             }
 
-            if (strcmp(argv[index_arg], "-rays") == 0) {
+            if (arg.compare("-rays") == 0) {
                 interactive = false;
                 index_arg++;
 
@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
                 continue;
             }
 
-            if (strcmp(argv[index_arg], "-multisample") == 0) {
+            if (arg.compare("-multisample") == 0) {
                 multisample = true;
                 index_arg++;
 
@@ -206,7 +206,7 @@ int main(int argc, char *argv[]) {
                 continue;
             }
 
-            if (strcmp(argv[index_arg], "-gamma") == 0) {
+            if (arg.compare("-gamma") == 0) {
                 gamma_enabled = true;
                 index_arg++;
 
@@ -222,17 +222,20 @@ int main(int argc, char *argv[]) {
                 continue;
             }
 
-            if (strcmp(argv[index_arg], "-reinhardt") == 0) {
+            if (arg.compare("-reinhardt") == 0) {
                 reinhardt_enabled = true;
                 index_arg++;
                 continue;
             }
 
-            if (strcmp(argv[index_arg], "-rr") == 0) {
+            if (arg.compare("-rr") == 0) {
                 russian_roulette_enabled = true;
                 index_arg++;
                 continue;
             }
+
+            printf("Error, incorrect argument %s\n", arg.data());
+            return EXIT_FAILURE;
         }
     }
 
@@ -296,10 +299,8 @@ int main(int argc, char *argv[]) {
             else
                 render_loop_parallel(matrix, scene, number_of_bounces, russian_roulette_enabled, i);
 
-            //if (target_number_of_rays <= 10 || i % 10 == 9) {
-                printf("\r%u / %u", i+1, target_number_of_rays);
-                fflush(stdout);
-            //}
+            printf("\r%u / %u", i+1, target_number_of_rays);
+            fflush(stdout);
 
             /* Exporting as rtdata every 100 samples */
             if (i % 100 == 99) {

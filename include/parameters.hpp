@@ -1,7 +1,14 @@
 #pragma once
 
+#include<limits>
+
 // Type alias for floating-point numerical values
 using real = double;
+
+// Maximum real value
+constexpr real infinity = std::numeric_limits<real>::max();
+constexpr real PI = 3.14159265358979323846;
+constexpr real TWOPI = 2.0 * PI;
 
 // Comment for flat-shading of polygon meshes
 constexpr bool SMOOTH_SHADING = true;

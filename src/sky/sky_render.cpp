@@ -1,6 +1,5 @@
 #include "sky/sky_render.hpp"
 
-constexpr float PI = 3.14159265359f;
 constexpr float tan_reset_threshold = 1.0f;
 constexpr float tan_reset_threshold_phi = 40.0f;
 

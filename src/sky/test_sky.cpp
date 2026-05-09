@@ -7,8 +7,6 @@
 #include <cmath>
 #include "sky/sky_render.hpp"
 
-constexpr float PI = 3.14159265359f;
-
 /* Prototype: real-time skydome, to be cleaned-up */
 
 /* Returns the current time in milliseconds */
@@ -160,8 +158,9 @@ int main(int argc, char** argv) {
         //"../../../raytracer_project/sky/dome/southern_sky.bmp";
         //"../../../raytracer_project/sky/dome/house.bmp";
         //"../../../raytracer_project/sky/dome/times.bmp";
-        "../../../raytracer_project/sky/dome/cobblestone_street_night.bmp";
-
+        //"../../../raytracer_project/sky/dome/cobblestone_street_night.bmp";
+        "../../../Assets/sundowner_overlook.bmp";
+        
     print_bmp_info(file_name);
 
     std::optional<dimensions> dims = read_bmp_size(file_name);

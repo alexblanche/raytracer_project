@@ -31,7 +31,7 @@ inline void update_accumulators(
 
 rt::vector random_dir(randomgen& rg, const rt::vector central_dir, const real scattering) {
     
-    return (central_dir + (1.0f - scattering) * random_direction<PI>(rg, central_dir)).unit();
+    return (central_dir + (1.0f - scattering) * random_direction<Angle::Pi>(rg, central_dir)).unit();
 }
 
 rt::vector compute_bias(const rt::vector& hit_point, const rt::vector& normal,

@@ -4,8 +4,6 @@
 #include "auxiliary/randomgen.hpp"
 #include "scene/camera.hpp"
 
-#define TWOPI 6.2831853071795862f
-
 camera::camera() {}
 
 camera::camera(const rt::vector& origin, const rt::vector& direction, const rt::vector& to_the_right,
