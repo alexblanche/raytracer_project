@@ -302,8 +302,9 @@ int main(int argc, char *argv[]) {
             printf("\r%u / %u", i+1, target_number_of_rays);
             fflush(stdout);
 
-            /* Exporting as rtdata every 100 samples */
-            if (i % 100 == 99) {
+            /* Exporting as rtdata every EXPORT_INTERVAL samples */
+            constexpr unsigned int EXPORT_INTERVAL = 1000;
+            if ((i + 1) % EXPORT_INTERVAL == 0) {
                 t_end = time_enabled ? time(0) : 0;
                 create_dir();
                 export_raw("../output/image.rtdata", i+1, matrix);

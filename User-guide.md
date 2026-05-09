@@ -141,10 +141,14 @@ A line can be commented by adding a ``#`` and a space at the beginning of the li
 
 ## Command line arguments <a name="command"></a>
 
-The first command-line argument is always an integer, and specifies the maximum number of bounces allowed for each ray:  
+``./main [../scenes/scene.txt] 10 [-rays 100] [-time [all]]``  
+
+The first command-line argument can be the name of the scene descriptor file. If it is not specified, the default scene descriptor is ``../scene.txt``.  
+
+The next command-line argument is always the maximum number of bounces allowed for each ray:  
 ``./main 10``  
 
-The executable works in two modes: the interactive mode displays the image in a window every 10 samples per pixel, and the non-interactive mode generates a given number of samples per pixel without display.
+The program works in two modes: the interactive mode displays the image in a window every 10 samples per pixel, and the non-interactive mode generates a given number of samples per pixel without display.
 
 ### Interactive mode
 

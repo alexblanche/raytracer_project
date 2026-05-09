@@ -15,17 +15,17 @@ rt::vector get_central_reflected_direction(const hit& h, const rt::vector& norma
 // std::vector<ray> random_reflect(const size_t n, randomgen& rg,
 //     const rt::vector& central_dir, const real theta_max) const;
 
-enum class Angle {
+enum class angle {
     Pi
 };
 
 /* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
 // Constexpr theta_max
 /* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
-template <Angle theta_max>
+template <angle theta_max>
 rt::vector random_direction(randomgen& rg, const rt::vector& central_dir) {
 
-    constexpr real cos_theta_max = (theta_max == Angle::Pi) ? -1.0f : /* placeholder */ 0.f;
+    constexpr real cos_theta_max = (theta_max == angle::Pi) ? -1.0f : /* placeholder */ 0.f;
     constexpr real one_m_costhetamax = 1.0f - cos_theta_max;
 
     // random ray in the cone of angle theta_max to central_dir

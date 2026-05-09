@@ -4,10 +4,34 @@
 #include "light/ray.hpp"
 
 // Sampling modes
-#define CAM_DEFAULT         0
-#define CAM_DEPTH_OF_FIELD  1
-#define CAM_NORMAL_AA       2
-#define CAM_STRATIFIED      4
+enum class camera_mode_option {
+    Cam_Default         = 0,
+    Cam_Depth_of_Field  = 1,
+    Cam_Normal_AA       = 2,
+    Cam_Stratified      = 4
+};
+
+class camera_mode {
+    private:
+        unsigned int mode;
+
+    public:
+        camera_mode(camera_mode_option m)
+            : mode(static_cast<unsigned int>(m)) {}
+        
+        camera_mode(camera_mode_option m1, camera_mode_option m2)
+            : mode(static_cast<unsigned int>(m1) | static_cast<unsigned int>(m2)) {}
+
+        inline bool uses_dof() const {
+            return mode & static_cast<unsigned int>(camera_mode_option::Cam_Depth_of_Field);
+        }
+
+        inline bool uses_stratified() const {
+            return mode & static_cast<unsigned int>(camera_mode_option::Cam_Stratified);
+        }
+};
+
+
 
 class camera {
     
@@ -45,10 +69,7 @@ class camera {
 
 
     public:
-        int mode;
-
-        /* Constructors */
-        camera();
+        camera_mode mode;
 
         camera(const rt::vector& origin, const rt::vector& direction, const rt::vector& to_the_right,
             const real fov_w, const real fov_h, const real dist,
@@ -71,7 +92,7 @@ class camera {
 
         ray gen_ray(const int i, const int j, randomgen& rg, const unsigned int iteration) const {
             return
-                mode & CAM_DEPTH_OF_FIELD ?
+                mode.uses_dof() ?
                     gen_ray_dof(i, j, rg, iteration)
                     :
                     gen_ray_normal(i, j, rg, iteration);

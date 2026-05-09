@@ -16,7 +16,7 @@ scene::scene(std::vector<const object*>&& object_set,
     std::vector<texture_info>&& texture_info_set,
     const rt::color& bg_color,
     const int width, const int height,
-    const camera& cam,
+    camera&& cam,
     const unsigned int polygons_per_bounding,
     const real gamma)
 
@@ -25,7 +25,7 @@ scene::scene(std::vector<const object*>&& object_set,
     material_set(std::move(material_set)), texture_info_set(std::move(texture_info_set)),
     background(background_container(bg_color)),
     width(width), height(height),
-    cam(cam), polygons_per_bounding(polygons_per_bounding),
+    cam(std::move(cam)), polygons_per_bounding(polygons_per_bounding),
     gamma(gamma) {}
 
 
@@ -38,7 +38,7 @@ scene::scene(std::vector<const object*>&& object_set,
     std::vector<texture_info>&& texture_info_set,
     texture&& bg_texture, const real rx, const real ry, const real rz,
     const int width, const int height,
-    const camera& cam,
+    camera&& cam,
     const unsigned int polygons_per_bounding,
     const real gamma)
 
@@ -47,7 +47,7 @@ scene::scene(std::vector<const object*>&& object_set,
     material_set(std::move(material_set)), texture_info_set(std::move(texture_info_set)),
     background(background_container(std::move(bg_texture), rx, ry, rz)),
     width(width), height(height),
-    cam(cam), polygons_per_bounding(polygons_per_bounding),
+    cam(std::move(cam)), polygons_per_bounding(polygons_per_bounding),
     gamma(gamma) {}
 
 

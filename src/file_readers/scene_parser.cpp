@@ -22,12 +22,9 @@
 #include "scene/material/normal_map.hpp"
 
 // object types
-#define TRIANGLE_TYPE   0
-#define QUAD_TYPE       1
-#define SPHERE_TYPE     2
-#define PLANE_TYPE      3
-#define BOX_TYPE        4
-#define CYLINDER_TYPE   5
+enum class object_type {
+    Triangle, Quad, Sphere, Plane, Box, Cylinder
+};
 
 /*** Scene description parsing ***/
 
@@ -376,7 +373,7 @@ std::optional<unsigned int> get_material(FILE* file, std::vector<wrapper<materia
 std::optional<texture_info> parse_texture_info(FILE* file,
     const std::vector<wrapper<texture>>& texture_wrapper_set,
     const std::vector<wrapper<normal_map>>& normal_map_wrapper_set,
-    const unsigned char object_type) {
+    const object_type object_type) {
 
     const long int position = ftell(file);
     char keyword[8];
@@ -479,7 +476,7 @@ std::optional<texture_info> parse_texture_info(FILE* file,
     */
 
     switch (object_type) {
-        case TRIANGLE_TYPE: {
+        case object_type::Triangle: {
 
             const int ret3 = fscanf(file, " (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
                 &u0, &v0, &u1, &v1, &u2, &v2);
@@ -494,7 +491,7 @@ std::optional<texture_info> parse_texture_info(FILE* file,
                 static_cast<real>(u2), static_cast<real>(v2)});
         }
                     
-        case QUAD_TYPE: {
+        case object_type::Quad: {
 
             const int ret3 = fscanf(file, " (%lf,%lf) (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
                 &u0, &v0, &u1, &v1, &u2, &v2, &u3, &v3);
@@ -511,7 +508,7 @@ std::optional<texture_info> parse_texture_info(FILE* file,
 
         }
 
-        case SPHERE_TYPE: {
+        case object_type::Sphere: {
 
             const int ret3 = fscanf(file, " forward:(%lf,%lf,%lf) right:(%lf,%lf,%lf))\n",
                 &x0, &y0, &z0, &x1, &y1, &z1);
@@ -526,7 +523,7 @@ std::optional<texture_info> parse_texture_info(FILE* file,
                 static_cast<real>(x1), static_cast<real>(y1), static_cast<real>(z1)});
         }
 
-        case PLANE_TYPE: {
+        case object_type::Plane: {
 
             const int ret3 = fscanf(file, " right:(%lf,%lf,%lf) scale:%lf)\n",
                 &x0, &y0, &z0, &u0);
@@ -541,10 +538,10 @@ std::optional<texture_info> parse_texture_info(FILE* file,
                 static_cast<real>(u0)});
         }
 
-        case BOX_TYPE:
+        case object_type::Box:
             throw std::runtime_error("Box texturing not handled yet");
 
-        case CYLINDER_TYPE:
+        case object_type::Cylinder:
             throw std::runtime_error("Cylinder texturing not handled yet");
 
         default:
@@ -607,16 +604,12 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
 
         real fovh = fovw * ((real) height) / ((real) width);
 
-        camera cam;
-        
-        if (depth_of_field_enabled) {
-            cam = camera(rt::vector(posx, posy, posz), rt::vector(dx, dy, dz), rt::vector(rdx, rdy, rdz),
-                fovw, fovh, dist, width, height, focl, apr);
-        }
-        else {
-            cam = camera(rt::vector(posx, posy, posz), rt::vector(dx, dy, dz), rt::vector(rdx, rdy, rdz),
+        camera cam = (depth_of_field_enabled) ?
+            camera(rt::vector(posx, posy, posz), rt::vector(dx, dy, dz), rt::vector(rdx, rdy, rdz),
+                fovw, fovh, dist, width, height, focl, apr)
+            :
+            camera(rt::vector(posx, posy, posz), rt::vector(dx, dy, dz), rt::vector(rdx, rdy, rdz),
                 fovw, fovh, dist, width, height);
-        }
 
         bool background_color_is_set = false;
         bool background_texture_is_set = false;
@@ -855,7 +848,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 }
                 const std::optional<unsigned int> m_index = get_material(file, material_wrapper_set, inverse_gamma);
                 if (m_index.has_value()) {
-                    std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, SPHERE_TYPE);
+                    std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, object_type::Sphere);
                     if (info.has_value()) {
 
                         std::vector<real>& info_vect = info.value().uv_coordinates;
@@ -895,7 +888,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 }
                 const std::optional<unsigned int> m_index = get_material(file, material_wrapper_set, inverse_gamma);
                 if (m_index.has_value()) {
-                    std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, PLANE_TYPE);
+                    std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, object_type::Plane);
                     if (info.has_value()) {
 
                         std::vector<real>& info_vect = info.value().uv_coordinates;
@@ -963,7 +956,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                     throw std::runtime_error("Parsing error in scene constructor (triangle declaration)");
                 }
                 const std::optional<unsigned int> m_index = get_material(file, material_wrapper_set, inverse_gamma);
-                std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, TRIANGLE_TYPE);
+                std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, object_type::Triangle);
                 const bool normal_mapping = info.has_value() && info.value().has_normal_information();
                 if (m_index.has_value()) {
                 
@@ -1007,7 +1000,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
 
                 if (m_index.has_value()) {
                 
-                    std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, QUAD_TYPE);
+                    std::optional<texture_info> info = parse_texture_info(file, texture_wrapper_set, normal_map_wrapper_set, object_type::Quad);
                     const bool normal_mapping = info.has_value() && info.value().has_normal_information();
                     const quad* q = normal_mapping ?
                         new quad(
@@ -1144,7 +1137,8 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         
         std::optional<scene> scene_opt;
         if (background_texture_is_set) {
-            scene_opt.emplace(std::move(object_set),
+            scene_opt.emplace(
+                std::move(object_set),
                 std::move(bounding_set),
                 std::move(texture_set),
                 std::move(normal_map_set),
@@ -1152,18 +1146,23 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 std::move(texture_info_set),
                 std::move(background_texture),
                 rx, ry, rz,
-                width, height, cam, polygons_per_bounding,
+                width, height,
+                std::move(cam),
+                polygons_per_bounding,
                 1.0 / inverse_gamma);
         }
         else {
-            scene_opt.emplace(std::move(object_set),
+            scene_opt.emplace(
+                std::move(object_set),
                 std::move(bounding_set),
                 std::move(texture_set),
                 std::move(normal_map_set),
                 std::move(material_set),
                 std::move(texture_info_set),
                 background_color,
-                width, height, cam, polygons_per_bounding,
+                width, height,
+                std::move(cam),
+                polygons_per_bounding,
                 1.0 / inverse_gamma);
         }
 

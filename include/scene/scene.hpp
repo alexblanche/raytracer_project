@@ -75,7 +75,7 @@ class scene {
             std::vector<texture_info>&& texture_info_set,
             const rt::color& bg_color,
             const int width, const int height,
-            const camera& cam,
+            camera&& cam,
             const unsigned int polygons_per_bounding,
             const real gamma);
 
@@ -88,7 +88,7 @@ class scene {
             std::vector<texture_info>&& texture_info_set,
             texture&& bg_texture, const real bg_rx, const real bg_ry, const real bg_rz,
             const int width, const int height,
-            const camera& cam,
+            camera&& cam,
             const unsigned int polygons_per_bounding,
             const real gamma);
 

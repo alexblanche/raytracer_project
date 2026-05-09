@@ -1,7 +1,5 @@
-cmake_minimum_required(VERSION 3.12)
-project(raytracer VERSION "0.0.1")
-
-# SET (CMAKE_CXX_COMPILER "/usr/bin/g++")
+cmake_minimum_required(VERSION 4.0)
+project(raytracer VERSION "0.8.1")
 
 set(CMAKE_CXX_STANDARD 26)
 add_compile_options(-std=c++26)

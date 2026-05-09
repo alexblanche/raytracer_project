@@ -1,7 +1,5 @@
 #include "light/ray.hpp"
-#include <limits>
-std::numeric_limits<real> realtracing;
-const real infinity = realtracing.infinity();
+
 #include "screen/color.hpp"
 #include "legacy/source.hpp"
 #include "legacy/objects/object.hpp"
