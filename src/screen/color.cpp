@@ -1,26 +1,23 @@
 #include "screen/color.hpp"
+#include "parallel/parallel.hpp"
 #include <vector>
-
-// Parallel for-loop macros
-#include "parallel/parallel.h"
-#define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](int start, int end){ for(int i = start; i < end; ++i)
-#define PARALLEL_FOR_END()})
-
 #include <cmath>
 
 namespace rt {
 
-	const color color::WHITE(255, 255, 255);
-	const color color::BLACK(0, 0, 0);
-	const color color::BLUE(0, 0, 255);
-	const color color::GREEN(0, 255, 0);
-	const color color::RED(255, 0, 0);
+	const color color::WHITE (255, 255, 255);
+	const color color::BLACK (0,   0,   0  );
+	const color color::BLUE  (0,   0,   255);
+	const color color::GREEN (0,   255, 0  );
+	const color color::RED   (255, 0,   0  );
 
 	color color::max_out() const {
-		const real maxed_red   = std::min(red,   static_cast<real>(255.0));
-		const real maxed_green = std::min(green, static_cast<real>(255.0));
-		const real maxed_blue  = std::min(blue,  static_cast<real>(255.0));
-		return rt::color(maxed_red, maxed_green, maxed_blue);
+		constexpr real max = 255.0;
+		return rt::color(
+			std::min(red,   max),
+			std::min(green, max),
+			std::min(blue,  max)
+		);
 	}
 
 	color add_col_vect(const std::vector<color>& color_set) {

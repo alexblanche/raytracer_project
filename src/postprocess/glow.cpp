@@ -10,8 +10,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#define TWOPI 6.2831853071795862
-
 /* Glow rendering for bright lights */
 
 /* Struct containing a color and an alpha channel for transparency */

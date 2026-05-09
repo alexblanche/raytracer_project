@@ -59,6 +59,7 @@ add_library(${libname} SHARED
 	src/file_readers/obj_parser.cpp
 	src/file_readers/mtl_parser.cpp
 	src/tracing/multisample.cpp
+	src/parallel/parallel.cpp
 	src/render/render_loops.cpp
 )
 
@@ -95,13 +96,13 @@ add_executable(${merger_name}
 )
 
 # Executable that applies glow postprocessing to a raw data file and generates a bmp file
-set(glow postprocess)
-add_executable(${glow}
-	src/screen/color.cpp
-	src/file_readers/raw_data.cpp
-	src/file_readers/bmp_reader.cpp
-	src/postprocess/glow.cpp
-)
+# set(glow postprocess)
+# add_executable(${glow}
+# 	src/screen/color.cpp
+# 	src/file_readers/raw_data.cpp
+# 	src/file_readers/bmp_reader.cpp
+# 	src/postprocess/glow.cpp
+# )
 
 ##################################################################
 ### Legacy raytracer

@@ -1,23 +1,19 @@
 #include "auxiliary/clustering.hpp"
 #include "auxiliary/octree.hpp"
 
-#include "parallel/parallel.h"
+#include "parallel/parallel.hpp"
 #include <mutex>
 
 #include <vector>
 #include <stack>
 #include <queue>
 
-#define MAX_NUMBER_OF_ITERATIONS 10
-#define MIN_FOR_TREE_SEARCH 50
+static constexpr unsigned int MAX_NUMBER_OF_ITERATIONS = 10;
+static constexpr unsigned int MIN_FOR_TREE_SEARCH = 50;
+static constexpr unsigned int MIN_NUMBER_OF_POLYGONS_FOR_BOX = 5;
+static constexpr unsigned int CARDINAL_OF_BOX_GROUP = 3;
 
-#define MIN_NUMBER_OF_POLYGONS_FOR_BOX 5
-#define CARDINAL_OF_BOX_GROUP 3
-#define DISPLAY_KMEANS false
-
-// Macros for parallel k_means
-#define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](unsigned int start, unsigned int end){ for(unsigned int n = start; n < end; ++n)
-#define PARALLEL_FOR_END()})
+static constexpr bool DISPLAY_KMEANS = false;
 
 
 /** K-means clustering algorithm **/
@@ -67,8 +63,9 @@ unsigned int linear_search(const std::vector<rt::vector>& means, const rt::vecto
 }
 
 // Type of search among centroids
-#define LINEAR      true
-#define ACCELERATED false
+enum class search_type {
+    Linear, Accelerated
+};
 
 /* Auxiliary function that adds each element of old_group to one of the k vectors of new_group,
    according to which of the vectors of means they are the closest
@@ -76,12 +73,12 @@ unsigned int linear_search(const std::vector<rt::vector>& means, const rt::vecto
 bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std::vector<std::vector<element>>& new_groups,
     const std::vector<rt::vector>& means) {
 
-    bool search_type = LINEAR;
+    search_type search_type = search_type::Linear;
     search_tree tree;
     
     if (means.size() >= MIN_FOR_TREE_SEARCH) {
         build_tree(means, tree);
-        search_type = ACCELERATED;
+        search_type = search_type::Accelerated;
     }
 
     mutex mut;
@@ -96,18 +93,18 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
 
         PARALLEL_FOR_BEGIN(old_group.size()) {
 
-            const element& elt = old_group[n];
+            const element& elt = old_group[i];
             const rt::vector& v = elt.get_position();
 
             const unsigned int closest_index =
-                (search_type == LINEAR) ?
+                (search_type == search_type::Linear) ?
                     linear_search(means, v)
                     :
                     tree_search(means, tree, v);
 
             // Test
             /*
-            if (search_type == ACCELERATED) {
+            if (search_type == search_type::Accelerated) {
                 const unsigned int closest_index_linear = linear_search(means, v);
                 const unsigned int closest_index_tree   = tree_search(means, tree, v);
                 if (closest_index_linear != closest_index_tree) {
@@ -162,7 +159,7 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
         // All other iterations, 
         bool change = false;
         PARALLEL_FOR_BEGIN(nb_of_groups) {
-            for (element const& elt : old_groups[n]) {
+            for (element const& elt : old_groups[i]) {
 
                 const rt::vector& v = elt.get_position();
 
@@ -179,14 +176,14 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
                 // }
                 //
                 const unsigned int closest_index =
-                    (search_type == LINEAR) ?
+                    (search_type == search_type::Linear) ?
                         linear_search(means, v)
                         :
                         tree_search(means, tree, v);
 
                 // Test
                 /*
-                if (search_type == ACCELERATED) {
+                if (search_type == search_type::Accelerated) {
                     const unsigned int closest_index_linear = linear_search(means, v);
                     const unsigned int closest_index_tree   = tree_search(means, tree, v);
                     if (closest_index_linear != closest_index_tree) {
@@ -227,7 +224,7 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
                 }
                 */
 
-                if (closest_index != n) {
+                if (closest_index != static_cast<unsigned int>(i)) {
                     change = true;
                 }
 

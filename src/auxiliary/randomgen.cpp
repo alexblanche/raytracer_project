@@ -4,8 +4,6 @@
 
 #include "auxiliary/randomgen.hpp"
 
-#define TWOPI 6.2831853071795862f
-
 randomgen::randomgen(const real std_dev_anti_aliasing) {
     const unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
     engine = std::default_random_engine(seed);

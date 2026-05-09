@@ -6,12 +6,9 @@
 #include <cstdlib>
 #include <ctime>
 
-#include "parallel/parallel.h"
-#include <mutex>
+#include "parallel/parallel.hpp"
+#include <mutex> // to be removed
 
-// Parallel for-loop macros
-#define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](int start, int end){ for(int i = start; i < end; ++i)
-#define PARALLEL_FOR_END()})
 
 /* ********** Render loops ********** */
 

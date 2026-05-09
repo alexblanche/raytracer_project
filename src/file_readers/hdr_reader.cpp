@@ -9,11 +9,7 @@
 #include <cmath>
 #include <stdexcept>
 
-#include "parallel/parallel.h"
-
-// Parallel for-loop macros
-#define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](int start, int end){ for(int i = start; i < end; ++i)
-#define PARALLEL_FOR_END()})
+#include "parallel/parallel.hpp"
 
 /* Prints the info contained in the header of the given .hdr file */
 bool print_hdr_info(const char* file_name) {

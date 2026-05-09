@@ -5,7 +5,7 @@
 #include <stack>
 #include <iostream>
 
-#define MAX_ELTS_PER_LEAF 10
+static constexpr unsigned int MAX_ELTS_PER_LEAF = 10;
 
 // Each index stores a 3D point p. Dividing the space into 8 regions 0..7
 // (1st bit: x < or > p.x; 2nd bit: y < or > p.y; 3rd bit: z < or > p.z)

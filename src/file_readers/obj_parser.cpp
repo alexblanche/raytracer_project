@@ -14,17 +14,17 @@
 
 #include <stack>
 
-#define DISPLAY_HIERARCHY false
-
 #include "file_readers/parsing_wrappers.hpp"
 #include <stdexcept>
+
+static constexpr bool DISPLAY_HIERARCHY = false;
 
 /* Quad splitting threshold: when the two triangles forming a quad form an angle
    superior to a certain amount depending on this constant,
    split the quad into two triangles, to solve some visual glitches */
 /* The value 1.0E-7 is chosen empirically: it seems to remove all visible glitches by splitting a small number of quads */
 /* History: for the stool, 1.0E-6 is sufficient, but leaves visible glitches on the "Porsche 2016" test model. 1.0E-7 removes them. */
-#define QUAD_SPLIT_THRESHOLD 1.0E-7f
+static constexpr real QUAD_SPLIT_THRESHOLD = 1.0E-7f;
 
 
 /* Wavefront .obj file parser */
