@@ -20,6 +20,12 @@ class wrapper {
             counter ++;
         }
 
+        wrapper(const T& t, const std::string& name)
+            : content(t), name(name), index(counter) {
+
+            counter ++;
+        }
+
         wrapper(T&& t)
             : content(std::forward<T>(t)), name(std::nullopt), index(counter) {
 

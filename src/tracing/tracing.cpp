@@ -1,15 +1,13 @@
-#include <cmath>
 #include "light/ray.hpp"
 #include "screen/color.hpp"
 #include "scene/objects/object.hpp"
 #include "scene/scene.hpp"
 #include "scene/objects/bounding.hpp"
 #include "scene/material/texture.hpp"
-
 #include "tracing/directions.hpp" 
-
 #include "auxiliary/custom_stack.hpp"
 
+#include <cmath>
 
 /* ******************************************************************** */
 /* *************************** Path tracing *************************** */
@@ -23,8 +21,8 @@ struct accumulators {
     rt::color emitted_colors;
 
     accumulators() :
-        color_materials(rt::color::WHITE),
-        emitted_colors(rt::color::BLACK) {}
+        color_materials(rt::WHITE),
+        emitted_colors(rt::BLACK) {}
 
 
     inline rt::color combine(const rt::color& color) const {

@@ -5,12 +5,6 @@
 
 namespace rt {
 
-	const color color::WHITE (255, 255, 255);
-	const color color::BLACK (0,   0,   0  );
-	const color color::BLUE  (0,   0,   255);
-	const color color::GREEN (0,   255, 0  );
-	const color color::RED   (255, 0,   0  );
-
 	color color::max_out() const {
 		constexpr real max = 255.0;
 		return rt::color(

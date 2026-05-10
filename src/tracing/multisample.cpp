@@ -52,9 +52,9 @@ void compute_bouncing_ray(const material& m, const hit& h,
 
     init_refr_index = 1.0f;
 
-    color_materials1 = rt::color::WHITE;
-    color_materials2 = rt::color::WHITE;
-    emitted_colors = rt::color::BLACK;
+    color_materials1 = rt::WHITE;
+    color_materials2 = rt::WHITE;
+    emitted_colors   = rt::BLACK;
 
     auto update_acc = [&](bool reflects_colors, const rt::color& local_color, bool first) {
         rt::color& color_materials = (first) ? color_materials1 : color_materials2;
@@ -191,7 +191,7 @@ rt::color pathtrace_multisample(ray& r, scene& scene, randomgen& rg, const unsig
 
         if (one_direction) {
             // Accumulator
-            rt::color output_color = rt::color::BLACK;
+            rt::color output_color = rt::BLACK;
 
             for (unsigned int i = 0; i < number_of_samples; i++) {
 
@@ -205,8 +205,8 @@ rt::color pathtrace_multisample(ray& r, scene& scene, randomgen& rg, const unsig
         }
         else {
             // Accumulators
-            rt::color output_color1 = rt::color::BLACK;
-            rt::color output_color2 = rt::color::BLACK;
+            rt::color output_color1 = rt::BLACK;
+            rt::color output_color2 = rt::BLACK;
             unsigned int nb_samples1 = 0;
             unsigned int nb_samples2 = 0;
 

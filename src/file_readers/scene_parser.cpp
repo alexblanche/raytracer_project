@@ -728,10 +728,10 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
 
         /* Material storage */
         std::vector<wrapper<material>> material_wrapper_set;
-        material_wrapper_set.emplace_back(std::move(material::DIFFUSE), "diffuse");
-        material_wrapper_set.emplace_back(std::move(material::MIRROR), "mirror");
-        material_wrapper_set.emplace_back(std::move(material::GLASS), "glass");
-        material_wrapper_set.emplace_back(std::move(material::WATER), "water");
+        material_wrapper_set.emplace_back(DIFFUSE, "diffuse");
+        material_wrapper_set.emplace_back(MIRROR,  "mirror");
+        material_wrapper_set.emplace_back(GLASS,   "glass");
+        material_wrapper_set.emplace_back(WATER,   "water");
 
         std::vector<wrapper<texture>> texture_wrapper_set;
         std::vector<wrapper<normal_map>> normal_map_wrapper_set;

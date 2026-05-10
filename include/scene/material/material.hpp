@@ -37,20 +37,40 @@ class material {
         bool reflects_color;
 
     public:
-        static material DIFFUSE;
-        static material MIRROR;
-        static material GLASS;
-        static material WATER;
 
-        material();
+        constexpr material()
+            :   color(rt::WHITE), smoothness(0),
+                emission_intensity(0),
+                reflectivity(0),
+                transparency(0),
+                refraction_scattering(0),
+                refraction_index(1),
+                opaque(true), emissive(false), has_specularity(false),
+                reflects_color(false) {}
 
-        material(const rt::color& color, const real smoothness);
+        constexpr material(const rt::color& color, const real smoothness)
+            :   color(color), smoothness(smoothness),
+                emission_intensity(0),
+                reflectivity(0),
+                transparency(0),
+                refraction_scattering(0),
+                refraction_index(1),
+                opaque(true), emissive(false), has_specularity(false), 
+                reflects_color(false) {}
 
-        material(const rt::color& color,
+        constexpr material(const rt::color& color,
             const real smoothness, const real emission_intensity,
             const real reflectivity, const bool reflects_color,
             const real transparency, const real refraction_scattering,
-            const real refraction_index_in);
+            const real refraction_index)
+                :   color(color), smoothness(smoothness),
+                    emission_intensity(emission_intensity),
+                    reflectivity(reflectivity),
+                    transparency(transparency),
+                    refraction_scattering(refraction_scattering),
+                    refraction_index(refraction_index),
+                    opaque(transparency == 0), emissive(emission_intensity != 0), has_specularity(reflectivity != 0),
+                    reflects_color(reflects_color) {}
 
         /* Constructor from mtl parameters */
         material(const real ns,
@@ -60,8 +80,8 @@ class material {
 
         material(material&&)                 = default;
         material& operator=(material&&)      = default;
+        material(const material&)            = default;
 
-        material(const material&)            = delete;
         material& operator=(const material&) = delete;
 
         inline const rt::color& get_color() const {
@@ -108,6 +128,11 @@ class material {
             return has_specularity;
         }
 };
+
+constexpr material DIFFUSE(rt::WHITE, 0);
+constexpr material MIRROR (rt::WHITE, 1, 0, 1, false, 0,    0, 1.0 );
+constexpr material GLASS  (rt::WHITE, 1, 0, 1, false, 0.95, 0, 1.52);
+constexpr material WATER  (rt::WHITE, 1, 0, 1, false, 1,    0, 1.33);
 
 /* Specific constructors */
 

@@ -28,12 +28,6 @@ namespace rt  {
 
 		public:
 
-			static const color WHITE;
-			static const color BLACK;
-			static const color BLUE;
-			static const color GREEN;
-			static const color RED;
-
 			constexpr color()
 				: red(0), green(0), blue(0) {}
 
@@ -159,6 +153,13 @@ namespace rt  {
 			 */
 			color max_out() const;
 	};
+
+	constexpr color WHITE(255, 255, 255);
+	constexpr color BLACK(0,   0,   0  );
+	constexpr color BLUE (0,   0,   255);
+	constexpr color GREEN(0,   255, 0  );
+	constexpr color RED  (255, 0,   0  );
+	
 
 	/* Adds all the colors of the given color vector */
 	color add_col_vect(const std::vector<color>& color_set);
