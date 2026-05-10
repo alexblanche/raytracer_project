@@ -23,12 +23,51 @@
  * Esc:         Exit
  */
 
+struct program_parameters {
+    enum class mode {
+        Interactive, Offline
+    };
+    mode mode;
+    unsigned int target_number_of_rays;
+};
+
+struct sampling_parameters {
+    enum class mode {
+        UniSample, MultiSample
+    };
+    mode mode;
+    unsigned int multisample_number_of_samples;
+};
+
+struct tone_mapping_parameters {
+    enum class mode {
+        Disabled, Gamma, Reinhardt
+    };
+    mode mode;
+    float gamma_value;
+};
+
+enum class time_mode {
+    Disabled, Simple, Full
+};
+
+enum class russian_roulette_mode {
+    Disabled, Enabled
+};
+
+struct runtime_parameters {
+    unsigned int            number_of_bounces      = 2;
+    program_parameters      program                = { program_parameters::mode::Interactive,   0    };
+    sampling_parameters     sampling               = { sampling_parameters::mode::UniSample,    1    };
+    tone_mapping_parameters tone_mapping           = { tone_mapping_parameters::mode::Disabled, 1.0f };
+    time_mode               time                   = time_mode::Disabled;
+    russian_roulette_mode   russian_roulette       = russian_roulette_mode::Disabled;
+};
+
+
+
 // #include "file_readers/hdr_reader.hpp"
 // #include "scene/light_sources/infinite_area.hpp"
-
-// #include "scene/objects/triangle.hpp"
-// #include "scene/objects/sphere.hpp"
-// #include "scene/objects/plane.hpp"
 
 int main(int argc, char *argv[]) {
 
@@ -117,20 +156,12 @@ int main(int argc, char *argv[]) {
        should be an integer: an image will be generated with the given number of rays per pixel,
        and exported to image.bmp.
      */
-    unsigned int number_of_bounces = 2;
-    bool time_enabled = false;
-    bool time_all = false;
-    bool interactive = true;
-    unsigned int target_number_of_rays = 0;
-    bool multisample = false;
-    unsigned int number_of_samples = 0;
-    bool gamma_enabled = false;
-    float gamma = 1.0f;
-    bool reinhardt_enabled = false;
-    bool russian_roulette_enabled = false;
+    
 
     constexpr char const* const default_filename = "../scene.txt";
     const char* filename = default_filename;
+
+    runtime_parameters runtime_parameters;
 
     if (!atoi(argv[1])) {
         // file specified
@@ -149,11 +180,11 @@ int main(int argc, char *argv[]) {
     printf("Scene descriptor: %s\n", std::filesystem::path(filename).filename().generic_string().data());
 
     if (argc == 1 || atoi(argv[1]) == 0) {
-        printf("Number of bounces: %u (default)\n", number_of_bounces);
+        printf("Number of bounces: %u (default)\n", runtime_parameters.number_of_bounces);
     }
     else {
-        number_of_bounces = atoi(argv[1]);
-        printf("Number of bounces: %u\n", number_of_bounces);
+        runtime_parameters.number_of_bounces = atoi(argv[1]);
+        printf("Number of bounces: %u\n", runtime_parameters.number_of_bounces);
     }
 
     if (argc > 2) {
@@ -164,12 +195,12 @@ int main(int argc, char *argv[]) {
             const std::string arg = argv[index_arg];
 
             if (arg.compare("-time") == 0) {
-                time_enabled = true;
+                runtime_parameters.time = time_mode::Simple;
                 index_arg++;
 
                 if (index_arg < argc) {
                     if (std::string(argv[index_arg]).compare("all") == 0) {
-                        time_all = true;
+                        runtime_parameters.time = time_mode::Full;
                         index_arg++;
                     }
                 }
@@ -177,11 +208,11 @@ int main(int argc, char *argv[]) {
             }
 
             if (arg.compare("-rays") == 0) {
-                interactive = false;
+                runtime_parameters.program.mode = program_parameters::mode::Offline;
                 index_arg++;
 
                 if (index_arg < argc) {
-                    target_number_of_rays = atoi(argv[index_arg]);
+                    runtime_parameters.program.target_number_of_rays = atoi(argv[index_arg]);
                     index_arg++;
                 }
                 else {
@@ -192,11 +223,11 @@ int main(int argc, char *argv[]) {
             }
 
             if (arg.compare("-multisample") == 0) {
-                multisample = true;
+                runtime_parameters.sampling.mode = sampling_parameters::mode::MultiSample;
                 index_arg++;
 
                 if (index_arg < argc) {
-                    number_of_samples = atoi(argv[index_arg]);
+                    runtime_parameters.sampling.multisample_number_of_samples = atoi(argv[index_arg]);
                     index_arg++;
                 }
                 else {
@@ -207,11 +238,13 @@ int main(int argc, char *argv[]) {
             }
 
             if (arg.compare("-gamma") == 0) {
-                gamma_enabled = true;
+                if (runtime_parameters.tone_mapping.mode != tone_mapping_parameters::mode::Reinhardt) {
+                    runtime_parameters.tone_mapping.mode = tone_mapping_parameters::mode::Gamma;
+                }
                 index_arg++;
 
                 if (index_arg < argc) {
-                    gamma = 1.0 / atof(argv[index_arg]);
+                    runtime_parameters.tone_mapping.gamma_value = 1.0f / atof(argv[index_arg]);
                     index_arg++;
                 }
                 else {
@@ -223,13 +256,13 @@ int main(int argc, char *argv[]) {
             }
 
             if (arg.compare("-reinhardt") == 0) {
-                reinhardt_enabled = true;
+                runtime_parameters.tone_mapping.mode = tone_mapping_parameters::mode::Reinhardt;
                 index_arg++;
                 continue;
             }
 
             if (arg.compare("-rr") == 0) {
-                russian_roulette_enabled = true;
+                runtime_parameters.russian_roulette = russian_roulette_mode::Enabled;
                 index_arg++;
                 continue;
             }
@@ -239,9 +272,17 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (gamma_enabled) printf("Gamma correction: %.1f\n", (1.0 / gamma));
-    if (reinhardt_enabled) printf("Reinhardt local tone mapping enabled\n");
-    if (russian_roulette_enabled) printf("Russian roulette technique enabled\n");
+    bool gamma_enabled = runtime_parameters.tone_mapping.mode != tone_mapping_parameters::mode::Disabled;
+    float gamma = runtime_parameters.tone_mapping.gamma_value;
+
+    if (gamma_enabled)
+        printf("Gamma correction: %.1f\n", (1.0f / gamma));
+
+    if (runtime_parameters.tone_mapping.mode == tone_mapping_parameters::mode::Reinhardt)
+        printf("Reinhardt local tone mapping enabled\n");
+
+    if (runtime_parameters.russian_roulette == russian_roulette_mode::Enabled)
+        printf("Russian roulette technique enabled\n");
 
     /* Checking if the output directory exists */
     struct stat info;
@@ -268,9 +309,11 @@ int main(int argc, char *argv[]) {
         if (gamma_enabled && scene.gamma != gamma) printf("Warning: gamma correction value passed by command-line argument (%f) was overwritten by scene description (%f)\n",
             gamma, scene.gamma);
 
+        runtime_parameters.tone_mapping.mode = tone_mapping_parameters::mode::Gamma;
+        runtime_parameters.tone_mapping.gamma_value = scene.gamma;
         gamma_enabled = true;
         gamma = scene.gamma;
-        printf("Gamma correction: %.1f\n", (1.0 / gamma));
+        printf("Gamma correction: %.1f\n", (1.0f / gamma));
     }
 
     printf("Number of objects: %zu\n", scene.object_set.size());
@@ -283,23 +326,42 @@ int main(int argc, char *argv[]) {
 
     /* Generating an image of target_number_of_rays rays */
 
-    if (not interactive) {
+    if (runtime_parameters.program.mode == program_parameters::mode::Offline) {
 
         printf("Rendering...\n");
-        printf("0 / %u", target_number_of_rays);
+        printf("0 / %u", runtime_parameters.program.target_number_of_rays);
         fflush(stdout);
 
+        const bool time_enabled = runtime_parameters.time != time_mode::Disabled;
         const unsigned long int t_init = time_enabled ? time(0) : 0;
         unsigned long int t_export = 0;
         unsigned long int t_end = 0;
-        
-        for (unsigned int i = 0; i < target_number_of_rays; i++) {
-            if (multisample)
-                render_loop_parallel_multisample(matrix, scene, number_of_bounces, number_of_samples);
-            else
-                render_loop_parallel(matrix, scene, number_of_bounces, russian_roulette_enabled, i);
 
-            printf("\r%u / %u", i+1, target_number_of_rays);
+        const unsigned int target = runtime_parameters.program.target_number_of_rays;
+        
+        for (unsigned int i = 0; i < target; i++) {
+            switch (runtime_parameters.sampling.mode) {
+                case sampling_parameters::mode::MultiSample:
+                    render_loop_parallel_multisample(
+                        matrix,
+                        scene,
+                        runtime_parameters.number_of_bounces,
+                        runtime_parameters.sampling.multisample_number_of_samples
+                    );
+                    break;
+                case sampling_parameters::mode::UniSample:
+                    render_loop_parallel(
+                        matrix,
+                        scene,
+                        runtime_parameters.number_of_bounces,
+                        runtime_parameters.russian_roulette == russian_roulette_mode::Enabled,
+                        i
+                    );
+                    break;
+            }
+            break;
+
+            printf("\r%u / %u", i + 1, target);
             fflush(stdout);
 
             /* Exporting as rtdata every EXPORT_INTERVAL samples */
@@ -316,10 +378,10 @@ int main(int argc, char *argv[]) {
         if (not t_end) t_end = time(0);
         const unsigned long int elapsed = t_end - t_init - t_export;
 
-        printf("\r%u / %u", target_number_of_rays, target_number_of_rays);
+        printf("\r%u / %u", target, target);
 
         create_dir();
-        const bool success_bmp = write_bmp("../output/image.bmp", matrix, target_number_of_rays, gamma);
+        const bool success_bmp = write_bmp("../output/image.bmp", matrix, target, gamma);
         if (success_bmp) {
             printf(" Saved as output/image.bmp\n");
         }
@@ -338,7 +400,6 @@ int main(int argc, char *argv[]) {
                 printf("Total duration: %lu hours %lu minutes %lu seconds\n", elapsed / 3600, (elapsed % 3600) / 60, elapsed % 60);
         }
             
-
         //export_raw("image.rtdata", target_number_of_rays, matrix);
         return EXIT_SUCCESS;
     }
@@ -349,26 +410,49 @@ int main(int argc, char *argv[]) {
     printf("Initialization complete, computing the first ray...");
     fflush(stdout);
 
-    if (time_enabled) {
-        render_loop_parallel_time(matrix, scene, number_of_bounces, time_all);
-    }
-    else {
-        if (multisample)
-            render_loop_parallel_multisample(matrix, scene, number_of_bounces, number_of_samples);
-        else
-            render_loop_parallel(matrix, scene, number_of_bounces, russian_roulette_enabled, 1);
+    switch (runtime_parameters.time) {
+        case time_mode::Simple:
+            render_loop_parallel_time(matrix, scene, runtime_parameters.number_of_bounces, false);
+            break;
+        case time_mode::Full:
+            render_loop_parallel_time(matrix, scene, runtime_parameters.number_of_bounces, true);
+            break;
+        case time_mode::Disabled:
+            switch (runtime_parameters.sampling.mode) {
+                case sampling_parameters::mode::MultiSample:
+                    render_loop_parallel_multisample(
+                        matrix,
+                        scene,
+                        runtime_parameters.number_of_bounces,
+                        runtime_parameters.sampling.multisample_number_of_samples
+                    );
+                    break;
+                case sampling_parameters::mode::UniSample:
+                    render_loop_parallel(
+                        matrix,
+                        scene,
+                        runtime_parameters.number_of_bounces,
+                        runtime_parameters.russian_roulette == russian_roulette_mode::Enabled,
+                        1
+                    );
+                    break;
+            }
+            break;
     }
 
     const rt::screen scr(scene.width, scene.height);
     
-    if (gamma_enabled) {
-        if (reinhardt_enabled)
-            scr.fast_copy_reinhardt(matrix, scene.width, scene.height, 1, gamma);
-        else
+    switch (runtime_parameters.tone_mapping.mode) {
+        case tone_mapping_parameters::mode::Disabled:
+            scr.fast_copy(matrix, scene.width, scene.height, 1);
+            break;
+        case tone_mapping_parameters::mode::Gamma:
             scr.fast_copy_gamma(matrix, scene.width, scene.height, 1, gamma);
+            break;
+        case tone_mapping_parameters::mode::Reinhardt:
+            scr.fast_copy_reinhardt(matrix, scene.width, scene.height, 1, gamma);
+            break;
     }
-    else
-        scr.fast_copy(matrix, scene.width, scene.height, 1);
     
     scr.update_from_texture();
 
@@ -378,38 +462,60 @@ int main(int argc, char *argv[]) {
 
     for (unsigned int number_of_rays = 2; number_of_rays <= MAX_RAYS; number_of_rays++) {
 
-        if (time_enabled) {
-            render_loop_parallel_time(matrix, scene, number_of_bounces, time_all);
-        }
-        else {
-            if (multisample)
-                render_loop_parallel_multisample(matrix, scene, number_of_bounces, number_of_samples);
-            else
-                render_loop_parallel(matrix, scene, number_of_bounces, russian_roulette_enabled, number_of_rays);
+        switch (runtime_parameters.time) {
+            case time_mode::Simple:
+                render_loop_parallel_time(matrix, scene, runtime_parameters.number_of_bounces, false);
+                break;
+            case time_mode::Full:
+                render_loop_parallel_time(matrix, scene, runtime_parameters.number_of_bounces, true);
+                break;
+            case time_mode::Disabled:
+                switch (runtime_parameters.sampling.mode) {
+                    case sampling_parameters::mode::MultiSample:
+                        render_loop_parallel_multisample(
+                            matrix,
+                            scene,
+                            runtime_parameters.number_of_bounces,
+                            runtime_parameters.sampling.multisample_number_of_samples
+                        );
+                        break;
+                    case sampling_parameters::mode::UniSample:
+                        render_loop_parallel(
+                            matrix,
+                            scene,
+                            runtime_parameters.number_of_bounces,
+                            runtime_parameters.russian_roulette == russian_roulette_mode::Enabled,
+                            number_of_rays
+                        );
+                        break;
+                }
+                break;
         }
 
         printf("\rNumber of rays per pixel: %u", number_of_rays);
         fflush(stdout);
 
-        if (gamma_enabled) {
-            if (reinhardt_enabled)
-                scr.fast_copy_reinhardt(matrix, scene.width, scene.height, number_of_rays, gamma);
-            else
+        switch (runtime_parameters.tone_mapping.mode) {
+            case tone_mapping_parameters::mode::Disabled:
+                scr.fast_copy(matrix, scene.width, scene.height, number_of_rays);
+                break;
+            case tone_mapping_parameters::mode::Gamma:
                 scr.fast_copy_gamma(matrix, scene.width, scene.height, number_of_rays, gamma);
+                break;
+            case tone_mapping_parameters::mode::Reinhardt:
+                scr.fast_copy_reinhardt(matrix, scene.width, scene.height, number_of_rays, gamma);
+                break;
         }
-        else
-            scr.fast_copy(matrix, scene.width, scene.height, number_of_rays);
 
         scr.update_from_texture();
 
-        int key;
-        key = scr.poll_keyboard_event();
+        const rt::screen::key key = scr.poll_keyboard_event();
         switch (key) {
-            case 1:
+            case rt::screen::key::QuitEvent:
                 /* Esc or the window exit "X" clicked */
                 printf("\n");
                 return EXIT_SUCCESS;
-            case 3:
+            case rt::screen::key::B:
                 /* B */
                 /* Export as BMP */
                 {
@@ -424,7 +530,7 @@ int main(int argc, char *argv[]) {
                     }
                     break;
                 }
-            case 4:
+            case rt::screen::key::R:
                 /* R */
                 /* Export raw data */
                 {

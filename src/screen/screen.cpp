@@ -67,104 +67,102 @@ namespace rt {
 	/****************************************************************************************************/
 	/** Event processing **/
 
-	/**
-	 * @brief Wait indefinitely for the next quit event
-	 * @return true if we get a quit event, false if we get a keydown event
-	 */
-	bool screen::wait_quit_event() const {
+	/* Wait indefinitely for the next quit event */
+	screen::quit_event screen::wait_quit_event() const {
 		SDL_Event event;
 		while(SDL_WaitEvent(&event)) {
 			switch(event.type) {
 				case SDL_QUIT:
-					return true;
-					break;
+					return screen::quit_event::QuitEvent;
 				case SDL_KEYDOWN:
-					return false;
-					break;
+					return screen::quit_event::KeyBoardEvent;
 			}
 		}
-		return false;
+		return screen::quit_event::Error;
 	}
 
-	/**
-	 * @brief Stop at the next quit event
-	 * @return true if we get a quit event, false if we get a keydown event
-	 */
-	bool screen::is_quit_event() const {
+	/* Stop at the next quit event */
+	screen::quit_event screen::is_quit_event() const {
 		SDL_Event event;
 		while(SDL_PollEvent(&event)) {
 			switch(event.type) {
 				case SDL_QUIT:
-					return true;
-					break;
+					return screen::quit_event::QuitEvent;
 				case SDL_KEYDOWN:
-					return false;
-					break;
+					return screen::quit_event::KeyBoardEvent;
 			}
 		}
-		return false;
+		return screen::quit_event::Error;
 	}
 
-	/**
-	 * @brief Wait indefinitely for the next keyboard or quit event
-	 * @return
-	 * 		1: quit event (Esc or X clicked)
-	 * 		2: Space or Enter key
-	 * 		3: 'B' key
-	 * 		4: 'R' key
-	 * 		0: Anything else
-	 */
-	int screen::wait_keyboard_event() const {
+	/* Wait indefinitely for the next keyboard or quit event */	
+	screen::key screen::wait_keyboard_event() const {
 		SDL_Event event;
+		
 		while(SDL_WaitEvent(&event)) {
+			
 			switch(event.type) {
+				
 				case SDL_QUIT:
-					return 1;
+					return screen::key::QuitEvent;
+				
 				case SDL_KEYDOWN:
 					switch(event.key.keysym.scancode) {
+						
 						case SDL_SCANCODE_ESCAPE:
-							return 1;
+							return screen::key::QuitEvent;
+						
 						case SDL_SCANCODE_SPACE:
 						case SDL_SCANCODE_RETURN:
 						case SDL_SCANCODE_KP_ENTER:
-							return 2;
+							return screen::key::SpaceEnter;
+
 						case SDL_SCANCODE_B:
-							return 3;
+							return screen::key::B;
+						
 						case SDL_SCANCODE_R:
-							return 4;
+							return screen::key::R;
+						
 						default:
 							break;
 					}
 					break;
+				
 				case SDL_MOUSEBUTTONDOWN:
 					printf("\nX = %d, Y = %d", event.button.x, event.button.y);
 					break;
+
+				default:
+					break;
 			}
 		}
-		return 0;
+		return screen::key::Other;
 	}
 
-	/**
-	 * Same as wait_keyboard_event, with poll events
-	 */
-	int screen::poll_keyboard_event() const {
+	/* Same as wait_keyboard_event, with poll events */
+	screen::key screen::poll_keyboard_event() const {
 		SDL_Event event;
 		while(SDL_PollEvent(&event)) {
 			switch(event.type) {
 				case SDL_QUIT:
-					return 1;
+					return screen::key::QuitEvent;
 				case SDL_KEYDOWN:
 					switch(event.key.keysym.scancode) {
+						
 						case SDL_SCANCODE_ESCAPE:
-							return 1;
+							return screen::key::QuitEvent;
+						
 						case SDL_SCANCODE_SPACE:
 						case SDL_SCANCODE_RETURN:
 						case SDL_SCANCODE_KP_ENTER:
-							return 2;
+							return screen::key::SpaceEnter;
+						
 						case SDL_SCANCODE_B:
-							return 3;
+							return screen::key::B;
+						
 						case SDL_SCANCODE_R:
-							return 4;
+							return screen::key::R;
+						
 						default:
 							break;
 					}
@@ -172,9 +170,11 @@ namespace rt {
 				// case SDL_MOUSEBUTTONDOWN:
 				// 	printf("\nX = %d, Y = %d", event.button.x, event.button.y);
 				// 	break;
+				default:
+					break;
 			}
 		}
-		return 0;
+		return screen::key::Other;
 	}
 
 	/****************************************************************************************************/

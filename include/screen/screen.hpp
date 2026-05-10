@@ -57,33 +57,26 @@ namespace rt {
 			/****************************************************************************************************/
 			/** Event processing **/
 
-			/**
-			 * @brief Wait indefinitely for the next quit event
-			 * @return true if we get a quit event, or false if there was an error while waiting for the quit event
-			 */
-			bool wait_quit_event() const;
 
-			/**
-			 * @brief Stop at the next quit event
-			 * @return true if we get a quit event, false if we get a keydown event
-			 */
-			bool is_quit_event() const;
+			enum class quit_event {
+				QuitEvent, KeyBoardEvent, Error	
+			};
 
-			/**
-			 * @brief Wait indefinitely for the next keyboard or quit event
-			 * @return
-			 * 		1: quit event (Esc or X clicked)
-			 * 		2: Space or Enter key
-			 * 		3: 'B' key
-			 * 		4: 'R' key
-			 * 		0: Anything else
-			 */
-			int wait_keyboard_event() const;
+			/* Wait indefinitely for the next quit event */
+			quit_event wait_quit_event() const;
 
-			/**
-			 * Same as wait_keyboard_event, with poll events
-			 */
-			int poll_keyboard_event() const;
+			/* Stop at the next quit event */
+			quit_event is_quit_event() const;
+
+			enum class key {
+				QuitEvent, SpaceEnter, B, R, Other
+			};
+
+			/* Wait indefinitely for the next keyboard or quit event */
+			key wait_keyboard_event() const;
+
+			/* Same as wait_keyboard_event, with poll events */
+			key poll_keyboard_event() const;
 
 			/****************************************************************************************************/
 
