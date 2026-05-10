@@ -69,7 +69,7 @@ rt::color raytrace(ray& r, const std::vector<const object*>& obj_set, const std:
     }
     else {
         // No object hit
-        return rt::color::BLACK;
+        return rt::BLACK;
     }
     */
 
@@ -91,6 +91,6 @@ rt::color raytrace(ray& r, const std::vector<const object*>& obj_set, const std:
     }
     else {
         // No object hit
-        return rt::color::BLACK;
+        return rt::BLACK;
     }
 }

@@ -8,7 +8,7 @@
 
 /* Returns the interpolated direction between the normal and the reflected direction */
 /* inward = ((direction | normal) <= 0) */
-rt::vector get_central_reflected_direction(const hit& h, const rt::vector& normal, const real reflectivity, const bool inward);
+rt::vector get_central_reflected_direction(const hit& h, const rt::vector& normal, const real reflectivity, const orientation_type ray_orientation);
 
 /* Returns a vector of n random reflected ray in the cone of center hit::reflect_ray(),
     within solid angle theta_max */
@@ -25,7 +25,7 @@ enum class angle {
 template <angle theta_max>
 rt::vector random_direction(randomgen& rg, const rt::vector& central_dir) {
 
-    constexpr real cos_theta_max = (theta_max == angle::Pi) ? -1.0f : /* placeholder */ 0.f;
+    constexpr real cos_theta_max = (theta_max == angle::Pi) ? -1.0f : /* placeholder */ 0.0f;
     constexpr real one_m_costhetamax = 1.0f - cos_theta_max;
 
     // random ray in the cone of angle theta_max to central_dir
@@ -49,7 +49,7 @@ rt::vector random_direction(randomgen& rg, const rt::vector& central_dir) {
         rt::vector X, Y;
         if (a != 0.0f) {
             const real nX = a * a + b * b;
-            X = rt::vector(- b, a, 0.0f) / sqrt(nX);
+            X = rt::vector(- b, a, 0.0f) / std::sqrt(nX);
             Y = rt::vector(a * c, b * c, -nX).unit();
         } else if (b != 0.0f) {
             // central_dir = (0,b,c)
@@ -62,12 +62,12 @@ rt::vector random_direction(randomgen& rg, const rt::vector& central_dir) {
         }
 
         const real cos_theta = 1.0f - p * one_m_costhetamax; //(1.0f - cos_theta_max);
-        const real sin_theta = sqrt(1.0f - cos_theta * cos_theta);
+        const real sin_theta = std::sqrt(1.0f - cos_theta * cos_theta);
         
         return
             matprod(
-                X,           cos(phi) * sin_theta,
-                Y,           sin(phi) * sin_theta,
+                X,           std::cos(phi) * sin_theta,
+                Y,           std::sin(phi) * sin_theta,
                 central_dir, cos_theta
             );
     }
@@ -90,12 +90,12 @@ rt::vector get_sin_refracted(const hit& h, const rt::vector& normal,
     real& sin_theta_2_sq);
 
 /* Returns the refracted direction */
-rt::vector get_refracted_direction(const rt::vector& normal, const rt::vector& vx, const real sin_theta_2_sq, const bool inward);
+rt::vector get_refracted_direction(const rt::vector& normal, const rt::vector& vx, const real sin_theta_2_sq, const orientation_type ray_orientation);
 
 /* Returns a random unit direction in the cone whose center is the refracted direction, within solid angle refraction_scattering * pi */
 rt::vector get_random_refracted_direction(randomgen& rg, const real refraction_scattering,
     const rt::vector& normal,
-    const rt::vector& vx, const real sin_theta_2_sq, const bool inward);
+    const rt::vector& vx, const real sin_theta_2_sq, const orientation_type ray_orientation);
 
 /* Computes the Fresnel coefficient Kr */
 real get_fresnel(const hit& h, const rt::vector& normal, const real sin_theta_2_sq, const real refr_1, const real refr_2);

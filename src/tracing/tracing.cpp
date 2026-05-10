@@ -59,20 +59,31 @@ struct accumulators {
 
 constexpr real BIAS_NORM = 1.0E-3f;
 
+// Direct bias when the orientations of the ray and the bias are opposite (bias along the normal)
+// Inverted otherwise
+enum class bias_type {
+    Direct, Inverted
+};
+
 /* Auxiliary function that applies a bias of 1.0E-3 times the normal to the ray position,
    outward the surface contact point if outward_bias is true (so in the direction of the normal),
    inward otherwise (in the opposite direction to the normal) */
 inline void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& normal,
-    const bool inward, const bool outward_bias) {
+    const orientation_type ray_orientation, const orientation_type bias_orientation) {
 
-    //r.set_origin(hit_point + ((inward == outward_bias) ? BIAS_NORM * normal : (-BIAS_NORM) * normal));
-    r.set_origin(fma(normal, (inward == outward_bias) ? BIAS_NORM : (-BIAS_NORM), hit_point));
+    r.set_origin(
+        fma(
+            normal,
+            (ray_orientation != bias_orientation) ? BIAS_NORM : (-BIAS_NORM),
+            hit_point
+        )
+    );
 }
 
-template <bool inward_eq_outward_bias>
+template <orientation_type ray_orientation, orientation_type bias_orientation>
 inline void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& normal) {
 
-    constexpr real right_bias = (inward_eq_outward_bias ? 1.0 : -1.0) * BIAS_NORM;
+    constexpr real right_bias = (ray_orientation != bias_orientation ? 1.0 : -1.0) * BIAS_NORM;
     r.set_origin(fma(normal, right_bias, hit_point));
 }
 
@@ -80,9 +91,9 @@ inline void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& no
 /* Auxiliary function that handles the specular reflective case */
 // Run-time
 void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real smoothness,
-    const rt::vector& local_normal, const bool inward) {
+    const rt::vector& local_normal, const orientation_type ray_orientation) {
 
-    const rt::vector central_dir = get_central_reflected_direction(h, local_normal, smoothness, inward);
+    const rt::vector central_dir = get_central_reflected_direction(h, local_normal, smoothness, ray_orientation);
                     
     /* Direction according to Lambert's cosine law */
     const rt::vector dir = (smoothness >= 1.0f) ?
@@ -93,16 +104,16 @@ void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real sm
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
     /* Apply the bias outward the surface */
-    apply_bias(r, h.get_point(), h.get_normal(), inward, true);
+    apply_bias(r, h.get_point(), h.get_normal(), ray_orientation, orientation_type::Outward);
 }
 
 // Compile-time
-template<bool inward>
+template<orientation_type ray_orientation>
 void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real smoothness,
     const rt::vector& local_normal) {
 
-    const rt::vector central_dir = get_central_reflected_direction(h, local_normal, smoothness, inward);
-                    
+    const rt::vector central_dir = get_central_reflected_direction(h, local_normal, smoothness, ray_orientation);
+
     /* Direction according to Lambert's cosine law */
     const rt::vector dir = (smoothness >= 1.0f) ?
         central_dir
@@ -112,44 +123,49 @@ void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real sm
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
     /* Apply the bias outward the surface */
-    apply_bias<inward>(r, h.get_point(), h.get_normal());
+    apply_bias<ray_orientation, orientation_type::Outward>(r, h.get_point(), h.get_normal());
 }
 
 
 /* Auxiliary function that handles the diffuse reflective case */
 // Run-time
-void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, randomgen& rg, const bool inward) {
+void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, randomgen& rg, const orientation_type ray_orientation) {
 
-    r.set_direction(((inward ? local_normal : (-1.0f) * local_normal) + random_direction<angle::Pi>(rg, local_normal)).unit());
+    r.set_direction(
+        ((ray_orientation == orientation_type::Inward ?
+            local_normal : (-1.0f) * local_normal)
+            + random_direction<angle::Pi>(rg, local_normal)
+        ).unit()
+    );
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
     /* Apply the bias outward the surface */
-    apply_bias(r, h.get_point(), h.get_normal(), inward, true);
+    apply_bias(r, h.get_point(), h.get_normal(), ray_orientation, orientation_type::Outward);
 }
 
 // Compile-time
-template <bool inward>
-void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, randomgen& rg) {
+// template <bool inward>
+// void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, randomgen& rg) {
 
-    if constexpr (inward) {
-        r.set_direction((local_normal + random_direction<angle::Pi>(rg, local_normal)).unit());
-    }
-    else {
-        r.set_direction((((-1.0f) * local_normal) + random_direction<angle::Pi>(rg, local_normal)).unit());
-    }
+//     if constexpr (inward) {
+//         r.set_direction((local_normal + random_direction<angle::Pi>(rg, local_normal)).unit());
+//     }
+//     else {
+//         r.set_direction((((-1.0f) * local_normal) + random_direction<angle::Pi>(rg, local_normal)).unit());
+//     }
     
     
-    // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
+//     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
-    /* Apply the bias outward the surface */
-    apply_bias<inward>(r, h.get_point(), h.get_normal());
-}
+//     /* Apply the bias outward the surface */
+//     apply_bias<inward>(r, h.get_point(), h.get_normal());
+// }
 
 
 /* Auxiliary function that handles the refractive case */
 void refractive_case(ray& r, const hit& h, randomgen& rg, const real scattering,
     const rt::vector& local_normal,
-    const rt::vector& vx, const real sin_theta_2_sq, const bool inward,
+    const rt::vector& vx, const real sin_theta_2_sq, const orientation_type ray_orientation,
     real& refr_index, const real next_refr_i) {
 
     /* Setting the refracted direction */
@@ -159,17 +175,17 @@ void refractive_case(ray& r, const hit& h, randomgen& rg, const real scattering,
                 rg,
                 scattering,
                 local_normal,
-                vx, sin_theta_2_sq, inward
+                vx, sin_theta_2_sq, ray_orientation
             )
             :
-            get_refracted_direction(local_normal, vx, sin_theta_2_sq, inward)
+            get_refracted_direction(local_normal, vx, sin_theta_2_sq, ray_orientation)
     );
 
     /* Updating the refraction index */
     refr_index = next_refr_i;
 
     /* Apply the bias inward the surface */
-    apply_bias(r, h.get_point(), h.get_normal(), inward, false);
+    apply_bias(r, h.get_point(), h.get_normal(), ray_orientation, orientation_type::Inward);
 }
 
 inline rt::color background_case(const scene& scene, const ray& r,
@@ -186,11 +202,11 @@ inline rt::color background_case(const scene& scene, const ray& r,
     //         scene.background.get_color()))
     //     + emitted_colors;
     return acc.combine(
-            scene.background.has_texture() ?
-                scene.background.get_color(r.get_direction())
-                :
-                scene.background.get_color()
-            );
+        scene.background.has_texture() ?
+            scene.background.get_color(r.get_direction())
+            :
+            scene.background.get_color()
+    );
 }
 
 
@@ -252,7 +268,7 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
             or reflected in three ways: specularly, diffusely, or in the case of total internal reflection,
             when the ray hits a surface of lower refraction index at an angle greater than the critical angle.
         */
-        const real inward = h.is_inward();
+        const orientation_type ray_orientation = h.is_inward();
 
         // Contains the material local color, the local normal and (soon) the reflectivity and displacement
         const map_sample ms = (obj->is_textured()) ?
@@ -281,7 +297,7 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
                 const bool is_specular_bounce = rg.random_ratio() <= m.get_reflectivity();
                 const real specular_smoothness = is_specular_bounce ? smoothness : 0.0f;
                 
-                specular_reflective_case(r, h, rg, specular_smoothness, normal, inward);
+                specular_reflective_case(r, h, rg, specular_smoothness, normal, ray_orientation);
 
                 /* We update color_materials only if the material reflects colors (like a christmas tree ball),
                 otherwise the reflection has the original color (like a tomato) */
@@ -296,7 +312,7 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
 
                 /* Diffuse bounce */
 
-                diffuse_case(r, h, normal, rg, inward);
+                diffuse_case(r, h, normal, rg, ray_orientation);
                 
                 //acc.update(m, color, true);
                 if (m.is_emissive()) acc.update_emitted_col(m);
@@ -308,27 +324,35 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
                 Kr is the probability that the ray is reflected, Kt the probability that the ray is transmitted */
 
             /* Computation of the new refraction index */
-            const real next_refr_i = inward ? m.get_refraction_index() : (refr_stack.empty() ? 1.0f : refr_stack.top());
-            if (inward) {
-                if (refr_index != 1.0f) {
-                    refr_stack.push(refr_index);
-                }
-            }
-            else if (not refr_stack.empty()) {
-                refr_stack.pop();
+            // const bool inward = ray_orientation == orientation_type::Inward;
+            real next_refr_i;
+            switch (ray_orientation) {
+                case orientation_type::Inward:
+                    next_refr_i = m.get_refraction_index();
+                    if (refr_index != 1.0f) {
+                        refr_stack.push(refr_index);
+                    }
+                    break;
+                
+                case orientation_type::Outward:
+                    next_refr_i = refr_stack.empty() ? 1.0f : refr_stack.top();
+                    if (not refr_stack.empty()) {
+                        refr_stack.pop();
+                    }
+                    break;
             }
 
             /* Computation of the Fresnel coefficient */
             // const real kr = inward ? h.get_fresnel(sin_theta_2_sq, refr_index, next_refr_i) : 0.0f;
 
-            if (inward
+            if ((ray_orientation == orientation_type::Inward)
                 &&
                 rg.random_ratio() * m.get_transparency() <= get_schlick(h, normal, refr_index, next_refr_i)) {
             
                 /* The ray is reflected */
                 
                 /* Is it a pure specular or a mix of specular and diffuse just like in the previous case? */
-                specular_reflective_case<true>(r, h, rg, smoothness, normal);
+                specular_reflective_case<orientation_type::Inward>(r, h, rg, smoothness, normal);
 
                 //acc.update(m, color, false);
                 if (m.is_emissive()) acc.update_emitted_col(m);
@@ -345,7 +369,7 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
                 if (sin_theta_2_sq >= 1.0f) {
                     /* Total internal reflection */
 
-                    specular_reflective_case(r, h, rg, smoothness, normal, inward);
+                    specular_reflective_case(r, h, rg, smoothness, normal, ray_orientation);
                     //acc.update(m, color, false);
                     if (m.is_emissive()) acc.update_emitted_col(m);
                 }
@@ -353,7 +377,7 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
                     /* Transmission */
 
                     refractive_case(r, h, rg, m.get_refraction_scattering(), normal,
-                        vx, sin_theta_2_sq, inward, refr_index, next_refr_i);
+                        vx, sin_theta_2_sq, ray_orientation, refr_index, next_refr_i);
                     // acc.update(m, color, true);
                     if (m.is_emissive()) acc.update_emitted_col(m);
                     acc.update_color_mat(color);

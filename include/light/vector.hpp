@@ -1,17 +1,3 @@
-/**
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 #pragma once
 
 #include "screen/color.hpp"
@@ -29,9 +15,9 @@ namespace rt {
 		real x, y ,z;
 	
 		// Constructors
-		vector() : x(0), y(0), z(0) {}
+		constexpr vector() : x(0), y(0), z(0) {}
 		
-		vector(const real a, const real b, const real c) : x(a), y(b), z(c) {}
+		constexpr vector(const real a, const real b, const real c) : x(a), y(b), z(c) {}
 
 		/**
 		 * Comparison
@@ -78,14 +64,6 @@ namespace rt {
 		}
 
 		/**
-		 * Returns the norm of the vector
-		 */
-		inline real norm() const {
-			//return std::sqrt(x*x + y*y + z*z);
-			return std::sqrt(std::fma(x, x, std::fma(y, y, z * z)));
-		}
-
-		/**
 		 * Returns the squared norm of the vector (x^2+y^2+z^2)
 		 */
 		inline real normsq() const {
@@ -94,9 +72,20 @@ namespace rt {
 		}
 
 		/**
+		 * Returns the norm of the vector
+		 */
+		inline real norm() const {
+			//return std::sqrt(x*x + y*y + z*z);
+			return std::sqrt(normsq());
+		}
+
+		/**
 		 * return a vector of the same direction but of norm 1
 		 */
-		vector unit() const;
+		inline vector unit() const {
+			const real invn = 1.0f / norm();
+			return vector(x * invn, y * invn, z * invn);
+		}
 
 		/**
 		 * Rotation around axis x by an angle theta
@@ -115,10 +104,10 @@ namespace rt {
 
 		// In-place transformations	
 		inline void to_unit() {
-			const real n = norm();
-			x /= n;
-			y /= n;
-			z /= n;
+			const real invn = 1.0f / norm();
+			x *= invn;
+			y *= invn;
+			z *= invn;
 		}
 	};
 
@@ -127,7 +116,11 @@ namespace rt {
 	 * x * (a,b,c) = (xa,xb,xc)
 	 */
 	inline vector operator*(const real a, const vector& v) {
-		return vector(a*v.x, a*v.y, a*v.z);
+		return vector(
+			a * v.x,
+			a * v.y,
+			a * v.z
+		);
 	}
 
 	/**
@@ -135,7 +128,11 @@ namespace rt {
 	 * (a,b,c) * x = (ax,bx,cx)
 	 */
 	inline vector operator*(const vector& v, const real a) {
-		return vector(a*v.x, a*v.y, a*v.z);
+		return vector(
+			a * v.x,
+			a * v.y,
+			a * v.z
+		);
 	}
 
 	/**
@@ -143,7 +140,11 @@ namespace rt {
 	 * (a,b,c) / x = (a/x, b/x, c/x)
 	 */
 	inline vector operator/(const vector& v, const real a) {
-		return vector(v.x / a, v.y / a, v.z / a);
+		return vector(
+			v.x / a,
+			v.y / a,
+			v.z / a
+		);
 	}
 
 	// In-place transformations
@@ -176,9 +177,11 @@ namespace rt {
 	}
 
 	// Returns a1 * v1 + a2 * v2 + a3 * v3
-	inline vector matprod(const vector& v1, const real a1,
+	inline vector matprod(
+		const vector& v1, const real a1,
 		const vector& v2, const real a2,
-		const vector& v3, const real a3) {
+		const vector& v3, const real a3
+	) {
 		
 		return
 			fma(v1, a1,

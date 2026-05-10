@@ -61,14 +61,15 @@ void compute_bouncing_ray(const material& m, const hit& h,
         update_accumulators(m, emitted_colors, color_materials, local_color, reflects_colors);
     };
 
-    const real inward = h.is_inward();
+    const orientation_type ray_orientation = h.is_inward();
+    const bool inward = ray_orientation == orientation_type::Inward; // Temporary
 
     if (m.is_opaque()) {
         /* Diffuse or specular reflection */
 
         if (m.is_specular()) {
             // Mix of specular and diffuse
-            central_dir1 = get_central_reflected_direction(h, h.get_normal(), m.get_smoothness(), inward);
+            central_dir1 = get_central_reflected_direction(h, h.get_normal(), m.get_smoothness(), ray_orientation);
             scattering1 = m.get_smoothness();
             orig1 = compute_bias(h.get_point(), h.get_normal(), inward, true);
             update_acc(m.does_reflect_color(), m.get_color(), FIRST);
@@ -108,7 +109,7 @@ void compute_bouncing_ray(const material& m, const hit& h,
         if (sin_theta_2_sq >= 1.0f) {
             // Total internal reflection
 
-            central_dir1 = get_central_reflected_direction(h, h.get_normal(), m.get_smoothness(), inward);
+            central_dir1 = get_central_reflected_direction(h, h.get_normal(), m.get_smoothness(), ray_orientation);
             scattering1 = m.get_smoothness();
             orig1 = compute_bias(h.get_point(), h.get_normal(), inward, true);
 
@@ -118,7 +119,7 @@ void compute_bouncing_ray(const material& m, const hit& h,
             // Mix of reflection and transmission
 
             // Transmission
-            central_dir1 = get_refracted_direction(h.get_normal(), vx, sin_theta_2_sq, inward);
+            central_dir1 = get_refracted_direction(h.get_normal(), vx, sin_theta_2_sq, ray_orientation);
             scattering1 = 1.0f - m.get_refraction_scattering();
 
             init_refr_index = next_refr_i;
@@ -127,7 +128,7 @@ void compute_bouncing_ray(const material& m, const hit& h,
 
             if (inward) {
                 // Reflection
-                central_dir2 = get_central_reflected_direction(h, h.get_normal(), m.get_smoothness(), inward);
+                central_dir2 = get_central_reflected_direction(h, h.get_normal(), m.get_smoothness(), ray_orientation);
                 scattering2 = m.get_smoothness();
                 orig2 = compute_bias(h.get_point(), h.get_normal(), inward, true);
 

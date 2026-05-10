@@ -428,9 +428,9 @@ hit triangle::compute_intersection(ray& r, const real t) const {
         // Computation of the interpolated normal vector
         const barycentric_info bary = get_barycentric(p);
         // inward uses the face normal to avoid artefacts at the edge of the mesh
-        const bool inward = (r.get_direction() | normal) <= 0.0f;
+        const orientation_type ray_orientation = ((r.get_direction() | normal) <= 0.0f) ? orientation_type::Inward : orientation_type::Outward;
 
-        return hit(pt_ray, p, get_interpolated_normal(bary), pt_obj, inward);
+        return hit(pt_ray, p, get_interpolated_normal(bary), pt_obj, ray_orientation);
     }
     else { // Flat shading
         

@@ -15,19 +15,23 @@
 /* Forward-declaring the object class, to solve mutual recursivity between the hit and object classes */
 class object;
 
+enum class orientation_type {
+    Inward, Outward
+};
+
 class hit {
     private:
         ray* generator;
         rt::vector point;
         rt::vector normal;
         const object* hit_object;
-        bool inward;
+        orientation_type orientation;
 
     public:
         /* Main constructor */
-        hit(ray* generator, const rt::vector& point, const rt::vector& normal, const object*& hit_object);
+        hit(ray* generator, const rt::vector& point, const rt::vector& normal, const object* hit_object);
 
-        hit(ray* generator, const rt::vector& point, const rt::vector& normal, const object*& hit_object, const bool inward);
+        hit(ray* generator, const rt::vector& point, const rt::vector& normal, const object* hit_object, const orientation_type orientation);
 
         hit();
 
@@ -44,8 +48,8 @@ class hit {
             return hit_object;
         }
 
-        inline bool is_inward() const {
-            return inward;
+        inline orientation_type is_inward() const {
+            return orientation;
         }
 
         inline ray* get_generator_ray() const {
