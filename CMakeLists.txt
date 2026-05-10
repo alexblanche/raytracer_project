@@ -148,6 +148,7 @@ add_executable(sky
 	src/light/vector.cpp
 	src/sky/sky_render.cpp
 	src/sky/test_sky.cpp
+	src/parallel/parallel.cpp
 )
 target_link_libraries(sky
 	${SDL2_LIBRARIES}
