@@ -34,14 +34,10 @@ namespace rt  {
 			constexpr color(const real r, const real g, const real b)
 				: red(r), green(g), blue(b) {}
 
-			constexpr color(const color&) 	= default;
-			constexpr color(color&&) 		= default;
-
-			inline void operator=(const color& c) {
-				red   = c.red;
-				green = c.green;
-				blue  = c.blue;
-			}
+			constexpr color(const color&) 	 = default;
+			constexpr color(color&&) 		 = default;
+			color& operator=(const color& c) = default;
+			color& operator=(color&&)		 = default;
 
 			inline void set_red(const real r) {
 				red = r;
@@ -148,10 +144,24 @@ namespace rt  {
 				blue  /= a;
 			}
 
+			// exponentiation operator
+			inline void operator^=(const real a) {
+				red   = pow(red,   a);
+				green = pow(green, a);
+				blue  = pow(blue,  a);
+			}
+
 			/**
 			 * Maxing out color components at 255.
 			 */
 			color max_out() const;
+
+			inline void in_place_max_out() {
+				constexpr real max = 255.0;
+				red   = std::min(red,   max);
+				green = std::min(green, max);
+				blue  = std::min(blue,  max);
+			}
 	};
 
 	constexpr color WHITE(255, 255, 255);

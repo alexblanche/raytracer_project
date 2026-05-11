@@ -306,10 +306,12 @@ int main(int argc, char *argv[]) {
 
     scene& scene = scene_opt.value();
     if (scene.gamma != 1.0f) {
-        if (gamma_enabled && scene.gamma != gamma) printf("Warning: gamma correction value passed by command-line argument (%f) was overwritten by scene description (%f)\n",
-            gamma, scene.gamma);
+        if (gamma_enabled && scene.gamma != gamma) printf("Warning: gamma correction value passed by command-line argument (%.1f) was overwritten by scene description (%.1f)\n",
+            gamma, (1.0f / scene.gamma));
 
-        runtime_parameters.tone_mapping.mode = tone_mapping_parameters::mode::Gamma;
+        if (runtime_parameters.tone_mapping.mode == tone_mapping_parameters::mode::Disabled) {
+            runtime_parameters.tone_mapping.mode = tone_mapping_parameters::mode::Gamma;
+        }
         runtime_parameters.tone_mapping.gamma_value = scene.gamma;
         gamma_enabled = true;
         gamma = scene.gamma;

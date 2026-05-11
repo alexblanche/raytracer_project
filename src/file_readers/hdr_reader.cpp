@@ -11,6 +11,7 @@
 
 #include "parallel/parallel.hpp"
 
+/// TESTING
 /* Prints the info contained in the header of the given .hdr file */
 bool print_hdr_info(const char* file_name) {
     FILE* file = fopen(file_name, "rb");
@@ -68,7 +69,9 @@ bool print_hdr_info(const char* file_name) {
 
 
         // Filling pixel data (test)
-        std::vector<unsigned char[4]> data(width * height);
+        std::array<std::vector<unsigned char>, 4> data_buffer;
+        for (std::vector<unsigned char>& v : data_buffer)
+            v.resize(width * height);
         // https://www.flipcode.com/archives/HDR_Image_Reader.shtml
 
         // bool run_active = false;
@@ -90,6 +93,8 @@ bool print_hdr_info(const char* file_name) {
             }
 
             for (int component = 0; component < 4; component++) {
+                
+                std::vector<unsigned char>& buffer = data_buffer[component];
 
                 for (unsigned int i = 0; i < width; ) {
                     
@@ -99,14 +104,14 @@ bool print_hdr_info(const char* file_name) {
                         unsigned char count = byte & 0x7F;
                         const unsigned char value = fgetc(file);
                         while (count--) {
-                            data[indexj + i++][component] = value;
+                            buffer[indexj + i++] = value;
                         } 
                     }
                     else  {
                         // Consecutive distinct bytes
                         unsigned char count = byte;
                         while(count--) {
-                            data[indexj + i++][component] = fgetc(file);
+                            buffer[indexj + i++] = fgetc(file);
                         }
                     }
                 }
@@ -142,11 +147,11 @@ bool print_hdr_info(const char* file_name) {
         for (unsigned int j = 0; j < height; j++) {
             const unsigned int indexj = j * width;
             for (unsigned int i = 0; i < width; i++) {
-                unsigned char* const pixel_color = data[indexj + i];
-                const real r = pixel_color[0];
-                const real g = pixel_color[1];
-                const real b = pixel_color[2];
-                const unsigned char e = pixel_color[3];
+                const unsigned int index = indexj + i;
+                const real r = data_buffer[0][index];
+                const real g = data_buffer[1][index];
+                const real b = data_buffer[2][index];
+                const unsigned char e = data_buffer[3][index];
                 const real radiance_val = pow(2.0f, e - 127);
                 const float lr = r * radiance_val;
                 const float lg = g * radiance_val;
@@ -162,11 +167,11 @@ bool print_hdr_info(const char* file_name) {
         for (unsigned int j = 0; j < height; j++) {
             const unsigned int indexj = j * width;
             for (unsigned int i = 0; i < width; i++) {
-                unsigned char* const pixel_color = data[indexj + i];
-                const real r = pixel_color[0];
-                const real g = pixel_color[1];
-                const real b = pixel_color[2];
-                const unsigned char e = pixel_color[3];
+                const unsigned int index = indexj + i;
+                const real r = data_buffer[0][index];
+                const real g = data_buffer[1][index];
+                const real b = data_buffer[2][index];
+                const unsigned char e = data_buffer[3][index];
                 const real radiance_val = pow(2.0f, e - 127);
                 
                 float lr = r * radiance_val;
@@ -290,7 +295,10 @@ bool read_hdr(const char* file_name, std::vector<std::vector<rt::color>>& data) 
         unsigned int height = l1_is_x ? v2 : v1;
 
         // Filling pixel data
-        std::vector<unsigned char[4]> data_buffer(width * height);
+        std::array<std::vector<unsigned char>, 4> data_buffer;
+        for (std::vector<unsigned char>& v : data_buffer)
+            v.resize(width * height);
+            
         // https://www.flipcode.com/archives/HDR_Image_Reader.shtml
 
         for (unsigned int j = 0; j < height; j++) {
@@ -309,6 +317,7 @@ bool read_hdr(const char* file_name, std::vector<std::vector<rt::color>>& data) 
 
             for (int component = 0; component < 4; component++) {
 
+                std::vector<unsigned char>& buffer = data_buffer[component];
                 for (unsigned int i = 0; i < width; ) {
                     
                     const unsigned char byte = fgetc(file);
@@ -317,45 +326,32 @@ bool read_hdr(const char* file_name, std::vector<std::vector<rt::color>>& data) 
                         unsigned char count = byte & 0x7F;
                         const unsigned char value = fgetc(file);
                         while (count--) {
-                            data_buffer[indexj + i++][component] = value;
+                            buffer[indexj + i++] = value;
                         } 
                     }
                     else  {
                         // Consecutive distinct bytes
                         unsigned char count = byte;
                         while(count--) {
-                            data_buffer[indexj + i++][component] = fgetc(file);
+                            buffer[indexj + i++] = fgetc(file);
                         }
                     }
                 }
             }
         }
 
-        // Copy data to matrix
-        // for (unsigned int j = 0; j < height; j++) {
-        //     const unsigned int indexj = j * width;
-        //     for (unsigned int i = 0; i < width; i++) {
-        //         unsigned char* const pixel_color = data_buffer[indexj + i];
-        //         const real r = pixel_color[0];
-        //         const real g = pixel_color[1];
-        //         const real b = pixel_color[2];
-        //         const unsigned char e = pixel_color[3];
-        //         const real radiance_val = pow(2.0f, e - 128);
-                
-        //         data[i][j] = rt::color(r, g, b) * radiance_val;
-        //     }
-        // }
         PARALLEL_FOR_BEGIN(width) {
             std::vector<rt::color>& data_line = data[i];
             for (unsigned int j = 0; j < height; j++) {
-                unsigned char* const pixel_color = data_buffer[j * width + i];
-                const real r = pixel_color[0];
-                const real g = pixel_color[1];
-                const real b = pixel_color[2];
-                const unsigned char e = pixel_color[3];
+                const unsigned int index = j * width + i;
+                data_line[j] = rt::color(
+                    data_buffer[0][index],
+                    data_buffer[1][index],
+                    data_buffer[2][index]
+                );
+                const int e =  data_buffer[3][index];
                 const real radiance_val = pow(2.0f, e - 128);
-                        
-                data_line[j] = rt::color(r * radiance_val, g * radiance_val, b * radiance_val);
+                data_line[j] *= radiance_val;
             }
         } PARALLEL_FOR_END();
 

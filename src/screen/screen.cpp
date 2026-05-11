@@ -181,32 +181,6 @@ namespace rt {
 
 	/**
 	 * Copies the rt::color matrix onto the screen, by averaging the number_of_rays colors per pixel
-	*/
-	void screen::copy(std::vector<std::vector<color>>& matrix,
-		const size_t width, const size_t height,
-		const unsigned int number_of_rays) const {
-			
-		const real invN = 1.0 / number_of_rays;
-		for (size_t i = 0; i < width; i++) {
-			const std::vector<color>& line = matrix[i];
-            for (size_t j = 0; j < height; j++) {
-				const color& pixel_col = line[j];
-				// Maxed values
-				// const real r = std::min(pixel_col.get_red()   / number_of_rays, (real) 255.0f);
-				// const real g = std::min(pixel_col.get_green() / number_of_rays, (real) 255.0f);
-				// const real b = std::min(pixel_col.get_blue()  / number_of_rays, (real) 255.0f);
-				// set_pixel(i, j, rt::color(r, g, b));
-
-				const Uint8 r = std::min((Uint8) (pixel_col.get_red()   * invN), (Uint8) 255);
-				const Uint8 g = std::min((Uint8) (pixel_col.get_green() * invN), (Uint8) 255);
-				const Uint8 b = std::min((Uint8) (pixel_col.get_blue()  * invN), (Uint8) 255);
-				set_pixel(i, j, r, g, b);
-			}
-		}
-	}
-
-	/**
-	 * Same as copy
 	 */
 	void screen::fast_copy(std::vector<std::vector<color>>& matrix,
 		const size_t width, const size_t height,
@@ -220,44 +194,21 @@ namespace rt {
 		SDL_LockTexture(texture, NULL, (void**) &texture_pixels, &texture_pitch);
 		
 		const unsigned int padding = texture_pitch % 3;
-		/*
-		unsigned int index = 0;
-
-		for (size_t j = 0; j < height; j++) {
-            for (size_t i = 0; i < width; i++) {
-				const color& pixel_col = matrix[i][j];
-				const Uint8 r = std::min(pixel_col.get_red()   * invN, (real) 255.0f);
-				const Uint8 g = std::min(pixel_col.get_green() * invN, (real) 255.0f);
-				const Uint8 b = std::min(pixel_col.get_blue()  * invN, (real) 255.0f);
-
-				texture_pixels[index] = r;
-				index++;
-				texture_pixels[index] = g;
-				index++;
-				texture_pixels[index] = b;
-				index++;
-            }
-			index += padding;
-        }
-		*/
-		
 		const unsigned int shift = 3 * width + padding;
+
 		for (size_t i = 0; i < width; i++) {
 			const std::vector<color>& line = matrix[i];
 			const unsigned int threei = 3 * i;
-            for (size_t j = 0; j < height; j++) {
-				const color& pixel_col = line[j];
-				const Uint8 r = std::min(pixel_col.get_red()   * invN, (real) 255.0f);
-				const Uint8 g = std::min(pixel_col.get_green() * invN, (real) 255.0f);
-				const Uint8 b = std::min(pixel_col.get_blue()  * invN, (real) 255.0f);
 
-				unsigned int index = j * shift + threei;
-				texture_pixels[index] = r;
-				index++;
-				texture_pixels[index] = g;
-				index++;
-				texture_pixels[index] = b;
-				index++;
+            for (size_t j = 0; j < height; j++) {
+
+				const color& pixel_col = line[j];
+				color avg = pixel_col * invN;
+				avg.in_place_max_out();
+				const unsigned int index = j * shift + threei;
+				texture_pixels[index] 	  = static_cast<Uint8>(avg.get_red());
+				texture_pixels[index + 1] = static_cast<Uint8>(avg.get_green());
+				texture_pixels[index + 2] = static_cast<Uint8>(avg.get_blue());
             }
         }
 		
@@ -270,63 +221,30 @@ namespace rt {
 		const unsigned int number_of_rays, const real gamma) const {
 
 		const real invN = 1.0 / number_of_rays;
-		const real inv255 = 1.0 / 255.0;
+		constexpr real inv255 = 1.0 / 255.0;
+		const real inv = inv255 * invN;
 
 		char* texture_pixels;
 		int texture_pitch;
 
 		SDL_LockTexture(texture, NULL, (void**) &texture_pixels, &texture_pitch);
 		const unsigned int padding = texture_pitch % 3;
-		/*
-		unsigned int index = 0;
-
-		for (size_t j = 0; j < height; j++) {
-            for (size_t i = 0; i < width; i++) {
-				const color& pixel_col = matrix[i][j];
-				const real red_val   = pixel_col.get_red()   * invN;
-				const real green_val = pixel_col.get_green() * invN;
-				const real blue_val  = pixel_col.get_blue()  * invN;
-				const real gamma_corrected_red   = pow((red_val   * inv255), gamma) * 255.0f;
-				const real gamma_corrected_green = pow((green_val * inv255), gamma) * 255.0f;
-				const real gamma_corrected_blue  = pow((blue_val  * inv255), gamma) * 255.0f;
-				const Uint8 r = std::min(gamma_corrected_red,   (real) 255.0f);
-				const Uint8 g = std::min(gamma_corrected_green, (real) 255.0f);
-				const Uint8 b = std::min(gamma_corrected_blue,  (real) 255.0f);
-
-				texture_pixels[index] = r;
-				index++;
-				texture_pixels[index] = g;
-				index++;
-				texture_pixels[index] = b;
-				index++;
-            }
-			index += padding;
-        }
-		*/
-		
 		const unsigned int shift = 3 * width + padding;
+		
 		for (size_t i = 0; i < width; i++) {
 			const std::vector<color>& line = matrix[i];
 			const unsigned int threei = 3 * i;
+
             for (size_t j = 0; j < height; j++) {
 				const color& pixel_col = line[j];
-				const real red_val   = pixel_col.get_red()   * invN;
-				const real green_val = pixel_col.get_green() * invN;
-				const real blue_val  = pixel_col.get_blue()  * invN;
-				const real gamma_corrected_red   = pow((red_val   * inv255), gamma) * 255.0f;
-				const real gamma_corrected_green = pow((green_val * inv255), gamma) * 255.0f;
-				const real gamma_corrected_blue  = pow((blue_val  * inv255), gamma) * 255.0f;
-				const Uint8 r = std::min(gamma_corrected_red,   (real) 255.0f);
-				const Uint8 g = std::min(gamma_corrected_green, (real) 255.0f);
-				const Uint8 b = std::min(gamma_corrected_blue,  (real) 255.0f);
-
-				unsigned int index = j * shift + threei;
-				texture_pixels[index] = r;
-				index++;
-				texture_pixels[index] = g;
-				index++;
-				texture_pixels[index] = b;
-				index++;
+				color corrected = pixel_col * inv;
+				corrected ^= gamma;
+				corrected *= static_cast<real>(255.0f);
+				corrected.in_place_max_out();
+				const unsigned int index = j * shift + threei;
+				texture_pixels[index] 	  = static_cast<Uint8>(corrected.get_red());
+				texture_pixels[index + 1] = static_cast<Uint8>(corrected.get_green());
+				texture_pixels[index + 2] = static_cast<Uint8>(corrected.get_blue());
             }
         }
 		
@@ -370,31 +288,23 @@ namespace rt {
 			const unsigned int threei = 3 * i;
             for (size_t j = 0; j < height; j++) {
 				const color& col = line[j];
-				
 				const real lr = col.get_red();
 				const real lg = col.get_green();
 				const real lb = col.get_blue();
+				
 				const real lin = (0.2126 * lr + 0.7152 * lg + 0.0722 * lb) * inv;
 				// const real lin = (lr + lg + lb) * inv * 0.333;
 				const real lcorr = (1.0f + lin * lwhitecorr) / (1.0f + lin);
-				const real cr = lr * lcorr * invN;
-				const real cg = lg * lcorr * invN;
-				const real cb = lb * lcorr * invN;
-				const real gr = pow(cr * inv255, gamma) * 255.0f;
-				const real gg = pow(cg * inv255, gamma) * 255.0f;
-				const real gb = pow(cb * inv255, gamma) * 255.0f;
-				
-				const Uint8 r = std::min(gr, (real) 255.0f);
-				const Uint8 g = std::min(gg, (real) 255.0f);
-				const Uint8 b = std::min(gb, (real) 255.0f);
 
-				unsigned int index = j * shift + threei;
-				texture_pixels[index] = r;
-				index++;
-				texture_pixels[index] = g;
-				index++;
-				texture_pixels[index] = b;
-				index++;
+				color corrected = col * (lcorr * inv);
+				corrected ^= gamma;
+				corrected *= static_cast<real>(255.0f);
+				corrected.in_place_max_out();
+
+				const unsigned int index = j * shift + threei;
+				texture_pixels[index] 	  = static_cast<Uint8>(corrected.get_red());
+				texture_pixels[index + 1] = static_cast<Uint8>(corrected.get_green());
+				texture_pixels[index + 2] = static_cast<Uint8>(corrected.get_blue());
             }
         }
 		
