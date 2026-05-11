@@ -34,7 +34,7 @@ rt::color raycast(const ray& r, const std::vector<const object*>& obj_set) {
         return obj_set.at(closest_index)->get_color();
     }
     else {
-        return rt::color::BLACK;
+        return rt::BLACK;
     }
 }
 */

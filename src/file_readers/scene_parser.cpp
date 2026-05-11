@@ -6,6 +6,7 @@
 #include <string.h>
 #include <string>
 #include <sstream>
+#include <filesystem>
 
 #include "scene/objects/bounding.hpp"
 #include "scene/objects/sphere.hpp"
@@ -643,19 +644,21 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
             throw std::runtime_error("Incorrect background texture angles");
         }
         else {
+            std::string bg_tfile_name_short = std::filesystem::path(bg_tfile_name).filename().generic_string();
+
             if (rx < 0) rx += 2 * 3.1416;
             if (ry < 0) ry += 2 * 3.1416;
             if (rz < 0) rz += 2 * 3.1416;
 
             bool bg_parsing_successful;
-            printf("Parsing %s...", bg_tfile_name);
+            printf("Parsing %s...", bg_tfile_name_short.data());
             fflush(stdout);
             background_texture = texture(bg_tfile_name, bg_parsing_successful);
             if (not bg_parsing_successful) {
                 throw std::runtime_error("Parsing error in scene constructor (background texture parsing)");
             }
             else {
-                printf("\r%s texture loaded\n", bg_tfile_name);
+                printf("\r> %s texture loaded\n", bg_tfile_name_short.data());
                 fflush(stdout);
                 background_texture_is_set = true;
             }
@@ -719,21 +722,16 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
 
         */
 
-
         std::vector<const object*> object_set;
-
-        wrapper<material>::init();
-        wrapper<texture>::init();
-        wrapper<normal_map>::init();
 
         /* Material storage */
         std::vector<wrapper<material>> material_wrapper_set;
         material_wrapper_set.emplace_back(DIFFUSE, "diffuse");
-        material_wrapper_set.emplace_back(MIRROR,  "mirror");
-        material_wrapper_set.emplace_back(GLASS,   "glass");
-        material_wrapper_set.emplace_back(WATER,   "water");
+        material_wrapper_set.emplace_back(MIRROR,  "mirror" );
+        material_wrapper_set.emplace_back(GLASS,   "glass"  );
+        material_wrapper_set.emplace_back(WATER,   "water"  );
 
-        std::vector<wrapper<texture>> texture_wrapper_set;
+        std::vector<wrapper<texture>>    texture_wrapper_set;
         std::vector<wrapper<normal_map>> normal_map_wrapper_set;
         
         std::vector<texture_info> texture_info_set;
@@ -745,7 +743,6 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         the vector other_content. At the end, these objects are placed in a bounding alongside the ones generated during obj files parsing */
         std::vector<const object*> other_content;
         const bool bounding_enabled = polygons_per_bounding != 0;
-
 
         /* Parsing loop */
 
@@ -795,6 +792,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                     throw std::runtime_error("Parsing error in scene constructor (texture loading)");
                 }
                 t_name.resize(strlen(t_name.data()));
+                std::string tfile_name_short = std::filesystem::path(tfile_name).filename().generic_string();
                 
                 bool parsing_successful;
                 printf("Parsing %s...", tfile_name);
@@ -802,11 +800,11 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 texture_wrapper_set.emplace_back(texture(tfile_name, parsing_successful, inverse_gamma), t_name);
 
                 if (parsing_successful) {
-                    printf("\r%s texture loaded\n", tfile_name);
+                    printf("\r> %s texture loaded                                \n", tfile_name_short.data());
                     fflush(stdout);
                 }
                 else {
-                    printf("%s texture reading failed\n", tfile_name);
+                    printf("%s texture reading failed\n", tfile_name_short.data());
                     throw std::runtime_error("Texture reading failed");
                 }
             }
@@ -820,6 +818,8 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                     throw std::runtime_error("Parsing error in scene constructor (normal map loading)");
                 }
                 t_name.resize(strlen(t_name.data()));
+                std::string tfile_name_short = std::filesystem::path(tfile_name).filename().generic_string();
+
                 
                 bool parsing_successful;
                 printf("Parsing %s...", tfile_name);
@@ -827,11 +827,11 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 normal_map_wrapper_set.emplace_back(normal_map(tfile_name, parsing_successful), t_name);
 
                 if (parsing_successful) {
-                    printf("\r%s normal map loaded\n", tfile_name);
+                    printf("\r> %s normal map loaded                                \n", tfile_name_short.data());
                     fflush(stdout);
                 }
                 else {
-                    printf("%s normal map reading failed\n", tfile_name);
+                    printf("%s normal map reading failed\n", tfile_name_short.data());
                     throw std::runtime_error("Normal map reading failed");
                 }
             }

@@ -340,7 +340,8 @@ int main(int argc, char *argv[]) {
         unsigned long int t_end = 0;
 
         const unsigned int target = runtime_parameters.program.target_number_of_rays;
-        
+        const bool russian_roulette = runtime_parameters.russian_roulette == russian_roulette_mode::Enabled;
+
         for (unsigned int i = 0; i < target; i++) {
             switch (runtime_parameters.sampling.mode) {
                 case sampling_parameters::mode::MultiSample:
@@ -356,7 +357,7 @@ int main(int argc, char *argv[]) {
                         matrix,
                         scene,
                         runtime_parameters.number_of_bounces,
-                        runtime_parameters.russian_roulette == russian_roulette_mode::Enabled,
+                        russian_roulette,
                         i
                     );
                     break;
@@ -412,58 +413,9 @@ int main(int argc, char *argv[]) {
     printf("Initialization complete, computing the first ray...");
     fflush(stdout);
 
-    switch (runtime_parameters.time) {
-        case time_mode::Simple:
-            render_loop_parallel_time(matrix, scene, runtime_parameters.number_of_bounces, false);
-            break;
-        case time_mode::Full:
-            render_loop_parallel_time(matrix, scene, runtime_parameters.number_of_bounces, true);
-            break;
-        case time_mode::Disabled:
-            switch (runtime_parameters.sampling.mode) {
-                case sampling_parameters::mode::MultiSample:
-                    render_loop_parallel_multisample(
-                        matrix,
-                        scene,
-                        runtime_parameters.number_of_bounces,
-                        runtime_parameters.sampling.multisample_number_of_samples
-                    );
-                    break;
-                case sampling_parameters::mode::UniSample:
-                    render_loop_parallel(
-                        matrix,
-                        scene,
-                        runtime_parameters.number_of_bounces,
-                        runtime_parameters.russian_roulette == russian_roulette_mode::Enabled,
-                        1
-                    );
-                    break;
-            }
-            break;
-    }
+    const bool russian_roulette = runtime_parameters.russian_roulette == russian_roulette_mode::Enabled;
 
-    const rt::screen scr(scene.width, scene.height);
-    
-    switch (runtime_parameters.tone_mapping.mode) {
-        case tone_mapping_parameters::mode::Disabled:
-            scr.fast_copy(matrix, scene.width, scene.height, 1);
-            break;
-        case tone_mapping_parameters::mode::Gamma:
-            scr.fast_copy_gamma(matrix, scene.width, scene.height, 1, gamma);
-            break;
-        case tone_mapping_parameters::mode::Reinhardt:
-            scr.fast_copy_reinhardt(matrix, scene.width, scene.height, 1, gamma);
-            break;
-    }
-    
-    scr.update_from_texture();
-
-    printf("\r                                                   ");
-    printf("\rNumber of rays per pixel: 1");
-    fflush(stdout);
-
-    for (unsigned int number_of_rays = 2; number_of_rays <= MAX_RAYS; number_of_rays++) {
-
+    auto render = [&] (unsigned int iter) {
         switch (runtime_parameters.time) {
             case time_mode::Simple:
                 render_loop_parallel_time(matrix, scene, runtime_parameters.number_of_bounces, false);
@@ -486,29 +438,47 @@ int main(int argc, char *argv[]) {
                             matrix,
                             scene,
                             runtime_parameters.number_of_bounces,
-                            runtime_parameters.russian_roulette == russian_roulette_mode::Enabled,
-                            number_of_rays
+                            russian_roulette,
+                            iter
                         );
                         break;
                 }
                 break;
         }
+    };
+    render(1);
 
-        printf("\rNumber of rays per pixel: %u", number_of_rays);
-        fflush(stdout);
-
+    const rt::screen scr(scene.width, scene.height);
+    
+    auto copy_to_texture = [&] (unsigned int iter) {
         switch (runtime_parameters.tone_mapping.mode) {
             case tone_mapping_parameters::mode::Disabled:
-                scr.fast_copy(matrix, scene.width, scene.height, number_of_rays);
+                scr.fast_copy(matrix, scene.width, scene.height, iter);
                 break;
             case tone_mapping_parameters::mode::Gamma:
-                scr.fast_copy_gamma(matrix, scene.width, scene.height, number_of_rays, gamma);
+                scr.fast_copy_gamma(matrix, scene.width, scene.height, iter, gamma);
                 break;
             case tone_mapping_parameters::mode::Reinhardt:
-                scr.fast_copy_reinhardt(matrix, scene.width, scene.height, number_of_rays, gamma);
+                scr.fast_copy_reinhardt(matrix, scene.width, scene.height, iter, gamma);
                 break;
         }
+    };
 
+    copy_to_texture(1);
+    scr.update_from_texture();
+
+    printf("\r                                                   ");
+    printf("\rNumber of samples per pixel: 1");
+    fflush(stdout);
+
+    for (unsigned int number_of_rays = 2; number_of_rays <= MAX_RAYS; number_of_rays++) {
+
+        render(number_of_rays);
+
+        printf("\rNumber of samples per pixel: %u", number_of_rays);
+        fflush(stdout);
+
+        copy_to_texture(number_of_rays);
         scr.update_from_texture();
 
         const rt::screen::key key = scr.poll_keyboard_event();

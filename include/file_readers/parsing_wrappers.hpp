@@ -14,27 +14,28 @@ class wrapper {
 
         static inline size_t counter = 0;
 
+        wrapper()
+            : index(counter) {
+        
+            counter++;
+        }
+
         wrapper(T&& t, const std::string& name)
             : content(std::forward<T>(t)), name(name), index(counter) {
 
-            counter ++;
+            counter++;
         }
 
         wrapper(const T& t, const std::string& name)
             : content(t), name(name), index(counter) {
-
-            counter ++;
+        
+            counter++;
         }
 
         wrapper(T&& t)
             : content(std::forward<T>(t)), name(std::nullopt), index(counter) {
 
-            counter ++;
-        }
-
-        /* Initialization of the counter */
-        static void init() {
-            counter = 0;
+            counter++;
         }
 
         wrapper(wrapper&&)                  = default;
