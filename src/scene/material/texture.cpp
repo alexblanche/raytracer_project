@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <filesystem>
 
 
 /* Constructors */
@@ -22,16 +23,10 @@ texture::texture(const int width, const int height, const std::vector<std::vecto
    Writes true in parsing_successful if the operation was successful */
 texture::texture(const char* file_name, bool& parsing_successful, const real gamma) {
 
-    const char* p = file_name;
-    while(*p != '\0')
-        p++;
-    p-=3;
-    bool is_bmp;
-    if (*p == 'b' && *(p+1) == 'm' && *(p+2) == 'p')
-        is_bmp = true;
-    else if (*p == 'h' && *(p+1) == 'd' && *(p+2) == 'r')
-        is_bmp = false;
-    else {
+    std::string extension = std::filesystem::path(file_name).extension().generic_string();
+    const bool is_bmp = extension.compare(".bmp") == 0;
+    const bool is_right_format = is_bmp || (extension.compare(".hdr") == 0);
+    if (not is_right_format) {
         printf("Error in texture definition: wrong file format\n");
         throw;
     }
@@ -41,7 +36,7 @@ texture::texture(const char* file_name, bool& parsing_successful, const real gam
         width = dims.value().width;
         height = dims.value().height;
         data = std::vector<std::vector<rt::color>>(width, std::vector<rt::color>(height));
-        bool read_success = (is_bmp) ? read_bmp(file_name, data) : read_hdr(file_name, data);
+        const bool read_success = (is_bmp) ? read_bmp(file_name, data) : read_hdr(file_name, data);
         if (gamma != 1.0f)
             apply_gamma(data, gamma);
         width_minus_one = (real) (width - 1);

@@ -6,49 +6,6 @@
 #include <vector>
 #include <iostream>
 
-/* Static element */
-
-// const material material::DIFFUSE(rt::color(255,255,255), 0);
-// const material material::MIRROR(rt::color(255,255,255), 1, 0, 1, false, 0, 0, 1.0);
-// const material material::GLASS(rt::color(255,255,255), 1, 0, 1, false, 0.95, 0, 1.52);
-// const material material::WATER(rt::color(255,255,255), 1, 0, 1, false, 1, 0, 1.33);
-
-
-/* Constructors */
-
-// material::material() : color(rt::WHITE), smoothness(0),
-//     emission_intensity(0),
-//     reflectivity(0),
-//     transparency(0), refraction_index(1),
-//     opaque(true), emissive(false), has_specularity(false), reflects_color(false) {}
-
-// material::material(const rt::color& color, const real smoothness)
-
-//     : color(color), smoothness(smoothness),
-//         emission_intensity(0),
-//         reflectivity(0),
-//         transparency(0), refraction_index(1),
-//         opaque(true), emissive(false), has_specularity(false), 
-//         reflects_color(false) {}
-
-// material::material(const rt::color& color,
-//     const real smoothness, const real emission_intensity,
-//     const real reflectivity, const bool reflects_color,
-//     const real transparency, const real refraction_scattering,
-//     const real refraction_index)
-
-//     : color(color), smoothness(smoothness),
-//         emission_intensity(emission_intensity),
-//         reflectivity(reflectivity),
-//         transparency(transparency), refraction_scattering(refraction_scattering),
-//         refraction_index(refraction_index),
-//         opaque(transparency == 0), emissive(emission_intensity != 0), has_specularity(reflectivity != 0),
-//         reflects_color(reflects_color) {
-        
-//             // printf("material: color:(%d, %d, %d), smooth:%lf, refl:%lf, has_spec:%d, refl_col:%d\n",
-//             //     (int) color.get_red(), (int) color.get_green(), (int) color.get_blue(), smoothness, reflectivity, has_specularity, reflects_color);
-//         }
-
 /* Constructor from mtl parameters */
 material::material(const real ns,
     const rt::color& ka, const rt::color& kd, const rt::color& ks, const rt::color& ke,
