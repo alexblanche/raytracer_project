@@ -16,11 +16,11 @@ rt::color apply_lights_obj(const hit& h,
 
     auto sum_colors = [](rt::color const& col1, rt::color const& col2){ return col1 + col2; };
     auto apply = [&h, &obj_set](source const& l) { return l.apply_obj(h, obj_set); };
-    
+
     const rt::color sum =
         std::transform_reduce(
             light_set.begin(), light_set.end(),
-            rt::color(0.0f, 0.0f, 0.0f),
+            rt::BLACK,
             sum_colors,
             apply
         );

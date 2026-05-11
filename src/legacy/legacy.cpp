@@ -11,7 +11,7 @@
 
 #include "legacy/raytracing/tracing.hpp"
 
-#include "parallel/parallel.h"
+#include "parallel/parallel.hpp"
 #include <mutex>
 
 #include <chrono>
@@ -21,8 +21,6 @@
 
 
 // Parallel for-loop macros
-#define PARALLEL_FOR_BEGIN(nb_elements) parallel_for(nb_elements, [&](int start, int end){ for(int i = start; i < end; i++)
-#define PARALLEL_FOR_END()})
 
 long int get_time () {
     return std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -40,16 +38,20 @@ void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
     long int& time) {
 
     const long int init_time = get_time();
-    const rt::vector zero = rt::vector(0.0f, 0.0f, 0.0f);
+    constexpr rt::vector zero;
     
     for (int i = 0; i < width; i++) {
+        
+        std::vector<rt::color>& output = matrix[i];
+        const real direct_x = i - screen_center.x;
+        rt::vector direct(direct_x, 0, dist);
+        const real norm_xz_sq = direct.normsq();
+
         for (int j = 0; j < height; j++) {
 
-            std::vector<rt::color>& output = matrix[i];
-
-            const rt::vector direct = (rt::vector(i - screen_center.x, j - screen_center.y, dist)).unit();
-            ray r = ray(zero, direct);
-
+            direct.y = j - screen_center.y;
+            const real norm = std::sqrt(std::fma(direct.y, direct.y, norm_xz_sq));
+            ray r(zero, direct / norm);
             output[j] = raytrace(r, obj_set, light_set);
         }
     }
@@ -70,16 +72,20 @@ void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
     long int& time) {
     
     const long int init_time = get_time();
-    const rt::vector zero = rt::vector(0.0f, 0.0f, 0.0f);
+    constexpr rt::vector zero;
 
     PARALLEL_FOR_BEGIN(width) {
 
         std::vector<rt::color>& output = matrix[i];
+        const real direct_x = i - screen_center.x;
+        rt::vector direct(direct_x, 0, dist);
+        const real norm_xz_sq = direct.normsq();
 
         for (int j = 0; j < height; j++) {
 
-            const rt::vector direct = (rt::vector(i - screen_center.x, j - screen_center.y, dist)).unit();
-            ray r = ray(zero, direct);
+            direct.y = j - screen_center.y;
+            const real norm = std::sqrt(std::fma(direct.y, direct.y, norm_xz_sq));
+            ray r(zero, direct / norm);
             output[j] = raytrace(r, obj_set, light_set);
         }
 
@@ -102,10 +108,10 @@ void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
 int main(int /*argc*/, char **/*argv*/) {
 
     const rt::color my_red(230, 15, 15);
-    const rt::color my_green(15, 230, 15);
+    // const rt::color my_green(15, 230, 15);
     const rt::color my_blue(15, 15, 230);
-    const rt::color my_white(230, 230, 230);
-    const rt::color my_black(15, 15, 15);
+    // const rt::color my_white(230, 230, 230);
+    // const rt::color my_black(15, 15, 15);
     /* Non-pure colors, to prevent the "black hole" effect when
      a red surface is under a blue spot */
 
@@ -119,14 +125,14 @@ int main(int /*argc*/, char **/*argv*/) {
     /* Scene description */
 
     // Sphere 0
-    const sphere sph0(rt::vector(-400,0,1000), 240, rt::color::WHITE);
+    const sphere sph0(rt::vector(-400,0,1000), 240, rt::WHITE);
     // Sphere 1
-    const sphere sph1(rt::vector( 400,0,1000), 240, rt::color::WHITE);
+    const sphere sph1(rt::vector( 400,0,1000), 240, rt::WHITE);
 
     // Plane 0
-    const plane pln0(0, -1, 0, rt::vector(0, 240, 0), rt::color::WHITE);
+    const plane pln0(0, -1, 0, rt::vector(0, 240, 0), rt::WHITE);
     // Plane 1
-    const plane pln1(0, 0, -1, rt::vector(0, 0, 2000), rt::color::WHITE);
+    const plane pln1(0, 0, -1, rt::vector(0, 0, 2000), rt::WHITE);
 
     /* Object set */
     /* Storing pointers allow the overridden methods send and intersect (from sphere, plane)
@@ -138,7 +144,7 @@ int main(int /*argc*/, char **/*argv*/) {
 
     // Light sources
 
-    const source light0(rt::vector(-500, 0, 600), rt::color::WHITE);
+    const source light0(rt::vector(-500, 0, 600), rt::WHITE);
     const source light1(rt::vector(0, 0, 1000),   my_red);
     const source light2(rt::vector(750, 0, 900),  my_blue);
 
@@ -183,7 +189,6 @@ int main(int /*argc*/, char **/*argv*/) {
     const long int seq_curr_time = get_time();
     printf("Total Seq time: %ld ms\n", seq_curr_time - seq_time_init);
     printf("Average time: %d ms\n", (int) ((double) total_time / number_of_renders));
-    fflush(stdout);
 
     /* Parallel */
     const long int par_time_init = get_time();
@@ -199,7 +204,6 @@ int main(int /*argc*/, char **/*argv*/) {
     const long int par_curr_time = get_time();
     printf("Total Parallel time: %ld ms\n", par_curr_time - par_time_init);
     printf("Average time: %d ms\n", (int) ((double) total_time / number_of_renders));
-    fflush(stdout);
     
     scr.fast_copy(matrix, width, height, 1);
     scr.update_from_texture();

@@ -124,6 +124,7 @@ add_executable(${legacy}
 	src/legacy/raytracing/application.cpp
 	src/legacy/raytracing/tracing.cpp
 	src/legacy/legacy.cpp
+	src/parallel/parallel.cpp
 )
 
 target_link_libraries(${legacy}

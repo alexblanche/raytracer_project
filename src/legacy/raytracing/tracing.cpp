@@ -44,35 +44,6 @@ rt::color raycast(const ray& r, const std::vector<const object*>& obj_set) {
     and returns the resulting color. */
 rt::color raytrace(ray& r, const std::vector<const object*>& obj_set, const std::vector<source>& light_set) {
 
-    /* Unneccessarily complicated */
-    /*
-    std::vector<real> distance_to_object(obj_set.size());
-    std::transform(
-        // std::execution::seq,
-        obj_set.begin(), obj_set.end(),
-        distance_to_object.begin(),
-        [&r](const object* obj) { return obj->measure_distance(r); }
-    );
-    
-    auto it = std::min_element(
-        // std::execution::seq,
-        distance_to_object.begin(), distance_to_object.end()
-    );
-
-    const unsigned int index_closest = std::distance(std::begin(distance_to_object), it);
-    const real dist = *it;
-    const object* closest_obj = obj_set[index_closest];
-    
-    if (closest_obj != NULL) {
-        const hit h = closest_obj->compute_intersection(r, dist);
-        return apply_lights_obj(h, obj_set, light_set);
-    }
-    else {
-        // No object hit
-        return rt::BLACK;
-    }
-    */
-
     real dist_to_closest = infinity;
     std::optional<const object*> closest_obj = std::nullopt;
 
@@ -85,12 +56,11 @@ rt::color raytrace(ray& r, const std::vector<const object*>& obj_set, const std:
         }
     }
 
-    if (closest_obj.has_value()) {
-        const hit h = closest_obj.value()->compute_intersection(r, dist_to_closest);
-        return apply_lights_obj(h, obj_set, light_set);
-    }
-    else {
+    if (not closest_obj.has_value()) {
         // No object hit
         return rt::BLACK;
     }
+    
+    const hit h = closest_obj.value()->compute_intersection(r, dist_to_closest);
+    return apply_lights_obj(h, obj_set, light_set);
 }
