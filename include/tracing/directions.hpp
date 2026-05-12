@@ -93,7 +93,7 @@ rt::vector get_sin_refracted(const hit& h, const rt::vector& normal,
 rt::vector get_refracted_direction(const rt::vector& normal, const rt::vector& vx, real sin_theta_2_sq, orientation_type ray_orientation);
 
 /* Returns a random unit direction in the cone whose center is the refracted direction, within solid angle refraction_scattering * pi */
-rt::vector get_random_refracted_direction(randomgen& rg, const real refraction_scattering,
+rt::vector get_random_refracted_direction(randomgen& rg, real refraction_scattering,
     const rt::vector& normal,
     const rt::vector& vx, real sin_theta_2_sq, orientation_type ray_orientation);
 

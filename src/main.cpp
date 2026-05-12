@@ -163,7 +163,7 @@ int main(int argc, char *argv[]) {
 
     runtime_parameters runtime_parameters;
 
-    if (!atoi(argv[1])) {
+    if (argc > 1 && !atoi(argv[1])) {
         // file specified
 
         filename = argv[1];

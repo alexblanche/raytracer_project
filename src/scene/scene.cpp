@@ -37,7 +37,7 @@ scene::~scene() {
 
     /* Destruction of the objects located on the heap */
     for (const object* obj : object_set) {
-        delete(obj);
+        delete obj;
     }
 
     /* Recursive destruction of the bounding boxes */
@@ -54,7 +54,7 @@ scene::~scene() {
         for (const bounding* bd : bd_children) {
             bd_stack.push(bd);
         }
-        delete(bd);
+        delete bd;
     }
 }
 

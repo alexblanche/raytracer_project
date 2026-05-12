@@ -55,7 +55,7 @@ class object {
         object& operator=(const object&) = delete;
         object& operator=(object&&)      = delete;
 
-        virtual ~object() {}
+        virtual ~object()                = default;
 
         inline const rt::vector& get_position() const {
             return position;
