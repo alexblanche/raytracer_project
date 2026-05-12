@@ -3,7 +3,7 @@ project(raytracer VERSION "0.8.1")
 
 set(CMAKE_CXX_STANDARD 26)
 add_compile_options(-std=c++26)
-add_compile_options(-Wall -Wextra -Werror)
+add_compile_options(-Wall -Wextra -Werror -Wpedantic -pedantic-errors)
 add_compile_options(-fdiagnostics-color)
 add_compile_options(-O3 -ffast-math -march=native)
 
