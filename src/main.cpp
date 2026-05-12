@@ -64,6 +64,86 @@ struct runtime_parameters {
     russian_roulette_mode   russian_roulette       = russian_roulette_mode::Disabled;
 };
 
+void create_dir(bool& output_dir_exists) {
+    if (not output_dir_exists) {
+        output_dir_exists = std::filesystem::create_directories("../output");
+    }
+}
+
+bool run_offline(const runtime_parameters& runtime_parameters, std::vector<std::vector<rt::color>>& matrix, scene& scene, bool& output_dir_exists) {
+    printf("Rendering...\n");
+    printf("0 / %u", runtime_parameters.program.target_number_of_rays);
+    fflush(stdout);
+
+    const bool time_enabled = runtime_parameters.time != time_mode::Disabled;
+    const unsigned long int t_init = time_enabled ? time(0) : 0;
+    unsigned long int t_export = 0;
+    unsigned long int t_end = 0;
+
+    const unsigned int target = runtime_parameters.program.target_number_of_rays;
+    const bool russian_roulette = runtime_parameters.russian_roulette == russian_roulette_mode::Enabled;
+
+    for (unsigned int i = 0; i < target; i++) {
+        switch (runtime_parameters.sampling.mode) {
+            case sampling_parameters::mode::MultiSample:
+                render_loop_parallel_multisample(
+                    matrix,
+                    scene,
+                    runtime_parameters.number_of_bounces,
+                    runtime_parameters.sampling.multisample_number_of_samples
+                );
+                break;
+            case sampling_parameters::mode::UniSample:
+                render_loop_parallel(
+                    matrix,
+                    scene,
+                    runtime_parameters.number_of_bounces,
+                    russian_roulette,
+                    i
+                );
+                break;
+        }
+
+        printf("\r%u / %u", i + 1, target);
+        fflush(stdout);
+
+        /* Exporting as rtdata every EXPORT_INTERVAL samples */
+        constexpr unsigned int EXPORT_INTERVAL = 1000;
+        if ((i + 1) % EXPORT_INTERVAL == 0) {
+            t_end = time_enabled ? time(0) : 0;
+            create_dir(output_dir_exists);
+            export_raw("../output/image.rtdata", i+1, matrix);
+            const unsigned long int t_export_end = time_enabled ? time(0) : 0;
+            t_export += t_export_end - t_end;
+        }
+
+    }
+    if (not t_end) t_end = time(0);
+    const unsigned long int elapsed = t_end - t_init - t_export;
+
+    printf("\r%u / %u", target, target);
+
+    create_dir(output_dir_exists);
+    const bool success_bmp = write_bmp("../output/image.bmp", matrix, target, runtime_parameters.tone_mapping.gamma_value);
+    if (not success_bmp) {
+        printf("Save failed\n");
+        return false;
+    }
+    printf(" Saved as output/image.bmp\n");
+
+    if (time_enabled) {
+
+        if (elapsed < 60)
+            printf("Total duration: %lu seconds\n", elapsed);
+        else if (elapsed < 3600)
+            printf("Total duration: %lu minutes %lu seconds\n", elapsed / 60, elapsed % 60);
+        else
+            printf("Total duration: %lu hours %lu minutes %lu seconds\n", elapsed / 3600, (elapsed % 3600) / 60, elapsed % 60);
+    }
+        
+    //export_raw("image.rtdata", target_number_of_rays, matrix);
+    return true;
+}
 
 
 // #include "file_readers/hdr_reader.hpp"
@@ -288,12 +368,6 @@ int main(int argc, char *argv[]) {
     struct stat info;
     bool output_dir_exists = stat("../output", &info) == 0 && info.st_mode & S_IFDIR;
 
-    auto create_dir = [&output_dir_exists]() {
-        if (not output_dir_exists) {
-            output_dir_exists = std::filesystem::create_directories("../output");
-        }
-    };
-
     /* *************************** */
     /* Scene description */
 
@@ -330,81 +404,8 @@ int main(int argc, char *argv[]) {
 
     if (runtime_parameters.program.mode == program_parameters::mode::Offline) {
 
-        printf("Rendering...\n");
-        printf("0 / %u", runtime_parameters.program.target_number_of_rays);
-        fflush(stdout);
-
-        const bool time_enabled = runtime_parameters.time != time_mode::Disabled;
-        const unsigned long int t_init = time_enabled ? time(0) : 0;
-        unsigned long int t_export = 0;
-        unsigned long int t_end = 0;
-
-        const unsigned int target = runtime_parameters.program.target_number_of_rays;
-        const bool russian_roulette = runtime_parameters.russian_roulette == russian_roulette_mode::Enabled;
-
-        for (unsigned int i = 0; i < target; i++) {
-            switch (runtime_parameters.sampling.mode) {
-                case sampling_parameters::mode::MultiSample:
-                    render_loop_parallel_multisample(
-                        matrix,
-                        scene,
-                        runtime_parameters.number_of_bounces,
-                        runtime_parameters.sampling.multisample_number_of_samples
-                    );
-                    break;
-                case sampling_parameters::mode::UniSample:
-                    render_loop_parallel(
-                        matrix,
-                        scene,
-                        runtime_parameters.number_of_bounces,
-                        russian_roulette,
-                        i
-                    );
-                    break;
-            }
-            break;
-
-            printf("\r%u / %u", i + 1, target);
-            fflush(stdout);
-
-            /* Exporting as rtdata every EXPORT_INTERVAL samples */
-            constexpr unsigned int EXPORT_INTERVAL = 1000;
-            if ((i + 1) % EXPORT_INTERVAL == 0) {
-                t_end = time_enabled ? time(0) : 0;
-                create_dir();
-                export_raw("../output/image.rtdata", i+1, matrix);
-                const unsigned long int t_export_end = time_enabled ? time(0) : 0;
-                t_export += t_export_end - t_end;
-            }
-
-        }
-        if (not t_end) t_end = time(0);
-        const unsigned long int elapsed = t_end - t_init - t_export;
-
-        printf("\r%u / %u", target, target);
-
-        create_dir();
-        const bool success_bmp = write_bmp("../output/image.bmp", matrix, target, gamma);
-        if (success_bmp) {
-            printf(" Saved as output/image.bmp\n");
-        }
-        else {
-            printf("Save failed\n");
-            return EXIT_FAILURE;
-        }
-
-        if (time_enabled) {
-
-            if (elapsed < 60)
-                printf("Total duration: %lu seconds\n", elapsed);
-            else if (elapsed < 3600)
-                printf("Total duration: %lu minutes %lu seconds\n", elapsed / 60, elapsed % 60);
-            else
-                printf("Total duration: %lu hours %lu minutes %lu seconds\n", elapsed / 3600, (elapsed % 3600) / 60, elapsed % 60);
-        }
-            
-        //export_raw("image.rtdata", target_number_of_rays, matrix);
-        return EXIT_SUCCESS;
+        const bool ok = run_offline(runtime_parameters, matrix, scene, output_dir_exists);
+        return ok ? EXIT_SUCCESS : EXIT_FAILURE;
     }
 
 
@@ -491,30 +492,26 @@ int main(int argc, char *argv[]) {
                 /* B */
                 /* Export as BMP */
                 {
-                    create_dir();
+                    create_dir(output_dir_exists);
                     const bool success_bmp = write_bmp("../output/image.bmp", matrix, number_of_rays, gamma);
-                    if (success_bmp) {
-                        printf(" Saved as output/image.bmp\n");
-                    }
-                    else {
+                    if (not success_bmp) {
                         printf("Save failed\n");
                         return EXIT_FAILURE;
                     }
+                    printf(" Saved as output/image.bmp\n");
                     break;
                 }
             case rt::screen::key::R:
                 /* R */
                 /* Export raw data */
                 {
-                    create_dir();
+                    create_dir(output_dir_exists);
                     const bool success_raw = export_raw("../output/image.rtdata", number_of_rays, matrix);
-                    if (success_raw) {
-                        printf(" Saved as output/image.rtdata\n");
-                    }
-                    else {
+                    if (not success_raw) {
                         printf("Save failed\n");
                         return EXIT_FAILURE;
                     }
+                    printf(" Saved as output/image.rtdata\n");
                     break;
                 }
             default:
@@ -522,15 +519,16 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    create_dir();
-    bool success = write_bmp("../output/image_final.bmp", matrix, MAX_RAYS, gamma);
-    success = success && export_raw("../output/image_final.rtdata", MAX_RAYS, matrix);
-    if (success) {
-        printf("\nSaved as output/image_final.bmp and output/image_final.rtdata\n");
-        return EXIT_SUCCESS;
-    }
-    else {
+    create_dir(output_dir_exists);
+    const bool success =
+            write_bmp ("../output/image_final.bmp", matrix, MAX_RAYS, gamma)
+         && export_raw("../output/image_final.rtdata", MAX_RAYS, matrix);
+    
+    if (not success) {
         printf("\nSave failed\n");
         return EXIT_FAILURE;
     }
+
+    printf("\nSaved as output/image_final.bmp and output/image_final.rtdata\n");
+    return EXIT_SUCCESS;
 }
