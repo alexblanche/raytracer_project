@@ -423,7 +423,7 @@ hit triangle::compute_intersection(ray& r, const real t) const {
     const object* pt_obj = this;
     ray* pt_ray = &r;
     
-    if constexpr (SMOOTH_SHADING) {
+    if constexpr (SHADING == shading::SmoothShading) {
     
         // Computation of the interpolated normal vector
         const barycentric_info bary = get_barycentric(p);
@@ -471,7 +471,7 @@ void triangle::print() const {
     Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
 rt::vector triangle::compute_normal_from_map_with_info(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const {
 
-    if constexpr (SMOOTH_SHADING) {
+    if constexpr (SHADING == shading::SmoothShading) {
         const rt::vector& t = info.tangent;
         // Recompute the tangent space with Gram-Schmidt's method
         /*
@@ -514,7 +514,7 @@ rt::vector triangle::compute_normal_from_map_with_info(const rt::vector& tangent
 inline rt::vector triangle::sample(randomgen& rg) const {
     
     /* Incorrect version: does not sample uniformly (will do for now) */
-    const real u = rg.random_real(1.0f);
+    const real u = rg.random_ratio();
     const real v = rg.random_real(1.0f - u);
 
     return position + (u * v1) + (v * v2);

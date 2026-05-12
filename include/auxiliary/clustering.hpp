@@ -14,20 +14,14 @@ struct element {
 
    /* Constructors */
 
-   element() {
-      obj = std::nullopt;
-      bd = std::nullopt;
-   }
+   element() :
+      obj (std::nullopt), bd(std::nullopt) {}
 
-   element(const object* o) {
-      obj = o;
-      bd = std::nullopt;
-   }
+   element(const object* o) :
+      obj(o), bd(std::nullopt) {}
 
-   element(const bounding* b) {
-      obj = std::nullopt;
-      bd = b;
-   }
+   element(const bounding* b) :
+      obj(std::nullopt), bd(b) {}
 
    /* Position accessor */
 
@@ -45,7 +39,7 @@ struct element {
 };
 
 /* Returns a vector of k vectors of elements representing the k clusters */
-std::vector<std::vector<element>> k_means(const std::vector<element>& elts, const unsigned int k);
+std::vector<std::vector<element>> k_means(const std::vector<element>& elts, unsigned int k);
 
 /* Auxiliary function to create_bounding_hierarchy
    Performs the second step of the algorithm: creates the hierarchy of the terminal boundings */

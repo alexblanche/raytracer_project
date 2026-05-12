@@ -83,24 +83,17 @@ namespace rt {
 			/**
 			 * Copies the rt::color matrix onto the screen, by averaging the number_of_rays colors per pixel
 			*/
-			void copy(std::vector<std::vector<rt::color>>& matrix,
-				const size_t width, const size_t height,
-				const unsigned int number_of_rays) const;
-
-			/**
-			 * Same as copy
-			*/
 			void fast_copy(std::vector<std::vector<rt::color>>& matrix,
-				const size_t width, const size_t height,
-				const unsigned int number_of_rays) const;
+				size_t width, size_t height,
+				unsigned int number_of_rays) const;
 
 			void fast_copy_gamma(std::vector<std::vector<rt::color>>& matrix,
-				const size_t width, const size_t height,
-				const unsigned int number_of_rays, const real gamma) const;
+				size_t width, size_t height,
+				unsigned int number_of_rays, real gamma) const;
 
 			void fast_copy_reinhardt(std::vector<std::vector<rt::color>>& matrix,
-				const size_t width, const size_t height,
-				const unsigned int number_of_rays, const real gamma) const;
+				size_t width, size_t height,
+				unsigned int number_of_rays, real gamma) const;
 	};
 
 }

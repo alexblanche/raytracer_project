@@ -20,7 +20,7 @@ class randomgen {
         //void update_seed();
         
         /* Returns a random real between 0 and m */
-        real random_real(const real m);
+        real random_real(real m);
 
         /* Returns a random real between 0 and 1 */
         inline real random_ratio() {

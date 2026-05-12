@@ -6,7 +6,7 @@
 
 struct dimensions {
    int width, height;
-   dimensions(const int width, const int height)
+   dimensions(int width, int height)
       : width(width), height(height) {}
 };
 
@@ -19,7 +19,7 @@ std::optional<dimensions> read_bmp_size(const char* file_name);
 bool read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data);
 
 /* Returns the integer stored in the buffer at index start_index on nb_bytes bytes (in Little Endian convention) */
-unsigned int value_of_bytes(const unsigned char buffer[], const int start_index, const int nb_bytes);
+unsigned int value_of_bytes(const unsigned char buffer[], int start_index, int nb_bytes);
 
 /* Prints the info contained in the header of the given .bmp file */
 bool print_bmp_info(const char* file_name);
@@ -27,4 +27,4 @@ bool print_bmp_info(const char* file_name);
 /* Writes the data into a .bmp file with the given name
    The value (real) of each component of each color of data is divided by number_of_rays before being written in the file
    Returns true if the operation was successful */
-bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data, const unsigned int number_of_rays, const real gamma = 1.0f);
+bool write_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data, unsigned int number_of_rays, real gamma = 1.0f);

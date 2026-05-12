@@ -17,7 +17,7 @@ namespace rt {
 		// Constructors
 		constexpr vector() : x(0), y(0), z(0) {}
 		
-		constexpr vector(const real a, const real b, const real c) : x(a), y(b), z(c) {}
+		constexpr vector(real a, real b, real c) : x(a), y(b), z(c) {}
 
 		/**
 		 * Comparison
@@ -90,17 +90,17 @@ namespace rt {
 		/**
 		 * Rotation around axis x by an angle theta
 		 * */
-		vector rotate_x(const real theta) const;
+		vector rotate_x(real theta) const;
 
 		/**
 		 * Rotation around axis y by an angle theta
 		 * */
-		vector rotate_y(const real theta) const;
+		vector rotate_y(real theta) const;
 
 		/**
 		 * Rotation around axis z by an angle theta
 		 * */
-		vector rotate_z(const real theta) const;
+		vector rotate_z(real theta) const;
 
 		// In-place transformations	
 		inline void to_unit() {
@@ -115,7 +115,7 @@ namespace rt {
 	 * Left multiplication with a scalar
 	 * x * (a,b,c) = (xa,xb,xc)
 	 */
-	inline vector operator*(const real a, const vector& v) {
+	inline vector operator*(real a, const vector& v) {
 		return vector(
 			a * v.x,
 			a * v.y,
@@ -127,12 +127,8 @@ namespace rt {
 	 * Right multiplication with a scalar
 	 * (a,b,c) * x = (ax,bx,cx)
 	 */
-	inline vector operator*(const vector& v, const real a) {
-		return vector(
-			a * v.x,
-			a * v.y,
-			a * v.z
-		);
+	inline vector operator*(const vector& v, real a) {
+		return a * v;
 	}
 
 	/**
@@ -140,11 +136,8 @@ namespace rt {
 	 * (a,b,c) / x = (a/x, b/x, c/x)
 	 */
 	inline vector operator/(const vector& v, const real a) {
-		return vector(
-			v.x / a,
-			v.y / a,
-			v.z / a
-		);
+		const real inva = 1.0f / a;
+		return v * inva;
 	}
 
 	// In-place transformations

@@ -22,8 +22,8 @@ class cylinder : public object {
         cylinder();
 
         cylinder(const rt::vector& origin, const rt::vector& direction,
-            const real radius, const real length,
-            const unsigned int material_index);
+            real radius, real length,
+            unsigned int material_index);
 
         /* Accessors */
 
@@ -43,7 +43,7 @@ class cylinder : public object {
 
         std::optional<real> measure_distance(const ray& r) const;
 
-        hit compute_intersection(ray& r, const real t) const;
+        hit compute_intersection(ray& r, real t) const;
 
         /* Minimum and maximum coordinates */
         min_max_coord get_min_max_coord() const;

@@ -21,12 +21,12 @@ class plane : public object {
     private:
 
         rt::vector normal;
-        real a, b, c, d;
+        real d;
         // Used to orient the texture
         plane_orientation orientation;
 
         /* A plane (P) of equation (P): ax + by + cz + d = 0
-         defined by 4 reals a,b,c,d */
+         defined by 4 reals a,b,c,d, where normal = (a, b, c) */
 
     public:
 
@@ -34,15 +34,15 @@ class plane : public object {
 
         plane();
         
-        plane(const real sa, const real sb, const real sc, const real sd,
-            const unsigned int material_index);
+        plane(real sa, real sb, real sc, real sd,
+            unsigned int material_index);
         
-        plane(const real a, const real b, const real c, const rt::vector& position,
-            const unsigned int material_index);
+        plane(real a, real b, real c, const rt::vector& position,
+            unsigned int material_index);
 
-        plane(const real a, const real b, const real c, const rt::vector& position,
-            const unsigned int material_index,
-            const unsigned int texture_info_index, const rt::vector& right, const real scale);
+        plane(real a, real b, real c, const rt::vector& position,
+            unsigned int material_index,
+            unsigned int texture_info_index, const rt::vector& right, real scale);
 
         /* Accessors */
 
@@ -55,7 +55,7 @@ class plane : public object {
 
         std::optional<real> measure_distance(const ray& r) const;
         
-        hit compute_intersection(ray& r, const real t) const;
+        hit compute_intersection(ray& r, real t) const;
 
         /* Returns the barycentric info (tiles according to texture_scale) */
         barycentric_info get_barycentric(const rt::vector& p) const;

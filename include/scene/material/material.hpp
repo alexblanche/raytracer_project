@@ -48,7 +48,7 @@ class material {
                 opaque(true), emissive(false), has_specularity(false),
                 reflects_color(false) {}
 
-        constexpr material(const rt::color& color, const real smoothness)
+        constexpr material(const rt::color& color, real smoothness)
             :   color(color), smoothness(smoothness),
                 emission_intensity(0),
                 reflectivity(0),
@@ -59,10 +59,10 @@ class material {
                 reflects_color(false) {}
 
         constexpr material(const rt::color& color,
-            const real smoothness, const real emission_intensity,
-            const real reflectivity, const bool reflects_color,
-            const real transparency, const real refraction_scattering,
-            const real refraction_index)
+            real smoothness, real emission_intensity,
+            real reflectivity, bool reflects_color,
+            real transparency, real refraction_scattering,
+            real refraction_index)
                 :   color(color), smoothness(smoothness),
                     emission_intensity(emission_intensity),
                     reflectivity(reflectivity),
@@ -73,9 +73,9 @@ class material {
                     reflects_color(reflects_color) {}
 
         /* Constructor from mtl parameters */
-        material(const real ns,
+        material(real ns,
             const rt::color& ka, const rt::color& kd, const rt::color& ks, const rt::color& ke,
-            const real ni, const real d, const unsigned int illum, const real gamma);
+            real ni, real d, unsigned int illum, real gamma);
 
 
         material(material&&)                 = default;
@@ -140,4 +140,4 @@ constexpr material WATER  (rt::WHITE, 1, 0, 1, false, 1,    0, 1.33);
 material diffuse_material(const rt::color& color);
 
 /* Returns a light of given color and intensity */
-material light_material(const rt::color& color, const real emission_intensity);
+material light_material(const rt::color& color, real emission_intensity);

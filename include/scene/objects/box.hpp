@@ -28,11 +28,11 @@ class box : public object {
         
         /* Main constructor */
         box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
-            const real l1, const real l2, const real l3, const unsigned int material_index);
+            real l1, real l2, real l3, unsigned int material_index);
 
         /* Constructor used for bounding boxes: no material and no index */
         box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
-            const real l1, const real l2, const real l3);
+            real l1, real l2, real l3);
         
         /* Accessors */
 
@@ -50,7 +50,7 @@ class box : public object {
 
         std::optional<real> measure_distance(const ray& r) const;
         
-        hit compute_intersection(ray& r, const real t) const;
+        hit compute_intersection(ray& r, real t) const;
 
         /* Minimum and maximum coordinates */
         min_max_coord get_min_max_coord() const;

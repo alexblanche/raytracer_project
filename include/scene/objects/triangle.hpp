@@ -35,22 +35,22 @@ class triangle : public object {
         
         // Constructor from three points
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, 
-            const unsigned int material_index, const unsigned int texture_info_index);
+            unsigned int material_index, unsigned int texture_info_index);
 
         // Constructor from three points with vertex normals
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
             const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
-            const unsigned int material_index, const unsigned int texture_info_index);
+            unsigned int material_index, unsigned int texture_info_index);
 
         // Constructor from three points with normal mapping enabled
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
-            const unsigned int material_index, const unsigned int texture_info_index, const bool normal_mapping,
+            unsigned int material_index, unsigned int texture_info_index, bool normal_mapping,
             texture_info& info);
 
         // Constructor from three points with vertex normals and normal mapping enabled
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
             const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2,
-            const unsigned int material_index, const unsigned int texture_info_index, const bool normal_mapping,
+            unsigned int material_index, unsigned int texture_info_index, bool normal_mapping,
             texture_info& info);
 
         /* Returns the barycenter of the triangle */
@@ -69,7 +69,7 @@ class triangle : public object {
 
         rt::vector get_interpolated_normal(const barycentric_info& bary) const;
 
-        hit compute_intersection(ray& r, const real t) const;
+        hit compute_intersection(ray& r, real t) const;
 
 
         /* Minimum and maximum coordinates */

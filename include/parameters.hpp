@@ -11,7 +11,10 @@ constexpr real PI = 3.14159265358979323846;
 constexpr real TWOPI = 2.0 * PI;
 
 // Comment for flat-shading of polygon meshes
-constexpr bool SMOOTH_SHADING = true;
+enum class shading {
+    SmoothShading, FlatShading
+};
+constexpr shading SHADING = shading::SmoothShading;
 
 constexpr unsigned int MAX_RAYS = 1000;
 constexpr float ANTI_ALIASING = 0.3f;

@@ -7,7 +7,7 @@ struct custom_stack {
 
     std::vector<T> v;
 
-    custom_stack(const unsigned int init_size) {
+    custom_stack(unsigned int init_size) {
         v.reserve(init_size);
     }
 
@@ -23,7 +23,7 @@ struct custom_stack {
         return v.back();
     }
 
-    void push(T t) {
+    void push(const T t) {
         v.push_back(t);
     }
 

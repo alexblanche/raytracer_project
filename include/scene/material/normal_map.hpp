@@ -14,7 +14,7 @@ class normal_map {
 
         normal_map();
 
-        normal_map(const unsigned int width, const unsigned int height, std::vector<std::vector<rt::vector>>&& data);
+        normal_map(unsigned int width, unsigned int height, std::vector<std::vector<rt::vector>>&& data);
 
         /* Constructor from a .bmp file
            Writes true in parsing_successful if the operation was successful */

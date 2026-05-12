@@ -20,8 +20,8 @@ class polygon : public object {
         polygon() : object(), info(std::nullopt) {}
 
         /* For untextured polygons, provided nullopt for info */
-        polygon(const rt::vector& position, const unsigned int material_index,
-            const unsigned int texture_info_index)
+        polygon(const rt::vector& position, unsigned int material_index,
+            unsigned int texture_info_index)
             
             : object(position, material_index, texture_info_index), info(info) {}
 

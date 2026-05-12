@@ -51,9 +51,9 @@ class object {
 
         object();
 
-        object(const rt::vector& pos, const unsigned int material_index);
+        object(const rt::vector& pos, unsigned int material_index);
 
-        object(const rt::vector& pos, const unsigned int material_index, const unsigned int texture_info_index);
+        object(const rt::vector& pos, unsigned int material_index, unsigned int texture_info_index);
 
         /* Accessors */
 
@@ -79,7 +79,7 @@ class object {
         /* Intersection determination */
         virtual std::optional<real> measure_distance(const ray& r) const;
 
-        virtual hit compute_intersection(ray& r, const real t) const;
+        virtual hit compute_intersection(ray& r, real t) const;
 
         /* Returns the minimum and maximum coordinates of the object along the three axes */
         virtual min_max_coord get_min_max_coord() const;

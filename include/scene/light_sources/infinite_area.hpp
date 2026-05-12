@@ -14,7 +14,7 @@ struct alias_bin {
     unsigned int alias;
 
     alias_bin() : p(0.0f), alias(0) {}
-    alias_bin(const real p, const unsigned int alias)
+    alias_bin(real p, unsigned int alias)
         : p(p), alias(alias) {}
 };
 

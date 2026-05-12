@@ -15,7 +15,7 @@
 /* Struct representing UV-coordinates */
 struct uvcoord {
     real u, v;
-    uvcoord(const real u, const real v)
+    uvcoord(real u, real v)
         : u(u), v(v) {}
 };
 

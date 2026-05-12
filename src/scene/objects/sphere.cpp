@@ -22,8 +22,7 @@ sphere::sphere(const rt::vector& center, const real radius, const unsigned int m
 sphere::sphere(const rt::vector& center, const real radius, const unsigned int material_index,
     const unsigned int texture_info_index, const rt::vector& forward, const rt::vector& right)
 
-    : object(center, material_index, texture_info_index), radius(radius)
-        {
+    : object(center, material_index, texture_info_index), radius(radius) {
         // forward_dir(forward.unit()), right_dir(right.unit())
         // up_dir = right_dir.value() ^ forward_dir.value();
 

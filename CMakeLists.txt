@@ -93,6 +93,7 @@ add_executable(${merger_name}
 	src/file_readers/raw_data.cpp
 	src/file_readers/bmp_reader.cpp
 	src/file_readers/merger.cpp
+	src/parallel/parallel.cpp
 )
 
 # Executable that applies glow postprocessing to a raw data file and generates a bmp file

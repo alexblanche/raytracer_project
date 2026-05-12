@@ -11,7 +11,7 @@
 /* Constructors */
 
 /* Default constructor */
-plane::plane() : a(0), b(0), c(0), d(0) {}
+plane::plane() {}
 
 /* Main constructor */
 /* A plane (P) of equation (P): ax + by + cz + d = 0
@@ -25,9 +25,9 @@ plane::plane(const real pa, const real pb, const real pc, const real pd,
     /* Normalization of the normal vector */
     const rt::vector normal_vector(pa, pb, pc);
     normal = normal_vector.unit();
-    a = normal.x;
-    b = normal.y;
-    c = normal.z;
+    const real a = normal.x;
+    const real b = normal.y;
+    const real c = normal.z;
     d = pd / normal_vector.norm();
     
     if (pa != 0) {
@@ -51,10 +51,6 @@ plane::plane(const real pa, const real pb, const real pc, const rt::vector& posi
     : object(position, material_index) {
 
     normal = rt::vector(pa, pb, pc).unit();
-    a = normal.x;
-    b = normal.y;
-    c = normal.z;
-
     d = -(normal | position); // = -aX-bY-cZ if position = (X,Y,Z)
 }
 
@@ -66,10 +62,6 @@ plane::plane(const real pa, const real pb, const real pc, const rt::vector& posi
     : object(position, material_index, texture_info_index) {
 
     normal = rt::vector(pa, pb, pc).unit();
-    a = normal.x;
-    b = normal.y;
-    c = normal.z;
-
     d = -(normal | position); // = -aX-bY-cZ if position = (X,Y,Z)
 
     orientation.right_dir = right.unit();
@@ -120,11 +112,11 @@ hit plane::compute_intersection(ray& r, const real t) const {
 barycentric_info plane::get_barycentric(const rt::vector& p) const {
 
     const real right_component = (p | orientation.right_dir) * orientation.inv_texture_scale;
-    real x_value = fmod(right_component, (real) 1.0f);
+    real x_value = fmod(right_component, static_cast<real>(1.0f));
     if (x_value < 0) x_value += 1.0f;
 
     const real down_component = (p | orientation.down_dir) * orientation.inv_texture_scale;
-    real y_value = fmod(down_component, (real) 1.0f);
+    real y_value = fmod(down_component, static_cast<real>(1.0f));
     if (y_value < 0) y_value += 1.0f;
 
     return barycentric_info(x_value, y_value);
@@ -142,11 +134,11 @@ rt::vector plane::compute_normal_from_map(const rt::vector& tangent_space_normal
 }
 
 
-rt::vector plane::sample(randomgen& /*rg*/) const {
+rt::vector plane::sample(randomgen&) const {
     throw std::runtime_error("Sampling is unavailable for planes");
 }
 
 
-rt::vector plane::sample_visible(randomgen& /*rg*/, const rt::vector& /*pt*/) const {
+rt::vector plane::sample_visible(randomgen&, const rt::vector&) const {
     throw std::runtime_error("Sampling is unavailable for planes");
 }

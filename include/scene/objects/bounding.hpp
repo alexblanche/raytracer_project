@@ -41,7 +41,7 @@ class bounding {
 
         bounding();
         
-        bounding(const bool is_terminal, const box* b, const std::vector<const object*>& content,
+        bounding(bool is_terminal, const box* b, const std::vector<const object*>& content,
             const std::vector<const bounding*>& children);
 
         /* Container node constructor (only for first-level non-triangle objects) */

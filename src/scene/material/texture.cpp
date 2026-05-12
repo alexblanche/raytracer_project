@@ -31,16 +31,21 @@ texture::texture(const char* file_name, bool& parsing_successful, const real gam
         throw;
     }
 
-    const std::optional<dimensions> dims = (is_bmp) ? read_bmp_size(file_name) : read_hdr_size(file_name);
+    const std::optional<dimensions> dims = (is_bmp) ?
+          read_bmp_size(file_name)
+        : read_hdr_size(file_name);
+    
     if (dims.has_value()) {
-        width = dims.value().width;
+        width  = dims.value().width;
         height = dims.value().height;
         data = std::vector<std::vector<rt::color>>(width, std::vector<rt::color>(height));
-        const bool read_success = (is_bmp) ? read_bmp(file_name, data) : read_hdr(file_name, data);
+        const bool read_success = (is_bmp) ?
+              read_bmp(file_name, data)
+            : read_hdr(file_name, data);
         if (gamma != 1.0f)
             apply_gamma(data, gamma);
-        width_minus_one = (real) (width - 1);
-        height_minus_one = (real) (height - 1);
+        width_minus_one  = static_cast<real>(width  - 1);
+        height_minus_one = static_cast<real>(height - 1);
         parsing_successful = read_success;
     }
     else {

@@ -5,4 +5,4 @@
 #include "scene/objects/object.hpp"
 #include "scene/scene.hpp"
 
-rt::color pathtrace_multisample(ray& r, scene& scene, randomgen& rg, const unsigned int bounce, const unsigned int number_of_samples);
+rt::color pathtrace_multisample(ray& r, scene& scene, randomgen& rg, unsigned int bounce, unsigned int number_of_samples);

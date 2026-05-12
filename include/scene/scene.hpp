@@ -74,10 +74,10 @@ class scene {
             std::vector<material>&& material_set,
             std::vector<texture_info>&& texture_info_set,
             const rt::color& bg_color,
-            const int width, const int height,
+            int width, int height,
             camera&& cam,
-            const unsigned int polygons_per_bounding,
-            const real gamma);
+            unsigned int polygons_per_bounding,
+            real gamma);
 
         /* Constructor with background texture and optional background color */
         scene(std::vector<const object*>&& object_set,
@@ -86,11 +86,11 @@ class scene {
             std::vector<normal_map>&& normal_map_set,
             std::vector<material>&& material_set,
             std::vector<texture_info>&& texture_info_set,
-            texture&& bg_texture, const real bg_rx, const real bg_ry, const real bg_rz,
-            const int width, const int height,
+            texture&& bg_texture, real bg_rx, real bg_ry, real bg_rz,
+            int width, int height,
             camera&& cam,
-            const unsigned int polygons_per_bounding,
-            const real gamma);
+            unsigned int polygons_per_bounding,
+            real gamma);
 
         scene(scene&&) = default;
 
@@ -117,9 +117,9 @@ class scene {
         }
 
         /* Returns the color of the pixel associated with UV-coordinates u, v */
-        const rt::color& sample_texture(const unsigned int texture_info_index, const barycentric_info& bary) const;
+        const rt::color& sample_texture(unsigned int texture_info_index, const barycentric_info& bary) const;
 
         /* Sampling maps */
-        map_sample sample_maps(const unsigned int texture_info_index, const barycentric_info& bary,
-            const rt::color& default_color, const rt::vector& default_normal, const real default_reflectivity = 0.0f) const;
+        map_sample sample_maps(unsigned int texture_info_index, const barycentric_info& bary,
+            const rt::color& default_color, const rt::vector& default_normal, real default_reflectivity = 0.0f) const;
 };

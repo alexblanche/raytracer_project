@@ -178,7 +178,7 @@ namespace rt  {
 	color average_col_vect(const std::vector<color>& color_set);
 
 	/* Applies gamma correction to the color data */
-	void apply_gamma(std::vector<std::vector<color>>& data, const real gamma);
+	void apply_gamma(std::vector<std::vector<color>>& data, real gamma);
 
 	// Returns c1 * a + c2
 	inline color fma(const color& c1, const real a, const color& c2) {

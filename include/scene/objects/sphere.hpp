@@ -31,17 +31,17 @@ class sphere : public object {
         
         sphere();
 
-        sphere(const rt::vector& center, const real radius, const unsigned int material_index);
+        sphere(const rt::vector& center, const real radius, unsigned int material_index);
 
-        sphere(const rt::vector& center, const real radius, const unsigned int material_index,
-            const unsigned int texture_info_index, const rt::vector& forward_dir, const rt::vector& right_dir);
+        sphere(const rt::vector& center, const real radius, unsigned int material_index,
+            unsigned int texture_info_index, const rt::vector& forward_dir, const rt::vector& right_dir);
 
         
         /* Intersection determination */
 
         std::optional<real> measure_distance(const ray& r) const;
 
-        hit compute_intersection(ray& r, const real t) const;
+        hit compute_intersection(ray& r, real t) const;
 
         /* Minimum and maximum coordinates */
         min_max_coord get_min_max_coord() const;
