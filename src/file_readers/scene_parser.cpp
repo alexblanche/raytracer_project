@@ -22,11 +22,6 @@
 
 #include "scene/material/normal_map.hpp"
 
-// object types
-enum class object_type {
-    Triangle, Quad, Sphere, Plane, Box, Cylinder
-};
-
 /*** Scene description parsing ***/
 
 /* Auxiliary function: returns a material from a description file */

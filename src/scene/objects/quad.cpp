@@ -424,48 +424,46 @@ barycentric_info quad::get_barycentric(const rt::vector& p) const {
     const rt::vector c = p - position;
 
     real detv2, l2;
-    switch (case_det)
-    {
-    case det_case::Default:
-        detv2 = c.x * v2.y - c.y * v2.x;
-        l2 = (v1.x * c.y - v1.y * c.x) / det12;
-        break;
+    switch (case_det) {
+        case det_case::Default:
+            detv2 = c.x * v2.y - c.y * v2.x;
+            l2 = (v1.x * c.y - v1.y * c.x) / det12;
+            break;
 
-    case det_case::XZ:
-        detv2 = c.x * v2.z - c.z * v2.x;
-        l2 = (v1.x * c.z - v1.z * c.x) / det12;
-        break;
+        case det_case::XZ:
+            detv2 = c.x * v2.z - c.z * v2.x;
+            l2 = (v1.x * c.z - v1.z * c.x) / det12;
+            break;
 
-    case det_case::YZ:
-        detv2 = c.y * v2.z - c.z * v2.y;
-        l2 = (v1.y * c.z - v1.z * c.y) / det12;
-        break;
-    
-    default:
-        detv2 = 0;
-        l2 = 0;
-        break;
+        case det_case::YZ:
+            detv2 = c.y * v2.z - c.z * v2.y;
+            l2 = (v1.y * c.z - v1.z * c.y) / det12;
+            break;
+        
+        default:
+            detv2 = 0;
+            l2 = 0;
+            break;
     }
     const real l1 = detv2 / det12;
 
     if (l1 >= 0.0f && l2 >= 0.0f && l1 <= 1.0f && l1 + l2 <= 1.0f) {
-        return barycentric_info(l1, l2, side::LowerTriangle);
+        return barycentric_info(l1, l2, object_type::Quad, side::LowerTriangle);
     }
 
-    switch (case_det)
-    {
-    case det_case::Default: l2 = (v3.x * c.y - v3.y * c.x) / det23;
-        break;
-    case det_case::XZ:      l2 = (v3.x * c.z - v3.z * c.x) / det23;
-        break;
-    case det_case::YZ:      l2 = (v3.y * c.z - v3.z * c.y) / det23;
-        break;
-    default:                l2 = 0;
-        break;
+    switch (case_det) {
+        case det_case::Default: l2 = (v3.x * c.y - v3.y * c.x) / det23;
+            break;
+        case det_case::XZ:      l2 = (v3.x * c.z - v3.z * c.x) / det23;
+            break;
+        case det_case::YZ:      l2 = (v3.y * c.z - v3.z * c.y) / det23;
+            break;
+        default:                l2 = 0;
+            break;
     }
     const real l11 = detv2 / det23;
 
-    return barycentric_info(l11, l2, side::HigherTriangle);
+    return barycentric_info(l11, l2, object_type::Quad, side::HigherTriangle);
 
 }
 

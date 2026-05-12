@@ -119,7 +119,7 @@ barycentric_info plane::get_barycentric(const rt::vector& p) const {
     real y_value = fmod(down_component, static_cast<real>(1.0f));
     if (y_value < 0) y_value += 1.0f;
 
-    return barycentric_info(x_value, y_value);
+    return barycentric_info(x_value, y_value, object_type::Plane);
 }
 
 /* Normal map vector computation at render time */

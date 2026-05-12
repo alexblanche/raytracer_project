@@ -120,14 +120,18 @@ min_max_coord sphere::get_min_max_coord() const {
 barycentric_info sphere::get_barycentric(const rt::vector& p) const {
     const rt::vector v = (p - position).unit();
     const real forward_component = (v | orientation.forward_dir);
-    const real right_component   = (v | orientation.right_dir);
-    const real up_component      = (v | orientation.up_dir);
+    const real right_component   = (v | orientation.right_dir  );
+    const real up_component      = (v | orientation.up_dir     );
 
     const real theta = asin(up_component);
     const real x = acos(forward_component / cos(theta));
     const real phi = (right_component < 0.0f) ? -x + 2.0f * PI : x;
 
-    return barycentric_info(phi * ((1.0 / PI) * 0.5f), theta * (1.0 / PI) + 0.5f);
+    return barycentric_info(
+        phi   * ((1.0 / PI) * 0.5f),
+        theta * (1.0 / PI) + 0.5f,
+        object_type::Sphere
+    );
 }
 
 /* Normal map vector computation at render time */
@@ -164,7 +168,5 @@ rt::vector sphere::sample_visible(randomgen& rg, const rt::vector& pt) const {
         return 2.0f * position - v;
     */
     // Optimized
-    constexpr real HALFPI = PI / 2.0;
-    return //random_direction<HALFPI>(rg, (pt - position).unit());
-        random_direction(rg, (pt - position).unit(), HALFPI);
+    return random_direction(rg, (pt - position).unit(), PI / 2.0);
 }

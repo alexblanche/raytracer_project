@@ -255,7 +255,7 @@ min_max_coord cylinder::get_min_max_coord() const {
 
 /* Returns the barycentric info (the texture is mapped onto the top, the bottom, and the curved surface) [to be implemented] */
 barycentric_info cylinder::get_barycentric(const rt::vector& /*p*/) const {
-    return barycentric_info(0.0f, 0.0f);
+    return barycentric_info(0.0f, 0.0f, object_type::Cylinder);
 }
 
 rt::vector cylinder::sample(randomgen& /*rg*/) const {

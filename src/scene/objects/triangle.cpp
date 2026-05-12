@@ -402,7 +402,7 @@ barycentric_info triangle::get_barycentric(const rt::vector& p) const {
         break;
     }
 
-    return barycentric_info(l1, l2);
+    return barycentric_info(l1, l2, object_type::Triangle);
 }
 
 inline rt::vector triangle::get_interpolated_normal(const barycentric_info& bary) const {

@@ -18,3 +18,8 @@ constexpr shading SHADING = shading::SmoothShading;
 
 constexpr unsigned int MAX_RAYS = 1000;
 constexpr float ANTI_ALIASING = 0.3f;
+
+// object types
+enum class object_type {
+    Triangle, Quad, Sphere, Plane, Box, Cylinder
+};

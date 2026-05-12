@@ -11,8 +11,8 @@ texture_info::texture_info(std::optional<int> t_index,
     // std::optional<size_t> displacement_map_index,
     std::vector<real>&& uv_coordinates)
     : uv_coordinates(std::move(uv_coordinates)),
-    texture_index(t_index.has_value() ? t_index.value() : -1),
-    normal_map_index(n_index.has_value() ? n_index.value() : -1) {}
+    texture_index(t_index.value_or(-1)),
+    normal_map_index(n_index.value_or(-1)) {}
 
 /* Texturing */
 
@@ -20,23 +20,34 @@ texture_info::texture_info(std::optional<int> t_index,
    In the case of quads, the boolean lower_triangle indicates that the three points to
    consider are (u0, v0), (u1, v1), (u2, v2) or (u0, v0), (u3, v3), (u2, v2) (in this order) */
 uvcoord texture_info::get_barycenter(const barycentric_info& bary) const {
-
-    const unsigned int n = uv_coordinates.size();
-    if (n == 0) {
-        // Spheres or Planes
-        return uvcoord(bary.l1, bary.l2);
-    }
     
     real u, v;
-    if (n == 6 || (bary.triangle_side == side::LowerTriangle)) {
-        // Triangles or Quads with (u0, v0), (u1, v1), (u2, v2) considered
-        u = (1.0f - bary.l1 - bary.l2) * uv_coordinates[0] + bary.l1 * uv_coordinates[2] + bary.l2 * uv_coordinates[4];
-        v = (1.0f - bary.l1 - bary.l2) * uv_coordinates[1] + bary.l1 * uv_coordinates[3] + bary.l2 * uv_coordinates[5];
-    }
-    else {
-        // Quads with (u0, v0), (u3, v3), (u2, v2) (in this order) considered
-        u = (1.0f - bary.l1 - bary.l2) * uv_coordinates[0] + bary.l1 * uv_coordinates[6] + bary.l2 * uv_coordinates[4];
-        v = (1.0f - bary.l1 - bary.l2) * uv_coordinates[1] + bary.l1 * uv_coordinates[7] + bary.l2 * uv_coordinates[5];
+    switch (bary.type) {
+        case object_type::Sphere:
+        case object_type::Plane:
+            u = bary.l1;
+            v = bary.l2;
+            break;
+        case object_type::Quad:
+            if (bary.triangle_side == side::LowerTriangle) {
+                // Quads with (u0, v0), (u3, v3), (u2, v2) (in this order) considered
+                const real l0 = 1.0f - bary.l1 - bary.l2;
+                u = l0 * uv_coordinates[0] + bary.l1 * uv_coordinates[6] + bary.l2 * uv_coordinates[4];
+                v = l0 * uv_coordinates[1] + bary.l1 * uv_coordinates[7] + bary.l2 * uv_coordinates[5];
+                break;
+            }
+            // else: same as Triangle case
+        case object_type::Triangle: {
+                // Triangles or Quads with (u0, v0), (u1, v1), (u2, v2) considered
+                const real l0 = 1.0f - bary.l1 - bary.l2;
+                u = l0 * uv_coordinates[0] + bary.l1 * uv_coordinates[2] + bary.l2 * uv_coordinates[4];
+                v = l0 * uv_coordinates[1] + bary.l1 * uv_coordinates[3] + bary.l2 * uv_coordinates[5];
+            }
+            break;
+        default:
+            u = 0;
+            v = 0;
+            break;
     }
     return uvcoord(u, v);
 }
