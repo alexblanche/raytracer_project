@@ -6,14 +6,18 @@
    l1, l2: ST-coordinates (coordinates in object space)
    lower_triangle: true if the point lies in the lower_triangle (p0, p1, p2) of a quad */
 
+enum class side {
+    LowerTriangle, HigherTriangle
+};
+
 struct barycentric_info {
     real l1;
     real l2;
-    bool lower_triangle;
+    side triangle_side;
 
-    barycentric_info(real l1, real l2, bool lower_triangle)
-        : l1(l1), l2(l2), lower_triangle(lower_triangle) {}
+    barycentric_info(real l1, real l2, side triangle_side)
+        : l1(l1), l2(l2), triangle_side(triangle_side) {}
 
     barycentric_info(real l1, real l2)
-        : l1(l1), l2(l2), lower_triangle(true) {}
+        : l1(l1), l2(l2), triangle_side(side::LowerTriangle) {}
 };

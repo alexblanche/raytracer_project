@@ -28,7 +28,7 @@ uvcoord texture_info::get_barycenter(const barycentric_info& bary) const {
     }
     
     real u, v;
-    if (n == 6 || bary.lower_triangle) {
+    if (n == 6 || (bary.triangle_side == side::LowerTriangle)) {
         // Triangles or Quads with (u0, v0), (u1, v1), (u2, v2) considered
         u = (1.0f - bary.l1 - bary.l2) * uv_coordinates[0] + bary.l1 * uv_coordinates[2] + bary.l2 * uv_coordinates[4];
         v = (1.0f - bary.l1 - bary.l2) * uv_coordinates[1] + bary.l1 * uv_coordinates[3] + bary.l2 * uv_coordinates[5];

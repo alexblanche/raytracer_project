@@ -10,33 +10,28 @@
 
 triangle::triangle() {}
 
-#define DEFAULT 0
-#define CASE_XZ 1
-#define CASE_YZ 2
-#define CASE_ERROR 3
-
-std::pair<real, int> set_up_det(const rt::vector& v1, const rt::vector& v2) {
+std::pair<real, det_case> set_up_det(const rt::vector& v1, const rt::vector& v2) {
 
     // printf("c = (%lf, %lf, %lf), detxy = %lf, abs(detxy) = %lf, cond = %d\n", c.x, c.y, c.z, detxy, abs(detxy), abs(detxy) > 0.00000001);
     
     const real detxy = v1.x * v2.y - v1.y * v2.x;
     if (abs(detxy) > 0.00000001f)
-        return std::pair(detxy, DEFAULT);
+        return std::pair(detxy, det_case::Default);
 
     // The vectors v1, v2 are colinear when projected on the plane z = 0
     // Another attempt with rows x, z
     const real detxz = v1.x * v2.z - v1.z * v2.x;
     if (abs(detxz) > 0.00000001f)
-        return std::pair(detxz, CASE_XZ);
+        return std::pair(detxz, det_case::XZ);
     
     // The vectors v1, v2 are colinear when projected on the planes y = 0 and z = 0
     // (e.g. the triangle lies in the plane x = constant)
     // Last attempt with rows y, z
     const real detyz = v1.y * v2.z - v1.z * v2.y;
     if (abs(detyz) > 0.00000001f)
-        return std::pair(detyz, CASE_YZ);
+        return std::pair(detyz, det_case::YZ);
 
-    return std::pair(0, CASE_ERROR);
+    return std::pair(0, det_case::Error);
     
 }
 
@@ -57,7 +52,7 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     vn2mvn0 = rt::vector();
     d = - (normal | p0);
 
-    std::pair<real, int> p = set_up_det(v1, v2);
+    std::pair<real, det_case> p = set_up_det(v1, v2);
     det = p.first;
     case_det = p.second;
 }
@@ -80,7 +75,7 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     vn1mvn0 = (vn1.unit()) - vn0;
     vn2mvn0 = (vn2.unit()) - vn0;
 
-    std::pair<real, int> p = set_up_det(v1, v2);
+    std::pair<real, det_case> p = set_up_det(v1, v2);
     det = p.first;
     case_det = p.second;
 }
@@ -104,7 +99,7 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
 
     d = - (normal | p0);
 
-    std::pair<real, int> p = set_up_det(v1, v2);
+    std::pair<real, det_case> p = set_up_det(v1, v2);
     det = p.first;
     case_det = p.second;
 
@@ -159,7 +154,7 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     vn1mvn0 = (vn1.unit()) - vn0;
     vn2mvn0 = (vn2.unit()) - vn0;
 
-    std::pair<real, int> p = set_up_det(v1, v2);
+    std::pair<real, det_case> p = set_up_det(v1, v2);
     det = p.first;
     case_det = p.second;
 
@@ -318,13 +313,13 @@ std::optional<real> triangle::measure_distance(const ray& r) const {
     real l1;
     switch (case_det)
     {
-    case DEFAULT: l1 = (c.x * v2.y - c.y * v2.x) / det;
+    case det_case::Default: l1 = (c.x * v2.y - c.y * v2.x) / det;
         break;
-    case CASE_XZ: l1 = (c.x * v2.z - c.z * v2.x) / det;
+    case det_case::XZ:      l1 = (c.x * v2.z - c.z * v2.x) / det;
         break;
-    case CASE_YZ: l1 = (c.y * v2.z - c.z * v2.y) / det;
+    case det_case::YZ:      l1 = (c.y * v2.z - c.z * v2.y) / det;
         break;
-    default: l1 = 0.0f;
+    default:                l1 = 0.0f;
         break;
     }
 
@@ -334,13 +329,13 @@ std::optional<real> triangle::measure_distance(const ray& r) const {
     real l2;
     switch (case_det)
     {
-    case DEFAULT: l2 = (v1.x * c.y - v1.y * c.x) / det;
+    case det_case::Default: l2 = (v1.x * c.y - v1.y * c.x) / det;
         break;
-    case CASE_XZ: l2 = (v1.x * c.z - v1.z * c.x) / det;
+    case det_case::XZ:      l2 = (v1.x * c.z - v1.z * c.x) / det;
         break;
-    case CASE_YZ: l2 = (v1.y * c.z - v1.z * c.y) / det;
+    case det_case::YZ:      l2 = (v1.y * c.z - v1.z * c.y) / det;
         break;
-    default: l2 = 0.0f;
+    default:                l2 = 0.0f;
         break;
     }
 
@@ -386,17 +381,17 @@ barycentric_info triangle::get_barycentric(const rt::vector& p) const {
     real l1, l2;
     switch (case_det)
     {
-    case DEFAULT:
+    case det_case::Default:
         l1 = (c.x * v2.y - c.y * v2.x) / det;
         l2 = (v1.x * c.y - v1.y * c.x) / det;
         break;
 
-    case CASE_XZ:
+    case det_case::XZ:
         l1 = (c.x * v2.z - c.z * v2.x) / det;
         l2 = (v1.x * c.z - v1.z * c.x) / det;
         break;
 
-    case CASE_YZ:
+    case det_case::YZ:
         l1 = (c.y * v2.z - c.z * v2.y) / det;
         l2 = (v1.y * c.z - v1.z * c.y) / det;
         break;
@@ -428,7 +423,9 @@ hit triangle::compute_intersection(ray& r, const real t) const {
         // Computation of the interpolated normal vector
         const barycentric_info bary = get_barycentric(p);
         // inward uses the face normal to avoid artefacts at the edge of the mesh
-        const orientation_type ray_orientation = ((r.get_direction() | normal) <= 0.0f) ? orientation_type::Inward : orientation_type::Outward;
+        const orientation_type ray_orientation = ((r.get_direction() | normal) <= 0.0f) ?
+              orientation_type::Inward
+            : orientation_type::Outward;
 
         return hit(pt_ray, p, get_interpolated_normal(bary), pt_obj, ray_orientation);
     }

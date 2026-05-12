@@ -11,14 +11,9 @@
 
 quad::quad() {}
 
-#define DEFAULT 0
-#define CASE_XZ 1
-#define CASE_YZ 2
-#define CASE_ERROR 3
-
 void set_up_det(const rt::vector& v1, const rt::vector& v2, const rt::vector& v3,
     // output
-    real& det12, real& det23, int& case_det) {
+    real& det12, real& det23, det_case& case_det) {
 
     const real det12xy = v1.x * v2.y - v1.y * v2.x;
 
@@ -27,7 +22,7 @@ void set_up_det(const rt::vector& v1, const rt::vector& v2, const rt::vector& v3
         
         det12 = det12xy;
         det23 = v3.x * v2.y - v3.y * v2.x;
-        case_det = DEFAULT;
+        case_det = det_case::Default;
         return;
     }
     
@@ -37,7 +32,7 @@ void set_up_det(const rt::vector& v1, const rt::vector& v2, const rt::vector& v3
         
         det12 = det12xz;
         det23 = v3.x * v2.z - v3.z * v2.x;
-        case_det = CASE_XZ;
+        case_det = det_case::XZ;
         return;
     }
     
@@ -47,7 +42,7 @@ void set_up_det(const rt::vector& v1, const rt::vector& v2, const rt::vector& v3
         
         det12 = det12yz;
         det23 = v3.y * v2.z - v3.z * v2.y;
-        case_det = CASE_YZ;
+        case_det = det_case::YZ;
         return;
     }
 }
@@ -319,17 +314,17 @@ std::optional<real> quad::measure_distance(const ray& r) const {
     real detv2, l2;
     switch (case_det)
     {
-    case DEFAULT:
+    case det_case::Default:
         detv2 = c.x * v2.y - c.y * v2.x;
         l2 = (v1.x * c.y - v1.y * c.x) / det12;
         break;
     
-    case CASE_XZ:
+    case det_case::XZ:
         detv2 = c.x * v2.z - c.z * v2.x;
         l2 = (v1.x * c.z - v1.z * c.x) / det12;
         break;
 
-    case CASE_YZ:
+    case det_case::YZ:
         detv2 = c.y * v2.z - c.z * v2.y;
         l2 = (v1.y * c.z - v1.z * c.y) / det12;
         break;
@@ -352,14 +347,13 @@ std::optional<real> quad::measure_distance(const ray& r) const {
     real l2a;
     switch (case_det)
     {
-    case DEFAULT: l2a = (v3.x * c.y - v3.y * c.x) / det23;
+    case det_case::Default: l2a = (v3.x * c.y - v3.y * c.x) / det23;
         break;
-    case CASE_XZ: l2a = (v3.x * c.z - v3.z * c.x) / det23;
+    case det_case::XZ:      l2a = (v3.x * c.z - v3.z * c.x) / det23;
         break;
-    case CASE_YZ: l2a = (v3.y * c.z - v3.z * c.y) / det23;
+    case det_case::YZ:      l2a = (v3.y * c.z - v3.z * c.y) / det23;
         break;
-    default:
-        l2a = 0;
+    default:                l2a = 0;
         break;
     }
 
@@ -432,17 +426,17 @@ barycentric_info quad::get_barycentric(const rt::vector& p) const {
     real detv2, l2;
     switch (case_det)
     {
-    case DEFAULT:
+    case det_case::Default:
         detv2 = c.x * v2.y - c.y * v2.x;
         l2 = (v1.x * c.y - v1.y * c.x) / det12;
         break;
 
-    case CASE_XZ:
+    case det_case::XZ:
         detv2 = c.x * v2.z - c.z * v2.x;
         l2 = (v1.x * c.z - v1.z * c.x) / det12;
         break;
 
-    case CASE_YZ:
+    case det_case::YZ:
         detv2 = c.y * v2.z - c.z * v2.y;
         l2 = (v1.y * c.z - v1.z * c.y) / det12;
         break;
@@ -455,23 +449,23 @@ barycentric_info quad::get_barycentric(const rt::vector& p) const {
     const real l1 = detv2 / det12;
 
     if (l1 >= 0.0f && l2 >= 0.0f && l1 <= 1.0f && l1 + l2 <= 1.0f) {
-        return barycentric_info(l1, l2, true);
+        return barycentric_info(l1, l2, side::LowerTriangle);
     }
 
     switch (case_det)
     {
-    case DEFAULT: l2 = (v3.x * c.y - v3.y * c.x) / det23;
+    case det_case::Default: l2 = (v3.x * c.y - v3.y * c.x) / det23;
         break;
-    case CASE_XZ: l2 = (v3.x * c.z - v3.z * c.x) / det23;
+    case det_case::XZ:      l2 = (v3.x * c.z - v3.z * c.x) / det23;
         break;
-    case CASE_YZ: l2 = (v3.y * c.z - v3.z * c.y) / det23;
+    case det_case::YZ:      l2 = (v3.y * c.z - v3.z * c.y) / det23;
         break;
-    default: l2 = 0;
+    default:                l2 = 0;
         break;
     }
     const real l11 = detv2 / det23;
 
-    return barycentric_info(l11, l2, false);
+    return barycentric_info(l11, l2, side::HigherTriangle);
 
 }
 
@@ -481,7 +475,15 @@ inline rt::vector quad::get_interpolated_normal(const barycentric_info& bary) co
     //     + (bary.l1 * ((bary.lower_triangle) ? vn1 : vn3))
     //     + (bary.l2 * vn2));
     //return vn0 + bary.l1 * ((bary.lower_triangle) ? vn1mvn0 : vn3mvn0) + bary.l2 * vn2mvn0;
-    return fma(vn2mvn0, bary.l2, fma(((bary.lower_triangle) ? vn1mvn0 : vn3mvn0), bary.l1, vn0));
+    return fma(
+        vn2mvn0,
+        bary.l2,
+        fma(
+            ((bary.triangle_side == side::LowerTriangle) ? vn1mvn0 : vn3mvn0),
+            bary.l1,
+            vn0
+        )
+    );
 }
 
 hit quad::compute_intersection(ray& r, const real t) const {
@@ -501,7 +503,9 @@ hit quad::compute_intersection(ray& r, const real t) const {
         
         // Computation of the interpolated normal vector
         const barycentric_info bary = get_barycentric(p);
-        const orientation_type ray_orientation = ((r.get_direction() | normal) <= 0.0f) ? orientation_type::Inward : orientation_type::Outward;
+        const orientation_type ray_orientation = ((r.get_direction() | normal) <= 0.0f) ?
+              orientation_type::Inward
+            : orientation_type::Outward;
 
         return hit(pt_ray, p, get_interpolated_normal(bary), pt_obj, ray_orientation);
     }

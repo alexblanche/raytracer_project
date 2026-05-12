@@ -5,6 +5,7 @@
 #include "light/vector.hpp"
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
+#include "scene/objects/triangle.hpp"
 
 #include <optional>
 
@@ -23,7 +24,7 @@ class quad : public object {
             vn1mvn0, vn2mvn0, vn3mvn0;
         real d;
         real det12, det23;
-        int case_det;
+        det_case case_det;
 
     public:
 

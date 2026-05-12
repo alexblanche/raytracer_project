@@ -8,6 +8,10 @@
 
 #include <optional>
 
+enum class det_case {
+    Default, XZ, YZ, Error
+};
+
 class triangle : public object {
     
     private:
@@ -24,7 +28,7 @@ class triangle : public object {
             vn1mvn0, vn2mvn0;
         real d;
         real det;
-        int case_det;
+        det_case case_det;
 
 
     public:
