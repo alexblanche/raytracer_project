@@ -46,13 +46,16 @@ class object {
 
     public:
 
-        virtual ~object() {}
-
         object();
-
         object(const rt::vector& pos, unsigned int material_index);
-
         object(const rt::vector& pos, unsigned int material_index, unsigned int texture_info_index);
+
+        object(const object&)            = delete;
+        object(object&&)                 = delete;
+        object& operator=(const object&) = delete;
+        object& operator=(object&&)      = delete;
+
+        virtual ~object() {}
 
         inline const rt::vector& get_position() const {
             return position;

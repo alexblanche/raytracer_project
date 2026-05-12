@@ -6,48 +6,29 @@
 
 #include "auxiliary/custom_stack.hpp"
 
-
-/* Constructor with only background color */
-scene::scene(std::vector<const object*>&& object_set,
-    const std::vector<const bounding*>& bounding_set,
+scene::scene(
+    std::vector<const object*>&& object_set,
+    std::vector<const bounding*>&& bounding_set,
     std::vector<texture>&& texture_set,
     std::vector<normal_map>&& normal_map_set,
     std::vector<material>&& material_set,
     std::vector<texture_info>&& texture_info_set,
-    const rt::color& bg_color,
-    const int width, const int height,
+    background_container&& background,
     camera&& cam,
+    const int width, const int height,
     const unsigned int polygons_per_bounding,
     const real gamma)
-
-    : object_set(std::move(object_set)), bounding_set(bounding_set),
-    texture_set(std::move(texture_set)), normal_map_set(std::move(normal_map_set)),
-    material_set(std::move(material_set)), texture_info_set(std::move(texture_info_set)),
-    background(background_container(bg_color)),
+    :
+    object_set      (std::move(object_set)),
+    bounding_set    (std::move(bounding_set)),
+    texture_set     (std::move(texture_set)),
+    normal_map_set  (std::move(normal_map_set)),
+    material_set    (std::move(material_set)),
+    texture_info_set(std::move(texture_info_set)),
+    background      (std::move(background)),
+    cam             (std::move(cam)),
     width(width), height(height),
-    cam(std::move(cam)), polygons_per_bounding(polygons_per_bounding),
-    gamma(gamma) {}
-
-
-/* Constructor with background texture */
-scene::scene(std::vector<const object*>&& object_set,
-    const std::vector<const bounding*>& bounding_set,
-    std::vector<texture>&& texture_set,
-    std::vector<normal_map>&& normal_map_set,
-    std::vector<material>&& material_set,
-    std::vector<texture_info>&& texture_info_set,
-    texture&& bg_texture, const real rx, const real ry, const real rz,
-    const int width, const int height,
-    camera&& cam,
-    const unsigned int polygons_per_bounding,
-    const real gamma)
-
-    : object_set(std::move(object_set)), bounding_set(bounding_set),
-    texture_set(std::move(texture_set)), normal_map_set(std::move(normal_map_set)),
-    material_set(std::move(material_set)), texture_info_set(std::move(texture_info_set)),
-    background(background_container(std::move(bg_texture), rx, ry, rz)),
-    width(width), height(height),
-    cam(std::move(cam)), polygons_per_bounding(polygons_per_bounding),
+    polygons_per_bounding(polygons_per_bounding),
     gamma(gamma) {}
 
 

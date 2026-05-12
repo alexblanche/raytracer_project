@@ -230,7 +230,9 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
     static thread_local custom_stack<real> refr_stack(20);
     refr_stack.set_empty();
 
-    const bool bounding_method = scene.polygons_per_bounding != 0;
+    const bvh_option bvh = (scene.polygons_per_bounding != 0) ?
+          bvh_option::Enabled
+        : bvh_option::Disabled;
 
     for (unsigned int i = 0; i < bounce; i++) {
 
@@ -244,7 +246,7 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
             }
         }
 
-        const std::optional<hit> opt_h = scene.find_closest(r, bounding_method);
+        const std::optional<hit> opt_h = scene.find_closest(r, bvh);
 
         if (not opt_h.has_value()) /* No object hit: background color or background texture */
             return background_case(scene, r, acc);
@@ -277,8 +279,12 @@ rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int boun
             :
             map_sample(m.get_color(), h.get_normal()); // reflectivity, displacement);
 
-        const rt::vector normal = (obj->is_textured() && scene.texture_info_set[obj->get_texture_info_index()].has_normal_information()) ?
-            obj->compute_normal_from_map(ms.normal_map_vector, h.get_normal(), scene.texture_info_set[obj->get_texture_info_index()])
+        const rt::vector normal = (obj->is_textured() && scene.get_texture_info(obj).has_normal_information()) ?
+            obj->compute_normal_from_map(
+                ms.normal_map_vector,
+                h.get_normal(),
+                scene.get_texture_info(obj)
+            )
             :
             h.get_normal();
 

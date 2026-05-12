@@ -27,6 +27,10 @@ struct map_sample {
     {}
 };
 
+enum class bvh_option {
+    Enabled, Disabled
+};
+
 class scene {
     public:
         /* Set of all the objects in the scene */
@@ -52,45 +56,32 @@ class scene {
         // Color or texture of the background
         background_container background;
 
+        // Camera parameters
+        camera cam;
+
         // Screen parameters
         int width;
         int height;
-
-        // Camera parameters
-        camera cam;
 
         // Triangles are grouped by the given number in the bounding box tree-search method
         unsigned int polygons_per_bounding;
 
         real gamma;
 
-        /* Constructor */
-
-        /* Constructor with only background color */
-        scene(std::vector<const object*>&& object_set,
-            const std::vector<const bounding*>& bounding_set,
-            std::vector<texture>&& texture_set,
-            std::vector<normal_map>&& normal_map_set,
-            std::vector<material>&& material_set,
-            std::vector<texture_info>&& texture_info_set,
-            const rt::color& bg_color,
-            int width, int height,
-            camera&& cam,
-            unsigned int polygons_per_bounding,
-            real gamma);
-
         /* Constructor with background texture and optional background color */
-        scene(std::vector<const object*>&& object_set,
-            const std::vector<const bounding*>& bounding_set,
+        scene(
+            std::vector<const object*>&& object_set,
+            std::vector<const bounding*>&& bounding_set,
             std::vector<texture>&& texture_set,
             std::vector<normal_map>&& normal_map_set,
             std::vector<material>&& material_set,
             std::vector<texture_info>&& texture_info_set,
-            texture&& bg_texture, real bg_rx, real bg_ry, real bg_rz,
-            int width, int height,
+            background_container&& background,
             camera&& cam,
+            int width, int height,
             unsigned int polygons_per_bounding,
-            real gamma);
+            real gamma
+        );
 
         scene(scene&&) = default;
 
@@ -109,11 +100,13 @@ class scene {
         /* Tree-search through the bounding boxes */
         std::optional<hit> find_closest_object_bounding(ray& r) const;
 
-        inline std::optional<hit> find_closest(ray& r, const bool bounding_method) {
-            return bounding_method ?
-                find_closest_object_bounding(r)
-                :
-                find_closest_object(r);
+        inline std::optional<hit> find_closest(ray& r, const bvh_option bvh) const {
+            switch (bvh) {
+                case bvh_option::Enabled:
+                    return find_closest_object_bounding(r);
+                case bvh_option::Disabled:
+                    return find_closest_object(r);
+            }
         }
 
         /* Returns the color of the pixel associated with UV-coordinates u, v */
@@ -122,4 +115,8 @@ class scene {
         /* Sampling maps */
         map_sample sample_maps(unsigned int texture_info_index, const barycentric_info& bary,
             const rt::color& default_color, const rt::vector& default_normal, real default_reflectivity = 0.0f) const;
+
+        inline texture_info& get_texture_info (const object* obj) {
+            return texture_info_set[obj->get_texture_info_index()];
+        }
 };

@@ -39,9 +39,9 @@ class texture {
         /* Returns the color stored in data at UV-coordinates u, v (between 0 and 1) times width, height */
         const rt::color& get_color(real u, real v) const;
 
-        ~texture() {
+        ~texture() = default; // {
             // printf("Destruction of a texture (width = %d, height = %d, data = %lu)\n", width, height, data.size());
-        }
+        // }
 
         texture(texture&&)                  = default;
         texture& operator=(texture&&)       = default;
