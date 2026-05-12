@@ -63,9 +63,6 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
     // vn1 = normal;
     // vn2 = normal;
     // vn3 = normal;
-    vn1mvn0 = rt::vector();
-    vn2mvn0 = rt::vector();
-    vn3mvn0 = rt::vector();
 
     set_up_det(v1, v2, v3, det12, det23, case_det);
 
@@ -111,9 +108,6 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
     // vn1 = normal;
     // vn2 = normal;
     // vn3 = normal;
-    vn1mvn0 = rt::vector();
-    vn2mvn0 = rt::vector();
-    vn3mvn0 = rt::vector();
     d = - (normal | p0);
 
     set_up_det(v1, v2, v3, det12, det23, case_det);
@@ -545,7 +539,7 @@ void quad::print() const {
 
 /* Normal map vector computation at render time
     Local normal may be the normal of the quad (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
-rt::vector quad::compute_normal_from_map_with_info(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const {
+rt::vector quad::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const {
 
     if constexpr (SHADING == shading::SmoothShading) {
         const rt::vector& t = info.tangent;

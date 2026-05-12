@@ -323,7 +323,7 @@ std::optional<unsigned int> get_material(FILE* file, std::vector<wrapper<materia
 
         if (m.has_value()) {
             material_wrapper_set.emplace_back(std::move(m.value()));
-            return material_wrapper_set[material_wrapper_set.size()-1].index;
+            return material_wrapper_set.back().index;
         }
         else {
             return std::nullopt;
@@ -966,7 +966,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                             rt::vector(x0, y0, z0),
                             rt::vector(x1, y1, z1),
                             rt::vector(x2, y2, z2),
-                            m_index.value(), info.has_value() ? texture_info_set.size() : (unsigned int) (-1));
+                            m_index.value(), info.has_value() ? texture_info_set.size() : EMPTY_INDEX);
                     object_set.push_back(tr);
                     if (info.has_value())
                         texture_info_set.push_back(info.value());
@@ -1010,7 +1010,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                             rt::vector(x1, y1, z1),
                             rt::vector(x2, y2, z2),
                             rt::vector(x3, y3, z3),
-                            m_index.value(), info.has_value() ? texture_info_set.size() : (unsigned int) (-1));
+                            m_index.value(), info.has_value() ? texture_info_set.size() : EMPTY_INDEX);
                     object_set.push_back(q);
                     if (info.has_value())
                         texture_info_set.push_back(info.value());
@@ -1111,8 +1111,6 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         if (file != NULL) {
             fclose(file);
         }
-
-
 
         // Creation of the final structures
         std::vector<material> material_set((wrapper<material>::counter));

@@ -8,6 +8,7 @@
 #include "scene/material/texture_info.hpp"
 #include "scene/material/barycentric.hpp"
 
+#include <limits>
 #include <optional>
 
 /* Output struct from min_max_coord */
@@ -18,15 +19,15 @@ struct min_max_coord {
         const real min_y, const real max_y,
         const real min_z, const real max_z)
 
-        : min_x(min_x), max_x(max_x),
+        :
+        min_x(min_x), max_x(max_x),
         min_y(min_y), max_y(max_y), 
         min_z(min_z), max_z(max_z) {}
 
     min_max_coord() {}
 };
 
-#define EMPTY_INDEX ((unsigned int) -1)
-
+constexpr unsigned int EMPTY_INDEX = std::numeric_limits<unsigned int>::max();
 
 /* Main class for objects of a scene
    Each object type is a derived class */
@@ -38,24 +39,20 @@ class object {
         rt::vector position;
 
         /* Contains a texture_info if the object is textured */
-        const unsigned int texture_information_index;
+        const unsigned int texture_information_index = EMPTY_INDEX;
 
         /* Index of the material in the material_set vector of the scene */
-        const unsigned int material_index;
+        const unsigned int material_index = EMPTY_INDEX;
 
     public:
 
         virtual ~object() {}
-
-        /* Constructors */
 
         object();
 
         object(const rt::vector& pos, unsigned int material_index);
 
         object(const rt::vector& pos, unsigned int material_index, unsigned int texture_info_index);
-
-        /* Accessors */
 
         inline const rt::vector& get_position() const {
             return position;
@@ -73,27 +70,28 @@ class object {
             return texture_information_index;
         }
 
-        
-        // These four functions are overridden by derived classes
-
         /* Intersection determination */
-        virtual std::optional<real> measure_distance(const ray& r) const;
+        virtual std::optional<real> measure_distance(const ray& r) const = 0;
 
-        virtual hit compute_intersection(ray& r, real t) const;
+        virtual hit compute_intersection(ray& r, real t) const = 0;
 
         /* Returns the minimum and maximum coordinates of the object along the three axes */
-        virtual min_max_coord get_min_max_coord() const;
+        virtual min_max_coord get_min_max_coord() const = 0;
 
         /* Returns the barycentric info for the object (depends on the object type) */
-        virtual barycentric_info get_barycentric(const rt::vector& p) const;
+        virtual barycentric_info get_barycentric(const rt::vector& p) const = 0;
 
-        virtual rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal) const;
+        virtual rt::vector compute_normal_from_map(
+            const rt::vector& tangent_space_normal,
+            const rt::vector& local_normal,
+            const texture_info& info
+        ) const = 0;
 
         /* Sampling */
 
         /* Uniformly samples a point on the object */
-        virtual rt::vector sample(randomgen& rg) const;
+        virtual rt::vector sample(randomgen& rg) const = 0;
 
         /* Uniformly samples a point on the object that is visible from pt */
-        virtual rt::vector sample_visible(randomgen& rg, const rt::vector& pt) const;
+        virtual rt::vector sample_visible(randomgen& rg, const rt::vector& pt) const = 0;
 };

@@ -254,14 +254,23 @@ min_max_coord cylinder::get_min_max_coord() const {
 }
 
 /* Returns the barycentric info (the texture is mapped onto the top, the bottom, and the curved surface) [to be implemented] */
-barycentric_info cylinder::get_barycentric(const rt::vector& /*p*/) const {
-    return barycentric_info(0.0f, 0.0f, object_type::Cylinder);
+barycentric_info cylinder::get_barycentric(const rt::vector&) const {
+    throw std::runtime_error("Barycentric coordinates are unavailable for cylinders");
 }
 
-rt::vector cylinder::sample(randomgen& /*rg*/) const {
+rt::vector cylinder::compute_normal_from_map(
+            const rt::vector&,
+            const rt::vector&,
+            const texture_info&
+        ) const {
+
+    throw std::runtime_error("Texturing is unavailable for cylinders");
+}
+
+rt::vector cylinder::sample(randomgen&) const {
     throw std::runtime_error("Sampling is unavailable for cylinders");
 }
 
-rt::vector cylinder::sample_visible(randomgen& /*rg*/, const rt::vector& /*pt*/) const {
+rt::vector cylinder::sample_visible(randomgen&, const rt::vector&) const {
     throw std::runtime_error("Sampling is unavailable for cylinders");
 }

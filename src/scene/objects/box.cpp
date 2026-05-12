@@ -286,14 +286,23 @@ bool box::is_hit_by(const ray& r) const {
 }
 
 /* Returns the barycentric info (the faces behave like quads) [to be implemented] */
-barycentric_info box::get_barycentric(const rt::vector& /*p*/) const {
+barycentric_info box::get_barycentric(const rt::vector&) const {
     return barycentric_info(0.0f, 0.0f, object_type::Box);
 }
 
-rt::vector box::sample(randomgen& /*rg*/) const {
+rt::vector box::compute_normal_from_map(
+            const rt::vector&,
+            const rt::vector&,
+            const texture_info&
+        ) const {
+
+    throw std::runtime_error("Texturing is unavailable for boxes");
+}
+
+rt::vector box::sample(randomgen&) const {
     throw std::runtime_error("Sampling is unavailable for boxes");
 }
 
-rt::vector box::sample_visible(randomgen& /*rg*/, const rt::vector& /*pt*/) const {
+rt::vector box::sample_visible(randomgen&, const rt::vector&) const {
     throw std::runtime_error("Sampling is unavailable for boxes");
 }
