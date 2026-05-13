@@ -11,14 +11,13 @@ exit_status menu::parse_arguments(int argc, char *argv[]) {
         // file specified
 
         scene_descriptor_name = argv[1];
-        if (std::filesystem::is_regular_file(scene_descriptor_name)) {
-            argc --;
-            argv ++;
-        }
-        else {
+        if (not std::filesystem::is_regular_file(scene_descriptor_name)) {
             printf("Scene description %s not found\n", scene_descriptor_name.data());
             return exit_status::Failure;
         }
+        
+        argc--;
+        argv++;
     }
 
     printf("Scene descriptor: %s\n", std::filesystem::path(scene_descriptor_name).filename().generic_string().data());
@@ -42,11 +41,9 @@ exit_status menu::parse_arguments(int argc, char *argv[]) {
                 runtime_parameters.time = time_mode::Simple;
                 index_arg++;
 
-                if (index_arg < argc) {
-                    if (std::string(argv[index_arg]).compare("all") == 0) {
-                        runtime_parameters.time = time_mode::Full;
-                        index_arg++;
-                    }
+                if (index_arg < argc && std::string(argv[index_arg]).compare("all") == 0) {
+                    runtime_parameters.time = time_mode::Full;
+                    index_arg++;
                 }
                 continue;
             }
@@ -55,14 +52,13 @@ exit_status menu::parse_arguments(int argc, char *argv[]) {
                 runtime_parameters.program.mode = program_parameters::mode::Offline;
                 index_arg++;
 
-                if (index_arg < argc) {
-                    runtime_parameters.program.target_number_of_rays = atoi(argv[index_arg]);
-                    index_arg++;
-                }
-                else {
+                if (index_arg >= argc) {
                     printf("Error, -rays option expects 1 argument\n");
                     return exit_status::Failure;
                 }
+                
+                runtime_parameters.program.target_number_of_rays = atoi(argv[index_arg]);
+                index_arg++;
                 continue;
             }
 
@@ -70,14 +66,13 @@ exit_status menu::parse_arguments(int argc, char *argv[]) {
                 runtime_parameters.sampling.mode = sampling_parameters::mode::MultiSample;
                 index_arg++;
 
-                if (index_arg < argc) {
-                    runtime_parameters.sampling.multisample_number_of_samples = atoi(argv[index_arg]);
-                    index_arg++;
-                }
-                else {
+                if (index_arg >= argc) {
                     printf("Error, -multisample option expects 1 argument\n");
                     return exit_status::Failure;
                 }
+
+                runtime_parameters.sampling.multisample_number_of_samples = atoi(argv[index_arg]);
+                index_arg++;
                 continue;
             }
 
@@ -87,15 +82,13 @@ exit_status menu::parse_arguments(int argc, char *argv[]) {
                 }
                 index_arg++;
 
-                if (index_arg < argc) {
-                    runtime_parameters.tone_mapping.gamma_value = 1.0f / atof(argv[index_arg]);
-                    index_arg++;
-                }
-                else {
+                if (index_arg >= argc) {
                     printf("Error, -gamma option expects 1 argument\n");
                     return exit_status::Failure;
                 }
-
+                
+                runtime_parameters.tone_mapping.gamma_value = 1.0f / atof(argv[index_arg]);
+                index_arg++;
                 continue;
             }
 
@@ -163,7 +156,7 @@ static inline void render_simple(std::vector<std::vector<rt::color>>& matrix, co
                 matrix,
                 scene,
                 runtime_parameters.number_of_bounces,
-                runtime_parameters.russian_roulette == russian_roulette_mode::Enabled,
+                runtime_parameters.russian_roulette,
                 iter
             );
             break;
@@ -175,11 +168,10 @@ static inline void render(std::vector<std::vector<rt::color>>& matrix, const sce
     
     switch (runtime_parameters.time) {
         case time_mode::Simple:
-            render_loop_parallel_time(matrix, scene, runtime_parameters.number_of_bounces, false);
-            break;
         case time_mode::Full:
-            render_loop_parallel_time(matrix, scene, runtime_parameters.number_of_bounces, true);
+            render_loop_parallel_time(matrix, scene, runtime_parameters.number_of_bounces, runtime_parameters.time);
             break;
+        
         case time_mode::Disabled:
             render_simple(matrix, scene, runtime_parameters, iter);
             break;

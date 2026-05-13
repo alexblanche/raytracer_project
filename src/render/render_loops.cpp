@@ -14,7 +14,7 @@
 
 /* Sequential version */
 void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
-    const scene& scene, const unsigned int number_of_bounces, const bool russian_roulette) {
+    const scene& scene, const unsigned int number_of_bounces, const russian_roulette_mode russian_roulette) {
 
     randomgen rg(ANTI_ALIASING);
 
@@ -32,7 +32,7 @@ void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
 
 /* Main render loop */
 void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
-    const scene& scene, const unsigned int number_of_bounces, const bool russian_roulette, const unsigned int iteration) {
+    const scene& scene, const unsigned int number_of_bounces, const russian_roulette_mode russian_roulette, const unsigned int iteration) {
 
     PARALLEL_FOR_BEGIN(scene.width) {
         
@@ -56,12 +56,13 @@ void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
  */
 // TO BE REWRITTEN
 void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
-    const scene& scene, const unsigned int number_of_bounces, const bool time_all) {
+    const scene& scene, const unsigned int number_of_bounces, const time_mode time_mode) {
     
     mutex m;
     float cpt = 0;
     float x = 100.0f / (((float) scene.width) * ((float) scene.height));
     const long int t_init = time(0);
+    const bool time_all = time_mode == time_mode::Full;
 
     randomgen rg(ANTI_ALIASING);
 
@@ -70,7 +71,7 @@ void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
         for (int j = 0; j < scene.height; j++) {
 
             ray r = scene.cam.gen_ray(i, j, rg, 0);
-            const rt::color pixel_col = pathtrace(r, scene, rg, number_of_bounces, false);
+            const rt::color pixel_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette_mode::Disabled);
             
             const rt::color& current_color = matrix[i][j];
             const rt::color new_color = current_color + pixel_col;

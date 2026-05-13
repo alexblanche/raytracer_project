@@ -200,7 +200,7 @@ rt::color pathtrace_multisample(ray& r, const scene& scene, randomgen& rg, const
 
                 const rt::vector dir = random_dir(rg, central_dir1, scattering1);
                 ray bouncing_ray(orig1, dir);
-                const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, false, 1.0f);
+                const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, russian_roulette_mode::Disabled, 1.0f);
                 output_color = output_color + sample_color;
             }
 
@@ -215,18 +215,18 @@ rt::color pathtrace_multisample(ray& r, const scene& scene, randomgen& rg, const
 
             for (unsigned int i = 0; i < number_of_samples; i++) {
 
-                const real p = rg.random_real(1.0f);
+                const real p = rg.random_ratio();
                 if (p <= proba_1) {
                     const rt::vector dir = random_dir(rg, central_dir1, scattering1);
                     ray bouncing_ray(orig1, dir);
-                    const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, false, init_refr_index);
+                    const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, russian_roulette_mode::Disabled, init_refr_index);
                     output_color1 = output_color1 + sample_color;
                     nb_samples1++;
                 }
                 else {
                     const rt::vector dir = random_dir(rg, central_dir2.value(), scattering2);
                     ray bouncing_ray(orig2, dir);
-                    const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, false, 1.0f);
+                    const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, russian_roulette_mode::Disabled, 1.0f);
                     output_color2 = output_color2 + sample_color;
                     nb_samples2++;
                 }

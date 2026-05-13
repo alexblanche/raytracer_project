@@ -16,7 +16,7 @@ class menu {
 
         exit_status parse_arguments(int argc, char *argv[]);
 
-        inline std::optional<scene> parse_scene_descriptor_file() const {
+        inline std::optional<scene> parse_scene_descriptor_file() {
             return parse_scene_descriptor(scene_descriptor_name.data());
         }
 

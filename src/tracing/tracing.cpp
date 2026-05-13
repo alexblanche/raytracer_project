@@ -216,7 +216,7 @@ inline rt::color background_case(const scene& scene, const ray& r,
    and an accumulator (emitted_colors) of the (product of a(j), j=n..k) * b(k). */
 
 rt::color pathtrace(ray& r, const scene& scene, randomgen& rg, const unsigned int bounce,
-    const bool russian_roulette,
+    const russian_roulette_mode russian_roulette_mode,
     const real init_refr_index) {
 
     accumulators acc;
@@ -228,6 +228,8 @@ rt::color pathtrace(ray& r, const scene& scene, randomgen& rg, const unsigned in
     const bvh_option bvh = (scene.polygons_per_bounding != 0) ?
           bvh_option::Enabled
         : bvh_option::Disabled;
+
+    const bool russian_roulette = russian_roulette_mode == russian_roulette_mode::Enabled;
 
     for (unsigned int i = 0; i < bounce; i++) {
 
