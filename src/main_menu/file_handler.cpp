@@ -12,11 +12,14 @@ static const std::filesystem::path output_dir(output_dir_name);
 void file_handler::create_dir() const {
     if (output_dir_exists)
         return;
-    output_dir_exists = std::filesystem::create_directories("../output");
+    output_dir_exists = std::filesystem::create_directories(output_dir);
 }
 
-exit_status file_handler::export_file(const type file_type, const char* filename, const unsigned int number_of_rays,
-    const std::vector<std::vector<rt::color>>& matrix, const runtime_parameters& runtime_parameters) const {
+exit_status file_handler::export_file(
+    const type file_type, const char* filename,
+    const unsigned int number_of_rays,
+    const std::vector<std::vector<rt::color>>& matrix,
+    const runtime_parameters& runtime_parameters) const {
 
     create_dir();
     const std::string path = std::filesystem::path(output_dir).append(filename).generic_string();
@@ -38,7 +41,7 @@ exit_status file_handler::export_file(const type file_type, const char* filename
     }
 
     if (success) {
-        printf(" Saved as %s\n", output_dir.filename().append(filename).generic_string().data());
+        printf("Saved as %s\n", output_dir.filename().append(filename).generic_string().data());
         return exit_status::Success;
     }
     else {

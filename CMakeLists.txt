@@ -62,6 +62,7 @@ add_library(${libname} SHARED
 	src/parallel/parallel.cpp
 	src/render/render_loops.cpp
 	src/main_menu/file_handler.cpp
+	src/main_menu/menu.cpp
 )
 
 target_link_libraries(${libname}
