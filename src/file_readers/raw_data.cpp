@@ -18,7 +18,7 @@
    pixel (i,j) at line j*width + i
    line k representing pixel (k % width, k / width)
 */
-bool export_raw(const char* file_name, const unsigned int number_of_rays, std::vector<std::vector<rt::color>>& matrix) {
+bool export_raw(const char* file_name, const unsigned int number_of_rays, const std::vector<std::vector<rt::color>>& matrix) {
 
     FILE* file = fopen(file_name, "w");
 

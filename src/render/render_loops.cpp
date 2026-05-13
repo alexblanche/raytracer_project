@@ -14,7 +14,7 @@
 
 /* Sequential version */
 void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
-    scene& scene, const unsigned int number_of_bounces, const bool russian_roulette) {
+    const scene& scene, const unsigned int number_of_bounces, const bool russian_roulette) {
 
     randomgen rg(ANTI_ALIASING);
 
@@ -32,7 +32,7 @@ void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
 
 /* Main render loop */
 void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
-    scene& scene, const unsigned int number_of_bounces, const bool russian_roulette, const unsigned int iteration) {
+    const scene& scene, const unsigned int number_of_bounces, const bool russian_roulette, const unsigned int iteration) {
 
     PARALLEL_FOR_BEGIN(scene.width) {
         
@@ -56,7 +56,7 @@ void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
  */
 // TO BE REWRITTEN
 void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
-    scene& scene, const unsigned int number_of_bounces, const bool time_all) {
+    const scene& scene, const unsigned int number_of_bounces, const bool time_all) {
     
     mutex m;
     float cpt = 0;
@@ -116,7 +116,7 @@ void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
 
 /* After the first hit, several boucing rays are cast */
 void render_loop_parallel_multisample(std::vector<std::vector<rt::color>>& matrix,
-    scene& scene, const unsigned int number_of_bounces, const unsigned int number_of_samples) {
+    const scene& scene, const unsigned int number_of_bounces, const unsigned int number_of_samples) {
 
     randomgen rg(ANTI_ALIASING);
 

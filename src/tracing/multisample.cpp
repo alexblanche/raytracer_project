@@ -1,3 +1,5 @@
+#include "tracing/multisample.hpp"
+
 #include "tracing/directions.hpp"
 #include "tracing/tracing.hpp"
 
@@ -140,7 +142,7 @@ void compute_bouncing_ray(const material& m, const hit& h,
     }
 }
 
-rt::color pathtrace_multisample(ray& r, scene& scene, randomgen& rg, const unsigned int bounce, const unsigned int number_of_samples) {
+rt::color pathtrace_multisample(ray& r, const scene& scene, randomgen& rg, const unsigned int bounce, const unsigned int number_of_samples) {
     
     const bool bounding_method = scene.polygons_per_bounding != 0;
 

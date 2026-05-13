@@ -61,6 +61,7 @@ add_library(${libname} SHARED
 	src/tracing/multisample.cpp
 	src/parallel/parallel.cpp
 	src/render/render_loops.cpp
+	src/main_menu/file_handler.cpp
 )
 
 target_link_libraries(${libname}

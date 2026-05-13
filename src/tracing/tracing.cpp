@@ -1,10 +1,5 @@
-#include "light/ray.hpp"
-#include "screen/color.hpp"
-#include "scene/objects/object.hpp"
-#include "scene/scene.hpp"
-#include "scene/objects/bounding.hpp"
-#include "scene/material/texture.hpp"
-#include "tracing/directions.hpp" 
+#include "tracing/tracing.hpp"
+#include "tracing/directions.hpp"
 #include "auxiliary/custom_stack.hpp"
 
 #include <cmath>
@@ -220,9 +215,9 @@ inline rt::color background_case(const scene& scene, const ray& r,
    in iterative form, we have an accumulator color_materials of the product of the a(k), k=n..,
    and an accumulator (emitted_colors) of the (product of a(j), j=n..k) * b(k). */
 
-rt::color pathtrace(ray& r, scene& scene, randomgen& rg, const unsigned int bounce,
+rt::color pathtrace(ray& r, const scene& scene, randomgen& rg, const unsigned int bounce,
     const bool russian_roulette,
-    const real init_refr_index = 1.0f) {
+    const real init_refr_index) {
 
     accumulators acc;
         

@@ -8,8 +8,9 @@
 
 #include "render/render_loops.hpp"
 
-// Folder creation
-#include <sys/stat.h>
+#include "main_menu/runtime_parameters.hpp"
+#include "main_menu/file_handler.hpp"
+
 #include <filesystem>
 
 #include <ctime>
@@ -23,86 +24,101 @@
  * Esc:         Exit
  */
 
-struct program_parameters {
-    enum class mode {
-        Interactive, Offline
-    };
-    mode mode;
-    unsigned int target_number_of_rays;
-};
+inline void render_simple(const runtime_parameters& runtime_parameters,
+    std::vector<std::vector<rt::color>>& matrix, const scene& scene, const unsigned int iter) {
 
-struct sampling_parameters {
-    enum class mode {
-        UniSample, MultiSample
-    };
-    mode mode;
-    unsigned int multisample_number_of_samples;
-};
-
-struct tone_mapping_parameters {
-    enum class mode {
-        Disabled, Gamma, Reinhardt
-    };
-    mode mode;
-    float gamma_value;
-};
-
-enum class time_mode {
-    Disabled, Simple, Full
-};
-
-enum class russian_roulette_mode {
-    Disabled, Enabled
-};
-
-struct runtime_parameters {
-    unsigned int            number_of_bounces      = 2;
-    program_parameters      program                = { program_parameters::mode::Interactive,   0    };
-    sampling_parameters     sampling               = { sampling_parameters::mode::UniSample,    1    };
-    tone_mapping_parameters tone_mapping           = { tone_mapping_parameters::mode::Disabled, 1.0f };
-    time_mode               time                   = time_mode::Disabled;
-    russian_roulette_mode   russian_roulette       = russian_roulette_mode::Disabled;
-};
-
-void create_dir(bool& output_dir_exists) {
-    if (not output_dir_exists) {
-        output_dir_exists = std::filesystem::create_directories("../output");
+    switch (runtime_parameters.sampling.mode) {
+        case sampling_parameters::mode::MultiSample:
+            render_loop_parallel_multisample(
+                matrix,
+                scene,
+                runtime_parameters.number_of_bounces,
+                runtime_parameters.sampling.multisample_number_of_samples
+            );
+            break;
+        case sampling_parameters::mode::UniSample:
+            render_loop_parallel(
+                matrix,
+                scene,
+                runtime_parameters.number_of_bounces,
+                runtime_parameters.russian_roulette == russian_roulette_mode::Enabled,
+                iter
+            );
+            break;
     }
 }
 
-bool run_offline(const runtime_parameters& runtime_parameters, std::vector<std::vector<rt::color>>& matrix, scene& scene, bool& output_dir_exists) {
-    printf("Rendering...\n");
-    printf("0 / %u", runtime_parameters.program.target_number_of_rays);
-    fflush(stdout);
+inline void render(std::vector<std::vector<rt::color>>& matrix, const scene& scene,
+    const runtime_parameters& runtime_parameters, const unsigned int iter) {
+    
+    switch (runtime_parameters.time) {
+        case time_mode::Simple:
+            render_loop_parallel_time(matrix, scene, runtime_parameters.number_of_bounces, false);
+            break;
+        case time_mode::Full:
+            render_loop_parallel_time(matrix, scene, runtime_parameters.number_of_bounces, true);
+            break;
+        case time_mode::Disabled:
+            render_simple(runtime_parameters, matrix, scene, iter);
+            break;
+    }
+}
 
-    const bool time_enabled = runtime_parameters.time != time_mode::Disabled;
-    const unsigned long int t_init = time_enabled ? time(0) : 0;
-    unsigned long int t_export = 0;
-    unsigned long int t_end = 0;
+class timer {
+    private:
+        bool time_enabled;
+        unsigned long int t_init;
+        unsigned long int t_export = 0;
+        unsigned long int t_end    = 0;
+        unsigned long int elapsed  = 0;
+
+    public:
+        timer(time_mode mode)
+            : time_enabled(mode != time_mode::Disabled) {}
+
+        inline void start() {
+            t_init = time_enabled ? time(0) : 0;
+        }
+
+        inline void interrupt() {
+            t_end  = time_enabled ? time(0) : 0;
+        }
+
+        inline void resume() {
+            const unsigned long int t_export_end = time_enabled ? time(0) : 0;
+            t_export += t_export_end - t_end;
+        }
+
+        inline void stop() {
+            t_end = (t_end) ? t_end : time(0);
+            elapsed = t_end - t_init - t_export;
+        }
+
+        void print() {
+            if (elapsed < 60)
+                printf("Total duration: %lu seconds\n", elapsed);
+            else if (elapsed < 3600)
+                printf("Total duration: %lu minutes %lu seconds\n", elapsed / 60, elapsed % 60);
+            else
+                printf("Total duration: %lu hours %lu minutes %lu seconds\n", elapsed / 3600, (elapsed % 3600) / 60, elapsed % 60);
+        }
+};
+
+exit_status run_offline(const runtime_parameters& runtime_parameters, std::vector<std::vector<rt::color>>& matrix,
+    const scene& scene, const file_handler& file_handler) {
 
     const unsigned int target = runtime_parameters.program.target_number_of_rays;
-    const bool russian_roulette = runtime_parameters.russian_roulette == russian_roulette_mode::Enabled;
+
+    printf("Rendering...\n");
+    printf("0 / %u", target);
+    fflush(stdout);
+
+    timer timer(runtime_parameters.time);
+    timer.start();
 
     for (unsigned int i = 0; i < target; i++) {
-        switch (runtime_parameters.sampling.mode) {
-            case sampling_parameters::mode::MultiSample:
-                render_loop_parallel_multisample(
-                    matrix,
-                    scene,
-                    runtime_parameters.number_of_bounces,
-                    runtime_parameters.sampling.multisample_number_of_samples
-                );
-                break;
-            case sampling_parameters::mode::UniSample:
-                render_loop_parallel(
-                    matrix,
-                    scene,
-                    runtime_parameters.number_of_bounces,
-                    russian_roulette,
-                    i
-                );
-                break;
-        }
+
+        render_simple(runtime_parameters, matrix, scene, i);
 
         printf("\r%u / %u", i + 1, target);
         fflush(stdout);
@@ -110,114 +126,109 @@ bool run_offline(const runtime_parameters& runtime_parameters, std::vector<std::
         /* Exporting as rtdata every EXPORT_INTERVAL samples */
         constexpr unsigned int EXPORT_INTERVAL = 1000;
         if ((i + 1) % EXPORT_INTERVAL == 0) {
-            t_end = time_enabled ? time(0) : 0;
-            create_dir(output_dir_exists);
-            export_raw("../output/image.rtdata", i+1, matrix);
-            const unsigned long int t_export_end = time_enabled ? time(0) : 0;
-            t_export += t_export_end - t_end;
+            timer.interrupt();
+
+            const exit_status status = file_handler.export_raw_data("output/image.rtdata", i+1, matrix, runtime_parameters);
+            if (status == exit_status::Failure)
+                return exit_status::Failure;
+            
+            timer.resume();
         }
-
     }
-    if (not t_end) t_end = time(0);
-    const unsigned long int elapsed = t_end - t_init - t_export;
 
-    printf("\r%u / %u", target, target);
+    timer.stop();
+    printf("\r%u / %u\n", target, target);
+    timer.print();
 
-    create_dir(output_dir_exists);
-    const bool success_bmp = write_bmp("../output/image.bmp", matrix, target, runtime_parameters.tone_mapping.gamma_value);
-    if (not success_bmp) {
-        printf("Save failed\n");
-        return false;
-    }
-    printf(" Saved as output/image.bmp\n");
-
-    if (time_enabled) {
-
-        if (elapsed < 60)
-            printf("Total duration: %lu seconds\n", elapsed);
-        else if (elapsed < 3600)
-            printf("Total duration: %lu minutes %lu seconds\n", elapsed / 60, elapsed % 60);
-        else
-            printf("Total duration: %lu hours %lu minutes %lu seconds\n", elapsed / 3600, (elapsed % 3600) / 60, elapsed % 60);
-    }
-        
-    //export_raw("image.rtdata", target_number_of_rays, matrix);
-    return true;
+    const exit_status status = file_handler.export_bmp("output/image.bmp", target, matrix, runtime_parameters);
+    return status;
 }
 
+// Returns an exit_status if the program has to stop, either because of a failure or because a quit event happened
+std::optional<exit_status> process_events(const rt::screen& scr, const file_handler& file_handler,
+        const std::vector<std::vector<rt::color>>& matrix, const unsigned int number_of_rays, const runtime_parameters& runtime_parameters) {
 
-// #include "file_readers/hdr_reader.hpp"
-// #include "scene/light_sources/infinite_area.hpp"
+    switch (scr.poll_keyboard_event()) {
 
-int main(int argc, char *argv[]) {
+        case rt::screen::key::QuitEvent:
+            /* Esc or the window exit "X" clicked */
+            printf("\n");
+            return exit_status::Success;
 
-    // printf("real : %llu, color : %llu, vector : %llu\n", sizeof(real), sizeof(rt::color), sizeof(rt::vector));
-    // printf("real : %llu\n", sizeof(real));
-    // printf("size_t : %llu ; unsigned int : %llu\n", sizeof(size_t), sizeof(unsigned int));
-    // printf("unsigned short : %llu ; unsigned char : %llu\n", sizeof(unsigned short int), sizeof(unsigned char));
-    // printf("material : %llu with alignment %llu\n", sizeof(material), alignof(material));
-    // printf("object : %llu with alignment %llu\n", sizeof(object), alignof(object));
-    // printf("texture_info : %llu with alignment %llu\n", sizeof(texture_info), alignof(texture_info));
-    // printf("triangle : %llu with alignment %llu\n", sizeof(triangle), alignof(triangle));
-    // printf("sphere : %llu with alignment %llu\n", sizeof(sphere), alignof(sphere));
-    // printf("vector : %llu with alignment %llu\n", sizeof(rt::vector), alignof(rt::vector));
-    // printf("plane : %llu with alignment %llu\n", sizeof(plane), alignof(plane));
-    // printf("\n");
-
-    ///// TEMP: testing low res infinite area
-    /*
-    const char* file_name = "../../../raytracer_project/sky/dome/garden_8k.hdr";
-    std::optional<dimensions> size = read_hdr_size(file_name);
-    std::vector<std::vector<rt::color>> data(size.value().width, std::vector<rt::color>(size.value().height));
-    bool hdr_success = read_hdr(file_name, data);
-    if (!hdr_success) throw;
-    
-    std::vector<real> lrt = compute_low_res_table(data);
-    std::vector<std::vector<rt::color>> lrdata(854, std::vector<rt::color>(480));
-    // for (unsigned int i = 0; i < LOWRES_DEFAULT_WIDTH; i++) {
-    //     for (unsigned int j = 0; j < LOWRES_DEFAULT_HEIGHT; j++) {
-    //         const real x = 255.0f * 100000.0f * lrt[j * LOWRES_DEFAULT_WIDTH + i];
-    //         //printf("%f\n", x);
-    //         lrdata[i][j] = rt::color(x, x, x);
-    //     }
-    // }
-
-    // const rt::screen test_scr(LOWRES_DEFAULT_WIDTH, LOWRES_DEFAULT_HEIGHT);
-    // test_scr.fast_copy(lrdata, LOWRES_DEFAULT_WIDTH, LOWRES_DEFAULT_HEIGHT, 1);
-    // test_scr.update_from_texture();
-    // test_scr.wait_keyboard_event();
-    
-    alias_table alt(lrt, size.value().width, size.value().height, LOWRES_DEFAULT_WIDTH, LOWRES_DEFAULT_HEIGHT);
-    randomgen rand(ANTI_ALIASING);
-    // std::vector<unsigned int> samples(1000);
-    // for (unsigned int i = 0; i < samples.size(); i++) {
-    //     samples[i] = alt.sample(rand);
-    // }
-    // std::sort (samples.begin(), samples.end());
-
-    // for (unsigned int i = 0; i < samples.size(); i++) {
-    //     printf("%u %u\n", i, samples[i]);
-    // }
-    
-    const rt::screen test_scr(LOWRES_DEFAULT_WIDTH, LOWRES_DEFAULT_HEIGHT);
-    const rt::color color_one(1.0f, 1.0f, 1.0f);
-    
-    while (true) {
-        for (unsigned int i = 0; i < 1000000; i++) {
-            unsigned int s = alt.sample(rand);
-            rt::color& px = lrdata[s % LOWRES_DEFAULT_WIDTH][s / LOWRES_DEFAULT_WIDTH];
-            px = px + color_one;
+        case rt::screen::key::B: {
+            /* B */
+            const exit_status status = file_handler.export_bmp("image.bmp", number_of_rays, matrix, runtime_parameters);
+            if (status == exit_status::Failure)
+                return exit_status::Failure;
+            break;
         }
-        test_scr.fast_copy(lrdata, LOWRES_DEFAULT_WIDTH, LOWRES_DEFAULT_HEIGHT, 1);
-        test_scr.update_from_texture();
+        case rt::screen::key::R: {
+            /* R */
+            const exit_status status = file_handler.export_raw_data("image.rtdata", number_of_rays, matrix, runtime_parameters);
+            if (status == exit_status::Failure)
+                return exit_status::Failure;
+            break;
+        }
+
+        default:
+            break;
+    }
+    return std::nullopt;
+}
+
+exit_status run_interactive(const runtime_parameters& runtime_parameters, std::vector<std::vector<rt::color>>& matrix,
+    const scene& scene, const file_handler& file_handler) {
+
+    printf("Initialization complete, computing the first ray...");
+    fflush(stdout);
+
+    const float gamma = runtime_parameters.tone_mapping.gamma_value;
+
+    render(matrix, scene, runtime_parameters, 1);
+
+    const rt::screen scr(scene.width, scene.height);
+    
+    auto copy_to_texture = [&] (unsigned int iter) {
+        switch (runtime_parameters.tone_mapping.mode) {
+            case tone_mapping_parameters::mode::Disabled:
+                scr.fast_copy(matrix, scene.width, scene.height, iter);
+                break;
+            case tone_mapping_parameters::mode::Gamma:
+                scr.fast_copy_gamma(matrix, scene.width, scene.height, iter, gamma);
+                break;
+            case tone_mapping_parameters::mode::Reinhardt:
+                scr.fast_copy_reinhardt(matrix, scene.width, scene.height, iter, gamma);
+                break;
+        }
+    };
+
+    copy_to_texture(1);
+    scr.update_from_texture();
+
+    printf("\r                                                   ");
+    printf("\rNumber of samples per pixel: 1");
+    fflush(stdout);
+
+    for (unsigned int number_of_rays = 2; number_of_rays <= MAX_RAYS; number_of_rays++) {
+
+        render(matrix, scene, runtime_parameters, number_of_rays);
+
+        printf("\rNumber of samples per pixel: %u", number_of_rays);
+        fflush(stdout);
+
+        copy_to_texture(number_of_rays);
+        scr.update_from_texture();
+
+        const std::optional<exit_status> status = process_events(scr, file_handler, matrix, number_of_rays, runtime_parameters);
+        if (status.has_value())
+            return status.value();
     }
 
-    // Works perfectly!
-    */
-    ////
+    return file_handler.export_bmp(     "image_final.bmp",    MAX_RAYS, matrix, runtime_parameters)
+        && file_handler.export_raw_data("image_final.rtdata", MAX_RAYS, matrix, runtime_parameters);
+}
 
-
-
+int main(int argc, char *argv[]) {
 
     /* Specification of the parameters through console arguments:
     
@@ -236,8 +247,6 @@ int main(int argc, char *argv[]) {
        should be an integer: an image will be generated with the given number of rays per pixel,
        and exported to image.bmp.
      */
-    
-
     constexpr char const* const default_filename = "../scene.txt";
     const char* filename = default_filename;
 
@@ -364,9 +373,7 @@ int main(int argc, char *argv[]) {
     if (runtime_parameters.russian_roulette == russian_roulette_mode::Enabled)
         printf("Russian roulette technique enabled\n");
 
-    /* Checking if the output directory exists */
-    struct stat info;
-    bool output_dir_exists = stat("../output", &info) == 0 && info.st_mode & S_IFDIR;
+    file_handler file_handler;
 
     /* *************************** */
     /* Scene description */
@@ -378,7 +385,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    scene& scene = scene_opt.value();
+    const scene& scene = scene_opt.value();
     if (scene.gamma != 1.0f) {
         if (gamma_enabled && scene.gamma != gamma) printf("Warning: gamma correction value passed by command-line argument (%.1f) was overwritten by scene description (%.1f)\n",
             gamma, (1.0f / scene.gamma));
@@ -400,135 +407,20 @@ int main(int argc, char *argv[]) {
     /* Definition of the matrix in which we will write the image */
     std::vector<std::vector<rt::color>> matrix(scene.width, std::vector<rt::color>(scene.height));
 
-    /* Generating an image of target_number_of_rays rays */
-
-    if (runtime_parameters.program.mode == program_parameters::mode::Offline) {
-
-        const bool ok = run_offline(runtime_parameters, matrix, scene, output_dir_exists);
-        return ok ? EXIT_SUCCESS : EXIT_FAILURE;
-    }
-
-
-    /* Interactive mode */
-
-    printf("Initialization complete, computing the first ray...");
-    fflush(stdout);
-
-    const bool russian_roulette = runtime_parameters.russian_roulette == russian_roulette_mode::Enabled;
-
-    auto render = [&] (unsigned int iter) {
-        switch (runtime_parameters.time) {
-            case time_mode::Simple:
-                render_loop_parallel_time(matrix, scene, runtime_parameters.number_of_bounces, false);
-                break;
-            case time_mode::Full:
-                render_loop_parallel_time(matrix, scene, runtime_parameters.number_of_bounces, true);
-                break;
-            case time_mode::Disabled:
-                switch (runtime_parameters.sampling.mode) {
-                    case sampling_parameters::mode::MultiSample:
-                        render_loop_parallel_multisample(
-                            matrix,
-                            scene,
-                            runtime_parameters.number_of_bounces,
-                            runtime_parameters.sampling.multisample_number_of_samples
-                        );
-                        break;
-                    case sampling_parameters::mode::UniSample:
-                        render_loop_parallel(
-                            matrix,
-                            scene,
-                            runtime_parameters.number_of_bounces,
-                            russian_roulette,
-                            iter
-                        );
-                        break;
-                }
-                break;
+    switch (runtime_parameters.program.mode) {
+        case program_parameters::mode::Offline: {
+            const exit_status status = run_offline(runtime_parameters, matrix, scene, file_handler);
+            if (status == exit_status::Failure)
+                return EXIT_FAILURE;
+            break;
         }
-    };
-    render(1);
-
-    const rt::screen scr(scene.width, scene.height);
-    
-    auto copy_to_texture = [&] (unsigned int iter) {
-        switch (runtime_parameters.tone_mapping.mode) {
-            case tone_mapping_parameters::mode::Disabled:
-                scr.fast_copy(matrix, scene.width, scene.height, iter);
-                break;
-            case tone_mapping_parameters::mode::Gamma:
-                scr.fast_copy_gamma(matrix, scene.width, scene.height, iter, gamma);
-                break;
-            case tone_mapping_parameters::mode::Reinhardt:
-                scr.fast_copy_reinhardt(matrix, scene.width, scene.height, iter, gamma);
-                break;
-        }
-    };
-
-    copy_to_texture(1);
-    scr.update_from_texture();
-
-    printf("\r                                                   ");
-    printf("\rNumber of samples per pixel: 1");
-    fflush(stdout);
-
-    for (unsigned int number_of_rays = 2; number_of_rays <= MAX_RAYS; number_of_rays++) {
-
-        render(number_of_rays);
-
-        printf("\rNumber of samples per pixel: %u", number_of_rays);
-        fflush(stdout);
-
-        copy_to_texture(number_of_rays);
-        scr.update_from_texture();
-
-        const rt::screen::key key = scr.poll_keyboard_event();
-        switch (key) {
-            case rt::screen::key::QuitEvent:
-                /* Esc or the window exit "X" clicked */
-                printf("\n");
-                return EXIT_SUCCESS;
-            case rt::screen::key::B:
-                /* B */
-                /* Export as BMP */
-                {
-                    create_dir(output_dir_exists);
-                    const bool success_bmp = write_bmp("../output/image.bmp", matrix, number_of_rays, gamma);
-                    if (not success_bmp) {
-                        printf("Save failed\n");
-                        return EXIT_FAILURE;
-                    }
-                    printf(" Saved as output/image.bmp\n");
-                    break;
-                }
-            case rt::screen::key::R:
-                /* R */
-                /* Export raw data */
-                {
-                    create_dir(output_dir_exists);
-                    const bool success_raw = export_raw("../output/image.rtdata", number_of_rays, matrix);
-                    if (not success_raw) {
-                        printf("Save failed\n");
-                        return EXIT_FAILURE;
-                    }
-                    printf(" Saved as output/image.rtdata\n");
-                    break;
-                }
-            default:
-                break;
+        case program_parameters::mode::Interactive: {
+            const exit_status status = run_interactive(runtime_parameters, matrix, scene, file_handler);
+            if (status == exit_status::Failure)
+                return EXIT_FAILURE;
+            break;
         }
     }
 
-    create_dir(output_dir_exists);
-    const bool success =
-            write_bmp ("../output/image_final.bmp", matrix, MAX_RAYS, gamma)
-         && export_raw("../output/image_final.rtdata", MAX_RAYS, matrix);
-    
-    if (not success) {
-        printf("\nSave failed\n");
-        return EXIT_FAILURE;
-    }
-
-    printf("\nSaved as output/image_final.bmp and output/image_final.rtdata\n");
     return EXIT_SUCCESS;
 }
