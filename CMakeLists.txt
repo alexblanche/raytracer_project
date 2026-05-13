@@ -32,7 +32,6 @@ add_library(${libname} SHARED
 	src/scene/material/material.cpp
 	src/screen/image.cpp
 	src/screen/screen.cpp
-	src/auxiliary/randomgen.cpp
 	src/light/hit.cpp
 	src/light/ray.cpp
 	src/light/vector.cpp

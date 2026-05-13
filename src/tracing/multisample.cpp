@@ -31,7 +31,7 @@ inline void update_accumulators(
    color_materials = update_color_materials ? color_materials * local_color : color_materials;
 }
 
-rt::vector random_dir(randomgen& rg, const rt::vector central_dir, const real scattering) {
+rt::vector random_dir(const randomgen& rg, const rt::vector central_dir, const real scattering) {
     
     return (central_dir + (1.0f - scattering) * random_direction<angle::Pi>(rg, central_dir)).unit();
 }
@@ -142,7 +142,7 @@ void compute_bouncing_ray(const material& m, const hit& h,
     }
 }
 
-rt::color pathtrace_multisample(ray& r, const scene& scene, randomgen& rg, const unsigned int bounce, const unsigned int number_of_samples) {
+rt::color pathtrace_multisample(ray& r, const scene& scene, const randomgen& rg, const unsigned int bounce, const unsigned int number_of_samples) {
     
     const bool bounding_method = scene.polygons_per_bounding != 0;
 

@@ -16,7 +16,7 @@
 void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
     const scene& scene, const unsigned int number_of_bounces, const russian_roulette_mode russian_roulette) {
 
-    randomgen rg(ANTI_ALIASING);
+    const randomgen rg(ANTI_ALIASING);
 
     for (int i = 0; i < scene.width; i++) {
         std::vector<rt::color>& data_line = matrix[i];
@@ -36,7 +36,7 @@ void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
 
     PARALLEL_FOR_BEGIN(scene.width) {
         
-        static thread_local randomgen rg(ANTI_ALIASING);
+        static thread_local const randomgen rg(ANTI_ALIASING);
 
         std::vector<rt::color>& data_line = matrix[i];
 
@@ -64,7 +64,7 @@ void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
     const long int t_init = time(0);
     const bool time_all = time_mode == time_mode::Full;
 
-    randomgen rg(ANTI_ALIASING);
+    const randomgen rg(ANTI_ALIASING);
 
     PARALLEL_FOR_BEGIN(scene.width) {
 
@@ -119,7 +119,7 @@ void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
 void render_loop_parallel_multisample(std::vector<std::vector<rt::color>>& matrix,
     const scene& scene, const unsigned int number_of_bounces, const unsigned int number_of_samples) {
 
-    randomgen rg(ANTI_ALIASING);
+    const randomgen rg(ANTI_ALIASING);
 
     PARALLEL_FOR_BEGIN(scene.width) {
 

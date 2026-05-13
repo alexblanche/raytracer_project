@@ -99,7 +99,7 @@ std::vector<ray> random_reflect(const size_t n, randomgen& rg,
 */
 
 // Run-time version (compile-time in hpp)
-rt::vector random_direction(randomgen& rg, const rt::vector& central_dir, const real theta_max) {
+rt::vector random_direction(const randomgen& rg, const rt::vector& central_dir, const real theta_max) {
 
     const real p = rg.random_ratio();
     const real phi = rg.random_angle();
@@ -189,7 +189,7 @@ rt::vector get_refracted_direction(const rt::vector& normal, const rt::vector& v
 }
 
 /* Returns a random unit direction in the cone whose center is the refracted direction, within solid angle refraction_scattering * pi */
-rt::vector get_random_refracted_direction(randomgen& rg, const real refraction_scattering,
+rt::vector get_random_refracted_direction(const randomgen& rg, const real refraction_scattering,
     const rt::vector& normal,
     const rt::vector& vx, const real sin_theta_2_sq,
     const orientation_type ray_orientation) {

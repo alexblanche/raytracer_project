@@ -85,7 +85,7 @@ inline void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& no
 
 /* Auxiliary function that handles the specular reflective case */
 // Run-time
-void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real smoothness,
+void specular_reflective_case(ray& r, const hit& h, const randomgen& rg, const real smoothness,
     const rt::vector& local_normal, const orientation_type ray_orientation) {
 
     const rt::vector central_dir = get_central_reflected_direction(h, local_normal, smoothness, ray_orientation);
@@ -104,7 +104,7 @@ void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real sm
 
 // Compile-time
 template<orientation_type ray_orientation>
-void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real smoothness,
+void specular_reflective_case(ray& r, const hit& h, const randomgen& rg, const real smoothness,
     const rt::vector& local_normal) {
 
     const rt::vector central_dir = get_central_reflected_direction(h, local_normal, smoothness, ray_orientation);
@@ -124,7 +124,7 @@ void specular_reflective_case(ray& r, const hit& h, randomgen& rg, const real sm
 
 /* Auxiliary function that handles the diffuse reflective case */
 // Run-time
-void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, randomgen& rg, const orientation_type ray_orientation) {
+void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, const randomgen& rg, const orientation_type ray_orientation) {
 
     r.set_direction(
         ((ray_orientation == orientation_type::Inward ?
@@ -140,7 +140,7 @@ void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, randomge
 
 // Compile-time
 // template <bool inward>
-// void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, randomgen& rg) {
+// void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, const randomgen& rg) {
 
 //     if constexpr (inward) {
 //         r.set_direction((local_normal + random_direction<angle::Pi>(rg, local_normal)).unit());
@@ -158,7 +158,7 @@ void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, randomge
 
 
 /* Auxiliary function that handles the refractive case */
-void refractive_case(ray& r, const hit& h, randomgen& rg, const real scattering,
+void refractive_case(ray& r, const hit& h, const randomgen& rg, const real scattering,
     const rt::vector& local_normal,
     const rt::vector& vx, const real sin_theta_2_sq, const orientation_type ray_orientation,
     real& refr_index, const real next_refr_i) {
@@ -215,7 +215,7 @@ inline rt::color background_case(const scene& scene, const ray& r,
    in iterative form, we have an accumulator color_materials of the product of the a(k), k=n..,
    and an accumulator (emitted_colors) of the (product of a(j), j=n..k) * b(k). */
 
-rt::color pathtrace(ray& r, const scene& scene, randomgen& rg, const unsigned int bounce,
+rt::color pathtrace(ray& r, const scene& scene, const randomgen& rg, const unsigned int bounce,
     const russian_roulette_mode russian_roulette_mode,
     const real init_refr_index) {
 
