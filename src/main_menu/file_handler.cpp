@@ -24,10 +24,10 @@ exit_status file_handler::export_file(
     create_dir();
     const std::string path = std::filesystem::path(output_dir).append(filename).generic_string();
 
-    bool success;
+    exit_status status;
     switch (file_type) {
         case file_handler::type::Bmp:
-            success = write_bmp(
+            status = write_bmp(
                 path.data(),
                 matrix,
                 number_of_rays,
@@ -36,18 +36,20 @@ exit_status file_handler::export_file(
             break;
         
         case file_handler::type::Raw:
-            success = export_raw(path.data(), number_of_rays, matrix);
+            status = export_raw(path.data(), number_of_rays, matrix);
             break;
     }
 
-    if (success) {
-        printf("Saved as %s\n", output_dir.filename().append(filename).generic_string().data());
-        return exit_status::Success;
+    switch (status) {
+        case exit_status::Success:
+            printf("Saved as %s\n", output_dir.filename().append(filename).generic_string().data());
+            break;
+        
+        case exit_status::Failure:
+            printf("Save failed\n");
+            break;
     }
-    else {
-        printf("Save failed\n");
-        return exit_status::Failure;
-    }
+    return status;
 }
 
 file_handler::file_handler()

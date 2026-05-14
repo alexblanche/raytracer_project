@@ -39,14 +39,14 @@ texture::texture(const char* file_name, bool& parsing_successful, const real gam
         width  = dims.value().width;
         height = dims.value().height;
         data = std::vector<std::vector<rt::color>>(width, std::vector<rt::color>(height));
-        const bool read_success = (is_bmp) ?
+        const exit_status read_success = (is_bmp) ?
               read_bmp(file_name, data)
             : read_hdr(file_name, data);
         if (gamma != 1.0f)
             apply_gamma(data, gamma);
         width_minus_one  = static_cast<real>(width  - 1);
         height_minus_one = static_cast<real>(height - 1);
-        parsing_successful = read_success;
+        parsing_successful = read_success == exit_status::Success;
     }
     else {
         parsing_successful = false;

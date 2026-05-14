@@ -1,6 +1,6 @@
 #include "file_readers/raw_data.hpp"
 #include "file_readers/bmp_reader.hpp"
-#include <stdio.h>
+#include <cstdio>
 
 #include <optional>
 #include <stdexcept>
@@ -18,13 +18,13 @@
    pixel (i,j) at line j*width + i
    line k representing pixel (k % width, k / width)
 */
-bool export_raw(const char* file_name, const unsigned int number_of_rays, const std::vector<std::vector<rt::color>>& matrix) {
+exit_status export_raw(const char* file_name, const unsigned int number_of_rays, const std::vector<std::vector<rt::color>>& matrix) {
 
     FILE* file = fopen(file_name, "w");
 
-    if (file == NULL) {
+    if (file == nullptr) {
         printf("Error, file %s could not be created\n", file_name);
-        return false;
+        return exit_status::Failure;
     }
 
     try {
@@ -42,7 +42,7 @@ bool export_raw(const char* file_name, const unsigned int number_of_rays, const 
 
         for(unsigned int j = 0; j < height; j++) {
             for(unsigned int i = 0; i < width; i++) {
-                rt::color c = matrix[i][j];
+                const rt::color& c = matrix[i][j];
                 const int ret = fprintf(file, "%lf %lf %lf\n", c.get_red(), c.get_green(), c.get_blue());
                 if (ret < 0) {
                     printf("Writing error at color line %u of %s\n", width*j + i, file_name);
@@ -52,12 +52,12 @@ bool export_raw(const char* file_name, const unsigned int number_of_rays, const 
         }
 
         fclose(file);
-        return true;
+        return exit_status::Success;
 
     }
     catch(const std::exception& e) {
         fclose(file);
-        return false;
+        return exit_status::Failure;
     }
 }
 
@@ -67,7 +67,7 @@ std::optional<std::vector<std::vector<rt::color>>> read_raw(const char* file_nam
 
     FILE* file = fopen(file_name, "r");
 
-    if (file == NULL) {
+    if (file == nullptr) {
         printf("Error, file %s not found\n", file_name);
         return std::nullopt;
     }
@@ -110,17 +110,17 @@ std::optional<std::vector<std::vector<rt::color>>> read_raw(const char* file_nam
 /* Combines the n files whose names are in the array source_file_names into one bmp file dest_bmp_name (extension .bmp)
    and one raw data file dest_raw_name (extension .rtdata)
    Returns true if the operation was successful */
-bool combine_raw(const char* dest_bmp_name, const char* dest_raw_name, const int n, const char* const source_file_names[], const float gamma) {
+exit_status combine_raw(const char* dest_bmp_name, const char* dest_raw_name, const int n, const char* const source_file_names[], const float gamma) {
     if (n < 0) {
         printf("Error, not enough files provided\n");
-        return false;
+        return exit_status::Failure;
     }
 
     FILE* file0 = fopen(source_file_names[0], "r");
 
-    if (file0 == NULL) {
+    if (file0 == nullptr) {
         printf("Error, first file (%s) not found\n", source_file_names[0]);
-        return false;
+        return exit_status::Failure;
     }
 
     /* Determination of the size of the matrix */
@@ -131,7 +131,7 @@ bool combine_raw(const char* dest_bmp_name, const char* dest_raw_name, const int
     if (ret0 < 0) {
         printf("Reading error at first line of file %s\n", source_file_names[0]);
         fclose(file0);
-        return false;
+        return exit_status::Failure;
     }
 
     std::vector<std::vector<rt::color>> matrix(width, std::vector<rt::color>(height));
@@ -143,7 +143,7 @@ bool combine_raw(const char* dest_bmp_name, const char* dest_raw_name, const int
         FILE* file = fopen(source_file_names[k], "r");
         if (file == NULL) {
             printf("Error, file (%s) not found\n", source_file_names[k]);
-            return false;
+            return exit_status::Failure;
         }
 
         unsigned int width_k, height_k, number_of_rays_k;
@@ -153,13 +153,13 @@ bool combine_raw(const char* dest_bmp_name, const char* dest_raw_name, const int
         if (retk0 < 0) {
             printf("Reading error at first line of file %s\n", source_file_names[k]);
             fclose(file);
-            return false;
+            return exit_status::Failure;
         }
 
         if (width_k != width || height_k != height) {
             printf("Error, incorrect width or height in file %s\n", source_file_names[k]);
             fclose(file);
-            return false;
+            return exit_status::Failure;
         }
 
         total_number_of_rays += number_of_rays_k;
@@ -172,28 +172,25 @@ bool combine_raw(const char* dest_bmp_name, const char* dest_raw_name, const int
                 if (ret < 0) {
                     printf("Reading error at color line %u of file %s\n", widthj + i, source_file_names[k]);
                     fclose(file);
-                    return false;
+                    return exit_status::Failure;
                 }
-                matrix[i][j] = matrix[i][j] + rt::color(r, g, b);
-            }    
+                matrix[i][j] += rt::color(r, g, b);
+            }
         }
         fclose(file);
     }
 
     /* Exporting the matrix as a bmp file */
-    const bool success_bmp = write_bmp(dest_bmp_name, matrix, total_number_of_rays, gamma);
-    const bool success_raw = export_raw(dest_raw_name, total_number_of_rays, matrix);
+    const exit_status success_bmp = write_bmp(dest_bmp_name, matrix, total_number_of_rays, gamma);
+    const exit_status success_raw = export_raw(dest_raw_name, total_number_of_rays, matrix);
 
-    if (success_bmp && success_raw) {
-        return true;
-    }
-    else {
-        if (not success_bmp) {
-            printf("Error in generating the bmp file %s\n", dest_bmp_name);
-        }
-        if (not success_raw) {
-            printf("Error in generating the raw data file %s\n", dest_raw_name);
-        }
-        return false;
-    }
+    if ((success_bmp && success_raw) == exit_status::Success)
+        return exit_status::Success;
+    
+    if (success_bmp == exit_status::Failure)
+        printf("Error in generating the bmp file %s\n", dest_bmp_name);
+    if (success_raw == exit_status::Failure)
+        printf("Error in generating the raw data file %s\n", dest_raw_name);
+
+    return exit_status::Failure;
 }

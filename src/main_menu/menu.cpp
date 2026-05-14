@@ -273,6 +273,7 @@ static std::optional<exit_status> process_events(const rt::screen& scr, const fi
 
         case rt::screen::key::B: {
             /* B */
+            printf(" ");
             const exit_status status = file_handler.export_bmp("image.bmp", number_of_rays, matrix, runtime_parameters);
             if (status == exit_status::Failure)
                 return exit_status::Failure;
@@ -280,6 +281,7 @@ static std::optional<exit_status> process_events(const rt::screen& scr, const fi
         }
         case rt::screen::key::R: {
             /* R */
+            printf(" ");
             const exit_status status = file_handler.export_raw_data("image.rtdata", number_of_rays, matrix, runtime_parameters);
             if (status == exit_status::Failure)
                 return exit_status::Failure;

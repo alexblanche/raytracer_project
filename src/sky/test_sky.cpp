@@ -171,8 +171,8 @@ int main(int argc, char** argv) {
     const int dwidth = dims.value().width;
     const int dheight = dims.value().height;
     std::vector<std::vector<rt::color>> matrix(dwidth, std::vector<rt::color>(dheight));
-    const bool read_success = read_bmp(file_name, matrix);
-    if (not read_success) {
+    const exit_status read_success = read_bmp(file_name, matrix);
+    if (read_success == exit_status::Failure) {
         return EXIT_FAILURE;
     }
 

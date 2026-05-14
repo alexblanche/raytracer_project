@@ -23,21 +23,23 @@ void convert_bmp_to_normal_field(const std::vector<std::vector<rt::color>>& col_
     }
 }
 
-bool read_normal_map(const char* file_name, std::vector<std::vector<rt::vector>>& data) {
+exit_status read_normal_map(const char* file_name, std::vector<std::vector<rt::vector>>& data) {
 
     const std::optional<dimensions> dims = read_bmp_size(file_name);
-    if (not dims.has_value()) return false;
+    if (not dims.has_value())
+        return exit_status::Failure;
 
     const unsigned int width  = dims.value().width;
     const unsigned int height = dims.value().height;
     std::vector<std::vector<rt::color>> col_data(width, std::vector<rt::color>(height));
-    bool read_success = read_bmp(file_name, col_data);
+    const exit_status read_success = read_bmp(file_name, col_data);
 
-    if (not read_success) return false;
+    if (read_success == exit_status::Failure)
+        return exit_status::Failure;
 
     data = std::vector<std::vector<rt::vector>>(width, std::vector<rt::vector>(height));
     convert_bmp_to_normal_field(col_data, data, width, height);
 
-    return true;
+    return exit_status::Success;
 }
 

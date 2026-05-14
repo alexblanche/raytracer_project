@@ -42,16 +42,17 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    const bool success = combine_raw(argv[1], argv[2], n, argv + index_source, gamma);
+    const exit_status status = combine_raw(argv[1], argv[2], n, argv + index_source, gamma);
 
     printf("Done.\n");
 
-    if (success) {
-        printf("Files %s and %s created\n", argv[1], argv[2]);
+    switch (status) {
+        case exit_status::Success:
+            printf("Files %s and %s created\n", argv[1], argv[2]);
+            return EXIT_SUCCESS;
+    
+        case exit_status::Failure:
+            printf("Error, merger failed\n");
+            return EXIT_FAILURE;
     }
-    else {
-        printf("Error, merger failed\n");
-    }
-
-    return EXIT_SUCCESS;
 }

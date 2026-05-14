@@ -3,18 +3,9 @@
 #include "main_menu/runtime_parameters.hpp"
 #include "screen/color.hpp"
 
+#include "auxiliary/exit_status.hpp"
+
 #include <vector>
-
-
-enum class exit_status {
-    Success, Failure
-};
-
-inline exit_status operator&&(exit_status s1, exit_status s2) {
-    return (s1 == exit_status::Success && s2 == exit_status::Success) ?
-          exit_status::Success
-        : exit_status::Failure;
-}
 
 class file_handler {
     private:
