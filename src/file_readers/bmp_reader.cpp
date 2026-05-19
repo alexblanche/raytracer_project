@@ -133,12 +133,16 @@ exit_status read_bmp(const char* file_name, std::vector<std::vector<rt::color>>&
 }
 
 /* Returns the integer stored in the buffer at index start_index on nb_bytes bytes (in Little Endian convention) */
-static unsigned int value_of_bytes(const unsigned char buffer[], const int start_index, const int nb_bytes) {
-    unsigned int value = 0;
-    for (int i = start_index + nb_bytes - 1; i >= start_index; i--) {
-        value = (value << 8) + buffer[i];
+template<int nb_bytes>
+static inline unsigned int value_of_bytes(const unsigned char buffer[], const int start_index) {
+    if constexpr (nb_bytes == 4) {
+        const uint32_t value = * reinterpret_cast<const uint32_t*>(buffer + start_index);
+        return value;
     }
-    return value;
+    else {
+        const uint16_t value = * reinterpret_cast<const uint16_t*>(buffer + start_index);
+        return static_cast<unsigned int>(value);
+    }
 }
 
 /* Prints the info contained in the header of the given .bmp file */
@@ -154,27 +158,28 @@ exit_status print_bmp_info(const char* file_name) {
 
         int ret;
 
-        unsigned char buffer[54];
-        ret = fread((void*) buffer, 54, 1, file);
+        constexpr unsigned int HEADER_SIZE = 54;
+        unsigned char buffer[HEADER_SIZE];
+        ret = fread((void*) buffer, HEADER_SIZE, 1, file);
         if (ret != 1)
             throw std::runtime_error("Reading error in read_bmp");
 
         printf("Type:                  %c%c\n",     buffer[0], buffer[1]);
-        printf("File size:             %u bytes\n", value_of_bytes(buffer, 2, 4));
-        printf("Reserved 1:            0x%d%d\n",   buffer[6], buffer[7]);
-        printf("Reserved 2:            0x%d%d\n",   buffer[8], buffer[9]);
-        printf("Offset:                %u\n",       value_of_bytes(buffer, 10, 4));
-        printf("Header size:           %u bytes\n", value_of_bytes(buffer, 14, 4));
-        printf("Width:                 %u\n",       value_of_bytes(buffer, 18, 4));
-        printf("Height:                %u\n",       value_of_bytes(buffer, 22, 4));
-        printf("Color planes:          %u\n",       value_of_bytes(buffer, 26, 2));
-        printf("Bits per pixel:        %u\n",       value_of_bytes(buffer, 28, 2));
-        printf("Compression method:    %u\n",       value_of_bytes(buffer, 30, 4));
-        printf("Compressed size:       %u bytes\n", value_of_bytes(buffer, 34, 4));
-        printf("Horizontal resolution: %u\n",       value_of_bytes(buffer, 38, 4));
-        printf("Vertical resolution:   %u\n",       value_of_bytes(buffer, 42, 4));
-        printf("Colors used:           %u\n",       value_of_bytes(buffer, 46, 4));
-        printf("Important colors:      %u\n",       value_of_bytes(buffer, 50, 4));
+        printf("File size:             %u bytes\n", value_of_bytes<4>(buffer, 2));
+        printf("Reserved 1:            0x%x%x\n",   buffer[6], buffer[7]);
+        printf("Reserved 2:            0x%x%x\n",   buffer[8], buffer[9]);
+        printf("Offset:                %u\n",       value_of_bytes<4>(buffer, 10));
+        printf("Header size:           %u bytes\n", value_of_bytes<4>(buffer, 14));
+        printf("Width:                 %u\n",       value_of_bytes<4>(buffer, 18));
+        printf("Height:                %u\n",       value_of_bytes<4>(buffer, 22));
+        printf("Color planes:          %u\n",       value_of_bytes<4>(buffer, 26));
+        printf("Bits per pixel:        %u\n",       value_of_bytes<4>(buffer, 28));
+        printf("Compression method:    %u\n",       value_of_bytes<4>(buffer, 30));
+        printf("Compressed size:       %u bytes\n", value_of_bytes<4>(buffer, 34));
+        printf("Horizontal resolution: %u\n",       value_of_bytes<4>(buffer, 38));
+        printf("Vertical resolution:   %u\n",       value_of_bytes<4>(buffer, 42));
+        printf("Colors used:           %u\n",       value_of_bytes<4>(buffer, 46));
+        printf("Important colors:      %u\n",       value_of_bytes<4>(buffer, 50));
 
         fclose(file);
         return exit_status::Success;
@@ -197,8 +202,7 @@ inline void throw_if_error(int ret) {
 exit_status write_bmp(const char* file_name, const std::vector<std::vector<rt::color>>& data,
     const unsigned int number_of_rays, const real gamma) {
 
-    const real n = number_of_rays;
-    const int width = data.size();
+    const int width  = data.size();
     const int height = data[0].size();
 
     const unsigned int p = (4 - ((BYTES_PER_COLOR * width) % 4)) % 4;
@@ -225,8 +229,8 @@ exit_status write_bmp(const char* file_name, const std::vector<std::vector<rt::c
         /* Size = 14 (header) + 40 (infoheader) + BYTES_PER_COLOR * width * height (pixel data) + p * height */
         const unsigned int file_size = 14 + 40 + (BYTES_PER_COLOR * width + p) * height;
         ret = fprintf(file, "%c%c%c%c",
-            file_size & 0xFF,
-            (file_size >> 8) & 0xFF,
+            file_size         & 0xFF,
+            (file_size >> 8)  & 0xFF,
             (file_size >> 16) & 0xFF,
             (file_size >> 24) & 0xFF
         );
@@ -248,8 +252,8 @@ exit_status write_bmp(const char* file_name, const std::vector<std::vector<rt::c
 
         /* 4 bytes: Width */
         ret = fprintf(file, "%c%c%c%c",
-            width & 0xFF,
-            (width >> 8) & 0xFF,
+            width         & 0xFF,
+            (width >> 8)  & 0xFF,
             (width >> 16) & 0xFF,
             (width >> 24) & 0xFF
         );
@@ -257,8 +261,8 @@ exit_status write_bmp(const char* file_name, const std::vector<std::vector<rt::c
 
         /* 4 bytes: Height */
         ret = fprintf(file, "%c%c%c%c",
-            height & 0xFF,
-            (height >> 8) & 0xFF,
+            height         & 0xFF,
+            (height >> 8)  & 0xFF,
             (height >> 16) & 0xFF,
             (height >> 24) & 0xFF
         );
@@ -315,7 +319,7 @@ exit_status write_bmp(const char* file_name, const std::vector<std::vector<rt::c
         char padding_zeroes[MAX_PADDING] = { 0 };
 
         const bool gamma_enabled = gamma != 1.0f;
-        const real invN = 1.0 / n;
+        const real invN = 1.0 / number_of_rays;
         constexpr real inv255 = 1.0 / 255.0;
     
         for (int j = 0; j < height; j++) {
