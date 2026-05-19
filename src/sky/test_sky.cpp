@@ -1,11 +1,11 @@
+#include "sky/bmp_reader.hpp"
+#include "sky/screen.hpp"
+#include "sky/vector.hpp"
+#include "sky/sky_render.hpp"
+
 #include <iostream>
-#include "file_readers/bmp_reader.hpp"
-#include "file_readers/hdr_reader.hpp"
-#include "screen/screen.hpp"
-#include "light/vector.hpp"
 #include <chrono>
 #include <cmath>
-#include "sky/sky_render.hpp"
 
 /* Prototype: real-time skydome, to be cleaned-up */
 
@@ -29,7 +29,7 @@ struct mouse_pos {
 
     mouse_pos(int width, int height)
         : invwidth(1.0f / ((float) width)), invheight(1.0f / ((float) height)),
-          theta(PI), phi(0) {}
+          theta(Pi), phi(0) {}
 
     // xr and yr are relative positions
     void set(int xr, int yr) {
@@ -54,8 +54,8 @@ struct mouse_pos {
         //     phi = -(PI / 2.0f);
         // }
 
-        theta = (absf(theta) > PI) ? theta + (std::signbit(theta) ? 2*PI : -2*PI): theta;
-        phi = (absf(phi) > PI/2) ? (std::signbit(phi) ? -PI/2 : PI/2) : phi;
+        theta = (absf(theta) > Pi)   ? theta + (std::signbit(theta) ? 2 * Pi : -2 * Pi): theta;
+        phi   = (absf(phi) > Pi / 2) ? (std::signbit(phi) ? -Pi / 2 : Pi / 2) : phi;
     }
 };
 
@@ -66,14 +66,14 @@ struct mouse_pos {
 // The 4 edges of the screen plane are set at radius 1, so the center is
 // set at a distance cos(fov_x)
 struct screen_axes {
-    rt::vector screen_x_axis;
-    rt::vector screen_y_axis;
-    rt::vector center;
+    sky::vector screen_x_axis;
+    sky::vector screen_y_axis;
+    sky::vector center;
 
     screen_axes() {
-        screen_x_axis = rt::vector(1, 0, 0);
-        screen_y_axis = rt::vector(0, 1, 0);
-        center = rt::vector(0, 0, 1);
+        screen_x_axis = sky::vector(1, 0, 0);
+        screen_y_axis = sky::vector(0, 1, 0);
+        center = sky::vector(0, 0, 1);
     }
 
     void set(/*const float fov_x,*/ const float theta, const float phi) {
@@ -106,11 +106,11 @@ struct screen_axes {
 // Returns the world space cartesian coordinates of the pixel of coordinates (i, j) (in screen space)
 // Prototype: the computations have been placed into the code at the right place, to optimize pre-computation
 
-rt::vector get_cartesian(screen_axes& axes,
+sky::vector get_cartesian(screen_axes& axes,
     const float& fov_x, const float& fov_y, const int scr_width, const int scr_height,
     const float& theta, const float& phi, const int i, const int j) {
 
-    const rt::vector center = get_center(fov_x, theta, phi);
+    const sky::vector center = get_center(fov_x, theta, phi);
     axes.set(theta, phi);
     const int i0 = scr_width / 2;
     const int j0 = scr_height / 2;
@@ -128,7 +128,7 @@ struct spherical {
 
     // Returns the world space spherical coordinates (theta, phi) of the point of cartesian coordinates (x, y, z)
     // (assuming sqrt(x*x + y*y + z*z) < 1)
-    spherical(const rt::vector& u) {
+    spherical(const sky::vector& u) {
 
         // OBSOLETE : inlined in render loop
         if (u.x > 0) {
@@ -159,7 +159,7 @@ int main(int argc, char** argv) {
         //"../../../raytracer_project/sky/dome/house.bmp";
         //"../../../raytracer_project/sky/dome/times.bmp";
         //"../../../raytracer_project/sky/dome/cobblestone_street_night.bmp";
-        "../../../Assets/sundowner_overlook.bmp";
+        "../../../assets/cobblestone_street_night.bmp";
         
     print_bmp_info(file_name);
 
@@ -168,9 +168,9 @@ int main(int argc, char** argv) {
         std::cout << "File not found" << std::endl;
         return EXIT_FAILURE;
     }
-    const int dwidth = dims.value().width;
+    const int dwidth  = dims.value().width;
     const int dheight = dims.value().height;
-    std::vector<std::vector<rt::color>> matrix(dwidth, std::vector<rt::color>(dheight));
+    std::vector<std::vector<sky::color>> matrix(dwidth, std::vector<sky::color>(dheight));
     const exit_status read_success = read_bmp(file_name, matrix);
     if (read_success == exit_status::Failure) {
         return EXIT_FAILURE;
@@ -178,7 +178,7 @@ int main(int argc, char** argv) {
 
     /* Screen dimensions */
     constexpr int width = 1920, height = 1080;
-    rt::screen scr(width, height);
+    sky::screen scr(width, height);
     SDL_SetWindowFullscreen(scr.window, SDL_WINDOW_FULLSCREEN);
     SDL_ShowCursor(SDL_DISABLE);
 
@@ -192,13 +192,13 @@ int main(int argc, char** argv) {
     //     const int jwidth = j * dims.value().width;
 
     //     for (int i = 0; i < dims.value().width; i++) {
-    //         rt::color& c = matrix[i][j];
+    //         sky::color& c = matrix[i][j];
     const int dwidthdepth = dwidth * depth;
     for (int i = 0; i < dwidth; i++) {
-        const std::vector<rt::color>& line = matrix[i];
+        const std::vector<sky::color>& line = matrix[i];
         const int idepth = i * depth;
         for (int j = 0; j < dheight; j++) {
-            const rt::color& c = line[j];
+            const sky::color& c = line[j];
             const char r = c.get_red();
             const char g = c.get_green();
             const char b = c.get_blue();
@@ -214,15 +214,15 @@ int main(int argc, char** argv) {
     // Test fused multiply add (fma)
     // 16s classic, 11s fma
     /*
-    rt::color colo(0, 0, 0);
-    rt::color colo_fma(0, 0, 0);
+    sky::color colo(0, 0, 0);
+    sky::color colo_fma(0, 0, 0);
     constexpr int nbiter = 100;
     const unsigned long int tcolo = time(0);
     for (int iter = 0; iter < nbiter; iter++) {
         for (int i = 0; i < dwidth; i++) {
-            const std::vector<rt::color>& line = matrix[i];
+            const std::vector<sky::color>& line = matrix[i];
             for (int j = 0; j < dheight; j++) {
-                const rt::color& c = line[j];
+                const sky::color& c = line[j];
                 colo = (c * 2.0f) + colo;
             }
         }
@@ -230,9 +230,9 @@ int main(int argc, char** argv) {
     const unsigned long int tcolo_end = time(0);
     for (int iter = 0; iter < nbiter; iter++) {
         for (int i = 0; i < dwidth; i++) {
-            const std::vector<rt::color>& line = matrix[i];
+            const std::vector<sky::color>& line = matrix[i];
             for (int j = 0; j < dheight; j++) {
-                const rt::color& c = line[j];
+                const sky::color& c = line[j];
                 colo_fma = fma(c, (real) 2.0f, colo_fma);
             }
         }
@@ -291,12 +291,12 @@ int main(int argc, char** argv) {
 
     screen_axes axes;
 
-    constexpr float x_step = fov_x * PI / half_scr_width;
-    constexpr float y_step = fov_y * PI / half_scr_height;
+    constexpr float x_step = fov_x * Pi / half_scr_width;
+    constexpr float y_step = fov_y * Pi / half_scr_height;
 
     // Scaling factor to convert [0, 2pi] (resp. [0, pi]) to [0, img_width-1] (resp. [0, img_height-1])
-    const float img_scale_x = (img_width - 1) / (2 * PI);
-    const float img_scale_y = (img_height - 1) / PI;
+    const float img_scale_x = (img_width - 1) / (2 * Pi);
+    const float img_scale_y = (img_height - 1) / Pi;
     
     //const int max_index_src = img_width * img_height * 3 - 1;
 
@@ -317,9 +317,13 @@ int main(int argc, char** argv) {
                 case SDL_KEYDOWN:
                     if (event.type != SDL_KEYDOWN || event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
                         const uint64_t curr_time = get_time();
-                        std::cout << "Average fps: " << (1000.0 * frame_cpt) / (curr_time - time_init) << std::endl;
+                        const float fps = (1000.0f * static_cast<float>(frame_cpt)) / static_cast<float>(curr_time - time_init);
+                        std::cout << "Average fps: " << fps << std::endl;
                         return EXIT_SUCCESS;
                     }
+                    break;
+                default:
+                    break;
             }
         }
         // printf("mouse set: %d\n", cpt_mouse);
@@ -329,10 +333,10 @@ int main(int argc, char** argv) {
         /* Frame rendering */
 
         // Pre-computation of the cartesian coordinates of the pixel in world space
-        //const rt::vector center = get_center(fov_x, mouse.theta, mouse.phi);
+        //const sky::vector center = get_center(fov_x, mouse.theta, mouse.phi);
         axes.set(/*fov_x,*/ mouse.theta, mouse.phi);
-        const rt::vector scaled_x_axis = axes.screen_x_axis * x_step;
-        const rt::vector scaled_y_axis = axes.screen_y_axis * y_step;
+        const sky::vector scaled_x_axis = axes.screen_x_axis * x_step;
+        const sky::vector scaled_y_axis = axes.screen_y_axis * y_step;
 
         render(txt, texture_pixels, texture_pitch, orig_pixels, width, height, img_width,
             scaled_x_axis, scaled_y_axis, axes.center,

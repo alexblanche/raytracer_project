@@ -18,7 +18,7 @@
 #include <string>
 #include <SDL2/SDL.h>
 
-#include "image.hpp"
+#include "screen/image.hpp"
 
 namespace rt {
 

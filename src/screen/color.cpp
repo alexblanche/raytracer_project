@@ -17,7 +17,7 @@ namespace rt {
 	color add_col_vect(const std::vector<color>& color_set) {
 		
 		color col;
-		for (rt::color const& c : color_set)
+		for (color const& c : color_set)
 			col += c;
 
 		return col.max_out();
@@ -28,7 +28,7 @@ namespace rt {
 		const real n = color_set.size();
 		color col;
 
-		for (rt::color const& c : color_set)
+		for (color const& c : color_set)
 			col += c;
 
 		return col / n;
@@ -48,7 +48,7 @@ namespace rt {
 				const real r = pow(col.get_red()   * (1.0f / 255.0f), gamma) * 255.0f;
 				const real g = pow(col.get_green() * (1.0f / 255.0f), gamma) * 255.0f;
 				const real b = pow(col.get_blue()  * (1.0f / 255.0f), gamma) * 255.0f;
-				data_line[j] = rt::color(r, g, b);
+				data_line[j] = color(r, g, b);
 			}
 		} PARALLEL_FOR_END();
 	}

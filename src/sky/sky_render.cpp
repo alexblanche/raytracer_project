@@ -17,7 +17,7 @@ enum loop_version_limit {
 
 template<enum loop_version_theta vtheta, enum loop_version_phi vphi, enum loop_version_limit vlim>
 inline void segment_loop(float& theta, float& phi,
-    rt::vector& cartesian, const rt::vector& scaled_x_axis, const int lim_int,
+    sky::vector& cartesian, const sky::vector& scaled_x_axis, const int lim_int,
     float& x, float& y, int& index,
     const float img_scale_x, const float img_scale_y, const int img_width,
     char* const texture_pixels, char* const orig_pixels,
@@ -52,7 +52,7 @@ inline void segment_loop(float& theta, float& phi,
         y = ny;
 
         if constexpr (vlim == LimitCase) {
-            theta = (theta < PI/2) || (theta > 3*PI/2) ? 0 : PI;
+            theta = (theta < Pi / 2) || (theta > 3 * Pi / 2) ? 0 : Pi;
             i = lim_int + 1;
         }
         else if constexpr (vlim == NotLimitCase) {
@@ -68,7 +68,7 @@ inline void segment_loop(float& theta, float& phi,
                 const float dx = nx - x;
                 const float mx = (x + nx) * 0.5f;
                 const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
-                phi = needs_reset_phi ? (atanf(ny) + (PI / 2.0f)) : phi + (dy / (1 + my * my));
+                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
                 theta = needs_reset_phi ? (atanf(nx) + const_theta) : theta + (dx / (1 + mx * mx));
             }
             else if constexpr (vtheta == UpdateThetaAtanBefore || vtheta == UpdateThetaAtanAfter) {
@@ -86,7 +86,7 @@ inline void segment_loop(float& theta, float& phi,
         if constexpr (!(vlim == NotLimitCase && vtheta == UpdateThetaTestPhi && vphi != NoTestPhi)) { // phi already updated
             if constexpr (vphi == TestPhi || vlim == LimitCase) {
                 const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
-                phi = needs_reset_phi ? (atanf(ny) + (PI / 2.0f)) : phi + (dy / (1 + my * my));    
+                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));    
             }
             else if constexpr (vphi == NoTestPhi) {
                 phi += dy / (1 + my * my);
@@ -96,7 +96,7 @@ inline void segment_loop(float& theta, float& phi,
         const int index_src_1 = (static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x);
         const int index_src_2 = (index_src_1 << 1) + index_src_1;
         const int index_src = std::max(0, index_src_2);
-        memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+        std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
 
         // if constexpr (vphi == TestPhi) {
         //     const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
@@ -116,7 +116,7 @@ inline void segment_loop(float& theta, float& phi,
 }
 
 void compute_bounds_theta_update(int& k1_io, int& k2_io,
-    const rt::vector& v, const rt::vector& dv) {
+    const sky::vector& v, const sky::vector& dv) {
 
     // Computations of the solutions of abs(dx) = threshold
     // const float u0 = cartesian.z;
@@ -176,8 +176,8 @@ enum phi_test_bounds {
 
 void print_ptb(phi_test_bounds ptb) {
     switch (ptb) {
-        case AlwaysTest:  printf("AlwaysTest\n");  break;
-        case NeverTest:   printf("NeverTest\n");   break;
+        case AlwaysTest : printf("AlwaysTest\n" ); break;
+        case NeverTest  : printf("NeverTest\n"  ); break;
         case TestBetween: printf("TestBetween\n"); break;
         case TestOutside: printf("TestOutside\n"); break;
     }
@@ -186,7 +186,7 @@ void print_ptb(phi_test_bounds ptb) {
 // Returns true if a non-empty test of phi has to be done, between k1 and k2
 // False if no solution was found
 phi_test_bounds compute_bounds_phi_update(int& k1_io, int& k2_io,
-    const rt::vector& v, const rt::vector& dv) {
+    const sky::vector& v, const sky::vector& dv) {
     
     // Resolution of ak^2 + bk + c < 0
     const float m2 = tan_reset_threshold_phi * tan_reset_threshold_phi;
@@ -211,9 +211,9 @@ phi_test_bounds compute_bounds_phi_update(int& k1_io, int& k2_io,
 
 void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* orig_pixels,
     const int width, const int height, const int img_width,
-    const rt::vector& scaled_x_axis, const rt::vector& scaled_y_axis, const rt::vector& axes_center,
+    const sky::vector& scaled_x_axis, const sky::vector& scaled_y_axis, const sky::vector& axes_center,
     const int half_scr_width, const int half_scr_height,
-    rt::screen& scr, SDL_Rect& srcrect, SDL_Rect& dstrect,
+    sky::screen& scr, SDL_Rect& srcrect, SDL_Rect& dstrect,
     const float img_scale_x, const float img_scale_y) {
 
     SDL_LockTexture(txt, NULL, (void**) &texture_pixels, &texture_pitch);
@@ -222,18 +222,18 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
     for (int j = 0; j < height; j++) {
 
         // Pre-computation of the cartesian coordinates of the pixel in world space
-        // const rt::vector y_component = scaled_y_axis * (j - half_scr_height);
-        // const rt::vector pre_cartesian = axes.center + y_component;
-        const rt::vector pre_cartesian = fma(scaled_y_axis, j - half_scr_height, axes_center);
+        // const sky::vector y_component = scaled_y_axis * (j - half_scr_height);
+        // const sky::vector pre_cartesian = axes.center + y_component;
+        const sky::vector pre_cartesian = fma(scaled_y_axis, j - half_scr_height, axes_center);
         // const int jwidth = j * width;
 
 #if 0
         for (int i = 0; i < width; i++) {
             
             // Determining the cartesian coordinates of the pixel in world space
-            // const rt::vector x_component = scaled_x_axis * (i - half_scr_width);
-            // const rt::vector cartesian = pre_cartesian + x_component;
-            const rt::vector cartesian = fma(scaled_x_axis, i - half_scr_width, pre_cartesian);
+            // const sky::vector x_component = scaled_x_axis * (i - half_scr_width);
+            // const sky::vector cartesian = pre_cartesian + x_component;
+            const sky::vector cartesian = fma(scaled_x_axis, i - half_scr_width, pre_cartesian);
             /*
             // Converting the coordinates into spherical coordinates in world space
             const spherical sph(cartesian);
@@ -244,11 +244,11 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
             
             const float theta =
                 (cartesian.x != 0) ?
-                    atanf(cartesian.z / cartesian.x) + (cartesian.x > 0 ? 3.0f * (PI / 2.0f) : (PI / 2.0f))
+                    atanf(cartesian.z / cartesian.x) + (cartesian.x > 0 ? 3.0f * (Pi / 2.0f) : (Pi / 2.0f))
                     :
-                    3.0f * (PI / 2.0f);
+                    3.0f * (Pi / 2.0f);
     
-            const float phi = asinf(cartesian.y / cartesian.norm()) + (PI / 2.0f);
+            const float phi = asinf(cartesian.y / cartesian.norm()) + (Pi / 2.0f);
 
             // Reading the pixel of the image corresponding to the spherical coordinates of the pixel in world space
             const int index_src = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
@@ -259,7 +259,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
             // texture_pixels[index]     = orig_pixels[index_src];
             // texture_pixels[index + 1] = orig_pixels[index_src + 1];
             // texture_pixels[index + 2] = orig_pixels[index_src + 2];
-            memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+            std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
             index += 3;
         }
 #else
@@ -269,27 +269,27 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 i == half_scr_width - pre_cartesian.x / scaled_x_axis.x
                 if (-pre_cartesian.x / scaled_x_axis.x) is an integer
         */
-        
-        const float lim = half_scr_width + ((scaled_x_axis.x != 0) ? -pre_cartesian.x / scaled_x_axis.x : 1e30f);
+
+        const float lim = half_scr_width + ((scaled_x_axis.x != 0) ? -pre_cartesian.x / scaled_x_axis.x : infinity);
         const bool lim_pos = 0 <= lim;
         const bool two_loops_needed = lim_pos && (lim < width);
-        const bool need_limit_case = two_loops_needed && (lim - nearbyintf(lim) < 1e-5);
-        const float init_cartx = fma(scaled_x_axis.x, 0 - half_scr_width, pre_cartesian.x);
-        const bool starts_pos = init_cartx >= 0;
-        const float const_before = starts_pos ? 3.0f * (PI / 2.0f) : (PI / 2.0f);
-        const float const_after = (2.0f * PI) - const_before;
+        const bool need_limit_case = two_loops_needed && (lim - nearbyintf(lim) < 1e-5f);
+        const float init_cartx = fma(scaled_x_axis.x, -half_scr_width, pre_cartesian.x);
+        const bool starts_pos = init_cartx >= 0.0f;
+        const float const_before = starts_pos ? 3.0f * (Pi / 2.0f) : (Pi / 2.0f);
+        const float const_after = (2.0f * Pi) - const_before;
         const int lim_int = static_cast<int>(lim);
-        int last_first_loop = !lim_pos ?
+        const int last_first_loop = !lim_pos ?
             width
             :
             std::max(0, std::min(lim_int + (!need_limit_case), width));
         
-        rt::vector cartesian = fma(scaled_x_axis, (-1) - half_scr_width, pre_cartesian);
+        sky::vector cartesian = fma(scaled_x_axis, (-1) - half_scr_width, pre_cartesian);
         
         float x = (cartesian.x != 0) ? cartesian.z / cartesian.x : (cartesian.z + 0.1 * scaled_x_axis.z) / (cartesian.x + 0.1 * scaled_x_axis.x);
-        float theta = (cartesian.x != 0) ? (atanf(x) + const_before) : (starts_pos ? 0 : PI);
+        float theta = (cartesian.x != 0) ? (atanf(x) + const_before) : (starts_pos ? 0 : Pi);
         float y = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
-        float phi = atanf(y) + (PI / 2.0f);
+        float phi = atanf(y) + (Pi / 2.0f);
 
 #define POLYNOMIAL_SOLVE
 #ifdef POLYNOMIAL_SOLVE
@@ -408,13 +408,13 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 const float dy = ny - y;
                 const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
                 const float my = (y + ny) * 0.5f;
-                phi = needs_reset_phi ? (atanf(ny) + (PI / 2.0f)) : phi + (dy / (1 + my * my));
+                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
                 y = ny;
 
                 const int index_src_1 = ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
                 const int index_src_2 = (index_src_1 << 1) + index_src_1;
                 const int index_src = std::max(0, index_src_2);
-                memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
 
                 index += 3;
             }
@@ -431,13 +431,13 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 const float dy = ny - y;
                 const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
                 const float my = (y + ny) * 0.5f;
-                phi = needs_reset_phi ? (atanf(ny) + (PI / 2.0f)) : phi + (dy / (1 + my * my));
+                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
                 y = ny;
 
                 const int index_src_1 = ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
                 const int index_src_2 = (index_src_1 << 1) + index_src_1;
                 const int index_src = std::max(0, index_src_2);
-                memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
 
                 // if (i == i0 || i == b2 - 1) {
                 //     texture_pixels[index]     = 0;
@@ -451,18 +451,18 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 
                 cartesian += scaled_x_axis;
 
-                theta = (theta < PI/2) || (theta > 3*PI/2) ? 0 : PI;
+                theta = (theta < Pi / 2) || (theta > 3 * Pi /2) ? 0 : Pi;
                 
                 const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
                 const float dy = ny - y;
                 const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
                 const float my = (y + ny) * 0.5f;
-                phi = needs_reset_phi ? (atanf(ny) + (PI / 2.0f)) : phi + (dy / (1 + my * my));
+                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
                 y = ny;
 
                 const int index_src_r = 3 * ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
                 const int index_src = std::max(0, index_src_r);
-                memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
 
                 // texture_pixels[index]     = 0;
                 // texture_pixels[index + 1] = 0;
@@ -486,13 +486,13 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 const float dy = ny - y;
                 const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
                 const float my = (y + ny) * 0.5f;
-                phi = needs_reset_phi ? (atanf(ny) + (PI / 2.0f)) : phi + (dy / (1 + my * my));
+                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
                 y = ny;
 
                 const int index_src_1 = ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
                 const int index_src_2 = (index_src_1 << 1) + index_src_1;
                 const int index_src = std::max(0, index_src_2);
-                memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
 
                 // if (i == b2 || i == b2 + 1 || i == b3 - 1) {
                 //     texture_pixels[index]     = 0;
@@ -513,7 +513,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 const float dy = ny - y;
                 const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
                 const float my = (y + ny) * 0.5f;
-                phi = needs_reset_phi ? (atanf(ny) + (PI / 2.0f)) : phi + (dy / (1 + my * my));
+                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
                 y = ny;
 
                 const float nx = cartesian.z / cartesian.x;
@@ -525,7 +525,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 const int index_src_1 = ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
                 const int index_src_2 = (index_src_1 << 1) + index_src_1;
                 const int index_src = std::max(0, index_src_2);
-                memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
 
                 index += 3;
             }
@@ -563,13 +563,13 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 const float dy = ny - y;
                 const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
                 const float my = (y + ny) * 0.5f;
-                phi = needs_reset_phi ? (atanf(ny) + (PI / 2.0f)) : phi + (dy / (1 + my * my));
+                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
                 y = ny;
 
                 const int index_src_1 = ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
                 const int index_src_2 = (index_src_1 << 1) + index_src_1;
                 const int index_src = std::max(0, index_src_2);
-                memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
 
                 // if (starts_pos) {
                 //     texture_pixels[index] = 255;
@@ -619,14 +619,14 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
             //if (needs_reset_theta) atan_cpt++;
             x = nx;
 
-            //  float phi = asinf(cartesian.y / cartesian.norm()) + (PI / 2.0f);
-            //const float phi = atanf(cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z)) + (PI / 2.0f);
+            //  float phi = asinf(cartesian.y / cartesian.norm()) + (Pi / 2.0f);
+            //const float phi = atanf(cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z)) + (Pi / 2.0f);
             //if (cartesian.x * cartesian.x + cartesian.z * cartesian.z == 0) printf("First loop: div by 0\n");
             const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
             const float dy = ny - y;
             const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
             const float my = (y + ny) * 0.5f;
-            phi = needs_reset_phi ? (atanf(ny) + (PI / 2.0f)) : phi + (dy / (1 + my * my));
+            phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
             //if (needs_reset_phi) atan_cpt++;
             y = ny;
 
@@ -637,7 +637,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
             //const int index_src = std::clamp(index_src_r, 0, max_index_src);
             const int index_src = std::max(0, index_src_2);
 #ifndef BUFFER_CPY
-            memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+            std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
 #else
             if (index_src != prev_index_src + 3) {
                 // if (cpt != 3) {
@@ -648,7 +648,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 //     }
                 // }
                 // else {
-                    memcpy(texture_pixels + init_index, orig_pixels + init_index_src, cpt);
+                    std::memcpy(texture_pixels + init_index, orig_pixels + init_index_src, cpt);
                     cpt = 0;
                 //}
                 init_index = index;
@@ -680,16 +680,16 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
             if (need_limit_case) {
                 cartesian += scaled_x_axis;
 
-                theta = (theta < PI/2) || (theta > 3*PI/2) ? 0 : PI;
+                theta = (theta < Pi / 2) || (theta > 3 * Pi / 2) ? 0 : Pi;
                 
-                //const float phi = asinf(cartesian.y / sqrt(cartesian.y * cartesian.y + cartesian.z * cartesian.z)) + (PI / 2.0f);
-                //const float phi = atanf(cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z)) + (PI / 2.0f);
+                //const float phi = asinf(cartesian.y / sqrt(cartesian.y * cartesian.y + cartesian.z * cartesian.z)) + (Pi / 2.0f);
+                //const float phi = atanf(cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z)) + (Pi / 2.0f);
                 //if (cartesian.x * cartesian.x + cartesian.z * cartesian.z == 0) printf("Limit case: div by 0\n");
                 const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
                 const float dy = ny - y;
                 const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
                 const float my = (y + ny) * 0.5f;
-                phi = needs_reset_phi ? (atanf(ny) + (PI / 2.0f)) : phi + (dy / (1 + my * my));
+                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
                 //if (needs_reset_phi) atan_cpt++;
                 y = ny;
 
@@ -699,7 +699,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 //const int index_src = std::clamp(index_src_r, 0, max_index_src);
                 const int index_src = std::max(0, index_src_r);
 #ifndef BUFFER_CPY
-                memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
 #else
                 if (index_src != prev_index_src + 3) {
                     // if (cpt != 3) {
@@ -710,7 +710,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                     //     }
                     // }
                     // else {
-                        memcpy(texture_pixels + init_index, orig_pixels + init_index_src, cpt);
+                        std::memcpy(texture_pixels + init_index, orig_pixels + init_index_src, cpt);
                         cpt = 0;
                     //}
                     init_index = index;
@@ -741,14 +741,14 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
             for (; i < width; i++) {
                 cartesian += scaled_x_axis;
 
-                //const float phi = asinf(cartesian.y / cartesian.norm()) + (PI / 2.0f);
-                //const float phi = atanf(cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z)) + (PI / 2.0f);
+                //const float phi = asinf(cartesian.y / cartesian.norm()) + (Pi / 2.0f);
+                //const float phi = atanf(cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z)) + (Pi / 2.0f);
                 //if (cartesian.x * cartesian.x + cartesian.z * cartesian.z == 0) printf("Second loop: div by 0\n");
                 const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
                 const float dy = ny - y;
                 const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
                 const float my = (y + ny) * 0.5f;
-                phi = needs_reset_phi ? (atanf(ny) + (PI / 2.0f)) : phi + (dy / (1 + my * my));
+                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
                 //if (needs_reset_phi) atan_cpt++;
                 y = ny;
 
@@ -770,7 +770,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 //const int index_src = std::clamp(index_src_r, 0, max_index_src);
                 const int index_src = std::max(0, index_src_2);
 #ifndef BUFFER_CPY
-                memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
 #else
                 if (index_src != prev_index_src + 3) {
                     // if (cpt != 3) {
@@ -781,7 +781,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                     //     }
                     // }
                     // else {
-                        memcpy(texture_pixels + init_index, orig_pixels + init_index_src, cpt);
+                        std::memcpy(texture_pixels + init_index, orig_pixels + init_index_src, cpt);
                         cpt = 0;
                     //}
                     init_index = index;
@@ -811,7 +811,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
 
 #ifdef BUFFER_CPY
             
-            memcpy(texture_pixels + init_index, orig_pixels + init_index_src, cpt);
+            std::memcpy(texture_pixels + init_index, orig_pixels + init_index_src, cpt);
 #endif
         }
 #endif

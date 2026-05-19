@@ -143,15 +143,11 @@ target_include_directories(${legacy}
 ##################################################################
 
 add_executable(sky
-	src/screen/color.cpp
-	src/file_readers/bmp_reader.cpp
-	src/file_readers/hdr_reader.cpp
-	src/screen/image.cpp
-	src/screen/screen.cpp
-	src/light/vector.cpp
+	src/sky/bmp_reader.cpp
+	src/sky/image.cpp
+	src/sky/screen.cpp
 	src/sky/sky_render.cpp
 	src/sky/test_sky.cpp
-	src/parallel/parallel.cpp
 )
 target_link_libraries(sky
 	${SDL2_LIBRARIES}

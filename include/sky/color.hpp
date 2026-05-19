@@ -1,11 +1,11 @@
 #pragma once
 
-#include "parameters.hpp"
+#include "sky/parameters.hpp"
 #include <vector>
 
 #include <cmath>
 
-namespace rt  {
+namespace sky  {
 
 	struct color {
 		private:
@@ -117,37 +117,6 @@ namespace rt  {
 				green *= other.green * inv255;
 				blue  *= other.blue  * inv255;
 			}
-
-			inline void operator *=(const real a) {
-				red   *= a;
-				green *= a;
-				blue  *= a;
-			}
-
-			inline void operator /=(const real a) {
-				red   /= a;
-				green /= a;
-				blue  /= a;
-			}
-
-			// exponentiation operator
-			inline void operator^=(const real a) {
-				red   = pow(red,   a);
-				green = pow(green, a);
-				blue  = pow(blue,  a);
-			}
-
-			/**
-			 * Maxing out color components at 255.
-			 */
-			color max_out() const;
-
-			inline void in_place_max_out() {
-				constexpr real max = 255.0;
-				red   = std::min(red,   max);
-				green = std::min(green, max);
-				blue  = std::min(blue,  max);
-			}
 	};
 
 	constexpr color WHITE(255, 255, 255);
@@ -155,16 +124,6 @@ namespace rt  {
 	constexpr color BLUE (0,   0,   255);
 	constexpr color GREEN(0,   255, 0  );
 	constexpr color RED  (255, 0,   0  );
-	
-
-	/* Adds all the colors of the given color vector */
-	color add_col_vect(const std::vector<color>& color_set);
-
-	/* Returns the average of all the colors of the given color vector */
-	color average_col_vect(const std::vector<color>& color_set);
-
-	/* Applies gamma correction to the color data */
-	void apply_gamma(std::vector<std::vector<color>>& data, real gamma);
 
 	// Returns c1 * a + c2
 	inline color fma(const color& c1, const real a, const color& c2) {

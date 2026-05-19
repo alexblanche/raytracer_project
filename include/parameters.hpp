@@ -1,6 +1,6 @@
 #pragma once
 
-#include<limits>
+#include <limits>
 
 // Type alias for floating-point numerical values
 using real = double;
