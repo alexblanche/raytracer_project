@@ -1,7 +1,7 @@
 #include "sky/sky_render.hpp"
 
-constexpr float tan_reset_threshold = 1.0f;
-constexpr float tan_reset_threshold_phi = 40.0f;
+static constexpr float tan_reset_threshold = 1.0f;
+static constexpr float tan_reset_threshold_phi = 40.0f;
 
 enum loop_version_theta {
     UpdateThetaDerivative, UpdateThetaTestPhi,
@@ -15,19 +15,22 @@ enum loop_version_limit {
     LimitCase, NotLimitCase
 };
 
+
+
 template<enum loop_version_theta vtheta, enum loop_version_phi vphi, enum loop_version_limit vlim>
-inline void segment_loop(float& theta, float& phi,
-    sky::vector& cartesian, const sky::vector& scaled_x_axis, const int lim_int,
-    float& x, float& y, int& index,
-    const float img_scale_x, const float img_scale_y, const int img_width,
-    char* const texture_pixels, char* const orig_pixels,
-    int& index_loop, const int bound, const float const_theta) {
+// inline void segment_loop(float& theta, float& phi,
+//     sky::vector& cartesian, const sky::vector& scaled_x_axis, const int lim_int,
+//     float& x, float& y, int& index,
+//     const float img_scale_x, const float img_scale_y, const int img_width,
+//     char* const texture_pixels, char* const orig_pixels, int& index_loop,
+inline void segment_loop(const render_parameters& param, segment_loop_parameters& sl_param,
+    const int bound, const float const_theta) {
     
-    int i = index_loop;
+    int i = sl_param.index_loop;
     for (; i < bound; i++) {
 
-        cartesian += scaled_x_axis;
-        const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
+        sl_param.cartesian += param.scaled_x_axis;
+        const float ny = sl_param.cartesian.y / sqrt(sl_param.cartesian.x * sl_param.cartesian.x + sl_param.cartesian.z * sl_param.cartesian.z);
         // Test: approximation of sqrt(1 + X) by (1 + 0.5f * X * (1 - 0.25f * X))
         // Sufficiently precise, but does not improve speed, even without tests ("abs(x) > abs(z)")
         // ////////
@@ -47,56 +50,56 @@ inline void segment_loop(float& theta, float& phi,
         // const float ny = cartesian.y / (max_xz * fma(fma(-0.125f, X2, 0.5f), X2, 1.0f));
         // ////////
 
-        const float dy = ny - y;
-        const float my = (y + ny) * 0.5f;
-        y = ny;
+        const float dy = ny - sl_param.y;
+        const float my = (sl_param.y + ny) * 0.5f;
+        sl_param.y = ny;
 
         if constexpr (vlim == LimitCase) {
-            theta = (theta < Pi / 2) || (theta > 3 * Pi / 2) ? 0 : Pi;
-            i = lim_int + 1;
+            sl_param.theta = (sl_param.theta < Pi / 2) || (sl_param.theta > 3 * Pi / 2) ? 0 : Pi;
+            i = sl_param.lim_int + 1;
         }
         else if constexpr (vlim == NotLimitCase) {
 
-            const float nx = cartesian.z / cartesian.x;
+            const float nx = sl_param.cartesian.z / sl_param.cartesian.x;
 
             if constexpr (vtheta == UpdateThetaDerivative || (vtheta == UpdateThetaTestPhi && vphi == NoTestPhi)) {
-                const float dx = nx - x;
-                const float mx = (x + nx) * 0.5f;
-                theta += dx / (1 + mx * mx);
+                const float dx = nx - sl_param.x;
+                const float mx = (sl_param.x + nx) * 0.5f;
+                sl_param.theta += dx / (1 + mx * mx);
             }
             else if constexpr (vtheta == UpdateThetaTestPhi) {
-                const float dx = nx - x;
-                const float mx = (x + nx) * 0.5f;
+                const float dx = nx - sl_param.x;
+                const float mx = (sl_param.x + nx) * 0.5f;
                 const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
-                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
-                theta = needs_reset_phi ? (atanf(nx) + const_theta) : theta + (dx / (1 + mx * mx));
+                sl_param.phi   = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : sl_param.phi   + (dy / (1 + my * my));
+                sl_param.theta = needs_reset_phi ? (atanf(nx) + const_theta) : sl_param.theta + (dx / (1 + mx * mx));
             }
             else if constexpr (vtheta == UpdateThetaAtanBefore || vtheta == UpdateThetaAtanAfter) {
-                theta = atanf(nx) + const_theta;
+                sl_param.theta = atanf(nx) + const_theta;
             }
             else if constexpr (vtheta == UpdateThetaBothBefore || vtheta == UpdateThetaBothAfter) {
-                const float dx = nx - x;
-                const float mx = (x + nx) * 0.5f;
+                const float dx = nx - sl_param.x;
+                const float mx = (sl_param.x + nx) * 0.5f;
                 const bool needs_reset_theta = std::abs(dx) > tan_reset_threshold;
-                theta = needs_reset_theta ? (atanf(nx) + const_theta) : theta + (dx / (1 + mx * mx));
+                sl_param.theta = needs_reset_theta ? (atanf(nx) + const_theta) : sl_param.theta + (dx / (1 + mx * mx));
             }
-            x = nx;
+            sl_param.x = nx;
         }
 
         if constexpr (!(vlim == NotLimitCase && vtheta == UpdateThetaTestPhi && vphi != NoTestPhi)) { // phi already updated
             if constexpr (vphi == TestPhi || vlim == LimitCase) {
                 const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
-                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));    
+                sl_param.phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : sl_param.phi + (dy / (1 + my * my));    
             }
             else if constexpr (vphi == NoTestPhi) {
-                phi += dy / (1 + my * my);
+                sl_param.phi += dy / (1 + my * my);
             }
         }
 
-        const int index_src_1 = (static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x);
+        const int index_src_1 = (static_cast<int>(sl_param.phi * param.img_scale_y)) * param.img_width + static_cast<int>(sl_param.theta * param.img_scale_x);
         const int index_src_2 = (index_src_1 << 1) + index_src_1;
         const int index_src = std::max(0, index_src_2);
-        std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+        std::memcpy(param.texture_pixels + sl_param.index, param.orig_pixels + index_src, 3);
 
         // if constexpr (vphi == TestPhi) {
         //     const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
@@ -106,13 +109,14 @@ inline void segment_loop(float& theta, float& phi,
         //     texture_pixels[index + 2] = 255;
         // }
 
-        index += 3;
+        sl_param.index += 3;
 
         if constexpr (vlim == LimitCase) {
             break;
         }
     }
-    index_loop = i;
+
+    sl_param.index_loop = i;
 }
 
 void compute_bounds_theta_update(int& k1_io, int& k2_io,
@@ -191,40 +195,43 @@ phi_test_bounds compute_bounds_phi_update(int& k1_io, int& k2_io,
     // Resolution of ak^2 + bk + c < 0
     const float m2 = tan_reset_threshold_phi * tan_reset_threshold_phi;
     const float a = m2 * dv.x * dv.x - dv.y * dv.y + m2 * dv.z * dv.z;
-    const float b = 2 * (m2 * (v.x * dv.x + v.z * dv.z) - v.y * dv.y);
+    const float b = 2.0f * (m2 * (v.x * dv.x + v.z * dv.z) - v.y * dv.y);
     const float c = m2 * (v.x * v.x + v.z * v.z) - v.y * v.y;
 
-    const float delta = b * b - 4 * a * c;
-    if (delta < 0) {
+    const float delta = b * b - 4.0f * a * c;
+    if (delta < 0.0f) {
         // a > 0: never < 0 => no test needed. a < 0 : always test
-        return (a > 0) ? NeverTest : AlwaysTest;
+        return (a > 0.0f) ? NeverTest : AlwaysTest;
     }
     
     const float twoa = 2 * a;
     const float sqrtdelta = sqrt(delta);
-    k1_io = (-b-sqrtdelta) / twoa;
-    k2_io = (-b+sqrtdelta) / twoa;
+    k1_io = (-b - sqrtdelta) / twoa;
+    k2_io = (-b + sqrtdelta) / twoa;
 
-    return (a > 0) ? TestBetween : TestOutside;
+    return (a > 0.0f) ? TestBetween : TestOutside;
 }
 
 
-void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* orig_pixels,
-    const int width, const int height, const int img_width,
-    const sky::vector& scaled_x_axis, const sky::vector& scaled_y_axis, const sky::vector& axes_center,
-    const int half_scr_width, const int half_scr_height,
-    sky::screen& scr, SDL_Rect& srcrect, SDL_Rect& dstrect,
-    const float img_scale_x, const float img_scale_y) {
+// void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* orig_pixels,
+//     const int width, const int height, const int img_width,
+//     const sky::vector& scaled_x_axis, const sky::vector& scaled_y_axis, const sky::vector& axes_center,
+//     const int half_scr_width, const int half_scr_height,
+//     sky::screen& scr, SDL_Rect& srcrect, SDL_Rect& dstrect,
+//     const float img_scale_x, const float img_scale_y) {
+void render(const render_parameters& param) {
 
-    SDL_LockTexture(txt, NULL, (void**) &texture_pixels, &texture_pitch);
-    int index = 0;
+    SDL_LockTexture(param.txt, nullptr, reinterpret_cast<void**>(&param.texture_pixels), &param.texture_pitch);
+    segment_loop_parameters sl_param;
+    sl_param.index = 0;
+
     //unsigned int atan_cpt = 0;
     for (int j = 0; j < height; j++) {
 
         // Pre-computation of the cartesian coordinates of the pixel in world space
         // const sky::vector y_component = scaled_y_axis * (j - half_scr_height);
         // const sky::vector pre_cartesian = axes.center + y_component;
-        const sky::vector pre_cartesian = fma(scaled_y_axis, j - half_scr_height, axes_center);
+        const sky::vector pre_cartesian = fma(param.scaled_y_axis, j - half_scr_height, param.axes_center);
         // const int jwidth = j * width;
 
 #if 0
@@ -270,69 +277,82 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 if (-pre_cartesian.x / scaled_x_axis.x) is an integer
         */
 
-        const float lim = half_scr_width + ((scaled_x_axis.x != 0) ? -pre_cartesian.x / scaled_x_axis.x : infinity);
-        const bool lim_pos = 0 <= lim;
+
+        const float lim = half_scr_width + ((param.scaled_x_axis.x != 0) ? -pre_cartesian.x / param.scaled_x_axis.x : infinity);
+        const bool lim_pos = lim >= 0.0f;
         const bool two_loops_needed = lim_pos && (lim < width);
         const bool need_limit_case = two_loops_needed && (lim - nearbyintf(lim) < 1e-5f);
-        const float init_cartx = fma(scaled_x_axis.x, -half_scr_width, pre_cartesian.x);
+        const float init_cartx = fma(param.scaled_x_axis.x, -half_scr_width, pre_cartesian.x);
         const bool starts_pos = init_cartx >= 0.0f;
         const float const_before = starts_pos ? 3.0f * (Pi / 2.0f) : (Pi / 2.0f);
         const float const_after = (2.0f * Pi) - const_before;
-        const int lim_int = static_cast<int>(lim);
+        sl_param.lim_int = static_cast<int>(lim);
         const int last_first_loop = !lim_pos ?
             width
             :
-            std::max(0, std::min(lim_int + (!need_limit_case), width));
+            std::max(0, std::min(sl_param.lim_int + (!need_limit_case), width));
         
-        sky::vector cartesian = fma(scaled_x_axis, (-1) - half_scr_width, pre_cartesian);
+        sl_param.cartesian = fma(param.scaled_x_axis, (-1) - half_scr_width, pre_cartesian);
         
-        float x = (cartesian.x != 0) ? cartesian.z / cartesian.x : (cartesian.z + 0.1 * scaled_x_axis.z) / (cartesian.x + 0.1 * scaled_x_axis.x);
-        float theta = (cartesian.x != 0) ? (atanf(x) + const_before) : (starts_pos ? 0 : Pi);
-        float y = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
-        float phi = atanf(y) + (Pi / 2.0f);
+        sl_param.x = (sl_param.cartesian.x != 0) ?
+              sl_param.cartesian.z / sl_param.cartesian.x
+            : (sl_param.cartesian.z + 0.1f * param.scaled_x_axis.z) / (sl_param.cartesian.x + 0.1f * param.scaled_x_axis.x);
+        sl_param.theta = (sl_param.cartesian.x != 0) ? (atanf(sl_param.x) + const_before) : (starts_pos ? 0 : Pi);
+        sl_param.y = sl_param.cartesian.y / sqrt(sl_param.cartesian.x * sl_param.cartesian.x + sl_param.cartesian.z * sl_param.cartesian.z);
+        sl_param.phi = atanf(sl_param.y) + (Pi / 2.0f);
 
 #define POLYNOMIAL_SOLVE
 #ifdef POLYNOMIAL_SOLVE
 
         int k1_theta, k2_theta;
-        compute_bounds_theta_update(k1_theta, k2_theta, cartesian, scaled_x_axis);
+        compute_bounds_theta_update(k1_theta, k2_theta, sl_param.cartesian, param.scaled_x_axis);
 
         int k1_phi, k2_phi;
-        phi_test_bounds ptb = compute_bounds_phi_update(k1_phi, k2_phi, cartesian, scaled_x_axis);
+        phi_test_bounds ptb = compute_bounds_phi_update(k1_phi, k2_phi, sl_param.cartesian, param.scaled_x_axis);
 
         if (!(k2_theta < 0 || k1_theta >= width)) {
         // if ((k1_theta >= 0 && k1_theta < width) || (k2_theta >= 0 && k2_theta < width)) {
             //const int index_start = index;
             const int b1 = std::min(k1_theta, width);
             const int b3 = std::min(k2_theta, width);
-            const int b2 = std::min(b3, lim_int + (!need_limit_case));
+            const int b2 = std::min(b3, sl_param.lim_int + (!need_limit_case));
 
 //#define TEST_SPLIT
 #ifdef TEST_SPLIT
             int i;
             for (i = 0; i < b1; i++) {
                 // deriv
-                texture_pixels[index] = 0; texture_pixels[index + 1] = 0; texture_pixels[index + 2] = 255; // Red
+                param.texture_pixels[index] = 0;
+                param.texture_pixels[index + 1] = 0;
+                param.texture_pixels[index + 2] = 255; // Red
                 index += 3;
             }
             for (; i < b2; i++) {
                 // tan (before)
-                texture_pixels[index] = 255; texture_pixels[index + 1] = 0; texture_pixels[index + 2] = 0; // Blue
+                param.texture_pixels[index] = 255;
+                param.texture_pixels[index + 1] = 0;
+                param.texture_pixels[index + 2] = 0; // Blue
                 index += 3;
             }
             if (need_limit_case) {
-                texture_pixels[index] = 255; texture_pixels[index + 1] = 255; texture_pixels[index + 2] = 255; // White
+                param.texture_pixels[index] = 255;
+                param.texture_pixels[index + 1] = 255;
+                param.texture_pixels[index + 2] = 255; // White
                 index += 3;
                 i++;
             }
             for (; i < b3; i++) {
                 // tan (after)
-                texture_pixels[index] = 0; texture_pixels[index + 1] = 255; texture_pixels[index + 2] = 0; // Green
+                param.texture_pixels[index] = 0;
+                param.texture_pixels[index + 1] = 255;
+                param.texture_pixels[index + 2] = 0; // Green
                 index += 3;
             }
             for (; i < width; i++) {
                 // deriv
-                texture_pixels[index] = 0; texture_pixels[index + 1] = 255; texture_pixels[index + 2] = 255; // Yellow
+                param.texture_pixels[index] = 0;
+                param.texture_pixels[index + 1] = 255;
+                param.texture_pixels[index + 2] = 255; // Yellow
                 index += 3;
             }
             continue;
@@ -345,48 +365,28 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
             
             switch (ptb) {
                 case NeverTest: {
-                    int i = 0;
-                    segment_loop<UpdateThetaDerivative, NoTestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
-                        x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
-                        b1, 0.0f);
-                    segment_loop<UpdateThetaAtanBefore, NoTestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
-                        x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
-                        b2, const_before);
+                    sl_param.index_loop = 0;
+                    segment_loop<UpdateThetaDerivative, NoTestPhi, NotLimitCase>(param, sl_param, b1, 0.0f);
+                    segment_loop<UpdateThetaAtanBefore, NoTestPhi, NotLimitCase>(param, sl_param, b2, const_before);
                     if (need_limit_case) {
-                        segment_loop<UpdateThetaAtanBefore, NoTestPhi, LimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
-                            x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
-                            lim_int + 1, 0.0f);
+                        segment_loop<UpdateThetaAtanBefore, NoTestPhi, LimitCase>(param, sl_param, sl_param.lim_int + 1, 0.0f);
                     }
                     const float const_correct = (!two_loops_needed) ? const_before : const_after;
-                    segment_loop<UpdateThetaAtanAfter, NoTestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
-                        x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
-                        b3, const_correct);
-                    segment_loop<UpdateThetaTestPhi, NoTestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
-                        x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
-                        width, const_correct);
+                    segment_loop<UpdateThetaAtanAfter, NoTestPhi, NotLimitCase> (param, sl_param, b3,    const_correct);
+                    segment_loop<UpdateThetaTestPhi,   NoTestPhi, NotLimitCase> (param, sl_param, width, const_correct);
                     break;
                 }
                 case AlwaysTest: {
 
-                    int i = 0;
-                    segment_loop<UpdateThetaDerivative, TestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
-                        x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
-                        b1, 0.0f);
-                    segment_loop<UpdateThetaAtanBefore, TestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
-                        x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
-                        b2, const_before);
+                    sl_param.index_loop = 0;
+                    segment_loop<UpdateThetaDerivative, TestPhi, NotLimitCase>  (param, sl_param, b1, 0.0f);
+                    segment_loop<UpdateThetaAtanBefore, TestPhi, NotLimitCase>  (param, sl_param, b2, const_before);
                     if (need_limit_case) {
-                        segment_loop<UpdateThetaAtanBefore, TestPhi, LimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
-                            x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
-                            lim_int + 1, 0.0f);
+                        segment_loop<UpdateThetaAtanBefore, TestPhi, LimitCase> (param, sl_param, sl_param.lim_int + 1, 0.0f);
                     }
                     const float const_correct = (!two_loops_needed) ? const_before : const_after;
-                    segment_loop<UpdateThetaAtanAfter, TestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
-                        x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
-                        b3, const_correct);
-                    segment_loop<UpdateThetaTestPhi, TestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
-                        x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
-                        width, const_correct);
+                    segment_loop<UpdateThetaAtanAfter, TestPhi, NotLimitCase>   (param, sl_param, b3,    const_correct);
+                    segment_loop<UpdateThetaTestPhi,   TestPhi, NotLimitCase>   (param, sl_param, width, const_correct);
                     break;
                 }
                 default: break;
@@ -406,7 +406,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
 
                 const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
                 const float dy = ny - y;
-                const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
+                const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
                 const float my = (y + ny) * 0.5f;
                 phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
                 y = ny;
@@ -429,7 +429,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
 
                 const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
                 const float dy = ny - y;
-                const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
+                const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
                 const float my = (y + ny) * 0.5f;
                 phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
                 y = ny;
@@ -455,7 +455,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 
                 const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
                 const float dy = ny - y;
-                const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
+                const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
                 const float my = (y + ny) * 0.5f;
                 phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
                 y = ny;
@@ -484,7 +484,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
 
                 const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
                 const float dy = ny - y;
-                const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
+                const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
                 const float my = (y + ny) * 0.5f;
                 phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
                 y = ny;
@@ -511,7 +511,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
 
                 const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
                 const float dy = ny - y;
-                const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
+                const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
                 const float my = (y + ny) * 0.5f;
                 phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
                 y = ny;
@@ -537,21 +537,17 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
 #ifdef TEMPLATE_LOOPS
             ptb = (ptb == NeverTest) || ((!(ptb == AlwaysTest)) && (((ptb == TestOutside) && (k1_phi < 0 && k2_phi >= width)) || ((ptb == TestBetween) && (k2_phi < 0 || k1_phi >= width)))) ?
                 NeverTest : AlwaysTest;
-            int i = 0;
+            sl_param.index_loop = 0;
             if (ptb == NeverTest) {
-                segment_loop<UpdateThetaDerivative, NoTestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
-                    x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
-                    last_first_loop, 0.0f);
+                segment_loop<UpdateThetaDerivative, NoTestPhi, NotLimitCase>(param, sl_param, last_first_loop, 0.0f);
             }
             else {
-                segment_loop<UpdateThetaDerivative, TestPhi, NotLimitCase>(theta, phi, cartesian, scaled_x_axis, lim_int,
-                    x, y, index, img_scale_x, img_scale_y, img_width, texture_pixels, orig_pixels, i,
-                    last_first_loop, 0.0f);
+                segment_loop<UpdateThetaDerivative, TestPhi,   NotLimitCase>(param, sl_param, last_first_loop, 0.0f);
             }
             
 #else
             for (int i = 0; i < last_first_loop; i++) {
-                cartesian += scaled_x_axis;
+                cartesian += param.scaled_x_axis;
                 
                 const float nx = cartesian.z / cartesian.x;
                 const float dx = nx - x;
@@ -561,15 +557,15 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
 
                 const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
                 const float dy = ny - y;
-                const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
+                const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
                 const float my = (y + ny) * 0.5f;
                 phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
                 y = ny;
 
-                const int index_src_1 = ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
+                const int index_src_1 = ((static_cast<int>(phi * param.img_scale_y)) * param.img_width + static_cast<int>(theta * param.img_scale_x));
                 const int index_src_2 = (index_src_1 << 1) + index_src_1;
                 const int index_src = std::max(0, index_src_2);
-                std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                std::memcpy(param.texture_pixels + index, param.orig_pixels + index_src, 3);
 
                 // if (starts_pos) {
                 //     texture_pixels[index] = 255;
@@ -608,12 +604,12 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
         int cpt = 0;
 #endif
         for (i = 0; i < last_first_loop; i++) {
-            cartesian += scaled_x_axis;
+            cartesian += param.scaled_x_axis;
             
             //const float theta = atanf(cartesian.z / cartesian.x) + const_before;
             const float nx = cartesian.z / cartesian.x;
             const float dx = nx - x;
-            const bool needs_reset_theta = absf(dx) > tan_reset_threshold;
+            const bool needs_reset_theta = std::abs(dx) > tan_reset_threshold;
             const float mx = (x + nx) * 0.5f;
             theta = needs_reset_theta ? (atanf(nx) + const_before) : theta + (dx / (1 + mx * mx));
             //if (needs_reset_theta) atan_cpt++;
@@ -624,20 +620,20 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
             //if (cartesian.x * cartesian.x + cartesian.z * cartesian.z == 0) printf("First loop: div by 0\n");
             const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
             const float dy = ny - y;
-            const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
+            const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
             const float my = (y + ny) * 0.5f;
             phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
             //if (needs_reset_phi) atan_cpt++;
             y = ny;
 
-            const int index_src_1 = ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
+            const int index_src_1 = ((static_cast<int>(phi * param.img_scale_y)) * param.img_width + static_cast<int>(theta * param.img_scale_x));
             const int index_src_2 = (index_src_1 << 1) + index_src_1;
             // if (index_src_r < 0) printf("FIRST LOOP index_src < 0\n");
             // if (index_src_r > max_index_src) printf("FIRST LOOP index_src >= max\n");
             //const int index_src = std::clamp(index_src_r, 0, max_index_src);
             const int index_src = std::max(0, index_src_2);
 #ifndef BUFFER_CPY
-            std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+            std::memcpy(param.texture_pixels + index, param.orig_pixels + index_src, 3);
 #else
             if (index_src != prev_index_src + 3) {
                 // if (cpt != 3) {
@@ -648,7 +644,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 //     }
                 // }
                 // else {
-                    std::memcpy(texture_pixels + init_index, orig_pixels + init_index_src, cpt);
+                    std::memcpy(param.texture_pixels + init_index, param.orig_pixels + init_index_src, cpt);
                     cpt = 0;
                 //}
                 init_index = index;
@@ -660,17 +656,17 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
 //#define DRAW_RESET
 #ifdef DRAW_RESET
             if (needs_reset_theta || needs_reset_phi) {
-                texture_pixels[index]     = 255 * needs_reset_theta;
-                texture_pixels[index + 1] = 255 * (needs_reset_theta && needs_reset_phi);
-                texture_pixels[index + 2] = 255 * needs_reset_phi;
+                param.texture_pixels[index]     = 255 * needs_reset_theta;
+                param.texture_pixels[index + 1] = 255 * (needs_reset_theta && needs_reset_phi);
+                param.texture_pixels[index + 2] = 255 * needs_reset_phi;
             }
 #endif
 //#define SHOULD_BE_POLY
 #ifdef SHOULD_BE_POLY
             if (needs_reset_theta) {
-                texture_pixels[index]     = 0;
-                texture_pixels[index + 1] = 128;
-                texture_pixels[index + 2] = 255;
+                param.texture_pixels[index]     = 0;
+                param.texture_pixels[index + 1] = 128;
+                param.texture_pixels[index + 2] = 255;
             }
 #endif
 
@@ -678,7 +674,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
         }
         if (two_loops_needed) {
             if (need_limit_case) {
-                cartesian += scaled_x_axis;
+                cartesian += param.scaled_x_axis;
 
                 theta = (theta < Pi / 2) || (theta > 3 * Pi / 2) ? 0 : Pi;
                 
@@ -687,19 +683,19 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 //if (cartesian.x * cartesian.x + cartesian.z * cartesian.z == 0) printf("Limit case: div by 0\n");
                 const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
                 const float dy = ny - y;
-                const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
+                const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
                 const float my = (y + ny) * 0.5f;
                 phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
                 //if (needs_reset_phi) atan_cpt++;
                 y = ny;
 
-                const int index_src_r = 3 * ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
+                const int index_src_r = 3 * ((static_cast<int>(phi * param.img_scale_y)) * param.img_width + static_cast<int>(theta * param.img_scale_x));
                 // if (index_src_r < 0) printf("MID index_src < 0\n");
                 // if (index_src_r > max_index_src) printf("MID index_src >= max\n");
                 //const int index_src = std::clamp(index_src_r, 0, max_index_src);
                 const int index_src = std::max(0, index_src_r);
 #ifndef BUFFER_CPY
-                std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                std::memcpy(param.texture_pixels + index, param.orig_pixels + index_src, 3);
 #else
                 if (index_src != prev_index_src + 3) {
                     // if (cpt != 3) {
@@ -710,7 +706,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                     //     }
                     // }
                     // else {
-                        std::memcpy(texture_pixels + init_index, orig_pixels + init_index_src, cpt);
+                        std::memcpy(param.texture_pixels + init_index, param.orig_pixels + init_index_src, cpt);
                         cpt = 0;
                     //}
                     init_index = index;
@@ -722,31 +718,31 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
 
 #ifdef DRAW_RESET
                 if (needs_reset_phi) {
-                    texture_pixels[index]     = 0;
-                    texture_pixels[index + 1] = 0;
-                    texture_pixels[index + 2] = 255;
+                    param.texture_pixels[index]     = 0;
+                    param.texture_pixels[index + 1] = 0;
+                    param.texture_pixels[index + 2] = 255;
                 }
 #endif
 #ifdef SHOULD_BE_POLY
-                texture_pixels[index]     = 0;
-                texture_pixels[index + 1] = 128;
-                texture_pixels[index + 2] = 255;
+                param.texture_pixels[index]     = 0;
+                param.texture_pixels[index + 1] = 128;
+                param.texture_pixels[index + 2] = 255;
 #endif
 
                 index += 3;
                 i = lim_int + 1;
             }
             
-            x = 1e30f;
+            x = infinity;
             for (; i < width; i++) {
-                cartesian += scaled_x_axis;
+                cartesian += param.scaled_x_axis;
 
                 //const float phi = asinf(cartesian.y / cartesian.norm()) + (Pi / 2.0f);
                 //const float phi = atanf(cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z)) + (Pi / 2.0f);
                 //if (cartesian.x * cartesian.x + cartesian.z * cartesian.z == 0) printf("Second loop: div by 0\n");
                 const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
                 const float dy = ny - y;
-                const bool needs_reset_phi = absf(dy) > tan_reset_threshold;
+                const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
                 const float my = (y + ny) * 0.5f;
                 phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
                 //if (needs_reset_phi) atan_cpt++;
@@ -756,13 +752,13 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 // atan_cpt++;
                 const float nx = cartesian.z / cartesian.x;
                 const float dx = nx - x;
-                const bool needs_reset_theta = absf(dx) > tan_reset_threshold;
+                const bool needs_reset_theta = std::abs(dx) > tan_reset_threshold;
                 const float mx = (x + nx) * 0.5f;
                 theta = needs_reset_theta || needs_reset_phi ? (atanf(nx) + const_after) : theta + (dx / (1 + mx * mx));
                 //if (needs_reset_theta) atan_cpt++;
                 x = nx;
 
-                const int index_src_1 = ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
+                const int index_src_1 = ((static_cast<int>(phi * param.img_scale_y)) * param.img_width + static_cast<int>(theta * param.img_scale_x));
                 const int index_src_2 = (index_src_1 << 1) + index_src_1;
                 // if (index_src_r < 0) printf("SECOND LOOP index_src < 0, theta %f, phi %f, theta * img_scale_x %f, phi * img_scale_y %f, index_src %d\n",
                 //     theta, phi, theta * img_scale_x, phi * img_scale_y, index_src_r);
@@ -770,7 +766,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 //const int index_src = std::clamp(index_src_r, 0, max_index_src);
                 const int index_src = std::max(0, index_src_2);
 #ifndef BUFFER_CPY
-                std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                std::memcpy(param.texture_pixels + index, param.orig_pixels + index_src, 3);
 #else
                 if (index_src != prev_index_src + 3) {
                     // if (cpt != 3) {
@@ -781,7 +777,7 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                     //     }
                     // }
                     // else {
-                        std::memcpy(texture_pixels + init_index, orig_pixels + init_index_src, cpt);
+                        std::memcpy(param.texture_pixels + init_index, param.orig_pixels + init_index_src, cpt);
                         cpt = 0;
                     //}
                     init_index = index;
@@ -793,9 +789,9 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
                 
 #ifdef DRAW_RESET
                 if (needs_reset_theta || needs_reset_phi) {
-                    texture_pixels[index]     = 255 * needs_reset_theta;
-                    texture_pixels[index + 1] = 255 * (needs_reset_theta && needs_reset_phi);
-                    texture_pixels[index + 2] = 255 * needs_reset_phi;
+                    param.texture_pixels[index]     = 255 * needs_reset_theta;
+                    param.texture_pixels[index + 1] = 255 * (needs_reset_theta && needs_reset_phi);
+                    param.texture_pixels[index + 2] = 255 * needs_reset_phi;
                 }
 #endif
 #ifdef SHOULD_BE_POLY
@@ -811,18 +807,17 @@ void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* o
 
 #ifdef BUFFER_CPY
             
-            std::memcpy(texture_pixels + init_index, orig_pixels + init_index_src, cpt);
+            std::memcpy(param.texture_pixels + init_index, param.orig_pixels + init_index_src, cpt);
 #endif
         }
 #endif
 #endif
     }
     //printf("atan per pixel : %f pcts\n", 100 * static_cast<float>(atan_cpt) / (width * height * 2));
-    SDL_UnlockTexture(txt);
-    SDL_RenderClear(scr.renderer);
-    SDL_RenderCopy(scr.renderer, txt, &srcrect, &dstrect);
-    SDL_RenderPresent(scr.renderer);
-
+    SDL_UnlockTexture(param.txt);
+    SDL_RenderClear(param.scr.renderer);
+    SDL_RenderCopy(param.scr.renderer, param.txt, &param.scr.srcrect, &param.scr.dstrect);
+    SDL_RenderPresent(param.scr.renderer);
 }
 
 

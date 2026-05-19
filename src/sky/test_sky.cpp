@@ -16,9 +16,9 @@ uint64_t get_time() {
     ).count();
 }
 
-inline float absf(const float x) {
-    return std::signbit(x) ? -x : x;
-}
+// inline float absf(const float x) {
+//     return std::signbit(x) ? -x : x;
+// }
 
 
 /* Struct containing the spherical coordinates controlled by the mouse */
@@ -54,8 +54,8 @@ struct mouse_pos {
         //     phi = -(PI / 2.0f);
         // }
 
-        theta = (absf(theta) > Pi)   ? theta + (std::signbit(theta) ? 2 * Pi : -2 * Pi): theta;
-        phi   = (absf(phi) > Pi / 2) ? (std::signbit(phi) ? -Pi / 2 : Pi / 2) : phi;
+        theta = (std::abs(theta) > Pi)     ? theta + (std::signbit(theta) ? 2 * Pi : -2 * Pi): theta;
+        phi   = (std::abs(phi)   > Pi / 2) ? (std::signbit(phi) ? -Pi / 2 : Pi / 2) : phi;
     }
 };
 
@@ -73,7 +73,7 @@ struct screen_axes {
     screen_axes() {
         screen_x_axis = sky::vector(1, 0, 0);
         screen_y_axis = sky::vector(0, 1, 0);
-        center = sky::vector(0, 0, 1);
+        center        = sky::vector(0, 0, 1);
     }
 
     void set(/*const float fov_x,*/ const float theta, const float phi) {
@@ -153,12 +153,6 @@ int main(int argc, char** argv) {
         (argc == 2) ?
         argv[1]
         :
-        //"../../../raytracer_project/sky/dome/evening.bmp";
-        //"../../../raytracer_project/sky/dome/field.bmp";
-        //"../../../raytracer_project/sky/dome/southern_sky.bmp";
-        //"../../../raytracer_project/sky/dome/house.bmp";
-        //"../../../raytracer_project/sky/dome/times.bmp";
-        //"../../../raytracer_project/sky/dome/cobblestone_street_night.bmp";
         "../../../assets/cobblestone_street_night.bmp";
         
     print_bmp_info(file_name);
@@ -177,9 +171,8 @@ int main(int argc, char** argv) {
     }
 
     /* Screen dimensions */
-    constexpr int width = 1920, height = 1080;
-    sky::screen scr(width, height);
-    SDL_SetWindowFullscreen(scr.window, SDL_WINDOW_FULLSCREEN);
+    render_parameters param;
+    SDL_SetWindowFullscreen(param.scr.window, SDL_WINDOW_FULLSCREEN);
     SDL_ShowCursor(SDL_DISABLE);
 
     /* Creation of the surface containing the colors in char format */
@@ -249,25 +242,22 @@ int main(int argc, char** argv) {
             8 * depth, // depth bytes per pixel (in bits)
             depth * dwidth, // depth * width
             0, 0, 0, 0);
-    if (surface == NULL) {
+    if (surface == nullptr) {
         std::cout << "Error" << std::endl;
         return EXIT_FAILURE;
     }
-    
-    SDL_Rect srcrect;
-    SDL_Rect dstrect;
 
-    srcrect.x = 0;
-    srcrect.y = 0;
-    srcrect.w = dwidth;
-    srcrect.h = dheight;
-    dstrect.x = 0;
-    dstrect.y = 0;
-    dstrect.w = width;
-    dstrect.h = height;
+    param.scr.srcrect.x = 0;
+    param.scr.srcrect.y = 0;
+    param.scr.srcrect.w = dwidth;
+    param.scr.srcrect.h = dheight;
+    param.scr.dstrect.x = 0;
+    param.scr.dstrect.y = 0;
+    param.scr.dstrect.w = width;
+    param.scr.dstrect.h = height;
 
     /* Rendering texture */
-    SDL_Texture* txt = SDL_CreateTexture(scr.renderer, SDL_PIXELFORMAT_BGR24, SDL_TEXTUREACCESS_STREAMING, width, height);
+    param.txt = SDL_CreateTexture(param.scr.renderer, SDL_PIXELFORMAT_BGR24, SDL_TEXTUREACCESS_STREAMING, width, height);
 
     /* Variable declarations */
     mouse_pos mouse(width, height);
@@ -276,18 +266,10 @@ int main(int argc, char** argv) {
     const uint64_t time_init = get_time();
     unsigned int frame_cpt = 0;
     
-    char* texture_pixels;
-    int texture_pitch;
-    char* orig_pixels = (char*) surface->pixels;
+    param.orig_pixels = (char*) surface->pixels;
 
-    const int img_width = dwidth;
-    const int img_height = dheight;
-
-    constexpr int half_scr_width = width / 2;
-    constexpr int half_scr_height = height / 2;
-
-    constexpr float fov_x = 0.3;
-    constexpr float fov_y = 0.15;
+    param.img_width = dwidth;
+    param.img_height = dheight;
 
     screen_axes axes;
 
@@ -295,8 +277,8 @@ int main(int argc, char** argv) {
     constexpr float y_step = fov_y * Pi / half_scr_height;
 
     // Scaling factor to convert [0, 2pi] (resp. [0, pi]) to [0, img_width-1] (resp. [0, img_height-1])
-    const float img_scale_x = (img_width - 1) / (2 * Pi);
-    const float img_scale_y = (img_height - 1) / Pi;
+    param.img_scale_x = (param.img_width  - 1) / (2 * Pi);
+    param.img_scale_y = (param.img_height - 1) / Pi;
     
     //const int max_index_src = img_width * img_height * 3 - 1;
 
@@ -311,7 +293,7 @@ int main(int argc, char** argv) {
                     // std::cout << event.motion.xrel << ' ' << event.motion.yrel << std::endl;
                     mouse.set(event.motion.xrel, event.motion.yrel);
                     // cpt_mouse++;
-                    SDL_WarpMouseInWindow(scr.window, width / 2, height / 2);
+                    SDL_WarpMouseInWindow(param.scr.window, width / 2, height / 2);
                     break;
                 case SDL_QUIT:
                 case SDL_KEYDOWN:
@@ -335,15 +317,12 @@ int main(int argc, char** argv) {
         // Pre-computation of the cartesian coordinates of the pixel in world space
         //const sky::vector center = get_center(fov_x, mouse.theta, mouse.phi);
         axes.set(/*fov_x,*/ mouse.theta, mouse.phi);
-        const sky::vector scaled_x_axis = axes.screen_x_axis * x_step;
-        const sky::vector scaled_y_axis = axes.screen_y_axis * y_step;
+        param.axes_center = axes.center;
+        param.scaled_x_axis = axes.screen_x_axis * x_step;
+        param.scaled_y_axis = axes.screen_y_axis * y_step;
 
-        render(txt, texture_pixels, texture_pitch, orig_pixels, width, height, img_width,
-            scaled_x_axis, scaled_y_axis, axes.center,
-            half_scr_width, half_scr_height,
-            scr, srcrect, dstrect, img_scale_x, img_scale_y);
+        render(param);
 
         frame_cpt ++;
     }
-
 }
