@@ -159,7 +159,7 @@ void compute_bounds_theta_update(int& k1_io, int& k2_io,
     const int bound2 = (-b+a) / twoa;
     if (delta < 0 || (k1 >= bound1 && k1 <= bound2) || (k2 >= bound1 && k2 <= bound2)) {
         // Replace a, b, c with -a, -b, -c
-        float alt_delta = std::max(bsq - foura * (c + doverM), 0.0f);
+        const float alt_delta = std::max(bsq - foura * (c + doverM), 0.0f);
         const float sqrtaltdelta = sqrt(alt_delta);
         k1 = static_cast<int>(-(b + sqrtaltdelta) / twoa);
         k2 = static_cast<int>(-(b - sqrtaltdelta) / twoa);
@@ -240,7 +240,7 @@ void render(const render_parameters& param) {
             // Determining the cartesian coordinates of the pixel in world space
             // const sky::vector x_component = scaled_x_axis * (i - half_scr_width);
             // const sky::vector cartesian = pre_cartesian + x_component;
-            const sky::vector cartesian = fma(scaled_x_axis, i - half_scr_width, pre_cartesian);
+            const sky::vector cartesian = fma(param.scaled_x_axis, i - half_scr_width, pre_cartesian);
             /*
             // Converting the coordinates into spherical coordinates in world space
             const spherical sph(cartesian);
@@ -258,7 +258,7 @@ void render(const render_parameters& param) {
             const float phi = asinf(cartesian.y / cartesian.norm()) + (Pi / 2.0f);
 
             // Reading the pixel of the image corresponding to the spherical coordinates of the pixel in world space
-            const int index_src = 3 * (((int) (phi * img_scale_y)) * img_width + (int) (theta * img_scale_x));
+            const int index_src = 3 * (((int) (phi * param.img_scale_y)) * param.img_width + (int) (theta * param.img_scale_x));
             
 
             // Copying its color onto the screen
@@ -266,8 +266,8 @@ void render(const render_parameters& param) {
             // texture_pixels[index]     = orig_pixels[index_src];
             // texture_pixels[index + 1] = orig_pixels[index_src + 1];
             // texture_pixels[index + 2] = orig_pixels[index_src + 2];
-            std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
-            index += 3;
+            std::memcpy(param.texture_pixels + sl_param.index, param.orig_pixels + index_src, 3);
+            sl_param.index += 3;
         }
 #else
         /*
@@ -309,6 +309,7 @@ void render(const render_parameters& param) {
 
         int k1_phi, k2_phi;
         phi_test_bounds ptb = compute_bounds_phi_update(k1_phi, k2_phi, sl_param.cartesian, param.scaled_x_axis);
+        (void) ptb; // Sometimes unused
 
         if (!(k2_theta < 0 || k1_theta >= width)) {
         // if ((k1_theta >= 0 && k1_theta < width) || (k2_theta >= 0 && k2_theta < width)) {
@@ -322,38 +323,38 @@ void render(const render_parameters& param) {
             int i;
             for (i = 0; i < b1; i++) {
                 // deriv
-                param.texture_pixels[index] = 0;
-                param.texture_pixels[index + 1] = 0;
-                param.texture_pixels[index + 2] = 255; // Red
-                index += 3;
+                param.texture_pixels[sl_param.index] = 0;
+                param.texture_pixels[sl_param.index + 1] = 0;
+                param.texture_pixels[sl_param.index + 2] = 255; // Red
+                sl_param.index += 3;
             }
             for (; i < b2; i++) {
                 // tan (before)
-                param.texture_pixels[index] = 255;
-                param.texture_pixels[index + 1] = 0;
-                param.texture_pixels[index + 2] = 0; // Blue
-                index += 3;
+                param.texture_pixels[sl_param.index] = 255;
+                param.texture_pixels[sl_param.index + 1] = 0;
+                param.texture_pixels[sl_param.index + 2] = 0; // Blue
+                sl_param.index += 3;
             }
             if (need_limit_case) {
-                param.texture_pixels[index] = 255;
-                param.texture_pixels[index + 1] = 255;
-                param.texture_pixels[index + 2] = 255; // White
-                index += 3;
+                param.texture_pixels[sl_param.index] = 255;
+                param.texture_pixels[sl_param.index + 1] = 255;
+                param.texture_pixels[sl_param.index + 2] = 255; // White
+                sl_param.index += 3;
                 i++;
             }
             for (; i < b3; i++) {
                 // tan (after)
-                param.texture_pixels[index] = 0;
-                param.texture_pixels[index + 1] = 255;
-                param.texture_pixels[index + 2] = 0; // Green
-                index += 3;
+                param.texture_pixels[sl_param.index] = 0;
+                param.texture_pixels[sl_param.index + 1] = 255;
+                param.texture_pixels[sl_param.index + 2] = 0; // Green
+                sl_param.index += 3;
             }
             for (; i < width; i++) {
                 // deriv
-                param.texture_pixels[index] = 0;
-                param.texture_pixels[index + 1] = 255;
-                param.texture_pixels[index + 2] = 255; // Yellow
-                index += 3;
+                param.texture_pixels[sl_param.index] = 0;
+                param.texture_pixels[sl_param.index + 1] = 255;
+                param.texture_pixels[sl_param.index + 2] = 255; // Yellow
+                sl_param.index += 3;
             }
             continue;
 #else
@@ -396,48 +397,48 @@ void render(const render_parameters& param) {
             int i;
             for (i = 0; i < b1; i++) {
                 // deriv
-                cartesian += scaled_x_axis;
+                sl_param.cartesian += param.scaled_x_axis;
             
-                const float nx = cartesian.z / cartesian.x;
-                const float dx = nx - x;
-                const float mx = (x + nx) * 0.5f;
-                theta += dx / (1 + mx * mx);
-                x = nx;
+                const float nx = sl_param.cartesian.z / sl_param.cartesian.x;
+                const float dx = nx - sl_param.x;
+                const float mx = (sl_param.x + nx) * 0.5f;
+                sl_param.theta += dx / (1 + mx * mx);
+                sl_param.x = nx;
 
-                const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
-                const float dy = ny - y;
+                const float ny = sl_param.cartesian.y / sqrt(sl_param.cartesian.x * sl_param.cartesian.x + sl_param.cartesian.z * sl_param.cartesian.z);
+                const float dy = ny - sl_param.y;
                 const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
-                const float my = (y + ny) * 0.5f;
-                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
-                y = ny;
+                const float my = (sl_param.y + ny) * 0.5f;
+                sl_param.phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : sl_param.phi + (dy / (1 + my * my));
+                sl_param.y = ny;
 
-                const int index_src_1 = ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
+                const int index_src_1 = ((static_cast<int>(sl_param.phi * param.img_scale_y)) * param.img_width + static_cast<int>(sl_param.theta * param.img_scale_x));
                 const int index_src_2 = (index_src_1 << 1) + index_src_1;
                 const int index_src = std::max(0, index_src_2);
-                std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                std::memcpy(param.texture_pixels + sl_param.index, param.orig_pixels + index_src, 3);
 
-                index += 3;
+                sl_param.index += 3;
             }
             // const int i0 = i;
             for (; i < b2; i++) {
                 // tan (before)
-                cartesian += scaled_x_axis;
+                sl_param.cartesian += param.scaled_x_axis;
             
-                const float nx = cartesian.z / cartesian.x;
-                theta = atanf(nx) + const_before;
-                x = nx;
+                const float nx = sl_param.cartesian.z / sl_param.cartesian.x;
+                sl_param.theta = atanf(nx) + const_before;
+                sl_param.x = nx;
 
-                const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
-                const float dy = ny - y;
+                const float ny = sl_param.cartesian.y / sqrt(sl_param.cartesian.x * sl_param.cartesian.x + sl_param.cartesian.z * sl_param.cartesian.z);
+                const float dy = ny - sl_param.y;
                 const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
-                const float my = (y + ny) * 0.5f;
-                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
-                y = ny;
+                const float my = (sl_param.y + ny) * 0.5f;
+                sl_param.phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : sl_param.phi + (dy / (1 + my * my));
+                sl_param.y = ny;
 
-                const int index_src_1 = ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
+                const int index_src_1 = ((static_cast<int>(sl_param.phi * param.img_scale_y)) * param.img_width + static_cast<int>(sl_param.theta * param.img_scale_x));
                 const int index_src_2 = (index_src_1 << 1) + index_src_1;
                 const int index_src = std::max(0, index_src_2);
-                std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                std::memcpy(param.texture_pixels + sl_param.index, param.orig_pixels + index_src, 3);
 
                 // if (i == i0 || i == b2 - 1) {
                 //     texture_pixels[index]     = 0;
@@ -445,31 +446,31 @@ void render(const render_parameters& param) {
                 //     texture_pixels[index + 2] = 255;
                 // }
 
-                index += 3;
+                sl_param.index += 3;
             }
             if (need_limit_case) {
                 
-                cartesian += scaled_x_axis;
+                sl_param.cartesian += param.scaled_x_axis;
 
-                theta = (theta < Pi / 2) || (theta > 3 * Pi /2) ? 0 : Pi;
+                sl_param.theta = (sl_param.theta < Pi / 2) || (sl_param.theta > 3 * Pi /2) ? 0 : Pi;
                 
-                const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
-                const float dy = ny - y;
+                const float ny = sl_param.cartesian.y / sqrt(sl_param.cartesian.x * sl_param.cartesian.x + sl_param.cartesian.z * sl_param.cartesian.z);
+                const float dy = ny - sl_param.y;
                 const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
-                const float my = (y + ny) * 0.5f;
-                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
-                y = ny;
+                const float my = (sl_param.y + ny) * 0.5f;
+                sl_param.phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : sl_param.phi + (dy / (1 + my * my));
+                sl_param.y = ny;
 
-                const int index_src_r = 3 * ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
+                const int index_src_r = 3 * ((static_cast<int>(sl_param.phi * param.img_scale_y)) * param.img_width + static_cast<int>(sl_param.theta * param.img_scale_x));
                 const int index_src = std::max(0, index_src_r);
-                std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                std::memcpy(param.texture_pixels + sl_param.index, param.orig_pixels + index_src, 3);
 
                 // texture_pixels[index]     = 0;
                 // texture_pixels[index + 1] = 0;
                 // texture_pixels[index + 2] = 255;
 
-                index += 3;
-                i = lim_int + 1;
+                sl_param.index += 3;
+                i = sl_param.lim_int + 1;
             }
             //const bool blue = i == 0;
             //if (j == 0) printf("theta %f\n", theta);
@@ -477,22 +478,22 @@ void render(const render_parameters& param) {
             //const int i0 = i;
             for (; i < b3; i++) {
                 // tan (after)
-                cartesian += scaled_x_axis;
+                sl_param.cartesian += param.scaled_x_axis;
             
-                x = cartesian.z / cartesian.x;
-                theta = atanf(x) + const_correct;//(i==i0 && !need_limit_case ? const_before : const_correct); // UGLY, but correct. Proper fix to be found
+                sl_param.x = sl_param.cartesian.z / sl_param.cartesian.x;
+                sl_param.theta = atanf(sl_param.x) + const_correct;//(i==i0 && !need_limit_case ? const_before : const_correct); // UGLY, but correct. Proper fix to be found
 
-                const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
-                const float dy = ny - y;
+                const float ny = sl_param.cartesian.y / sqrt(sl_param.cartesian.x * sl_param.cartesian.x + sl_param.cartesian.z * sl_param.cartesian.z);
+                const float dy = ny - sl_param.y;
                 const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
-                const float my = (y + ny) * 0.5f;
-                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
-                y = ny;
+                const float my = (sl_param.y + ny) * 0.5f;
+                sl_param.phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : sl_param.phi + (dy / (1 + my * my));
+                sl_param.y = ny;
 
-                const int index_src_1 = ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
+                const int index_src_1 = ((static_cast<int>(sl_param.phi * param.img_scale_y)) * param.img_width + static_cast<int>(sl_param.theta * param.img_scale_x));
                 const int index_src_2 = (index_src_1 << 1) + index_src_1;
                 const int index_src = std::max(0, index_src_2);
-                std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                std::memcpy(param.texture_pixels + sl_param.index, param.orig_pixels + index_src, 3);
 
                 // if (i == b2 || i == b2 + 1 || i == b3 - 1) {
                 //     texture_pixels[index]     = 0;
@@ -503,31 +504,31 @@ void render(const render_parameters& param) {
                 //     texture_pixels[index] = 255;
                 // }
 
-                index += 3;
+                sl_param.index += 3;
             }
             for (; i < width; i++) {
                 // deriv
-                cartesian += scaled_x_axis;
+                sl_param.cartesian += param.scaled_x_axis;
 
-                const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
-                const float dy = ny - y;
+                const float ny = sl_param.cartesian.y / sqrt(sl_param.cartesian.x * sl_param.cartesian.x + sl_param.cartesian.z * sl_param.cartesian.z);
+                const float dy = ny - sl_param.y;
                 const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
-                const float my = (y + ny) * 0.5f;
-                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
-                y = ny;
+                const float my = (sl_param.y + ny) * 0.5f;
+                sl_param.phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : sl_param.phi + (dy / (1 + my * my));
+                sl_param.y = ny;
 
-                const float nx = cartesian.z / cartesian.x;
-                const float dx = nx - x;
-                const float mx = (x + nx) * 0.5f;
-                theta = needs_reset_phi ? (atanf(nx) + const_correct) : theta + (dx / (1 + mx * mx));
-                x = nx;
+                const float nx = sl_param.cartesian.z / sl_param.cartesian.x;
+                const float dx = nx - sl_param.x;
+                const float mx = (sl_param.x + nx) * 0.5f;
+                sl_param.theta = needs_reset_phi ? (atanf(nx) + const_correct) : sl_param.theta + (dx / (1 + mx * mx));
+                sl_param.x = nx;
 
-                const int index_src_1 = ((static_cast<int>(phi * img_scale_y)) * img_width + static_cast<int>(theta * img_scale_x));
+                const int index_src_1 = ((static_cast<int>(sl_param.phi * param.img_scale_y)) * param.img_width + static_cast<int>(sl_param.theta * param.img_scale_x));
                 const int index_src_2 = (index_src_1 << 1) + index_src_1;
                 const int index_src = std::max(0, index_src_2);
-                std::memcpy(texture_pixels + index, orig_pixels + index_src, 3);
+                std::memcpy(param.texture_pixels + sl_param.index, param.orig_pixels + index_src, 3);
 
-                index += 3;
+                sl_param.index += 3;
             }
 #endif
 #endif
@@ -547,37 +548,38 @@ void render(const render_parameters& param) {
             
 #else
             for (int i = 0; i < last_first_loop; i++) {
-                cartesian += param.scaled_x_axis;
+                sl_param.cartesian += param.scaled_x_axis;
                 
-                const float nx = cartesian.z / cartesian.x;
-                const float dx = nx - x;
-                const float mx = (x + nx) * 0.5f;
-                theta += dx / (1 + mx * mx);
-                x = nx;
+                const float nx = sl_param.cartesian.z / sl_param.cartesian.x;
+                const float dx = nx - sl_param.x;
+                const float mx = (sl_param.x + nx) * 0.5f;
+                sl_param.theta += dx / (1 + mx * mx);
+                sl_param.x = nx;
 
-                const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
-                const float dy = ny - y;
+                const float ny = sl_param.cartesian.y / sqrt(sl_param.cartesian.x * sl_param.cartesian.x + sl_param.cartesian.z * sl_param.cartesian.z);
+                const float dy = ny - sl_param.y;
                 const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
-                const float my = (y + ny) * 0.5f;
-                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
-                y = ny;
+                const float my = (sl_param.y + ny) * 0.5f;
+                sl_param.phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : sl_param.phi + (dy / (1 + my * my));
+                sl_param.y = ny;
 
-                const int index_src_1 = ((static_cast<int>(phi * param.img_scale_y)) * param.img_width + static_cast<int>(theta * param.img_scale_x));
+                const int index_src_1 = ((static_cast<int>(sl_param.phi * param.img_scale_y)) * param.img_width + static_cast<int>(sl_param.theta * param.img_scale_x));
                 const int index_src_2 = (index_src_1 << 1) + index_src_1;
                 const int index_src = std::max(0, index_src_2);
-                std::memcpy(param.texture_pixels + index, param.orig_pixels + index_src, 3);
+                std::memcpy(param.texture_pixels + sl_param.index, param.orig_pixels + index_src, 3);
 
                 // if (starts_pos) {
                 //     texture_pixels[index] = 255;
                 // }
                 // texture_pixels[index + 2] = 255;
                 
-//#define DRAW_RESET
+#define DRAW_RESET
 #ifdef DRAW_RESET
+                constexpr bool needs_reset_theta = false; // I don't know where this needs_reset_theta below comes from
                 if (needs_reset_theta || needs_reset_phi) {
-                    texture_pixels[index]     = 255 * needs_reset_theta;
-                    texture_pixels[index + 1] = 255 * (needs_reset_theta && needs_reset_phi);
-                    texture_pixels[index + 2] = 255 * needs_reset_phi;
+                    param.texture_pixels[sl_param.index]     = 255 * needs_reset_theta;
+                    param.texture_pixels[sl_param.index + 1] = 255 * (needs_reset_theta && needs_reset_phi);
+                    param.texture_pixels[sl_param.index + 2] = 255 * needs_reset_phi;
                 }
 #endif
 #define SHOULD_BE_POLY
@@ -589,7 +591,7 @@ void render(const render_parameters& param) {
                 // }
 #endif
 
-                index += 3;
+                sl_param.index += 3;
             }
 #endif
         }
@@ -604,36 +606,36 @@ void render(const render_parameters& param) {
         int cpt = 0;
 #endif
         for (i = 0; i < last_first_loop; i++) {
-            cartesian += param.scaled_x_axis;
+            sl_param.cartesian += param.scaled_x_axis;
             
             //const float theta = atanf(cartesian.z / cartesian.x) + const_before;
-            const float nx = cartesian.z / cartesian.x;
-            const float dx = nx - x;
+            const float nx = sl_param.cartesian.z / sl_param.cartesian.x;
+            const float dx = nx - sl_param.x;
             const bool needs_reset_theta = std::abs(dx) > tan_reset_threshold;
-            const float mx = (x + nx) * 0.5f;
-            theta = needs_reset_theta ? (atanf(nx) + const_before) : theta + (dx / (1 + mx * mx));
+            const float mx = (sl_param.x + nx) * 0.5f;
+            sl_param.theta = needs_reset_theta ? (atanf(nx) + const_before) : sl_param.theta + (dx / (1 + mx * mx));
             //if (needs_reset_theta) atan_cpt++;
-            x = nx;
+            sl_param.x = nx;
 
             //  float phi = asinf(cartesian.y / cartesian.norm()) + (Pi / 2.0f);
             //const float phi = atanf(cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z)) + (Pi / 2.0f);
             //if (cartesian.x * cartesian.x + cartesian.z * cartesian.z == 0) printf("First loop: div by 0\n");
-            const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
-            const float dy = ny - y;
+            const float ny = sl_param.cartesian.y / sqrt(sl_param.cartesian.x * sl_param.cartesian.x + sl_param.cartesian.z * sl_param.cartesian.z);
+            const float dy = ny - sl_param.y;
             const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
-            const float my = (y + ny) * 0.5f;
-            phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
+            const float my = (sl_param.y + ny) * 0.5f;
+            sl_param.phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : sl_param.phi + (dy / (1 + my * my));
             //if (needs_reset_phi) atan_cpt++;
-            y = ny;
+            sl_param.y = ny;
 
-            const int index_src_1 = ((static_cast<int>(phi * param.img_scale_y)) * param.img_width + static_cast<int>(theta * param.img_scale_x));
+            const int index_src_1 = ((static_cast<int>(sl_param.phi * param.img_scale_y)) * param.img_width + static_cast<int>(sl_param.theta * param.img_scale_x));
             const int index_src_2 = (index_src_1 << 1) + index_src_1;
             // if (index_src_r < 0) printf("FIRST LOOP index_src < 0\n");
             // if (index_src_r > max_index_src) printf("FIRST LOOP index_src >= max\n");
             //const int index_src = std::clamp(index_src_r, 0, max_index_src);
             const int index_src = std::max(0, index_src_2);
 #ifndef BUFFER_CPY
-            std::memcpy(param.texture_pixels + index, param.orig_pixels + index_src, 3);
+            std::memcpy(param.texture_pixels + sl_param.index, param.orig_pixels + index_src, 3);
 #else
             if (index_src != prev_index_src + 3) {
                 // if (cpt != 3) {
@@ -670,32 +672,32 @@ void render(const render_parameters& param) {
             }
 #endif
 
-            index += 3;
+            sl_param.index += 3;
         }
         if (two_loops_needed) {
             if (need_limit_case) {
-                cartesian += param.scaled_x_axis;
+                sl_param.cartesian += param.scaled_x_axis;
 
-                theta = (theta < Pi / 2) || (theta > 3 * Pi / 2) ? 0 : Pi;
+                sl_param.theta = (sl_param.theta < Pi / 2) || (sl_param.theta > 3 * Pi / 2) ? 0 : Pi;
                 
                 //const float phi = asinf(cartesian.y / sqrt(cartesian.y * cartesian.y + cartesian.z * cartesian.z)) + (Pi / 2.0f);
                 //const float phi = atanf(cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z)) + (Pi / 2.0f);
                 //if (cartesian.x * cartesian.x + cartesian.z * cartesian.z == 0) printf("Limit case: div by 0\n");
-                const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
-                const float dy = ny - y;
+                const float ny = sl_param.cartesian.y / sqrt(sl_param.cartesian.x * sl_param.cartesian.x + sl_param.cartesian.z * sl_param.cartesian.z);
+                const float dy = ny - sl_param.y;
                 const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
-                const float my = (y + ny) * 0.5f;
-                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
+                const float my = (sl_param.y + ny) * 0.5f;
+                sl_param.phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : sl_param.phi + (dy / (1 + my * my));
                 //if (needs_reset_phi) atan_cpt++;
-                y = ny;
+                sl_param.y = ny;
 
-                const int index_src_r = 3 * ((static_cast<int>(phi * param.img_scale_y)) * param.img_width + static_cast<int>(theta * param.img_scale_x));
+                const int index_src_r = 3 * ((static_cast<int>(sl_param.phi * param.img_scale_y)) * param.img_width + static_cast<int>(sl_param.theta * param.img_scale_x));
                 // if (index_src_r < 0) printf("MID index_src < 0\n");
                 // if (index_src_r > max_index_src) printf("MID index_src >= max\n");
                 //const int index_src = std::clamp(index_src_r, 0, max_index_src);
                 const int index_src = std::max(0, index_src_r);
 #ifndef BUFFER_CPY
-                std::memcpy(param.texture_pixels + index, param.orig_pixels + index_src, 3);
+                std::memcpy(param.texture_pixels + sl_param.index, param.orig_pixels + index_src, 3);
 #else
                 if (index_src != prev_index_src + 3) {
                     // if (cpt != 3) {
@@ -729,36 +731,36 @@ void render(const render_parameters& param) {
                 param.texture_pixels[index + 2] = 255;
 #endif
 
-                index += 3;
-                i = lim_int + 1;
+                sl_param.index += 3;
+                i = sl_param.lim_int + 1;
             }
             
-            x = infinity;
+            sl_param.x = infinity;
             for (; i < width; i++) {
-                cartesian += param.scaled_x_axis;
+                sl_param.cartesian += param.scaled_x_axis;
 
                 //const float phi = asinf(cartesian.y / cartesian.norm()) + (Pi / 2.0f);
                 //const float phi = atanf(cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z)) + (Pi / 2.0f);
                 //if (cartesian.x * cartesian.x + cartesian.z * cartesian.z == 0) printf("Second loop: div by 0\n");
-                const float ny = cartesian.y / sqrt(cartesian.x * cartesian.x + cartesian.z * cartesian.z);
-                const float dy = ny - y;
+                const float ny = sl_param.cartesian.y / sqrt(sl_param.cartesian.x * sl_param.cartesian.x + sl_param.cartesian.z * sl_param.cartesian.z);
+                const float dy = ny - sl_param.y;
                 const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
-                const float my = (y + ny) * 0.5f;
-                phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : phi + (dy / (1 + my * my));
+                const float my = (sl_param.y + ny) * 0.5f;
+                sl_param.phi = needs_reset_phi ? (atanf(ny) + (Pi / 2.0f)) : sl_param.phi + (dy / (1 + my * my));
                 //if (needs_reset_phi) atan_cpt++;
-                y = ny;
+                sl_param.y = ny;
 
                 // const float theta = atanf(cartesian.z / cartesian.x) + const_after;
                 // atan_cpt++;
-                const float nx = cartesian.z / cartesian.x;
-                const float dx = nx - x;
+                const float nx = sl_param.cartesian.z / sl_param.cartesian.x;
+                const float dx = nx - sl_param.x;
                 const bool needs_reset_theta = std::abs(dx) > tan_reset_threshold;
-                const float mx = (x + nx) * 0.5f;
-                theta = needs_reset_theta || needs_reset_phi ? (atanf(nx) + const_after) : theta + (dx / (1 + mx * mx));
+                const float mx = (sl_param.x + nx) * 0.5f;
+                sl_param.theta = needs_reset_theta || needs_reset_phi ? (atanf(nx) + const_after) : sl_param.theta + (dx / (1 + mx * mx));
                 //if (needs_reset_theta) atan_cpt++;
-                x = nx;
+                sl_param.x = nx;
 
-                const int index_src_1 = ((static_cast<int>(phi * param.img_scale_y)) * param.img_width + static_cast<int>(theta * param.img_scale_x));
+                const int index_src_1 = ((static_cast<int>(sl_param.phi * param.img_scale_y)) * param.img_width + static_cast<int>(sl_param.theta * param.img_scale_x));
                 const int index_src_2 = (index_src_1 << 1) + index_src_1;
                 // if (index_src_r < 0) printf("SECOND LOOP index_src < 0, theta %f, phi %f, theta * img_scale_x %f, phi * img_scale_y %f, index_src %d\n",
                 //     theta, phi, theta * img_scale_x, phi * img_scale_y, index_src_r);
@@ -766,7 +768,7 @@ void render(const render_parameters& param) {
                 //const int index_src = std::clamp(index_src_r, 0, max_index_src);
                 const int index_src = std::max(0, index_src_2);
 #ifndef BUFFER_CPY
-                std::memcpy(param.texture_pixels + index, param.orig_pixels + index_src, 3);
+                std::memcpy(param.texture_pixels + sl_param.index, param.orig_pixels + index_src, 3);
 #else
                 if (index_src != prev_index_src + 3) {
                     // if (cpt != 3) {
@@ -802,7 +804,7 @@ void render(const render_parameters& param) {
                 }
 #endif
 
-                index += 3;
+                sl_param.index += 3;
             }
 
 #ifdef BUFFER_CPY
