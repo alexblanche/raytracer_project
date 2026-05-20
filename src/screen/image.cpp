@@ -34,21 +34,6 @@ namespace rt {
 		texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, width, height);
 	}
 
-	/**
-	 * Copy constructor.
-	 * Warning: this does not copy the actual data, so
-	 * any modification to the copy will impact the original.
-	 * To build a hard copy, use the copy member function.
-	
-	image::image(const image& img) {
-		data = img.data;
-		data->refcount++;
-	}
-	*/
-
-	/**
-	 * Destructor.
-	 */
 	image::~image() {
 		SDL_DestroyTexture(texture);
 		if (renderer != NULL){
@@ -60,9 +45,6 @@ namespace rt {
 		SDL_Quit();
 	}
 
-	/**
-	 * Sets a pixel to a given color.
-	 */
 	void image::set_pixel(int x, int y, const color& c) const {
 		// if(x < 0 || y < 0 || x >= width() || y >= height()) {
 		// 	return;
@@ -80,9 +62,6 @@ namespace rt {
 		SDL_RenderDrawPoint(renderer, x, y);
 	}
 
-	/**
-	 * Draws a line from (x1,y1) to (x2,y2) of a given color.
-	 */
 	void image::draw_line(int x1, int y1, int x2, int y2, const color& c) {
 		Uint8 r = c.get_red();
 		Uint8 g = c.get_green();
@@ -91,9 +70,6 @@ namespace rt {
 		SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
 	}
 
-	/**
-	 * Draws a rectangle (uses draw_line) of a given color.
-	 */
 	void image::draw_rect(int x1, int y1, int x2, int y2, const color& c) {
 		Uint8 r = c.get_red();
 		Uint8 g = c.get_green();
@@ -104,9 +80,6 @@ namespace rt {
 		SDL_RenderDrawRect(renderer, &rct);
 	}
 
-	/**
-	 * Draws a filled rectangle of a given color.
-	 */
 	void image::fill_rect(int x1, int y1, int x2, int y2, const color& c) {
 
 		Uint8 r = c.get_red();
@@ -118,9 +91,6 @@ namespace rt {
 		SDL_RenderFillRect(renderer, &rct);
 	}
 
-	/**
-	 * Erases the content of the buffer
-	 */
 	void image::clear() const {
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
