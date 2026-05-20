@@ -17,12 +17,7 @@ enum loop_version_limit {
 
 
 
-template<enum loop_version_theta vtheta, enum loop_version_phi vphi, enum loop_version_limit vlim>
-// inline void segment_loop(float& theta, float& phi,
-//     sky::vector& cartesian, const sky::vector& scaled_x_axis, const int lim_int,
-//     float& x, float& y, int& index,
-//     const float img_scale_x, const float img_scale_y, const int img_width,
-//     char* const texture_pixels, char* const orig_pixels, int& index_loop,
+template<loop_version_theta vtheta, loop_version_phi vphi, loop_version_limit vlim>
 inline void segment_loop(const render_parameters& param, segment_loop_parameters& sl_param,
     const int bound, const float const_theta) {
     
@@ -96,9 +91,8 @@ inline void segment_loop(const render_parameters& param, segment_loop_parameters
             }
         }
 
-        const int index_src_1 = (static_cast<int>(sl_param.phi * param.img_scale_y)) * param.img_width + static_cast<int>(sl_param.theta * param.img_scale_x);
-        const int index_src_2 = (index_src_1 << 1) + index_src_1;
-        const int index_src = std::max(0, index_src_2);
+        const int index_src_1 = (param.img_height - static_cast<int>(sl_param.phi * param.img_scale_y)) * param.img_width + static_cast<int>(sl_param.theta * param.img_scale_x);
+        const int index_src = std::max(0, index_src_1 * 3);
         std::memcpy(param.texture_pixels + sl_param.index, param.orig_pixels + index_src, 3);
 
         // if constexpr (vphi == TestPhi) {
@@ -372,7 +366,7 @@ void render(const render_parameters& param) {
                     if (need_limit_case) {
                         segment_loop<UpdateThetaAtanBefore, NoTestPhi, LimitCase>(param, sl_param, sl_param.lim_int + 1, 0.0f);
                     }
-                    const float const_correct = (!two_loops_needed) ? const_before : const_after;
+                    const float const_correct = two_loops_needed ? const_after : const_before;
                     segment_loop<UpdateThetaAtanAfter, NoTestPhi, NotLimitCase> (param, sl_param, b3,    const_correct);
                     segment_loop<UpdateThetaTestPhi,   NoTestPhi, NotLimitCase> (param, sl_param, width, const_correct);
                     break;
@@ -385,7 +379,7 @@ void render(const render_parameters& param) {
                     if (need_limit_case) {
                         segment_loop<UpdateThetaAtanBefore, TestPhi, LimitCase> (param, sl_param, sl_param.lim_int + 1, 0.0f);
                     }
-                    const float const_correct = (!two_loops_needed) ? const_before : const_after;
+                    const float const_correct = two_loops_needed ? const_after : const_before;
                     segment_loop<UpdateThetaAtanAfter, TestPhi, NotLimitCase>   (param, sl_param, b3,    const_correct);
                     segment_loop<UpdateThetaTestPhi,   TestPhi, NotLimitCase>   (param, sl_param, width, const_correct);
                     break;
@@ -536,16 +530,20 @@ void render(const render_parameters& param) {
         else {
             // one loop
 #ifdef TEMPLATE_LOOPS
-            ptb = (ptb == NeverTest) || ((!(ptb == AlwaysTest)) && (((ptb == TestOutside) && (k1_phi < 0 && k2_phi >= width)) || ((ptb == TestBetween) && (k2_phi < 0 || k1_phi >= width)))) ?
+            ptb =  (ptb == NeverTest)
+                || ((!(ptb == AlwaysTest))
+                        &&    (((ptb == TestOutside) && (k1_phi < 0 && k2_phi >= width))
+                            || ((ptb == TestBetween) && (k2_phi < 0 || k1_phi >= width)))) ?
                 NeverTest : AlwaysTest;
             sl_param.index_loop = 0;
-            if (ptb == NeverTest) {
-                segment_loop<UpdateThetaDerivative, NoTestPhi, NotLimitCase>(param, sl_param, last_first_loop, 0.0f);
+            switch (ptb) {
+                case NeverTest:
+                    segment_loop<UpdateThetaDerivative, NoTestPhi, NotLimitCase>(param, sl_param, last_first_loop, 0.0f);
+                    break;
+                default:
+                    segment_loop<UpdateThetaDerivative, TestPhi,   NotLimitCase>(param, sl_param, last_first_loop, 0.0f);
+                    break;
             }
-            else {
-                segment_loop<UpdateThetaDerivative, TestPhi,   NotLimitCase>(param, sl_param, last_first_loop, 0.0f);
-            }
-            
 #else
             for (int i = 0; i < last_first_loop; i++) {
                 sl_param.cartesian += param.scaled_x_axis;

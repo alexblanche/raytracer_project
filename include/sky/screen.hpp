@@ -8,13 +8,9 @@
 namespace sky {
 
 	class screen : public image	{
-		
-		private:
-			static int initialized;
 
 		public:
 			screen(int width, int height);
-			~screen();
 	};
 
 }

@@ -4,16 +4,16 @@
 #include "sky/vector.hpp"
 
 struct render_parameters {
+    sky::screen scr;
     SDL_Texture* txt;
     mutable char* texture_pixels;
-    mutable int texture_pitch;
     char* orig_pixels;
+    mutable int texture_pitch;
     int img_width;
     int img_height;
     sky::vector scaled_x_axis;
     sky::vector scaled_y_axis;
     sky::vector axes_center;
-    sky::screen scr;
     float img_scale_x;
     float img_scale_y;
 

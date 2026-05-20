@@ -60,3 +60,6 @@ struct bmp_header {
       printf("Important colors:      %u\n",       important_colors          );
    }
 };
+
+/* Extracts the data from the given .bmp file into the vector data, which must be empty */
+exit_status direct_read_bmp(const char* file_name, std::vector<char>& data);

@@ -67,25 +67,21 @@ exit_status read_bmp(const char* file_name, std::vector<std::vector<sky::color>>
 
         constexpr int MAX_LENGTH = 28;
         char buffer_ignore[MAX_LENGTH];
-        int ret;
 
         /* 18 bytes ignored:
         Type (2), Size (4), Reserved 1 (2), Reserved 2 (2), Offset (4), Size of the header (4)
         */
-        ret = fread(static_cast<void*>(buffer_ignore), 18, 1, file);
-        if (ret != 1)
+        if (1 != fread(static_cast<void*>(buffer_ignore), 18, 1, file))
             throw std::runtime_error("Reading error in read_bmp (18 first bytes)");
         
         /* Width: 4 bytes */
-        unsigned int bmpwidth;
-        ret = fread(static_cast<void*>(&bmpwidth), sizeof(int), 1, file);
-        if (ret != 1)
+        int bmpwidth;
+        if (1 != fread(static_cast<void*>(&bmpwidth), sizeof(int), 1, file))
             throw std::runtime_error("Reading error in read_bmp (width)");
 
         /* Height: 4 bytes */
-        unsigned int bmpheight;
-        ret = fread(static_cast<void*>(&bmpheight), sizeof(int), 1, file);
-        if (ret != 1)
+        int bmpheight;
+        if (1 != fread(static_cast<void*>(&bmpheight), sizeof(int), 1, file))
             throw std::runtime_error("Reading error in read_bmp (height)");
 
         /* 28 bytes ignored:
@@ -93,28 +89,23 @@ exit_status read_bmp(const char* file_name, std::vector<std::vector<sky::color>>
         Compressed size of the image (4), Horizontal resolution (4), Vertical resolution (4),
         Number of colors used (4), Number of important colors used (4)
         */
-        ret = fread(static_cast<void*>(buffer_ignore), 28, 1, file);
-        if (ret != 1)
+        if (1 != fread(static_cast<void*>(buffer_ignore), 28, 1, file))
             throw std::runtime_error("Reading error in read_bmp_size (28 bytes after height)");
         
         /* Padding at the end of each row in the file */
-        const unsigned int p = (4 - ((BYTES_PER_COLOR * bmpwidth) % 4)) % 4;
+        const int p = (4 - ((BYTES_PER_COLOR * bmpwidth) % 4)) % 4;
 
         /* Color data */
-        const unsigned int nb_bytes = ((BYTES_PER_COLOR * bmpwidth) + p) * bmpheight;
+        const int nb_bytes = ((BYTES_PER_COLOR * bmpwidth) + p) * bmpheight;
         std::vector<unsigned char> buffer(nb_bytes);
-        ret = fread((void*) buffer.data(), 1, nb_bytes, file);
-        if (static_cast<unsigned int>(ret) != nb_bytes)
+        if (1 != fread((void*) buffer.data(), nb_bytes, 1, file))
             throw std::runtime_error("Reading error in read_bmp (pixel data)");
 
-        unsigned int index = 0;
-        for (unsigned int j = 0; j < bmpheight; j++) {
-            const unsigned int indexj = bmpheight - j - 1;
-            for (unsigned int i = 0; i < bmpwidth; i++) {
-                const real b = buffer[index];
-                const real g = buffer[index + 1];
-                const real r = buffer[index + 2];
-                data[i][indexj] = sky::color(r, g, b);
+        int index = 0;
+        for (int j = 0; j < bmpheight; j++) {
+            const int indexj = bmpheight - j - 1;
+            for (int i = 0; i < bmpwidth; i++) {
+                data[indexj][i] = sky::color(buffer[index + 2], buffer[index + 1], buffer[index]);
                 index += 3;
             }
             index += p;
@@ -139,14 +130,13 @@ exit_status print_bmp_info(const char* file_name) {
         return exit_status::Failure;
     }
 
-    char filetype[3];
-    const int ret1 = fscanf(file, "%2s", filetype);
+    char filetype[2];
+    const int ret1 = fread(filetype, 2, 1, file);
     if (ret1 != 1) {
         fclose(file);
         printf("Reading error in read_bmp type\n");
         return exit_status::Failure;
     }
-    printf("Type:                  %2s\n", filetype);
 
     bmp_header header;
     const int ret2 = fread(static_cast<void*>(&header), sizeof(bmp_header), 1, file);
@@ -157,6 +147,57 @@ exit_status print_bmp_info(const char* file_name) {
         return exit_status::Failure;
     }
     
+    printf("Type:                  %.2s\n", filetype);
     header.print();
     return exit_status::Success;
+}
+
+
+
+/* Extracts the data from the given .bmp file into the vector data, which must be empty */
+exit_status direct_read_bmp(const char* file_name, std::vector<char>& data) {
+    FILE* file = fopen(file_name, "rb");
+
+    if (file == nullptr) {
+        printf("Error, file %s not found\n", file_name);
+        return exit_status::Failure;
+    }
+
+    try {
+
+        constexpr int MAX_LENGTH = 28;
+        char buffer_ignore[MAX_LENGTH];
+
+        /* 18 bytes ignored */
+        if (1 != fread(static_cast<void*>(buffer_ignore), 18, 1, file))
+            throw std::runtime_error("Reading error in read_bmp (18 first bytes)");
+        
+        int bmpwidth;
+        if (1 != fread(static_cast<void*>(&bmpwidth), sizeof(int), 1, file))
+            throw std::runtime_error("Reading error in read_bmp (width)");
+
+        int bmpheight;
+        if (1 != fread(static_cast<void*>(&bmpheight), sizeof(int), 1, file))
+            throw std::runtime_error("Reading error in read_bmp (height)");
+
+        /* 28 bytes ignored */
+        if (1 != fread(static_cast<void*>(buffer_ignore), 28, 1, file))
+            throw std::runtime_error("Reading error in read_bmp_size (28 bytes after height)");
+
+        /* Color data */
+        /* Padding at the end of each row in the file */
+        const int p = (4 - ((BYTES_PER_COLOR * bmpwidth) % 4)) % 4;
+        const int nb_bytes = ((BYTES_PER_COLOR * bmpwidth) + p) * bmpheight;
+        data.resize(nb_bytes);
+        if (1 != fread(static_cast<void*>(data.data()), data.size(), 1, file))
+            throw std::runtime_error("Reading error in read_bmp (pixel data)");
+
+        fclose(file);
+        return exit_status::Success;
+    }
+    catch(const std::exception& e) {
+        printf("%s\n", e.what());
+        fclose(file);
+        return exit_status::Failure;
+    }
 }

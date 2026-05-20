@@ -11,7 +11,7 @@
 
 /* Returns the current time in milliseconds */
 uint64_t get_time() {
-    return duration_cast< std::chrono::milliseconds >(
+    return duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()
     ).count();
 }
@@ -27,35 +27,22 @@ struct mouse_pos {
     const float invheight;
     float theta, phi;
 
-    mouse_pos(int width, int height)
-        : invwidth(1.0f / ((float) width)), invheight(1.0f / ((float) height)),
-          theta(Pi), phi(0) {}
+    mouse_pos(float width, float height)
+        : invwidth( 1.0f / width),
+          invheight(1.0f / height),
+          theta(Pi), phi(0.0f) {}
 
     // xr and yr are relative positions
-    void set(int xr, int yr) {
+    inline void set(float xr, float yr) {
         // Mouse to the right = decreasing theta
         theta -= xr * invwidth;
         // Mouse to the top = increasing phi
-        phi += yr * invheight;
+        phi   += yr * invheight;
 
         // theta is circular in [-PI, PI]
-        // if (theta > PI) {
-        //     theta -= 2 * PI;
-        // }
-        // else if (theta < -PI) {
-        //     theta += 2 * PI;
-        // }
-        
-        // // phi is capped between -PI/2 and PI/2
-        // if (phi > (PI / 2.0f)) {
-        //     phi = (PI / 2.0f);
-        // }
-        // else if (phi < -(PI / 2.0f)) {
-        //     phi = -(PI / 2.0f);
-        // }
-
-        theta = (std::abs(theta) > Pi)     ? theta + (std::signbit(theta) ? 2 * Pi : -2 * Pi): theta;
-        phi   = (std::abs(phi)   > Pi / 2) ? (std::signbit(phi) ? -Pi / 2 : Pi / 2) : phi;
+        // phi is capped between -PI/2 and PI/2
+        theta = (std::abs(theta) > Pi)     ? theta + (std::signbit(theta) ?  2 * Pi : -2 * Pi) : theta;
+        phi   = (std::abs(phi)   > Pi / 2) ?         (std::signbit(phi)   ? -Pi / 2 :  Pi / 2) : phi;
     }
 };
 
@@ -70,34 +57,30 @@ struct screen_axes {
     sky::vector screen_y_axis;
     sky::vector center;
 
-    screen_axes() {
-        screen_x_axis = sky::vector(1, 0, 0);
-        screen_y_axis = sky::vector(0, 1, 0);
-        center        = sky::vector(0, 0, 1);
-    }
+    screen_axes()
+        : screen_x_axis(1, 0, 0),
+          screen_y_axis(0, 1, 0),
+                 center(0, 0, 1) {}
 
     void set(/*const float fov_x,*/ const float theta, const float phi) {
-        const float cosphi = cosf(phi);
-        const float sinphi = sinf(phi);
+        const float cosphi   = cosf(phi);
+        const float sinphi   = sinf(phi);
         const float costheta = cosf(theta);
         const float sintheta = sinf(theta);
-        // float cosphi, sinphi, costheta, sintheta;
-        // sincosf(phi, &sinphi, &cosphi);
-        // sincosf(theta, &sintheta, &costheta);
 
-        //const float l = cosf(fov_x * PI);
-        constexpr float l = 0.58778525229f; //cosf(0.3f * PI);
+        //const float l = cosf(fov_x * Pi);
+        constexpr float l = 0.58778525229f; //cosf(0.3f * Pi);
 
         screen_x_axis.x = sintheta;
         screen_x_axis.z = costheta;
 
         screen_y_axis.x = -sinphi * costheta;
-        screen_y_axis.y = cosphi;
-        screen_y_axis.z = sinphi * sintheta;
+        screen_y_axis.y =  cosphi;
+        screen_y_axis.z =  sinphi * sintheta;
 
         const float lcosphi = l * cosphi;
-        center.x = lcosphi * costheta;
-        center.y = l * sinphi;
+        center.x = lcosphi *   costheta;
+        center.y = l       *   sinphi;
         center.z = lcosphi * (-sintheta);
     }
 };
@@ -154,7 +137,7 @@ int main(int argc, char** argv) {
         argv[1]
         :
         "../../../assets/cobblestone_street_night.bmp";
-        
+    
     print_bmp_info(file_name);
 
     std::optional<dimensions> dims = read_bmp_size(file_name);
@@ -164,11 +147,28 @@ int main(int argc, char** argv) {
     }
     const int dwidth  = dims.value().width;
     const int dheight = dims.value().height;
-    std::vector<std::vector<sky::color>> matrix(dwidth, std::vector<sky::color>(dheight));
+
+//#define TIME_READ
+
+#define DIRECT_READING
+#ifndef DIRECT_READING
+    std::vector<std::vector<sky::color>> matrix(dheight, std::vector<sky::color>(dwidth));
+
+#ifdef  TIME_READ
+    const uint64_t time_read_start = get_time();
+    for (int i = 0; i < 10; i++) {
+#endif
+    
     const exit_status read_success = read_bmp(file_name, matrix);
     if (read_success == exit_status::Failure) {
         return EXIT_FAILURE;
     }
+    
+#ifdef  TIME_READ
+    }
+    const uint64_t time_read_end = get_time();
+    printf("Time reading: %llu ms\n", time_read_end - time_read_start);
+#endif
 
     /* Screen dimensions */
     render_parameters param;
@@ -180,98 +180,74 @@ int main(int argc, char** argv) {
     const unsigned int nbpix = depth * dwidth * dheight;
     std::vector<char> pixels(nbpix);
     
-    // for (int j = 0; j < dims.value().height; j++) {
-
-    //     const int jwidth = j * dims.value().width;
-
-    //     for (int i = 0; i < dims.value().width; i++) {
-    //         sky::color& c = matrix[i][j];
-    const int dwidthdepth = dwidth * depth;
-    for (int i = 0; i < dwidth; i++) {
-        const std::vector<sky::color>& line = matrix[i];
-        const int idepth = i * depth;
-        for (int j = 0; j < dheight; j++) {
-            const sky::color& c = line[j];
+#ifdef  TIME_READ
+    const uint64_t time_fill_start = get_time();
+    for (int k = 0; k < 10; k++) {
+#endif
+    int index = 0;
+    for (int j = 0; j < dheight; j++) {
+        const std::vector<sky::color>& line = matrix[j];
+        for (int i = 0; i < dwidth; i++) {
+            const sky::color& c = line[i];
             const char r = c.get_red();
             const char g = c.get_green();
             const char b = c.get_blue();
-            const int index = //depth * (j * dwidth + i);
-                j * dwidthdepth + idepth;
             pixels[index]     = b;
             pixels[index + 1] = g;
             pixels[index + 2] = r;
+            index += depth;
         }
     }
 
-    /////////////////////////////
-    // Test fused multiply add (fma)
-    // 16s classic, 11s fma
-    /*
-    sky::color colo(0, 0, 0);
-    sky::color colo_fma(0, 0, 0);
-    constexpr int nbiter = 100;
-    const unsigned long int tcolo = time(0);
-    for (int iter = 0; iter < nbiter; iter++) {
-        for (int i = 0; i < dwidth; i++) {
-            const std::vector<sky::color>& line = matrix[i];
-            for (int j = 0; j < dheight; j++) {
-                const sky::color& c = line[j];
-                colo = (c * 2.0f) + colo;
-            }
-        }
+#ifdef  TIME_READ
     }
-    const unsigned long int tcolo_end = time(0);
-    for (int iter = 0; iter < nbiter; iter++) {
-        for (int i = 0; i < dwidth; i++) {
-            const std::vector<sky::color>& line = matrix[i];
-            for (int j = 0; j < dheight; j++) {
-                const sky::color& c = line[j];
-                colo_fma = fma(c, (real) 2.0f, colo_fma);
-            }
-        }
-    }
-    const unsigned long int tcolo_end_end = time(0);
-    printf("colo = (%f, %f, %f), colo_fma = (%f, %f, %f)\ntime colo = %lu s, colo_fma = %lu s\n", colo.get_red(), colo.get_green(), colo.get_blue(),
-        colo_fma.get_red(), colo_fma.get_green(), colo_fma.get_blue(), tcolo_end - tcolo, tcolo_end_end - tcolo_end);
-    */
-    /////////////////////////
+    const uint64_t time_fill_end = get_time();
+    printf("Time filling: %llu ms\n", time_fill_end - time_fill_start);
+#endif
+#else
+    /* Creation of the surface containing the colors in char format */
+    std::vector<char> pixels;
 
-    SDL_Surface* surface = SDL_CreateRGBSurfaceFrom((void*) pixels.data(),
-            dwidth,
-            dheight,
-            8 * depth, // depth bytes per pixel (in bits)
-            depth * dwidth, // depth * width
-            0, 0, 0, 0);
-    if (surface == nullptr) {
-        std::cout << "Error" << std::endl;
+#ifdef  TIME_READ
+    const uint64_t time_read_start = get_time();
+    for (int k = 0; k < 10; k++) {
+    pixels.clear();
+#endif
+
+    const exit_status read_success = direct_read_bmp(file_name, pixels);
+    if (read_success == exit_status::Failure) {
         return EXIT_FAILURE;
     }
 
-    param.scr.srcrect.x = 0;
-    param.scr.srcrect.y = 0;
-    param.scr.srcrect.w = dwidth;
-    param.scr.srcrect.h = dheight;
-    param.scr.dstrect.x = 0;
-    param.scr.dstrect.y = 0;
-    param.scr.dstrect.w = width;
-    param.scr.dstrect.h = height;
+#ifdef  TIME_READ
+    }
+    const uint64_t time_read_end = get_time();
+    printf("Time: %llu ms\n", time_read_end - time_read_start);
+#endif
 
-    /* Rendering texture */
-    param.txt = SDL_CreateTexture(param.scr.renderer, SDL_PIXELFORMAT_BGR24, SDL_TEXTUREACCESS_STREAMING, width, height);
+    /* Screen dimensions */
+    render_parameters param;
+    SDL_SetWindowFullscreen(param.scr.window, SDL_WINDOW_FULLSCREEN);
+    SDL_ShowCursor(SDL_DISABLE);
 
-    /* Variable declarations */
-    mouse_pos mouse(width, height);
+    constexpr unsigned int depth = 3;
+#endif
 
-    SDL_Event event;
-    const uint64_t time_init = get_time();
-    unsigned int frame_cpt = 0;
+    SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(static_cast<void*>(pixels.data()),
+            dwidth, dheight, 8 * depth, // depth bytes per pixel (in bits)
+            depth * dwidth, 0, 0, 0, 0);
     
-    param.orig_pixels = (char*) surface->pixels;
+    if (surface == nullptr) {
+        std::cout << "Error creating the surface" << std::endl;
+        return EXIT_FAILURE;
+    }
 
-    param.img_width = dwidth;
+    param.scr.srcrect = { 0, 0, dwidth, dheight };
+    param.scr.dstrect = { 0, 0, width,  height  };
+    param.txt = SDL_CreateTexture(param.scr.renderer, SDL_PIXELFORMAT_BGR24, SDL_TEXTUREACCESS_STREAMING, width, height);
+    param.orig_pixels = static_cast<char*>(surface->pixels);
+    param.img_width  = dwidth;
     param.img_height = dheight;
-
-    screen_axes axes;
 
     constexpr float x_step = fov_x * Pi / half_scr_width;
     constexpr float y_step = fov_y * Pi / half_scr_height;
@@ -279,14 +255,20 @@ int main(int argc, char** argv) {
     // Scaling factor to convert [0, 2pi] (resp. [0, pi]) to [0, img_width-1] (resp. [0, img_height-1])
     param.img_scale_x = (param.img_width  - 1) / (2 * Pi);
     param.img_scale_y = (param.img_height - 1) / Pi;
-    
-    //const int max_index_src = img_width * img_height * 3 - 1;
 
-    while(true) {
+    mouse_pos mouse(width, height);
+    screen_axes axes;
+
+    const uint64_t time_init = get_time();
+    unsigned int frame_cpt = 0;
+
+    while (true) {
         /* Event handling */
 
         // int cpt_mouse = 0;
-        while(SDL_PollEvent(&event)) {
+
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
             
             switch (event.type) {
                 case SDL_MOUSEMOTION:
@@ -295,34 +277,34 @@ int main(int argc, char** argv) {
                     // cpt_mouse++;
                     SDL_WarpMouseInWindow(param.scr.window, width / 2, height / 2);
                     break;
-                case SDL_QUIT:
                 case SDL_KEYDOWN:
-                    if (event.type != SDL_KEYDOWN || event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+                    if (event.key.keysym.scancode != SDL_SCANCODE_ESCAPE)
+                        break;
+                    // else quit
+                case SDL_QUIT: {
                         const uint64_t curr_time = get_time();
                         const float fps = (1000.0f * static_cast<float>(frame_cpt)) / static_cast<float>(curr_time - time_init);
                         std::cout << "Average fps: " << fps << std::endl;
+                        SDL_DestroyTexture(param.txt);
+                        SDL_FreeSurface(surface);
                         return EXIT_SUCCESS;
                     }
-                    break;
                 default:
                     break;
             }
         }
-        // printf("mouse set: %d\n", cpt_mouse);
-
-        // std::cout << "Theta = " << mouse.theta << "; Phi = " << mouse.phi << std::endl;
 
         /* Frame rendering */
 
         // Pre-computation of the cartesian coordinates of the pixel in world space
         //const sky::vector center = get_center(fov_x, mouse.theta, mouse.phi);
         axes.set(/*fov_x,*/ mouse.theta, mouse.phi);
-        param.axes_center = axes.center;
+        param.axes_center   = axes.center;
         param.scaled_x_axis = axes.screen_x_axis * x_step;
         param.scaled_y_axis = axes.screen_y_axis * y_step;
 
         render(param);
 
-        frame_cpt ++;
+        frame_cpt++;
     }
 }
