@@ -27,7 +27,7 @@
 //         if (ret < 10) {
 //             ret = fscanf(file, "FORMAT=%15s", format);
 //             if (ret < 0)
-//                 throw std::runtime_error("Readding error in print_hdr_info: header");
+//                 throw std::runtime_error("Reading error in print_hdr_info: header");
 //         }
 //         else {
 //             printf("Gamma:      %f\n", gamma);
@@ -40,7 +40,7 @@
 //         unsigned int v1, v2;
 //         ret = fscanf(file, "\n%c%c %u %c%c %u\n", &s1, &l1, &v1, &s2, &l2, &v2);
 //         if (ret < 6)
-//             throw std::runtime_error("Readding error in print_hdr_info: dimensions");
+//             throw std::runtime_error("Reading error in print_hdr_info: dimensions");
         
 //         if ((l1 != 'X' && l1 != 'Y') || (l2 != 'X' && l2 != 'Y') || (s1 != '-' && s1 != '+') || (s2 != '-' && s2 != '+'))
 //             throw std::runtime_error("Incorrect dimensions");
@@ -77,12 +77,12 @@
 //             const unsigned char b1 = fgetc(file);
 //             const unsigned char b2 = fgetc(file);
 //             if (b1 != 2 || b2 != 2)
-//                 throw std::runtime_error("Readding error in print_hdr_info: bytes '2' at beginning of row");
+//                 throw std::runtime_error("Reading error in print_hdr_info: bytes '2' at beginning of row");
             
 //             const unsigned int width1 = fgetc(file);
 //             const unsigned int width2 = fgetc(file);
 //             if ((width1 << 8) + width2 != width)
-//                 throw std::runtime_error("Readding error in print_hdr_info: width at beginning of row");
+//                 throw std::runtime_error("Reading error in print_hdr_info: width at beginning of row");
 
 //             for (int component = 0; component < 4; component++) {
                 
@@ -262,14 +262,14 @@ exit_status read_hdr(const char* file_name, std::vector<std::vector<rt::color>>&
         if (ret < 10) {
             ret = fscanf(file, "FORMAT=%15s", format);
             if (ret < 0)
-                throw std::runtime_error("Readding error in read_hdr: header");
+                throw std::runtime_error("Reading error in read_hdr: header");
         }
 
         char s1, s2, l1, l2;
         unsigned int v1, v2;
         ret = fscanf(file, "\n%c%c %u %c%c %u\n", &s1, &l1, &v1, &s2, &l2, &v2);
         if (ret < 6)
-            throw std::runtime_error("Readding error in print_hdr_info: dimensions");
+            throw std::runtime_error("Reading error in print_hdr_info: dimensions");
         
         if ((l1 != 'X' && l1 != 'Y') || (l2 != 'X' && l2 != 'Y') || (s1 != '-' && s1 != '+') || (s2 != '-' && s2 != '+'))
             throw std::runtime_error("Incorrect dimensions");
@@ -293,17 +293,19 @@ exit_status read_hdr(const char* file_name, std::vector<std::vector<rt::color>>&
             const unsigned char b1 = fgetc(file);
             const unsigned char b2 = fgetc(file);
             if (b1 != 2 || b2 != 2)
-                throw std::runtime_error("Readding error in read_hdr: bytes '2' at beginning of row");
+                throw std::runtime_error("Reading error in read_hdr: bytes '2' at beginning of row");
             
             const unsigned int width1 = fgetc(file);
             const unsigned int width2 = fgetc(file);
             if ((width1 << 8) + width2 != width)
-                throw std::runtime_error("Readding error in read_hdr: width at beginning of row");
+                throw std::runtime_error("Reading error in read_hdr: width at beginning of row");
             
 
             for (int component = 0; component < 4; component++) {
 
                 std::vector<unsigned char>& buffer = data_buffer[component];
+                //unsigned char* const bufferj = buffer.data() + indexj;
+                
                 for (unsigned int i = 0; i < width; ) {
                     
                     const unsigned char byte = fgetc(file);
@@ -313,7 +315,9 @@ exit_status read_hdr(const char* file_name, std::vector<std::vector<rt::color>>&
                         const unsigned char value = fgetc(file);
                         while (count--) {
                             buffer[indexj + i++] = value;
-                        } 
+                        }
+                        // std::memset(bufferj + i, fgetc(file), count);
+                        // i += count;
                     }
                     else  {
                         // Consecutive distinct bytes
@@ -321,6 +325,9 @@ exit_status read_hdr(const char* file_name, std::vector<std::vector<rt::color>>&
                         while(count--) {
                             buffer[indexj + i++] = fgetc(file);
                         }
+                        // if (1 != fread(static_cast<void*>(bufferj + i), count, 1, file))
+                        //      throw std::runtime_error("Reading error in read_hdr: pixel data");
+                        // i += count;
                     }
                 }
             }

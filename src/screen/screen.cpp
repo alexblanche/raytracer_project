@@ -76,6 +76,8 @@ namespace rt {
 					return screen::quit_event::QuitEvent;
 				case SDL_KEYDOWN:
 					return screen::quit_event::KeyBoardEvent;
+				default:
+					break;
 			}
 		}
 		return screen::quit_event::Error;
@@ -90,6 +92,8 @@ namespace rt {
 					return screen::quit_event::QuitEvent;
 				case SDL_KEYDOWN:
 					return screen::quit_event::KeyBoardEvent;
+				default:
+					break;
 			}
 		}
 		return screen::quit_event::Error;
@@ -186,7 +190,7 @@ namespace rt {
 		const size_t width, const size_t height,
 		const unsigned int number_of_rays) const {
 
-		const real invN = 1.0 / number_of_rays;
+		const real invN = 1.0f / static_cast<real>(number_of_rays);
 
 		char* texture_pixels;
 		int texture_pitch;

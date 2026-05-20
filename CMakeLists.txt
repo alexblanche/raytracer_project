@@ -156,3 +156,15 @@ target_include_directories(sky
 	PUBLIC
 		${SDL2_INCLUDE_DIRS}
 )
+
+##################################################################
+### Test sky dome
+##################################################################
+
+add_executable(testreader
+	src/parallel/parallel.cpp
+	src/screen/color.cpp
+	src/file_readers/bmp_reader.cpp
+	src/file_readers/hdr_reader.cpp
+	src/tests/test_reader.cpp
+)

@@ -5,115 +5,171 @@
 #include <ctime>
 #include <filesystem>
 
-exit_status menu::parse_arguments(int argc, char *argv[]) {
-
-    if (argc > 1 && !atoi(argv[1])) {
-        // file specified
-
-        scene_descriptor_name = argv[1];
-        if (not std::filesystem::is_regular_file(scene_descriptor_name)) {
-            printf("Scene description %s not found\n", scene_descriptor_name.data());
-            return exit_status::Failure;
-        }
-        
-        argc--;
-        argv++;
+static bool is_number(const std::string& s) {
+    try {
+        (void) std::stoul(s);
+        return true;
     }
-
-    printf("Scene descriptor: %s\n", std::filesystem::path(scene_descriptor_name).filename().generic_string().data());
-
-    if (argc == 1 || atoi(argv[1]) == 0) {
-        printf("Number of bounces: %u (default)\n", runtime_parameters.number_of_bounces);
+    catch (std::exception& e) {
+        return false;
     }
-    else {
-        runtime_parameters.number_of_bounces = atoi(argv[1]);
-        printf("Number of bounces: %u\n", runtime_parameters.number_of_bounces);
+}
+
+static bool is_float(const std::string& s) {
+    try {
+        (void) std::stof(s);
+        return true;
     }
+    catch (std::exception& e) {
+        return false;
+    }
+}
 
-    if (argc > 2) {
+enum class cli_argument {
+    Time, TimeAll, Rays, Multisample, Gamma, Reinhardt, RussianRoulette, None
+};
 
-        int index_arg = 2;
-        while (index_arg < argc) {
+struct arg_pair {
+    std::string  keyword;
+    cli_argument arg;
+};
 
-            const std::string arg = argv[index_arg];
+static cli_argument match(const std::string& input) {
+    static const std::vector<arg_pair> keywords = {
+        { "-time",        cli_argument::Time            },
+        { "all",          cli_argument::TimeAll         },
+        { "-rays",        cli_argument::Rays            },
+        { "-multisample", cli_argument::Multisample     },
+        { "-gamma",       cli_argument::Gamma           },
+        { "-reinhardt",   cli_argument::Reinhardt       },
+        { "-rr",          cli_argument::RussianRoulette }
+    };
+    for (const auto& [ keyword, value ] : keywords) {
+        if (input == keyword)
+            return value;
+    }
+    return cli_argument::None;
+}
 
-            if (arg.compare("-time") == 0) {
+exit_status menu::parse_aux(const std::vector<std::string>& args, const unsigned int index_arg) {
+
+    const unsigned int size = args.size();
+
+    for (unsigned int i = index_arg; i < size; i++) {
+
+        const std::string& arg = args[i];
+        switch(match(arg)) {
+
+            case cli_argument::Time: {
                 runtime_parameters.time = time_mode::Simple;
-                index_arg++;
-
-                if (index_arg < argc && std::string(argv[index_arg]).compare("all") == 0) {
+                if (i + 1 < size && match(args[i + 1]) == cli_argument::TimeAll)
                     runtime_parameters.time = time_mode::Full;
-                    index_arg++;
-                }
-                continue;
+                break;
             }
 
-            if (arg.compare("-rays") == 0) {
+            case cli_argument::Rays: {
                 runtime_parameters.program.mode = program_parameters::mode::Offline;
-                index_arg++;
 
-                if (index_arg >= argc) {
+                if (i + 1 >= size || not is_number(args[i + 1])) {
                     printf("Error, -rays option expects 1 argument\n");
                     return exit_status::Failure;
                 }
-                
-                runtime_parameters.program.target_number_of_rays = atoi(argv[index_arg]);
-                index_arg++;
-                continue;
+                const std::string& next = args[++i];
+                runtime_parameters.program.target_number_of_rays = std::stoul(next);
+
+                break;
             }
 
-            if (arg.compare("-multisample") == 0) {
+            case cli_argument::Multisample: {
                 runtime_parameters.sampling.mode = sampling_parameters::mode::MultiSample;
-                index_arg++;
 
-                if (index_arg >= argc) {
+                if (i + 1 >= size || not is_number(args[i + 1])) {
                     printf("Error, -multisample option expects 1 argument\n");
                     return exit_status::Failure;
                 }
-
-                runtime_parameters.sampling.multisample_number_of_samples = atoi(argv[index_arg]);
-                index_arg++;
-                continue;
+                const std::string& next = args[++i];
+                runtime_parameters.sampling.multisample_number_of_samples = std::stoul(next);
+                break;
             }
 
-            if (arg.compare("-gamma") == 0) {
-                if (runtime_parameters.tone_mapping.mode != tone_mapping_parameters::mode::Reinhardt) {
+            case cli_argument::Gamma: {
+                if (runtime_parameters.tone_mapping.mode != tone_mapping_parameters::mode::Reinhardt)
                     runtime_parameters.tone_mapping.mode = tone_mapping_parameters::mode::Gamma;
-                }
-                index_arg++;
 
-                if (index_arg >= argc) {
+                if (i + 1 >= size || not is_float(args[i + 1])) {
                     printf("Error, -gamma option expects 1 argument\n");
                     return exit_status::Failure;
                 }
-                
-                runtime_parameters.tone_mapping.gamma_value = 1.0f / atof(argv[index_arg]);
-                index_arg++;
-                continue;
+                const std::string& next = args[++i];
+                runtime_parameters.tone_mapping.gamma_value = 1.0f / std::stof(next);
+                break;
             }
 
-            if (arg.compare("-reinhardt") == 0) {
+            case cli_argument::Reinhardt: {
                 runtime_parameters.tone_mapping.mode = tone_mapping_parameters::mode::Reinhardt;
-                index_arg++;
-                continue;
+                break;
             }
 
-            if (arg.compare("-rr") == 0) {
+            case cli_argument::RussianRoulette: {
                 runtime_parameters.russian_roulette = russian_roulette_mode::Enabled;
-                index_arg++;
-                continue;
+                break;
             }
 
-            printf("Error, incorrect argument %s\n", arg.data());
-            return exit_status::Failure;
+            default: {
+                printf("Error, incorrect argument %s\n", arg.c_str());
+                return exit_status::Failure;
+            }
         }
     }
 
-    if (runtime_parameters.tone_mapping.mode != tone_mapping_parameters::mode::Disabled)
-        printf("Gamma correction: %.1f\n", (1.0f / runtime_parameters.tone_mapping.gamma_value));
+    return exit_status::Success;
+}
 
-    if (runtime_parameters.tone_mapping.mode == tone_mapping_parameters::mode::Reinhardt)
-        printf("Reinhardt local tone mapping enabled\n");
+exit_status menu::parse_arguments(int argc, char **argv) {
+
+    const std::vector<std::string> args(argv + 1, argv + argc);
+    const unsigned int size = args.size();
+    unsigned int index = 0;
+
+    // Scene descriptor
+    const bool descriptor_specified = index < size && not is_number(args[index]);
+    if (descriptor_specified) {
+        scene_descriptor_name = args[index];
+        if (not std::filesystem::is_regular_file(scene_descriptor_name)) {
+            printf("Scene description %s not found\n", scene_descriptor_name.c_str());
+            return exit_status::Failure;
+        }
+        index++;
+    }
+    printf("Scene descriptor: %s\n", std::filesystem::path(scene_descriptor_name).filename().generic_string().c_str());
+
+    // Number of bounces
+    if (index < size && is_number(args[index])) {
+        runtime_parameters.number_of_bounces = std::stoul(args[index]);
+        printf("Number of bounces: %u\n", runtime_parameters.number_of_bounces);
+        index++;
+    }
+    else {
+        printf("Number of bounces: %u (default)\n", runtime_parameters.number_of_bounces);
+    }
+
+    // Other arguments
+    if (index < size) {
+        const exit_status status = parse_aux(args, index);
+        if (status == exit_status::Failure)
+            return exit_status::Failure;
+    }
+
+    // Display
+    switch (runtime_parameters.tone_mapping.mode) {
+        case tone_mapping_parameters::mode::Reinhardt:
+            printf("Reinhardt local tone mapping enabled\n");
+        case tone_mapping_parameters::mode::Gamma:
+            printf("Gamma correction: %.1f\n", (1.0f / runtime_parameters.tone_mapping.gamma_value));
+            break;
+        default:
+            break;
+    }
 
     if (runtime_parameters.russian_roulette == russian_roulette_mode::Enabled)
         printf("Russian roulette technique enabled\n");
@@ -353,11 +409,10 @@ exit_status menu::run(const scene& scene) const {
     const file_handler file_handler;
 
     switch (runtime_parameters.program.mode) {
-        case program_parameters::mode::Offline: {
+        case program_parameters::mode::Offline:
             return run_offline(runtime_parameters, matrix, scene, file_handler);
-        }
-        case program_parameters::mode::Interactive: {
+        
+        case program_parameters::mode::Interactive:
             return run_interactive(runtime_parameters, matrix, scene, file_handler);
-        }
     }
 }

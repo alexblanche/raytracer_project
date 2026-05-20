@@ -14,13 +14,16 @@ class menu {
         runtime_parameters runtime_parameters;
         std::string scene_descriptor_name = default_filename;
 
-        exit_status parse_arguments(int argc, char *argv[]);
+        exit_status parse_arguments(int argc, char **argv);
 
-        inline std::optional<scene> parse_scene_descriptor_file() {
-            return parse_scene_descriptor(scene_descriptor_name.data());
+        inline std::optional<scene> parse_scene_descriptor_file() const {
+            return parse_scene_descriptor(scene_descriptor_name.c_str());
         }
 
         void update_gamma(float new_gamma);
 
         exit_status run(const scene& scene) const;
+
+    private:
+        exit_status parse_aux(const std::vector<std::string>& args, unsigned int index);
 };

@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "sky/color.hpp"
 #include "auxiliary/exit_status.hpp"
 

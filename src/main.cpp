@@ -1,18 +1,7 @@
 #include <iostream>
 #include <cstdlib>
-#include "screen/screen.hpp"
 
-#include "file_readers/raw_data.hpp"
-#include "file_readers/bmp_reader.hpp"
-#include "file_readers/scene_parser.hpp"
-
-#include "render/render_loops.hpp"
-
-#include "main_menu/runtime_parameters.hpp"
-#include "main_menu/file_handler.hpp"
 #include "main_menu/menu.hpp"
-
-#include <filesystem>
 
 /** Loop keys:
  * Space/Enter: Continue

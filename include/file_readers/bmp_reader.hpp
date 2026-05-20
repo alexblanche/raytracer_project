@@ -1,10 +1,10 @@
 #pragma once
 
-#include <vector>
 #include "screen/color.hpp"
-#include <optional>
-
 #include "auxiliary/exit_status.hpp"
+
+#include <vector>
+#include <optional>
 
 struct dimensions {
    int width, height;
