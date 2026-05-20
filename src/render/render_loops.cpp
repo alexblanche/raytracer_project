@@ -1,14 +1,11 @@
 #include "render/render_loops.hpp"
 #include "tracing/tracing.hpp"
 #include "tracing/multisample.hpp"
-
-#include <iostream>
-#include <cstdlib>
-#include <ctime>
-
 #include "parallel/parallel.hpp"
-#include <mutex> // to be removed
+#include "auxiliary/timer.hpp"
 
+#include <cstdlib>
+#include <atomic>
 
 /* ********** Render loops ********** */
 
@@ -54,64 +51,67 @@ void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
    If time_all is true, all lines produce a time measurement and output the estimated total time.
    It time_all is false, only the total time is output at the end.
  */
-// TO BE REWRITTEN
 void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
     const scene& scene, const unsigned int number_of_bounces, const time_mode time_mode) {
-    
-    mutex m;
-    float cpt = 0;
-    float x = 100.0f / (((float) scene.width) * ((float) scene.height));
-    const long int t_init = time(0);
+
     const bool time_all = time_mode == time_mode::Full;
+    const float x = 100.0f / static_cast<float>(scene.width * scene.height);
 
-    const randomgen rg(ANTI_ALIASING);
-
+    std::atomic_int cpt = 0;
+    timer_ms timer;
+    timer.start();
+    
     PARALLEL_FOR_BEGIN(scene.width) {
+
+        static thread_local const randomgen rg(ANTI_ALIASING);
+        std::vector<rt::color>& data_line = matrix[i];
 
         for (int j = 0; j < scene.height; j++) {
 
             ray r = scene.cam.gen_ray(i, j, rg, 0);
             const rt::color pixel_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette_mode::Disabled);
-            
-            const rt::color& current_color = matrix[i][j];
-            const rt::color new_color = current_color + pixel_col;
-
-            // Updating the color matrix
-            m.lock();
-            cpt += 1;
-            matrix[i][j] = new_color;
-            m.unlock();
+            data_line[j] += pixel_col;
+            cpt++;
         }
 
         if (time_all) {
-            m.lock();
-            const long int curr_time = time(0);
-            const long int elapsed = curr_time - t_init;
-            const float estimated_time = ((float) elapsed) * 100.0f / (cpt * x);
-            printf("%f / 100, ", cpt * x);
-            printf("Time elapsed: %ld seconds, Estimated total time: %d seconds = %d minutes %d seconds\n",
-                elapsed, (int) estimated_time, (int) (estimated_time / 60.0), ((int) estimated_time) % 60);
-            m.unlock();
+            timer.step();
+            const uint64_t elapsed = timer.elapsed();
+            const float progress = cpt * x;
+            const float estimated_time = static_cast<float>(elapsed) / (progress * 10.0f);
+            const int estimated_time_int = static_cast<int>(estimated_time);
+            printf("%.1f%%, ", progress);
+            if (elapsed < 1000)
+                printf("Time elapsed: %llums, estimated total time: %f seconds\n", elapsed, estimated_time);
+            else
+                printf("Time elapsed: %llu seconds, estimated total time: %d seconds = %d minutes %d seconds\n",
+                    elapsed / 1000,
+                    estimated_time_int,
+                    estimated_time_int / 60,
+                    estimated_time_int % 60
+                );
         }
         
     } PARALLEL_FOR_END();
 
-    const long int curr_time = time(0);
-    const long int elapsed = curr_time - t_init;
-    if (time_all) {
+    timer.stop();
+    const uint64_t elapsed = timer.elapsed();
+    if (time_all)
         printf("\nTotal rendering time: ");
-    }
-    else {
-        printf("\nRendering time: ");
+    else
+        printf("   ");
+    
+    if (elapsed < 3000) {
+        printf("%llums\n", elapsed);
+        return;
     }
     
-    if (elapsed < 60) {
-        printf("%ld seconds\n", elapsed);
-    }
-    else {
-        printf("%ld seconds = %d minutes %d seconds\n",
-            elapsed, (int) (((float) elapsed) / 60.0f), ((int) elapsed) % 60);
-    }
+    const unsigned int elapsed_s = elapsed / 1000;
+    if (elapsed_s < 60)
+        printf("%u seconds\n", elapsed_s);
+    else
+        printf("%u seconds = %u minutes %u seconds\n",
+            elapsed_s, elapsed_s / 60, elapsed_s % 60);
 }
 
 
@@ -119,10 +119,9 @@ void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
 void render_loop_parallel_multisample(std::vector<std::vector<rt::color>>& matrix,
     const scene& scene, const unsigned int number_of_bounces, const unsigned int number_of_samples) {
 
-    const randomgen rg(ANTI_ALIASING);
-
     PARALLEL_FOR_BEGIN(scene.width) {
 
+        static thread_local const randomgen rg(ANTI_ALIASING);
         std::vector<rt::color>& data_line = matrix[i];
 
         for (int j = 0; j < scene.height; j++) {

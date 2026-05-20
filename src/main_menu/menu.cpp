@@ -1,8 +1,8 @@
 #include "main_menu/menu.hpp"
 #include "screen/screen.hpp"
 #include "render/render_loops.hpp"
+#include "auxiliary/timer.hpp"
 
-#include <ctime>
 #include <filesystem>
 
 static bool is_number(const std::string& s) {
@@ -62,7 +62,10 @@ exit_status menu::parse_aux(const std::vector<std::string>& args, const unsigned
 
             case cli_argument::Time: {
                 runtime_parameters.time = time_mode::Simple;
-                if (i + 1 < size && match(args[i + 1]) == cli_argument::TimeAll)
+                if (i + 1 >= size)
+                    break;
+                const std::string& next = args[++i];
+                if (match(next) == cli_argument::TimeAll)
                     runtime_parameters.time = time_mode::Full;
                 break;
             }
@@ -233,48 +236,6 @@ static inline void render(std::vector<std::vector<rt::color>>& matrix, const sce
             break;
     }
 }
-
-class timer {
-    private:
-        bool time_enabled;
-        unsigned long int t_init;
-        unsigned long int t_export = 0;
-        unsigned long int t_end    = 0;
-        unsigned long int elapsed  = 0;
-
-    public:
-        timer(time_mode mode)
-            : time_enabled(mode != time_mode::Disabled) {}
-
-        inline void start() {
-            t_init = time_enabled ? time(0) : 0;
-        }
-
-        inline void interrupt() {
-            t_end  = time_enabled ? time(0) : 0;
-        }
-
-        inline void resume() {
-            const unsigned long int t_export_end = time_enabled ? time(0) : 0;
-            t_export += t_export_end - t_end;
-        }
-
-        inline void stop() {
-            t_end = ((not time_enabled) || t_end) ? t_end : time(0);
-            elapsed = t_end - t_init - t_export;
-        }
-
-        void print() const {
-            if (not time_enabled)
-                return;
-            if (elapsed < 60)
-                printf("Total duration: %lu seconds\n", elapsed);
-            else if (elapsed < 3600)
-                printf("Total duration: %lu minutes %lu seconds\n", elapsed / 60, elapsed % 60);
-            else
-                printf("Total duration: %lu hours %lu minutes %lu seconds\n", elapsed / 3600, (elapsed % 3600) / 60, elapsed % 60);
-        }
-};
 
 static exit_status run_offline(const runtime_parameters& runtime_parameters, std::vector<std::vector<rt::color>>& matrix,
     const scene& scene, const file_handler& file_handler) {

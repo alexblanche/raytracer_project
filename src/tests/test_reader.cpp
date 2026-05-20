@@ -1,17 +1,11 @@
 #include "file_readers/bmp_reader.hpp"
 #include "file_readers/hdr_reader.hpp"
 #include "screen/screen.hpp"
+#include "auxiliary/timer.hpp"
 
 #include <cstdlib>
 #include <iostream>
-#include <chrono>
 
-/* Returns the current time in milliseconds */
-uint64_t get_time() {
-    return duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch()
-    ).count();
-}
 
 static void test_bmp() {
     constexpr const char * filename_bmp = "../../../assets/cobblestone_street_night.bmp";
@@ -26,12 +20,14 @@ static void test_bmp() {
     const auto [ width, height ] = dims.value();
     std::vector<std::vector<rt::color>> matrix(width, std::vector<rt::color>(height));
 
-    const uint64_t time_start = get_time();
+    timer_ms timer;
+    timer.start();
     for (int k = 0; k < NB_ITERATIONS; k++) {
         read_bmp(filename_bmp, matrix);
     }
-    const uint64_t time_end = get_time();
-    printf("BMP: Time: %llu ms\n", time_end - time_start);
+    timer.stop();
+    printf("BMP ");
+    timer.print();
 
     rt::screen scr(width, height);
     scr.fast_copy(matrix, width, height, 1);
@@ -52,12 +48,14 @@ static void test_hdr() {
     const auto [ width, height ] = dims.value();
     std::vector<std::vector<rt::color>> matrix(width, std::vector<rt::color>(height));
 
-    const uint64_t time_start = get_time();
+    timer_ms timer;
+    timer.start();
     for (int k = 0; k < NB_ITERATIONS; k++) {
         read_hdr(filename_hdr, matrix);
     }
-    const uint64_t time_end = get_time();
-    printf("HDR: Time: %llu ms\n", time_end - time_start);
+    timer.stop();
+    printf("HDR ");
+    timer.print();
 
     rt::screen scr(width, height);
     scr.fast_copy(matrix, width, height, 1);
