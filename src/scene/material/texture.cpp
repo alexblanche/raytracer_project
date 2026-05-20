@@ -2,10 +2,8 @@
 #include "file_readers/bmp_reader.hpp"
 #include "file_readers/hdr_reader.hpp"
 
-#include <cmath>
 #include <iostream>
 #include <filesystem>
-
 
 /* Constructors */
 
@@ -16,7 +14,8 @@ texture::texture() {
 /* Default constructor */
 texture::texture(const int width, const int height, const std::vector<std::vector<rt::color>>&& data)
     : data(std::move(data)),
-        width_minus_one((real) (width - 1)), height_minus_one((real) (height - 1)),
+        width_minus_one( static_cast<real>(width  - 1)),
+        height_minus_one(static_cast<real>(height - 1)),
         width(width), height(height) {}
 
 /* Constructor from a .bmp or .hdr file
@@ -24,8 +23,8 @@ texture::texture(const int width, const int height, const std::vector<std::vecto
 texture::texture(const char* file_name, bool& parsing_successful, const real gamma) {
 
     std::string extension = std::filesystem::path(file_name).extension().generic_string();
-    const bool is_bmp = extension.compare(".bmp") == 0;
-    const bool is_right_format = is_bmp || (extension.compare(".hdr") == 0);
+    const bool is_bmp = extension == ".bmp";
+    const bool is_right_format = is_bmp || extension == ".hdr";
     if (not is_right_format) {
         printf("Error in texture definition: wrong file format\n");
         throw;
@@ -51,7 +50,6 @@ texture::texture(const char* file_name, bool& parsing_successful, const real gam
     else {
         parsing_successful = false;
     }
-
 }
 
 

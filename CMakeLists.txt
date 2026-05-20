@@ -166,5 +166,14 @@ add_executable(testreader
 	src/screen/color.cpp
 	src/file_readers/bmp_reader.cpp
 	src/file_readers/hdr_reader.cpp
+	src/screen/screen.cpp
+	src/screen/image.cpp
 	src/tests/test_reader.cpp
+)
+target_link_libraries(testreader
+	${SDL2_LIBRARIES}
+)
+target_include_directories(testreader
+	PUBLIC
+		${SDL2_INCLUDE_DIRS}
 )
