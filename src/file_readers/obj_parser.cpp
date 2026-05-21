@@ -9,7 +9,7 @@
 #include "auxiliary/clustering.hpp"
 #include "file_readers/mtl_parser.hpp"
 
-#include <string.h>
+#include <cstring>
 #include <string>
 
 #include <stack>
@@ -32,9 +32,8 @@ static constexpr real QUAD_SPLIT_THRESHOLD = 1.0E-7f;
    In the future, maybe split polygons with >= 5 sides into triangles */
 
 /* When indices are negative, convert them to positive */
-void correct(int& v, const unsigned int n) {
-   if (v < 0)
-      v += ((int) n) + 1;
+inline void correct(int& v, const int n) {
+   v += ((v < 0) ? n + 1 : 0);
 }
 
 /* Auxiliary function that adds a trianlge to obj_set and to content if bounded_enabled is true */
@@ -68,7 +67,7 @@ void add_triangle(const std::vector<rt::vector>& vertex_set, const std::vector<r
          shift + scale * vertex_set[v3],
          normal_set[vn1], normal_set[vn2], normal_set[vn3],
          current_material_index,
-         apply_texture ? texture_info_set.size() - 1 : (unsigned int) (-1));
+         apply_texture ? texture_info_set.size() - 1 : EMPTY_INDEX);
 
    obj_set.push_back(tr);
 
@@ -110,7 +109,7 @@ void add_triangle_subdiv(const std::vector<rt::vector>& vertex_set, const std::v
          shift + scale * vertex_set[vi],
          shift + scale * final_v,
          normal_set[vnj], normal_set[vni], final_vn,
-         current_material_index, apply_texture ? texture_info_set.size() - 1 : (unsigned int) (-1));
+         current_material_index, apply_texture ? texture_info_set.size() - 1 : EMPTY_INDEX);
 
    obj_set.push_back(tr);
 
@@ -154,7 +153,7 @@ void add_quad(const std::vector<rt::vector>& vertex_set, const std::vector<rt::v
          shift + scale * vertex_set[v3],
          shift + scale * vertex_set[v4],
          normal_set[vn1], normal_set[vn2], normal_set[vn3], normal_set[vn4],
-         current_material_index, apply_texture ? texture_info_set.size() - 1 : (unsigned int) (-1));
+         current_material_index, apply_texture ? texture_info_set.size() - 1 : EMPTY_INDEX);
 
    obj_set.push_back(q);
                
@@ -194,7 +193,7 @@ void add_triangle_no_normal(const std::vector<rt::vector>& vertex_set, const std
          shift + scale * vertex_set[v1],
          shift + scale * vertex_set[v2],
          shift + scale * vertex_set[v3],
-         current_material_index, apply_texture ? texture_info_set.size() - 1 : (unsigned int) (-1));
+         current_material_index, apply_texture ? texture_info_set.size() - 1 : EMPTY_INDEX);
 
    obj_set.push_back(tr);
 
@@ -233,7 +232,7 @@ void add_triangle_subdiv_no_normal(const std::vector<rt::vector>& vertex_set, co
          shift + scale * vertex_set[vj],
          shift + scale * vertex_set[vi],
          shift + scale * final_v,
-         current_material_index, apply_texture ? texture_info_set.size() - 1 : (unsigned int) (-1));
+         current_material_index, apply_texture ? texture_info_set.size() - 1 : EMPTY_INDEX);
 
    obj_set.push_back(tr);
 
@@ -274,7 +273,7 @@ void add_quad_no_normal(const std::vector<rt::vector>& vertex_set, const std::ve
          shift + scale * vertex_set[v2],
          shift + scale * vertex_set[v3],
          shift + scale * vertex_set[v4],
-         current_material_index, apply_texture ? texture_info_set.size() - 1 : (unsigned int) (-1));
+         current_material_index, apply_texture ? texture_info_set.size() - 1 : EMPTY_INDEX);
 
    obj_set.push_back(q);
                
@@ -525,7 +524,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
 
    FILE* file = fopen(file_name, "r");
 
-   if (file == NULL) {
+   if (file == nullptr) {
       printf("Error, .obj file %s not found\n", file_name);
       return false;
    }
@@ -551,18 +550,18 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
    map<unsigned int, unsigned int> mt_assoc;
 
    unsigned int current_material_index = 0;
-   unsigned int current_texture_index = default_texture_index.value_or((unsigned int) (-1));
+   unsigned int current_texture_index = default_texture_index.value_or(EMPTY_INDEX);
 
    const bool default_texture_provided = default_texture_index.has_value();
    bool apply_texture = default_texture_provided;
 
    /* Counters */
-   unsigned int number_of_vertices = 0;
-   unsigned int number_of_triangles = 0;
-   unsigned int number_of_quads = 0;
-   unsigned int number_of_polygons = 0;
-   unsigned int number_of_texture_coords = 0;
-   unsigned int number_of_normals = 0;
+   unsigned int number_of_vertices        = 0;
+   unsigned int number_of_triangles       = 0;
+   unsigned int number_of_quads           = 0;
+   unsigned int number_of_polygons        = 0;
+   unsigned int number_of_texture_coords  = 0;
+   unsigned int number_of_normals         = 0;
 
    /* Max dimensions */
    real min_x = infinity,
@@ -578,8 +577,6 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
       At the end, a bounding containing all the ones in bounding is placed in output_bounding */
    std::vector<const object*> content;
    std::vector<const bounding*> children;
-
-   // printf("\n");
 
    try {
 
@@ -604,8 +601,8 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
 
             // Create a bounding hierarchy containing all the nodes
             /* Heuristic: each group is a depth 1 node in the global bounding box hierarchy */
-            const bounding* bd = create_bounding_hierarchy(content, polygons_per_bounding);
-            if (DISPLAY_HIERARCHY) {
+            const bounding* bd = create_bounding_hierarchy(std::move(content), polygons_per_bounding);
+            if constexpr (DISPLAY_HIERARCHY) {
                display_hierarchy_properties(bd);
             }
             children.push_back(bd);
@@ -715,7 +712,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
                   apply_texture = true;
                }
                else {
-                  current_texture_index = default_texture_index.value_or((unsigned int) (-1));
+                  current_texture_index = default_texture_index.value_or(EMPTY_INDEX);
                   apply_texture = default_texture_provided;
                }
             }
@@ -1082,8 +1079,8 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
       if (bounding_enabled) {
          /* Placing the last group into a bounding */
          // const bounding* bd = containing_objects(content);
-         const bounding* bd = create_bounding_hierarchy(content, polygons_per_bounding);
-         if (DISPLAY_HIERARCHY) {
+         const bounding* bd = create_bounding_hierarchy(std::move(content), polygons_per_bounding);
+         if constexpr (DISPLAY_HIERARCHY) {
             display_hierarchy_properties(bd);
          }
          children.push_back(bd);
@@ -1093,7 +1090,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
             output_bd = children[0];
          }
          else {
-            output_bd = create_hierarchy_from_boundings(children);
+            output_bd = create_hierarchy_from_boundings(std::move(children));
          }
       }
 

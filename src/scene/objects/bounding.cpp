@@ -7,29 +7,28 @@
 #include "scene/material/material.hpp"
 #include <optional>
 
-bounding::bounding()
-    : is_terminal(true), b(std::nullopt) {}
 
 /* The vector n3 is taken as the cross product of n1 and n2 */
-bounding::bounding(const bool is_terminal, const box* b, const std::vector<const object*>& content,
-    const std::vector<const bounding*>& children)
+bounding::bounding(const bool is_terminal, const box* b,
+    std::vector<const object*>&& content,
+    std::vector<const bounding*>&& children)
 
-    : is_terminal(is_terminal), b(b), content(content), children(children) {}
+    : is_terminal(is_terminal), b(b), content(std::move(content)), children(std::move(children)) {}
 
 /* Container node constructor (only for first-level non-triangle objects) */
-bounding::bounding(const std::vector<const object*>& content)
+bounding::bounding(std::vector<const object*>&& content)
 
-    : is_terminal(true), b(std::nullopt), content(content) {}
+    : content(std::move(content)) {}
 
 /* Terminal node constructor (with a bounding box, containing triangles) */
-bounding::bounding(const std::vector<const object*>& content, const box* b)
+bounding::bounding(std::vector<const object*>&& content, const box* b)
 
-    : is_terminal(true), b(b), content(content) {}
+    : b(b), content(std::move(content)) {}
 
 /* Internal node constructor */
-bounding::bounding(const box* b, const std::vector<const bounding*>& children)
+bounding::bounding(const box* b, std::vector<const bounding*>&& children)
 
-    : is_terminal(false), b(b), children(children) {}
+    : is_terminal(false), b(b), children(std::move(children)) {}
 
 
 
@@ -47,27 +46,25 @@ void bounding::check_box(const ray& r,
     custom_stack<const bounding*>& bounding_stack
     ) const {
 
+    if (b.has_value() && not b.value()->is_hit_by(r))
+        return;
+
+    if (not is_terminal) {
+        // for (const bounding* bd : children) {
+        //     bounding_stack.push(bd);
+        // }
+        bounding_stack.push(children);
+        return;
+    }
+        
     real d_cl = distance_to_closest;
     std::optional<const object*> cl_obj = closest_object;
-
-    if (is_terminal) {
-        if (not b.has_value() || b.value()->is_hit_by(r)) {
-            
-            for (const object* obj : content) {
-                const std::optional<real> d = obj->measure_distance(r);
-                if (d.has_value() && d.value() < d_cl) {
-                    d_cl = d.value();
-                    cl_obj = obj;
-                }
-            }
-
-        }
-    }
-    else {
-        if (b.value()->is_hit_by(r)) {
-            for (const bounding* bd : children) {
-                bounding_stack.push(bd);
-            }
+    
+    for (const object* obj : content) {
+        const std::optional<real> d = obj->measure_distance(r);
+        if (d.has_value() && d.value() < d_cl) {
+            d_cl = d.value();
+            cl_obj = obj;
         }
     }
 
@@ -83,69 +80,59 @@ void bounding::check_box_next(const ray& r,
     custom_stack<const bounding*>& bounding_stack,
     bool& bd_stored, const bounding*& next_bounding) const {
 
-    if (is_terminal) {
-        if (not b.has_value() || b.value()->is_hit_by(r)) {
+    bd_stored = false;
 
-            for (const object* obj : content) {
-                const std::optional<real> d = obj->measure_distance(r);
-                if (d.has_value() && d.value() < distance_to_closest) {
-                    distance_to_closest = d.value();
-                    closest_object = obj;
-                }
-            }
+    if (b.has_value() && not b.value()->is_hit_by(r))
+        return;
 
-        }
-        bd_stored = false;
+    if (not is_terminal) {
+        const unsigned int last_index = children.size() - 1;
+        bounding_stack.push(children.data(), last_index);
+        next_bounding = children[last_index];
+        bd_stored = true;
+        return;
     }
-    else {
-        if (b.value()->is_hit_by(r)) {
-            const unsigned int last_index = children.size() - 1;
-            for (unsigned int i = 0; i < last_index; i++) {
-                bounding_stack.push(children[i]);
-            }
-            // Last element of children
-            next_bounding = children[last_index];
-            bd_stored = true;
-        }
-        else {
-            bd_stored = false;
+
+    real d_cl = distance_to_closest;
+    std::optional<const object*> cl_obj = closest_object;
+
+    for (const object* obj : content) {
+        const std::optional<real> d = obj->measure_distance(r);
+        if (d.has_value() && d.value() < d_cl) {
+            d_cl = d.value();
+            cl_obj = obj;
         }
     }
+
+    distance_to_closest = d_cl;
+    closest_object = cl_obj;
 }
 
 
 
 /* Returns a non-terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the standard non-terminal bounding boxes bd0 and bd1 */
-const bounding* containing_bounding_two(const bounding*& bd0, const bounding*& bd1) {
+const bounding* containing_bounding_two(const bounding* bd0, const bounding* bd1) {
     const box* const b0 = bd0->get_b().value();
     const box* const b1 = bd1->get_b().value();
-    const real bd0l1 = b0->get_l1();
-    const real bd0l2 = b0->get_l2();
-    const real bd0l3 = b0->get_l3();
-    const real bd1l1 = b1->get_l1();
-    const real bd1l2 = b1->get_l2();
-    const real bd1l3 = b1->get_l3();
+    const rt::vector bd0l = b0->get_l();
+    const rt::vector bd1l = b1->get_l();
 
     const rt::vector& pos0 = b0->get_position();
     const rt::vector& pos1 = b1->get_position();
-    const rt::vector position(
-        (pos1.x + bd1l1 + (pos0.x - bd0l1)) / 2,
-        (pos1.y + bd1l2 + (pos0.y - bd0l2)) / 2,
-        (pos1.z + bd1l3 + (pos0.z - bd0l3)) / 2);
 
-    const box* b = new box(position,
-        rt::vector(1,0,0), rt::vector(0,1,0),
-        (pos1.x - pos0.x) + bd0l1 + bd1l1,
-        (pos1.y - pos0.y) + bd0l2 + bd1l2,
-        (pos1.z - pos0.z) + bd0l3 + bd1l3);
-    
+    const rt::vector pb0 = pos0 - bd0l;
+    const rt::vector pb1 = pos1 + bd1l;
+    const rt::vector position = (pb1 + pb0) / 2;
+    const rt::vector l = pb1 - pb0;
+
+    const box* b = new box(position, rt::vector(1,0,0), rt::vector(0,1,0), l.x, l.y, l.z);
     return new bounding(b, {bd0, bd1});
 }
 
 /* Returns a non-terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the standard non-terminal bounding boxes in the children vector */
-const bounding* containing_bounding_any(const vector<const bounding*>& children) {
+const bounding* containing_bounding_any(vector<const bounding*>&& children) {
 
     if (children.size() == 0) {
         printf("Error, empty vector of children bounding boxes\n");
@@ -155,43 +142,44 @@ const bounding* containing_bounding_any(const vector<const bounding*>& children)
         return children[0];
     }
 
-    real min_x = infinity;
-    real max_x = -infinity;
-    real min_y = infinity;
-    real max_y = -infinity;
-    real min_z = infinity;
-    real max_z = -infinity;
+    rt::vector max(-infinity, -infinity, -infinity);
+    rt::vector min( infinity,  infinity,  infinity);
 
     /* Computation of the dimensions of the object set */
     for(const bounding* bd : children) {
 
-        if (bd->get_b().has_value()) {
-            
-            const min_max_coord mmc = bd->get_b().value()->get_min_max_coord();
+        const std::optional<const box*> b = bd->get_b();
+        if (not b.has_value())
+            continue;
 
-            if (mmc.max_x > max_x) { max_x = mmc.max_x; }
-            if (mmc.min_x < min_x) { min_x = mmc.min_x; }
-            if (mmc.max_y > max_y) { max_y = mmc.max_y; }
-            if (mmc.min_y < min_y) { min_y = mmc.min_y; }
-            if (mmc.max_z > max_z) { max_z = mmc.max_z; }
-            if (mmc.min_z < min_z) { min_z = mmc.min_z; }
-        }
+        const min_max_coord mmc = b.value()->get_min_max_coord();
+
+        max = {
+            std::max(max.x, mmc.max_x),
+            std::max(max.y, mmc.max_y),
+            std::max(max.z, mmc.max_z)
+        };
+        min = {
+            std::min(min.x, mmc.min_x),
+            std::min(min.y, mmc.min_y),
+            std::min(min.z, mmc.min_z)
+        };
     }
 
-    const box* b = new box(
-        rt::vector((max_x + min_x) / 2.0f, (max_y + min_y) / 2.0f, (max_z + min_z) / 2.0f),
+    const rt::vector center = (max + min) * 0.5f;
+    const rt::vector diff = max - min;
+
+    const box* b = new box(center,
         rt::vector(1, 0, 0), rt::vector(0, 1, 0),
-        max_x - min_x,
-        max_y - min_y,
-        max_z - min_z
+        diff.x, diff.y, diff.z
     );
     
-    return new bounding(b, children);
+    return new bounding(b, std::move(children));
 }
 
 /* Returns a terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the (finite) objects whose indices are in the obj vector */
-const bounding* containing_objects(const std::vector<const object*>& objs) {
+const bounding* containing_objects(std::vector<const object*>&& objs) {
 
     real min_x = infinity;
     real max_x = -infinity;
@@ -220,5 +208,5 @@ const bounding* containing_objects(const std::vector<const object*>& objs) {
         max_z - min_z
     );
 
-    return new bounding(objs, b);
+    return new bounding(std::move(objs), b);
 }

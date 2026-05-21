@@ -274,14 +274,15 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
     std::vector<rt::vector> means(k);
 
     /* Filling the vector with k elements uniformly distributed along the obj vector */
-    const real step = std::max((real) (obj.size() / k), (real) 1.0f);
+    const real step = std::max(static_cast<real>(obj.size() / k), static_cast<real>(1.0f));
 
-    for (unsigned int i = 0; i < std::min((unsigned int) obj.size(), k); i++) {
-        means[i] = obj[(int) (i * step)].get_position();
+    const int bound = std::min(static_cast<unsigned int>(obj.size()), k);
+    for (int i = 0; i < bound; i++) {
+        means[i] = obj[static_cast<int>(i * step)].get_position();
     }
         
     std::vector<std::vector<element>> groups(k);
-    assign_to_closest({obj}, groups, means);
+    assign_to_closest({ obj }, groups, means);
     fill_empty_clusters(groups);
 
     unsigned int iterations = MAX_NUMBER_OF_ITERATIONS;
@@ -289,7 +290,7 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
     
     while (change && iterations != 0) {
 
-        if (DISPLAY_KMEANS) {
+        if constexpr (DISPLAY_KMEANS) {
             printf("\rIteration %u / %u", MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS);
         }
         else {
@@ -318,7 +319,7 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
         }
     }
 
-    if (DISPLAY_KMEANS) {
+    if constexpr (DISPLAY_KMEANS) {
         if (MAX_NUMBER_OF_ITERATIONS - iterations < 2) {
             printf("\r> k_means: %u iteration (maximum = %u, n = %u, k = %u)\n",
             MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS, (unsigned int) obj.size(), k);
@@ -373,13 +374,13 @@ std::vector<const bounding*> get_bounding_vector(const std::vector<element>& elt
 
 /* Auxiliary function to create_bounding_hierarchy
    Performs the second step of the algorithm: creates the hierarchy of the terminal boundings */
-const bounding* create_hierarchy_from_boundings(const std::vector<const bounding*>& term_nodes) {
+const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& term_nodes) {
 
     if (term_nodes.size() == 1) {
         return term_nodes[0];
     }
     else if (term_nodes.size() <= CARDINAL_OF_BOX_GROUP) {
-        return containing_bounding_any(term_nodes);
+        return containing_bounding_any(std::move(term_nodes));
     }
 
     std::vector<element> nodes = get_element_vector(term_nodes);
@@ -402,7 +403,7 @@ const bounding* create_hierarchy_from_boundings(const std::vector<const bounding
                 cpt ++;
             }
         }
-        if (DISPLAY_KMEANS) {
+        if constexpr (DISPLAY_KMEANS) {
             printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
             fflush(stdout);
         }
@@ -411,12 +412,10 @@ const bounding* create_hierarchy_from_boundings(const std::vector<const bounding
         nodes = get_element_vector(new_bd_nodes);
     }
 
-    if (nodes.size() == 1) {
+    if (nodes.size() == 1)
         return nodes[0].bd.value();
-    }
-    else {
+    else
         return containing_bounding_any(get_bounding_vector(nodes));
-    }
 }
 
 
@@ -429,22 +428,22 @@ const bounding* create_hierarchy_from_boundings(const std::vector<const bounding
    polygons_per_bounding polygons on average.
    The non-terminal nodes have CARDINAL_OF_BOX_GROUP children on average.
 */
-const bounding* create_bounding_hierarchy(const std::vector<const object*>& content,
+const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
     const unsigned int polygons_per_bounding) {
 
     /* Not enough polygons for it to be worth having a bounding box,
        the bounding here just acts as a container */
     if (content.size() < MIN_NUMBER_OF_POLYGONS_FOR_BOX) {
-        return new bounding(content);
+        return new bounding(std::move(content));
     }
     
     /* content fits in one bounding box */
     if (content.size() <= polygons_per_bounding) {
-        return containing_objects(content);
+        return containing_objects(std::move(content));
     }
    
     /* A hierarchy has to be created */
-    if (DISPLAY_KMEANS) {
+    if constexpr (DISPLAY_KMEANS) {
         printf("\nOptimizing the data structure...\n");
     }
     else {
@@ -455,8 +454,6 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
     /* Splitting the objects into groups of polygons_per_bounding polygons (on average) */
     const unsigned int k = 1 + content.size() / polygons_per_bounding;
     const std::vector<std::vector<element>> groups = k_means(get_element_vector(content), k);
-
-    //printf("HEHE\n");
 
     /** Creating the hierarchy **/
 
@@ -470,12 +467,12 @@ const bounding* create_bounding_hierarchy(const std::vector<const object*>& cont
             cpt ++;
         }
     }
-    if (DISPLAY_KMEANS) {
+    if constexpr (DISPLAY_KMEANS) {
         printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
         fflush(stdout);
     }
     
-    return create_hierarchy_from_boundings(term_nodes);
+    return create_hierarchy_from_boundings(std::move(term_nodes));
 }
 
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <cstring>
 
 template <typename T>
 struct custom_stack {
@@ -11,8 +12,8 @@ struct custom_stack {
         v.reserve(init_size);
     }
 
-    inline bool empty() const {
-        return v.size() == 0;
+    [[nodiscard]] inline bool empty() const {
+        return v.empty();
     }
 
     inline void pop() {
@@ -23,12 +24,20 @@ struct custom_stack {
         return v.back();
     }
 
-    void push(const T t) {
+    inline void push(const T t) {
         v.push_back(t);
     }
 
-    inline void set_empty() {
-        v.resize(0);
+    inline void push(const T* const ts, unsigned int size) {
+        v.reserve(v.size() + size);
+        std::memcpy(v.data() + v.size(), ts, size);
     }
 
+    inline void push(const std::vector<T>& ts) {
+        push(ts.data(), ts.size());
+    }
+
+    inline void set_empty() {
+        v.clear();
+    }
 };

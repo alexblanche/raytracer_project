@@ -1042,7 +1042,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         }
 
         if (bounding_enabled) {
-            bounding_set.push_back(new bounding(other_content));
+            bounding_set.push_back(new bounding(std::move(other_content)));
         }
 
         if (file != NULL) {

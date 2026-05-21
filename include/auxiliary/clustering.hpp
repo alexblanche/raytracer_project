@@ -14,14 +14,13 @@ struct element {
 
    /* Constructors */
 
-   element() :
-      obj (std::nullopt), bd(std::nullopt) {}
+   element() {}
 
    element(const object* o) :
-      obj(o), bd(std::nullopt) {}
+      obj(o) {}
 
    element(const bounding* b) :
-      obj(std::nullopt), bd(b) {}
+      bd(b) {}
 
    /* Position accessor */
 
@@ -43,11 +42,11 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& elts, unsi
 
 /* Auxiliary function to create_bounding_hierarchy
    Performs the second step of the algorithm: creates the hierarchy of the terminal boundings */
-const bounding* create_hierarchy_from_boundings(const std::vector<const bounding*>& term_nodes);
+const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& term_nodes);
 
 /* Returns a bounding* containing the objects of content, split into a hierarchy of boundings if their number
    exceeds MIN_NUMBER_OF_POLYGONS_FOR_BOX */
-const bounding* create_bounding_hierarchy(const std::vector<const object*>& content,
+const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
    const unsigned int polygons_per_bounding);
 
 

@@ -41,7 +41,7 @@ namespace rt {
 		}
 
 		/**
-		 * Vectorial product 
+		 * Vectorial (cross) product 
 		 * (a,b,c) ^ (d,e,f) = (bf-ce,cd-af,ae-bd)
 		 */
 		inline vector operator^(const vector& other) const {
@@ -53,7 +53,7 @@ namespace rt {
 		}
 
 		/**
-		 * Scalar product
+		 * Scalar (dot) product
 		 * ((a,b,c) | (d,e,f)) = ad + be + cf
 		 */
 		// inline real operator|(const vector& other) const {

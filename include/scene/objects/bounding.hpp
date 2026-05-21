@@ -23,10 +23,10 @@ class bounding {
             or contains a pointer to a box and a stack of indices of bounding boxes contained in said box.
         */
 
-        bool is_terminal;
+        bool is_terminal = true;
 
         /* Bounding box */
-        const std::optional<const box*> b;
+        const std::optional<const box*> b = std::nullopt;
 
         /* If the node is terminal: indices of the objects contained in the box */
         std::vector<const object*> content;
@@ -37,23 +37,24 @@ class bounding {
 
     public:
 
-        /* Constructors */
-
-        bounding();
+        bounding() {}
         
-        bounding(bool is_terminal, const box* b, const std::vector<const object*>& content,
-            const std::vector<const bounding*>& children);
+        bounding(bool is_terminal, const box* b, std::vector<const object*>&& content,
+            std::vector<const bounding*>&& children);
 
         /* Container node constructor (only for first-level non-triangle objects) */
-        bounding(const std::vector<const object*>& content);
+        bounding(std::vector<const object*>&& content);
 
         /* Terminal node constructor (with a bounding box, containing triangles) */
-        bounding(const std::vector<const object*>& content, const box* b);
+        bounding(std::vector<const object*>&& content, const box* b);
 
         /* Internal node constructor */
-        bounding(const box* const b, const std::vector<const bounding*>& children);
+        bounding(const box* const b, std::vector<const bounding*>&& children);
 
-        /* Accessors */
+        bounding(const bounding&)            = delete;
+        bounding(bounding&&)                 = delete;
+        bounding& operator=(const bounding&) = delete;
+        bounding& operator=(bounding&&)      = delete;
 
         inline std::optional<const box*> get_b() const {
             return b;
@@ -94,14 +95,14 @@ class bounding {
 
 /* Returns a bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the bounding boxes bd0 and bd1 */
-const bounding* containing_bounding_two(const bounding*& bd0, const bounding*& bd1);
+const bounding* containing_bounding_two(const bounding* bd0, const bounding* bd1);
 
 /* Returns a non-terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the standard non-terminal bounding boxes in the children vector */
-const bounding* containing_bounding_any(const vector<const bounding*>& children);
+const bounding* containing_bounding_any(vector<const bounding*>&& children);
 
 /* Returns a bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the objects whose indices are in the obj vector */
-const bounding* containing_objects(const std::vector<const object*>& obj);
+const bounding* containing_objects(std::vector<const object*>&& obj);
 
 

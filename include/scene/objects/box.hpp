@@ -45,6 +45,9 @@ class box : public object {
         inline real get_l3() const {
             return l3;
         }
+        inline rt::vector get_l() const {
+            return rt::vector(l1, l2, l3);
+        }
 
         /* Intersection determination */
 

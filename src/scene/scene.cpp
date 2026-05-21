@@ -141,8 +141,8 @@ std::optional<hit> scene::find_closest_object_bounding(ray& r) const {
 const rt::color& scene::sample_texture(const unsigned int texture_info_index, const barycentric_info& bary) const {
     
     const texture_info& ti = texture_info_set[texture_info_index];
-    const uvcoord uvc = ti.get_barycenter(bary);
-    return texture_set[ti.texture_index].get_color(uvc.u, uvc.v);
+    const auto [ u, v ] = ti.get_barycenter(bary);
+    return texture_set[ti.texture_index].get_color(u, v);
 
     /* HERE: we can introduce texture filtering */
 }
@@ -151,13 +151,13 @@ map_sample scene::sample_maps(const unsigned int texture_info_index, const baryc
     const rt::color& default_color, const rt::vector& default_vector, const real /*default_smoothness*/) const {
 
     const texture_info& ti = texture_info_set[texture_info_index];
-    const uvcoord uvc = ti.get_barycenter(bary);
+    const auto [ u, v ] = ti.get_barycenter(bary);
     const rt::color& t_col = (ti.has_texture_information()) ?
-        texture_set[ti.texture_index].get_color(uvc.u, uvc.v)
+        texture_set[ti.texture_index].get_color(u, v)
         :
         default_color;
     const rt::vector& n_vec = (ti.has_normal_information()) ?
-        normal_map_set[ti.normal_map_index].get_tangent_space_normal(uvc.u, uvc.v)
+        normal_map_set[ti.normal_map_index].get_tangent_space_normal(u, v)
         :
         default_vector;
     // const real smoothness = (ti.roughness_map_index.has_value()) ?
