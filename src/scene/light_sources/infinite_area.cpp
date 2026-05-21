@@ -5,124 +5,120 @@
 
 /* Infinite area light sample */
 
-std::vector<real> compute_low_res_table(std::vector<std::vector<rt::color>>& matrix) {
+std::vector<real> alias_table::compute_low_res_table(const std::vector<std::vector<rt::color>>& matrix) {
 
-    const unsigned int width  = std::min((size_t) LOWRES_DEFAULT_WIDTH, matrix.size());
-    const unsigned int height = std::min((size_t) LOWRES_DEFAULT_HEIGHT, matrix[0].size());
+    const int width  = std::min(LOWRES_DEFAULT_WIDTH,  static_cast<unsigned int>(matrix.size()));
+    const int height = std::min(LOWRES_DEFAULT_HEIGHT, static_cast<unsigned int>(matrix[0].size()));
 
-    const real ratio_x = (matrix.size() * 1.0f) / LOWRES_DEFAULT_WIDTH;
-    const real ratio_y = (matrix[0].size() * 1.0f) / LOWRES_DEFAULT_HEIGHT;
+    const real ratio_x = static_cast<real>(matrix.size())    / LOWRES_DEFAULT_WIDTH;
+    const real ratio_y = static_cast<real>(matrix[0].size()) / LOWRES_DEFAULT_HEIGHT;
+    const real r = PI / static_cast<real>(height);
 
-    std::vector<real> table(width * height);
-    for (unsigned int ly = 0; ly < height; ly++) {
+    const int table_size = width * height;
+    std::vector<real> table(table_size);
 
-        const real phi = ly * PI / height;
+    real phi = 0.0f;
+    for (int ly = 0; ly < height; ly++) {
+
         const real sinphi = sin(phi);
-        const unsigned int l = ly * width;
+        const int l = ly * width;
+        const int bound = l + width;
 
-        for (unsigned int i = l; i < l + width; i++) {
+        for (int i = l; i < bound; i++)
             table[i] = sinphi;
-        }
+        phi += r;
     }
 
-    for (unsigned int i = 0; i < table.size(); i++) {
+    for (int i = 0; i < table_size; i++) {
 
-        const unsigned int lx = i % width;
-        const unsigned int ly = i / width;
+        const int lx = i % width;
+        const int ly = i / width;
 
         // Sampling the high res matrix and averaging the pixels
-        rt::color sum(0.0f, 0.0f, 0.0f);
-        for (unsigned int x = lx * ratio_x; x < (lx+1) * ratio_x; x++) {
-            for (unsigned int y = ly * ratio_y; y < (ly+1) * ratio_y; y++) {
-
-                sum = sum + matrix[x][y];
+        const int init_x  =  lx      * ratio_x;
+        const int bound_x = (lx + 1) * ratio_x;
+        const int init_y  =  ly      * ratio_y;
+        const int bound_y = (ly + 1) * ratio_y;
+        rt::color sum;
+        for (int x = init_x; x < bound_x; x++) {
+            for (int y = init_y; y < bound_y; y++) {
+                sum += matrix[x][y];
             }
         }
-        sum = sum / ((((lx+1) * ratio_x) - (lx * ratio_x)) * (((ly+1) * ratio_y) - (ly * ratio_y)));
-
+        sum /= (bound_x - init_x) * (bound_y - init_y);
         table[i] *= sum.get_average();
     }
 
     // Normalize the table
     real weight_sum = 0.0f;
-    for (unsigned int i = 0; i < table.size(); i++) {
-        weight_sum += table[i];
-    }
-    for (unsigned int i = 0; i < table.size(); i++) {
-        table[i] /= weight_sum;
-    }
+    for (real x : table)
+        weight_sum += x;
+
+    for (real& x : table)
+        x /= weight_sum;
     
     return table;
 }
 
-alias_table::alias_table(const std::vector<real> prob_table,
+alias_table::alias_table(const std::vector<real>& prob_table,
     const unsigned int map_width,
     const unsigned int map_height,
     const unsigned int pt_width,
-    const unsigned int pt_height
-    )
+    const unsigned int pt_height)
     
     :
+        nb_bins(static_cast<real>(prob_table.size())),
         map_width(map_width),
         map_height(map_height),
         pt_width(pt_width),
         //pt_height(pt_height),
-        ratio_x(map_width * 1.0f / pt_width),
-        ratio_y(map_height * 1.0f / pt_height) {
+        ratio_x(static_cast<real>(map_width)  / pt_width),
+        ratio_y(static_cast<real>(map_height) / pt_height) {
 
-    const real n = prob_table.size();
-    const real invn = 1.0f / n;
+    const int n = prob_table.size();
     bins.resize(n);
+    const real invn = 1.0f / nb_bins;
     
     std::stack<alias_bin> under;
     std::stack<alias_bin> over;
     
     // Partition the bins into the under and over 1/n
     
-    for (unsigned int i = 0; i < n; i++) {
-        alias_bin ab(prob_table[i], i);
-        if (prob_table[i] < invn)
-            under.push(ab);
-        else
-            over.push(ab);
+    for (int i = 0; i < n; i++) {
+        std::stack<alias_bin>& stack = (prob_table[i] < invn) ? under : over;
+        stack.emplace(prob_table[i], i);
     }
 
     while (not (under.empty() || over.empty())) {
-        alias_bin& ub = under.top();
+        const alias_bin& ub = under.top();
         alias_bin& ob = over.top();
 
         // Setting the final value of u
-        alias_bin& final_u = bins[ub.alias];
-        final_u.p = n * ub.p;
-        final_u.alias = ob.alias;
+        auto& [ p, alias ] = bins[ub.alias];
+        p = nb_bins * ub.p;
+        alias = ob.alias;
 
         under.pop();
 
         // Substracting the excess probability of o
-        ob.p -= invn * (1 - final_u.p);
+        ob.p -= invn * (1.0f - p);
         if (ob.p < invn) {
             // No longer belongs to over
-            alias_bin new_ob(ob.p, ob.alias);
-            under.push(new_ob);
+            under.emplace(ob);
             over.pop();
         }
     }
 
     // Remaining bins should be set to probability 1
-    while (not under.empty()) {
-        alias_bin& ub = under.top();
-        bins[ub.alias].p = 1;
-        // For safety
-        bins[ub.alias].alias = ub.alias;
-        under.pop();
-    }
-    while (not over.empty()) {
-        alias_bin& ob = over.top();
-        bins[ob.alias].p = 1;
-        // For safety
-        bins[ob.alias].alias = ob.alias;
-        over.pop();
-    }
+    auto handle_remaining = [] (std::vector<alias_bin>& bins, std::stack<alias_bin>& stack) {
+        while (not stack.empty()) {
+            const unsigned int alias = stack.top().alias;
+            bins[alias] = { 1.0f, alias };
+            stack.pop();
+        }
+    };
+    handle_remaining(bins, under);
+    handle_remaining(bins, over);
 }
 
 /*
@@ -147,33 +143,22 @@ alias_table::alias_table(const std::vector<real> prob_table,
     1/3 -> 1   | _          (3 a prob 0.36666666666 + (1/3 * 1) = 0.7)
 */
 
-unsigned int alias_table::sample(randomgen& rg) {
-
-    const unsigned int i = rg.random_real(bins.size());
-
-    alias_bin& bin = bins[i];
-    if (bin.p == 1.0f || rg.random_real(1.0f) < bin.p)
-        return i;
-    else
-        return bin.alias;
-}
-
 // Returns the coordinates of a pixel in the light map, chosen according to the probability from the table
-std::pair<unsigned int, unsigned int> alias_table::get_sample_for_light_map(randomgen& rg) {
+light_map_sample alias_table::get_sample_for_light_map(const randomgen& rg) const {
 
     const unsigned int s = sample(rg);
     // s corresponds to a pixel in the low-res image
 
-    const unsigned int lr_x = s % pt_width;
-    const unsigned int lr_y = s / pt_width;
+    const real lr_x = static_cast<real>(s % pt_width);
+    const real lr_y = static_cast<real>(s / pt_width);
 
-    const unsigned int min_x = ratio_x * lr_x;
-    const unsigned int max_x = ratio_x * (lr_x + 1);
+    const unsigned int min_x = static_cast<unsigned int>(ratio_x *  lr_x);
+    const unsigned int max_x = static_cast<unsigned int>(ratio_x * (lr_x + 1.0f));
     
-    const unsigned int min_y = ratio_y * lr_y;
-    const unsigned int max_y = ratio_y * (lr_y + 1);
+    const unsigned int min_y = static_cast<unsigned int>(ratio_y *  lr_y);
+    const unsigned int max_y = static_cast<unsigned int>(ratio_y * (lr_y + 1.0f));
 
     const unsigned int x = min_x + rg.random_real(max_x - min_x);
     const unsigned int y = min_y + rg.random_real(max_y - min_y);
-    return std::pair<unsigned int, unsigned int>(x, y);
+    return { x, y };
 }

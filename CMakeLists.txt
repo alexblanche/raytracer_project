@@ -158,7 +158,7 @@ target_include_directories(sky
 )
 
 ##################################################################
-### Test sky dome
+### Tests
 ##################################################################
 
 add_executable(testreader
@@ -174,6 +174,24 @@ target_link_libraries(testreader
 	${SDL2_LIBRARIES}
 )
 target_include_directories(testreader
+	PUBLIC
+		${SDL2_INCLUDE_DIRS}
+)
+
+add_executable(testinfinite
+	src/scene/light_sources/infinite_area.cpp
+	src/parallel/parallel.cpp
+	src/screen/color.cpp
+#	src/file_readers/bmp_reader.cpp
+	src/file_readers/hdr_reader.cpp
+	src/screen/screen.cpp
+	src/screen/image.cpp
+	src/tests/test_infinite_area.cpp
+)
+target_link_libraries(testinfinite
+	${SDL2_LIBRARIES}
+)
+target_include_directories(testinfinite
 	PUBLIC
 		${SDL2_INCLUDE_DIRS}
 )

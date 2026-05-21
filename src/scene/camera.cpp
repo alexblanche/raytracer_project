@@ -46,9 +46,9 @@ ray camera::gen_ray_classic(const int i, const int j, const unsigned int iterati
    following a normal distribution around to center of the pixel, with given stardard deviation */
 ray camera::gen_ray_normal(const int i, const int j, const randomgen& rg, const unsigned int iteration) const {
 
-    std::pair<real, real> shift = rg.random_pair_normal(); //rg.random_pair_normal(0.0f, std_dev);
-    const real ishift = mhalf_fovw + (static_cast<real>(i) + shift.first  + (mode.uses_stratified() ? 0.25f * ( iteration &  3)       : 0.0f)) * di;
-    const real jshift = mhalf_fovh + (static_cast<real>(j) + shift.second + (mode.uses_stratified() ? 0.25f * ((iteration & 15) >> 2) : 0.0f)) * dj;
+    const auto [ shift_horiz, shift_vert ] = rg.random_pair_normal(); //rg.random_pair_normal(0.0f, std_dev);
+    const real ishift = mhalf_fovw + (static_cast<real>(i) + shift_horiz  + (mode.uses_stratified() ? 0.25f * ( iteration &  3)       : 0.0f)) * di;
+    const real jshift = mhalf_fovh + (static_cast<real>(j) + shift_vert + (mode.uses_stratified() ? 0.25f * ((iteration & 15) >> 2) : 0.0f)) * dj;
     const rt::vector dir =
         (matprod(
             to_the_right,  ishift,

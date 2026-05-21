@@ -11,6 +11,8 @@ enum class camera_mode_option {
     Cam_Stratified      = 4
 };
 
+// Replace with constexpr operators and camera_mode_option mode
+
 class camera_mode {
     private:
         unsigned int mode;

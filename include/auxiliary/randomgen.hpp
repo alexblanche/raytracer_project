@@ -1,11 +1,8 @@
 #pragma once
 
-#include <stdlib.h>
-#include <vector>
-#include <chrono>
-#include <random>
+#include "auxiliary/timer.hpp"
 
-#include "screen/color.hpp"
+#include <random>
 
 class randomgen {
     private:
@@ -16,8 +13,8 @@ class randomgen {
 
     public:
 
-        randomgen(const real std_dev_anti_aliasing) {
-            const unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
+        randomgen(const real std_dev_anti_aliasing = ANTI_ALIASING) {
+            const unsigned int seed = timer_ms::get_time();
             engine = std::default_random_engine(seed);
             unif_ratio = std::uniform_real_distribution<real>(0.0f, 1.0f);
             unif_angle = std::uniform_real_distribution<real>(0.0f, TWOPI);

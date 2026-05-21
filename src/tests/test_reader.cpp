@@ -63,13 +63,55 @@ static void test_hdr() {
     scr.wait_quit_event();
 }
 
-int main() {
+static void test_fastcopy() {
+    constexpr const char * filename_bmp = "../../../assets/cobblestone_street_night.bmp";
+    
 
-    constexpr bool b = true;
-    if (b)
+    std::optional<dimensions> dims = read_bmp_size(filename_bmp);
+    if (not dims.has_value()) {
+        std::cout << "File not found" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    const auto [ width, height ] = dims.value();
+    std::vector<std::vector<rt::color>> matrix(width, std::vector<rt::color>(height));
+
+    read_bmp(filename_bmp, matrix);
+    
+
+    rt::screen scr(width, height);
+    // printf("\n");
+    timer_ms timer;
+    timer.start();
+    constexpr int NB_ITERATIONS = 20;
+    for (int k = 0; k < NB_ITERATIONS; k++) {
+        scr.fast_copy(matrix, width, height, 1);
+        scr.update_from_texture();
+        if (scr.poll_keyboard_event() == rt::screen::key::QuitEvent)
+            return;
+        // printf("\r%d / %d         ", (k + 1), NB_ITERATIONS);
+        // fflush(stdout);
+    }
+    timer.stop();
+    printf("Fast_copy ");
+    timer.print();
+}
+
+int main(int argc, char **argv) {
+
+    if (argc < 2) {
+        test_fastcopy();
+        return EXIT_SUCCESS;
+    }
+
+    const std::string arg = argv[1];
+    
+    if (arg == "bmp")
         test_bmp();
-    else
+    else if (arg == "hdr")
         test_hdr();
+    else
+        test_fastcopy();
 
     return EXIT_SUCCESS;
 }
