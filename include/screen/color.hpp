@@ -148,6 +148,28 @@ namespace rt  {
 				green = std::min(green, max);
 				blue  = std::min(blue,  max);
 			}
+
+			struct uint8_color {
+				unsigned char r;
+				unsigned char g;
+				unsigned char b;
+			};
+
+			inline uint8_color to_uint8() const {
+				return {
+					static_cast<unsigned char>(red),
+					static_cast<unsigned char>(green),
+					static_cast<unsigned char>(blue)
+				};
+			}
+
+			inline uint8_color to_uint8_bgr() const {
+				return {
+					static_cast<unsigned char>(blue),
+					static_cast<unsigned char>(green),
+					static_cast<unsigned char>(red)
+				};
+			}
 	};
 
 	constexpr color WHITE(255, 255, 255);

@@ -210,9 +210,11 @@ namespace rt {
 				color avg = pixel_col * invN;
 				avg.in_place_max_out();
 				const unsigned int index = j * shift + threei;
+				//color::uint8_color color_data = avg.to_uint8();
 				texture_pixels[index] 	  = static_cast<Uint8>(avg.get_red());
 				texture_pixels[index + 1] = static_cast<Uint8>(avg.get_green());
 				texture_pixels[index + 2] = static_cast<Uint8>(avg.get_blue());
+				//std::memcpy(texture_pixels + index, &color_data, 3);
             }
         }
 		
@@ -246,9 +248,11 @@ namespace rt {
 				corrected *= static_cast<real>(255.0f);
 				corrected.in_place_max_out();
 				const unsigned int index = j * shift + threei;
+				//color::uint8_color color_data = corrected.to_uint8();
 				texture_pixels[index] 	  = static_cast<Uint8>(corrected.get_red());
 				texture_pixels[index + 1] = static_cast<Uint8>(corrected.get_green());
 				texture_pixels[index + 2] = static_cast<Uint8>(corrected.get_blue());
+				//std::memcpy(texture_pixels + index, &color_data, 3);
             }
         }
 		
@@ -306,9 +310,11 @@ namespace rt {
 				corrected.in_place_max_out();
 
 				const unsigned int index = j * shift + threei;
+				// color::uint8_color color_data = corrected.to_uint8();
 				texture_pixels[index] 	  = static_cast<Uint8>(corrected.get_red());
 				texture_pixels[index + 1] = static_cast<Uint8>(corrected.get_green());
 				texture_pixels[index + 2] = static_cast<Uint8>(corrected.get_blue());
+				// std::memcpy(texture_pixels + index, &color_data, 3);
             }
         }
 		

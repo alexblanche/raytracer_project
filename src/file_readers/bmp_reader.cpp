@@ -339,6 +339,8 @@ exit_status write_bmp(const char* file_name, const std::vector<std::vector<rt::c
                 const unsigned char r = col.get_red();
                 const unsigned char g = col.get_green();
                 const unsigned char b = col.get_blue();
+                // const rt::color::uint8_color color_data = corrected.to_uint8_bgr();
+                // std::memcpy(buffer + index, &color_data, 3);
                 const int ret = fprintf(file, "%c%c%c", b, g, r);
                 throw_if_error(ret);
             }
