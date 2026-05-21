@@ -37,19 +37,17 @@ rt::vector random_direction(const randomgen& rg, const rt::vector& central_dir) 
     */
     if constexpr (one_m_costhetamax != 0) {
 
-        const real p = rg.random_ratio();
+        const real p   = rg.random_ratio();
         const real phi = rg.random_angle();
 
         // Central direction of the rays
-        const real a = central_dir.x;
-        const real b = central_dir.y;
-        const real c = central_dir.z;
+        const auto [ a, b, c ] = central_dir;
 
         // Orthonormal base of the plane orthogonal to central_dir
         rt::vector X, Y;
         if (a != 0.0f) {
             const real nX = a * a + b * b;
-            X = rt::vector(- b, a, 0.0f) / std::sqrt(nX);
+            X = rt::vector(- b, a, 0.0f) / sqrt(nX);
             Y = rt::vector(a * c, b * c, -nX).unit();
         } else if (b != 0.0f) {
             // central_dir = (0,b,c)
@@ -61,13 +59,13 @@ rt::vector random_direction(const randomgen& rg, const rt::vector& central_dir) 
             Y = rt::vector(0.0f, 1.0f, 0.0f);
         }
 
-        const real cos_theta = 1.0f - p * one_m_costhetamax; //(1.0f - cos_theta_max);
-        const real sin_theta = std::sqrt(1.0f - cos_theta * cos_theta);
+        const real cos_theta = 1.0f - p * one_m_costhetamax;
+        const real sin_theta = sqrt(1.0f - cos_theta * cos_theta);
         
         return
             matprod(
-                X,           std::cos(phi) * sin_theta,
-                Y,           std::sin(phi) * sin_theta,
+                X,           cos(phi) * sin_theta,
+                Y,           sin(phi) * sin_theta,
                 central_dir, cos_theta
             );
     }

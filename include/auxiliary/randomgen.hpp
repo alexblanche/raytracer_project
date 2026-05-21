@@ -13,13 +13,11 @@ class randomgen {
 
     public:
 
-        randomgen(const real std_dev_anti_aliasing = ANTI_ALIASING) {
-            const unsigned int seed = timer_ms::get_time();
-            engine = std::default_random_engine(seed);
-            unif_ratio = std::uniform_real_distribution<real>(0.0f, 1.0f);
-            unif_angle = std::uniform_real_distribution<real>(0.0f, TWOPI);
-            normal_dist = std::normal_distribution<real>(0.0f, std_dev_anti_aliasing);
-        }
+        randomgen(const real std_dev_anti_aliasing = ANTI_ALIASING) 
+            :   engine(timer_ms::get_time()),
+                unif_ratio(0.0f, 1.0f),
+                unif_angle(0.0f, 2.0f * PI),
+                normal_dist(0.0f, std_dev_anti_aliasing) {}
 
         /* Returns a random real between 0 and m */
         inline real random_real(real m) const {
@@ -40,6 +38,6 @@ class randomgen {
         /* Returns two random reals chosen according to a normal distribution
            of mean m and standard deviation std_dev */
         inline std::pair<real, real> random_pair_normal() const {
-            return std::pair(normal_dist(engine), normal_dist(engine));
+            return { normal_dist(engine), normal_dist(engine) };
         } 
 };

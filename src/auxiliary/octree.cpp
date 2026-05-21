@@ -22,20 +22,19 @@ std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tre
     if (nb_indices == 0) throw;
 
     // Computing the average coordinates
-    rt::vector avg(0, 0, 0);
+    rt::vector avg;
     for (unsigned int i = index_min; i <= index_max; i++) {
-        avg = avg + means[elts[i]];
+        avg += means[elts[i]];
     }
-    avg = avg / nb_indices;
+    avg *= 1.0f / static_cast<real>(nb_indices);
 
     tree.increase_size(index_root);
     tree.internal_nodes[index_root] = avg;
     
     // Counting the number of element in each region, and the average of each region
     unsigned int nb_elt_region[8];
-    for (unsigned char r = 0; r < 8; r++) {
-        nb_elt_region[r] = 0;
-    }
+    std::memset(nb_elt_region, 0, 8 * sizeof(unsigned int));
+    
     for (unsigned int i = index_min; i <= index_max; i++) {
         const rt::vector& v = means[elts[i]];
         const unsigned char bx = v.x >= avg.x;
@@ -55,8 +54,7 @@ std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tre
     }
 
     std::vector<unsigned int> output(9);
-    for (unsigned char r = 0; r < 8; r++)
-        output[r] = first_index[r];
+    std::memcpy(output.data(), first_index, 8);
     output[8] = last;
 
     // Organizing the elements by region
@@ -74,8 +72,7 @@ std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tre
         first_index[region]++;
     }
 
-    for (unsigned int i = 0; i < nb_indices; i++)
-        elts[index_min + i] = elts_temp[i];
+    std::memcpy(elts.data() + index_min, elts_temp.data(), nb_indices);
 
     return output;
 }
@@ -155,9 +152,7 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
                 tree.leaves[tree_index].resize(nb_elts_group);
                 std::vector<unsigned int>& leaf = tree.leaves[tree_index];
 
-                for (unsigned int i = 0; i < nb_elts_group; i++) {
-                    leaf[i] = elts[index_min + i];
-                }
+                std::memcpy(leaf.data(), elts.data() + index_min, nb_elts_group);
                 tree.terminal_state[tree_index] = true;
             }
             else {
@@ -214,7 +209,7 @@ std::pair<real, std::optional<unsigned int>> compute_min_dist_sq(const std::vect
         }
     }
 
-    return std::make_pair(min_dist_sq, closest_index);
+    return { min_dist_sq, closest_index };
 }
 
 /*
@@ -246,18 +241,18 @@ real distance_sq_to_region(const rt::vector& v, const rt::vector& root, const un
 */
 
 // Optimized version
-real distance_sq_to_region(const real dx2, const real dy2, const real dz2,
+inline real distance_sq_to_region(const real dx2, const real dy2, const real dz2,
     const unsigned char region, const bool bx, const bool by, const bool bz) {
 
     const bool rx = region & 0x04;
     const bool ry = region & 0x02;
     const bool rz = region & 0x01;
 
-    real d = 0.0f;
-    if (bx != rx) d += dx2;
-    if (by != ry) d += dy2;
-    if (bz != rz) d += dz2;
-    return d;
+    return ((bx != rx) ? dx2 : 0.0f) + ((by != ry) ? dy2 : 0.0f) + ((bz != rz) ? dz2 : 0.0f);
+
+    // all bx, by, bz into one unsigned char b
+    // r = region ^ b (xor)
+    // return ((r & 0x04) ? d2.x : 0.0f) + (...)
 }
 
 struct tree_search_info {
@@ -266,9 +261,7 @@ struct tree_search_info {
     unsigned char max_region_checked;
 };
 
-unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree& tree, const rt::vector& v
-    //, bool verbose) {
-    ) {
+unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree& tree, const rt::vector& v) {
 
     unsigned int index = 0;
     real min_dist = infinity;
@@ -276,44 +269,16 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
 
     std::stack<tree_search_info> stack;
 
-    //unsigned int iter = 0;
-    //if (verbose) printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-
     while (not (index == 0 && closest_centroid_index.has_value())) {
 
-        // iter++;
-
-        // if (iter == 1000) {
-        //     printf("Infinite loop\n");
-        //     throw;
-        // }
-
         // Go down
-        //if (verbose) printf("Go down (index = %u)\n", index);
-        //
-        //unsigned int loop_temp_cpt = 0;
-        //
         while (not tree.terminal_state[index]) {
-
-            //if (verbose) printf("Going down... index = %u\n", index);
-
             index = compute_subregion_index(tree, v, index);
-
-            //
-            // loop_temp_cpt++;
-            // if (loop_temp_cpt > 1000) {
-            //     printf("Infinie loop (2)\n");
-            //     throw;
-            // }
-            //
         }
 
-        if (tree.leaves[index].size()) {
+        if (tree.leaves[index].size() != 0) {
 
-            const std::pair<real, std::optional<unsigned int>> p = compute_min_dist_sq(means, tree, v, index);
-            const real d = p.first;
-            const std::optional<unsigned int>& ci = p.second;
-
+            const auto [ d, ci ] = compute_min_dist_sq(means, tree, v, index);
             if (d < min_dist) {
                 min_dist = d;
                 closest_centroid_index = ci;
@@ -327,7 +292,6 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
         // }
 
         // Go back up
-        // if (verbose) printf("Go back up\n");
         while (index != 0) {
             // if (verbose) printf("Climbing... index = %u\n", index);
             const unsigned int parent_index = (index - 1) >> 3;
@@ -403,8 +367,6 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
             if (resume && not stack.empty()) stack.pop();
         }
     }
-
-    // if (verbose) printf("Iter %u\n", iter);
 
     return closest_centroid_index.value();
 }

@@ -22,15 +22,14 @@ struct search_tree {
 
     void increase_size(unsigned int wanted_index) {
         const unsigned int current_size = internal_nodes.size();
-        if (wanted_index >= current_size) {
-            const unsigned int new_size = 2.5f * current_size;
-            internal_nodes.resize(new_size);
-            leaves.resize(new_size);
-            terminal_state.resize(new_size);
-            for (unsigned int i = current_size; i < new_size; i++)
-                terminal_state[i] = false;
-            increase_size(wanted_index);
-        }
+        if (wanted_index < current_size)
+            return;
+        const unsigned int new_size = std::max(static_cast<unsigned int>(2.5f * current_size), wanted_index + 1);
+        internal_nodes.resize(new_size);
+        leaves.resize(new_size);
+        terminal_state.resize(new_size);
+        for (unsigned int i = current_size; i < new_size; i++)
+            terminal_state[i] = false;
     }
 };
 
