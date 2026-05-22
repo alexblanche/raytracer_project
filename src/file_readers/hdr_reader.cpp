@@ -1,5 +1,4 @@
 #include "file_readers/hdr_reader.hpp"
-
 #include "screen/screen.hpp"
 #include "parallel/parallel.hpp"
 
@@ -229,6 +228,8 @@ std::optional<dimensions> read_hdr_size(const char* file_name) {
         
         if ((l1 != 'X' && l1 != 'Y') || (l2 != 'X' && l2 != 'Y') || (s1 != '-' && s1 != '+') || (s2 != '-' && s2 != '+'))
             throw std::runtime_error("Incorrect dimensions");
+
+        fclose(file);
 
         const bool l1_is_x = l1 == 'X';
         const unsigned int width  = l1_is_x ? v1 : v2;

@@ -78,7 +78,6 @@ static void test_fastcopy() {
 
     read_bmp(filename_bmp, matrix);
     
-
     rt::screen scr(width, height);
     // printf("\n");
     timer_ms timer;
