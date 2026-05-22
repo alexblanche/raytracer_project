@@ -88,11 +88,11 @@ namespace sdl {
                 win = nullptr;
             }
 
-            SDL_Window * get_window_pt() const {
+            SDL_Window * get() const {
                 return win;
             }
 
-            void setFullScreen(flag flag) const {
+            void set_full_sreen(flag flag) const {
                 SDL_SetWindowFullscreen(win, static_cast<uint32_t>(flag));
             }
 
@@ -109,6 +109,7 @@ namespace sdl {
         enum class vsync_option {
             Disabled = 0, Enabled = 1
         };
+        
         enum class flag {
             Accelerated = SDL_RENDERER_ACCELERATED
         };
@@ -120,7 +121,7 @@ namespace sdl {
             renderer(const window& win, std::vector<flag>& flags) {
                 constexpr int INDEX_FIRST_ONE = -1;
                 const uint32_t flag = fold(flags);
-                ren = SDL_CreateRenderer(win.get_window_pt(), INDEX_FIRST_ONE, flag);
+                ren = SDL_CreateRenderer(win.get(), INDEX_FIRST_ONE, flag);
             }
 
             ~renderer() {
@@ -159,7 +160,7 @@ namespace sdl {
 
     class surface {
         private:
-            SDL_Surface *sur;
+            SDL_Surface *sur = nullptr;
 
         public:
             surface(int width, int height, int depth, char * pixels, int pitch) {
@@ -177,8 +178,6 @@ namespace sdl {
                     SDL_FreeSurface(sur);
                 sur = nullptr;
             }
-
-
     };
 
 
@@ -196,13 +195,18 @@ namespace sdl {
         };
 
         private:
-            SDL_Texture *txt;
+            SDL_Texture *txt = nullptr;
 
         public:
 
             texture(const renderer& ren, PixelFormat format, Access access, int w, int h) {
                 txt = SDL_CreateTexture(ren.get(), static_cast<uint32_t>(format), static_cast<int>(access), w, h);
             }
+
+            texture(texture&&)                  = delete;
+            texture(const texture&)             = delete;
+            texture& operator=(texture&&)       = delete;
+            texture& operator=(const texture&)  = delete;
 
             ~texture() {
                 if (txt != nullptr)
@@ -215,22 +219,51 @@ namespace sdl {
                 int     pitch;
             };
 
-            locked_info lock() const {
+            locked_info lock_texture() const {
                 char * pixels;
                 int    pitch;
                 SDL_LockTexture(txt, nullptr, reinterpret_cast<void**>(&pixels), &pitch);
                 return { pixels, pitch };
             }
 
-            locked_info lock(const rect& rect) const {
+            locked_info lock_texture(const rect& rect) const {
                 char * pixels;
                 int    pitch;
                 SDL_LockTexture(txt, rect.get(), reinterpret_cast<void**>(&pixels), &pitch);
                 return { pixels, pitch };
             }
             
-            void unlock() const {
+            void unlock_texture() const {
                 SDL_UnlockTexture(txt);
+            }
+
+            // Lock class: automatically unlocks the texture upon destruction
+            class lock {
+                
+                private:
+                    const texture& txt;
+                    locked_info info;
+
+                public:
+                    lock(const texture& texture)
+                        : txt(texture), info(txt.lock_texture()) {}
+
+                    lock(lock&&)                  = delete;
+                    lock(const lock&)             = delete;
+                    lock& operator=(lock&&)       = delete;
+                    lock& operator=(const lock&)  = delete;
+
+                    ~lock() {
+                        txt.unlock_texture();
+                    }
+
+                    locked_info get() const {
+                        return info;
+                    }
+            };
+
+            lock get_lock() const {
+                return lock(*this);
             }
 
             void render_copy(const renderer& ren, const rect& src_rect, const rect& dst_rect) const {
@@ -244,19 +277,33 @@ namespace sdl {
     class event {
 
         enum class type {
+            KeyDown         = SDL_KEYDOWN,
+            KeyUp           = SDL_KEYUP,
             MouseMotion     = SDL_MOUSEMOTION,
             MouseButtonDown = SDL_MOUSEBUTTONDOWN,
             MouseButtonUp   = SDL_MOUSEBUTTONUP,
-            KeyDown         = SDL_KEYDOWN,
-            KeyUp           = SDL_KEYUP,
+            MouseWheel      = SDL_MOUSEWHEEL,
             Quit            = SDL_QUIT
         };
+
+        event(event&&)                  = delete;
+        event(const event&)             = delete;
+        event& operator=(event&&)       = delete;
+        event& operator=(const event&)  = delete;
 
         public:
             SDL_Event e;
 
             bool poll_event() {
                 return SDL_PollEvent(&e);
+            }
+
+            bool wait_event() {
+                return SDL_WaitEvent(&e);
+            }
+
+            bool wait_event_timeout(int timeout) {
+                return SDL_WaitEventTimeout(&e, timeout);
             }
 
             type get_type() const {
