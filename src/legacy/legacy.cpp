@@ -1,8 +1,5 @@
 /*** Legacy raytracer (2014) ***/
 
-#include <iostream>
-#include <vector>
-
 #include "screen/screen.hpp"
 
 #include "legacy/source.hpp"
@@ -12,12 +9,10 @@
 #include "legacy/raytracing/tracing.hpp"
 
 #include "parallel/parallel.hpp"
-#include <mutex>
 
+#include <iostream>
+#include <vector>
 #include <chrono>
-
-#include <algorithm>
-#include <numeric>
 
 
 // Parallel for-loop macros
@@ -105,11 +100,11 @@ void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
 /* ********* MAIN FUNCTION ********* */
 
 
-int main(int /*argc*/, char **/*argv*/) {
+int main(int, char **) {
 
-    const rt::color my_red(230, 15, 15);
+    constexpr rt::color my_red(230, 15, 15);
     // const rt::color my_green(15, 230, 15);
-    const rt::color my_blue(15, 15, 230);
+    constexpr rt::color my_blue(15, 15, 230);
     // const rt::color my_white(230, 230, 230);
     // const rt::color my_black(15, 15, 15);
     /* Non-pure colors, to prevent the "black hole" effect when
@@ -154,14 +149,14 @@ int main(int /*argc*/, char **/*argv*/) {
     /* *************************** */
 
     // Screen
-    const int width = 1920;
-    const int height = 1080;
-    const real dist = 400; // Distance between the camera and the image
+    constexpr int width  = 1920;
+    constexpr int height = 1080;
+    constexpr real dist  = 400; // Distance between the camera and the image
 
     // The camera is supposed to be on the origin of the space: (0,0,0)
     
     // Vector that will center the 'screen' in the scene
-    const rt::vector screen_center(width/2, height/2, 0);
+    constexpr rt::vector screen_center(width / 2, height / 2, 0);
 
     std::vector<std::vector<rt::color>> matrix(width, std::vector<rt::color>(height));
     
@@ -171,7 +166,7 @@ int main(int /*argc*/, char **/*argv*/) {
 
     /* Benchmark */
 
-    const size_t number_of_renders = 10;
+    constexpr size_t number_of_renders = 10;
 
     long int total_time = 0;
 

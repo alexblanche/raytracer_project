@@ -1,62 +1,61 @@
-#include <string>
-#include <iostream>
-#include <signal.h>
-#include <SDL2/SDL.h>
+#include "screen/screen.hpp"
+
 #include <cmath>
 
-#include "screen/screen.hpp"
-#include "light/hit.hpp"
-
 namespace rt {
+	
+	screen::screen(int width, int height) {
 
-	/**
-	 * The screen class inherites from the image class in order
-	 * to draw something on the screen. It also wraps the SDL
-	 * initialization calls. Only one screen should be created.
-	 */
+		SDL_Init(SDL_INIT_VIDEO);
 
-	// Indicates how many instances of screen exist.
-	int screen::initialized = 0;
+		window = SDL_CreateWindow("Raytracer_project", 10, 10, width, height, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
+		renderer = SDL_CreateRenderer(window, (-1), SDL_RENDERER_ACCELERATED);
+		SDL_RenderSetVSync(renderer, 0); // 1 = Enable VSync, 0 = Disable
+		SDL_RenderSetLogicalSize(renderer, width, height);
 
-	static void sigint_handler(int) {
-		exit(0);
+		srcrect = { 0, 0, width, height };
+		dstrect = { 0, 0, width, height };
+
+		texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, width, height);
 	}
 
-	/**
-	 * Main constructor, uses width and height.
-	 */
-	screen::screen(int width, int height)
-		
-		: image(width, height) {
-
-		if(initialized == 0) {
-			if(SDL_Init( SDL_INIT_VIDEO ) == -1) {
-				std::cerr << "Cannot initialize SDL : "
-					<< SDL_GetError() << std::endl;
-				exit(-1);
-			}
-			signal(SIGINT, sigint_handler);
-		}
-		initialized += 1;
-	}
-
-	/**
-	 * Destructor. Decrements the initialized counter.
-	 */
 	screen::~screen() {
-		initialized--;
+		SDL_DestroyTexture(texture);
+		if (renderer != nullptr)
+			SDL_DestroyRenderer(renderer);
+		if (window != nullptr)
+			SDL_DestroyWindow(window);
+		SDL_Quit();
 	}
 
-	/**
-	 * Flushes the buffer to the screen
-	 */
+
+
+	void screen::set_pixel(int x, int y, const color& c) const {
+		Uint8 r = c.get_red();
+		Uint8 g = c.get_green();
+		Uint8 b = c.get_blue();
+		SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+		SDL_RenderDrawPoint(renderer, x, y);
+	}
+
+	void screen::set_pixel(int x, int y, Uint8 r, Uint8 g, Uint8 b) const {
+		
+		SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+		SDL_RenderDrawPoint(renderer, x, y);
+	}
+
+	void screen::clear() const {
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+		SDL_RenderClear(renderer);
+	}
+
+
+	/* Flushes the buffer to the screen */
 	void screen::update() const {
 		SDL_RenderPresent(renderer);
 	}
 
-	/**
-	 * Same as update, but first copies the texture onto the renderer
-	 */
+	/* Same as update, but first copies the texture onto the renderer */
 	void screen::update_from_texture() const {
 		SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, texture, &srcrect, &dstrect);

@@ -1,8 +1,9 @@
 #pragma once
 
-#include <vector>
 #include "screen/color.hpp"
 #include "file_readers/bmp_reader.hpp"
+
+#include <vector>
 #include <optional>
 
 //exit_status print_hdr_info(const char* file_name);

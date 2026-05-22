@@ -513,7 +513,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
 
     FILE* file = fopen(file_name, "r");
 
-    if (file == NULL) {
+    if (file == nullptr) {
         printf("Error, file %s not found\n", file_name);
         return std::nullopt;
     }
@@ -596,26 +596,25 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 throw std::runtime_error("Parsing error in scene constructor (background)");
             }
         }
-        else if (abs(rx) > 2 * 3.1416 || abs(ry) > 2 * 3.1416 || abs(rz) > 2 * 3.1416) {
+        else if (abs(rx) > 2.0f * PI || abs(ry) > 2.0f * PI || abs(rz) > 2.0f * PI) {
             throw std::runtime_error("Incorrect background texture angles");
         }
         else {
             std::string bg_tfile_name_short = std::filesystem::path(bg_tfile_name).filename().generic_string();
 
-            if (rx < 0) rx += 2 * 3.1416;
-            if (ry < 0) ry += 2 * 3.1416;
-            if (rz < 0) rz += 2 * 3.1416;
+            if (rx < 0) rx += 2.0f * PI;
+            if (ry < 0) ry += 2.0f * PI;
+            if (rz < 0) rz += 2.0f * PI;
 
-            bool bg_parsing_successful;
-            printf("Parsing %s...", bg_tfile_name_short.data());
+            printf("Parsing %s...", bg_tfile_name_short.c_str());
             fflush(stdout);
+            bool bg_parsing_successful;
             background_texture = texture(bg_tfile_name, bg_parsing_successful);
             if (not bg_parsing_successful) {
                 throw std::runtime_error("Parsing error in scene constructor (background texture parsing)");
             }
             else {
-                printf("\r> %s texture loaded\n", bg_tfile_name_short.data());
-                fflush(stdout);
+                printf("\r> %s texture loaded\n", bg_tfile_name_short.c_str());
                 background_texture_is_set = true;
             }
         }
@@ -710,8 +709,10 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 break;
             }
 
+            const std::string arg = s;
+
             /* Commented line */
-            if (strcmp(s, "#") == 0) {
+            if (arg == "#") {
                 char c;
                 do {
                     c = fgetc(file);
@@ -722,13 +723,13 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
             }
             
             /* Material declaration */
-            if (strcmp(s, "material") == 0) {
+            if (arg == "material") {
                 std::string m_name(65, '\0');
-                ret = fscanf(file, " %64s (", (char*) m_name.data());
+                ret = fscanf(file, " %64s (", m_name.data());
                 if (ret != 1) {
                     throw std::runtime_error("Parsing error in scene constructor (material declaration)");
                 }
-                m_name.resize(strlen(m_name.data()));
+                m_name.resize(strlen(m_name.c_str()));
 
                 std::optional<material> m = parse_material(file, inverse_gamma);
                 if (m.has_value()) {
@@ -739,10 +740,10 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
             }
             
             /* BMP file loading */
-            if (strcmp(s, "load_texture") == 0) {
+            if (arg == "load_texture") {
                 std::string t_name(65, '\0');
                 char tfile_name[513];
-                ret = fscanf(file, " %64s %512s", (char*) t_name.data(), tfile_name);
+                ret = fscanf(file, " %64s %512s", t_name.data(), tfile_name);
                 if (ret != 2) {
                     throw std::runtime_error("Parsing error in scene constructor (texture loading)");
                 }
@@ -755,22 +756,22 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 texture_wrapper_set.emplace_back(texture(tfile_name, parsing_successful, inverse_gamma), t_name);
 
                 if (parsing_successful) {
-                    printf("\r> %s texture loaded                                \n", tfile_name_short.data());
+                    printf("\r> %s texture loaded                                \n", tfile_name_short.c_str());
                     continue;
                 }
-                printf("%s texture reading failed\n", tfile_name_short.data());
+                printf("%s texture reading failed\n", tfile_name_short.c_str());
                 throw std::runtime_error("Texture reading failed");
             }
 
             /* Normal map loading */
-            if (strcmp(s, "load_normal_map") == 0) {
+            if (arg == "load_normal_map") {
                 std::string t_name(65, '\0');
                 char tfile_name[513];
-                ret = fscanf(file, " %64s %512s", (char*) t_name.data(), tfile_name);
+                ret = fscanf(file, " %64s %512s", t_name.data(), tfile_name);
                 if (ret != 2) {
                     throw std::runtime_error("Parsing error in scene constructor (normal map loading)");
                 }
-                t_name.resize(strlen(t_name.data()));
+                t_name.resize(strlen(t_name.c_str()));
                 std::string tfile_name_short = std::filesystem::path(tfile_name).filename().generic_string();
 
                 bool parsing_successful;
@@ -779,16 +780,16 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 normal_map_wrapper_set.emplace_back(normal_map(tfile_name, parsing_successful), t_name);
 
                 if (parsing_successful) {
-                    printf("\r> %s normal map loaded                                \n", tfile_name_short.data());
+                    printf("\r> %s normal map loaded                                \n", tfile_name_short.c_str());
                     continue;
                 }
-                printf("%s normal map reading failed\n", tfile_name_short.data());
+                printf("%s normal map reading failed\n", tfile_name_short.c_str());
                 throw std::runtime_error("Normal map reading failed");
             }
 
             /* Objects declaration */
             
-            if (strcmp(s, "sphere") == 0) {
+            if (arg == "sphere") {
                 /* center:(-500, 0, 600) radius:120 [material] */
                 double x, y, z, r;
                 ret = fscanf(file, "center:(%lf,%lf,%lf) radius:%lf material:",
@@ -825,7 +826,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 }
                 throw std::runtime_error("Material definition error");
             }
-            if (strcmp(s, "plane") == 0) {
+            if (arg == "plane") {
                 /* normal:(0, -1, 0) position:(0, 160, 0) [material] */
                 double nx, ny, nz, px, py, pz;
                 ret = fscanf(file, "normal:(%lf,%lf,%lf) position:(%lf,%lf,%lf) material:",
@@ -863,7 +864,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 }
                 throw std::runtime_error("Material definition error");
             }
-            if (strcmp(s, "box") == 0) {
+            if (arg == "box") {
                 /* center:(166, -200, 600) x_axis:(100, 100, -100) y_axis:(-200, 100, -100) 300 200 300 */
                 double cx, cy, cz, n1x, n1y, n1z, n2x, n2y, n2z, l1, l2, l3;
                 ret = fscanf(file, "center:(%lf,%lf,%lf) x_axis:(%lf,%lf,%lf) y_axis:(%lf,%lf,%lf) %lf %lf %lf material:",
@@ -890,7 +891,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 }
                 throw std::runtime_error("Material definition error");
             }
-            if (strcmp(s, "triangle") == 0) {
+            if (arg == "triangle") {
                 /* (-620, -100, 600) (-520, 100, 500) (-540, -200, 700) [material] */
                 double x0, y0, z0, x1, y1, z1, x2, y2, z2;
                 ret = fscanf(file, "(%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) material:",
@@ -928,7 +929,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 }
                 throw std::runtime_error("Material definition error");
             }
-            if (strcmp(s, "quad") == 0) {
+            if (arg == "quad") {
                 /* (-620, -100, 600) (-520, 100, 600) (-540, -200, 600) (-500, -250, 600) [material] */
                 double x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3;
                 ret = fscanf(file, "(%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) material:",
@@ -971,7 +972,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 throw std::runtime_error("Material definition error");
 
             }
-            if (strcmp(s, "cylinder") == 0) {
+            if (arg == "cylinder") {
                 /* origin:(0, 0, 0) direction:(1, -1, 1) radius:100 length:300 [material] */
                 double x0, y0, z0, dx, dy, dz, r, l;
                 ret = fscanf(file, "origin:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) radius:%lf length:%lf material:",
@@ -998,7 +999,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
             }
 
             /* Obj file parsing */
-            if (strcmp(s, "load_obj") == 0) {
+            if (arg == "load_obj") {
                 char ofile_name[513];
                 char t_name[65];
                 double sx = 0, sy = 0, sz = 0, scale = 1;
@@ -1045,7 +1046,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
             bounding_set.push_back(new bounding(std::move(other_content)));
         }
 
-        if (file != NULL) {
+        if (file != nullptr) {
             fclose(file);
         }
 
@@ -1069,14 +1070,14 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
             std::move(cam),
             width, height,
             polygons_per_bounding,
-            1.0 / inverse_gamma
+            1.0f / inverse_gamma
         );
     }
     catch (const exception& e) {
         printf("Error during scene parsing:\n");
         printf("%s\n", e.what());
         
-        if (file != NULL) {
+        if (file != nullptr) {
             fclose(file);
         }
         return std::nullopt;

@@ -1,11 +1,12 @@
 #include "file_readers/hdr_reader.hpp"
-#include "screen/color.hpp"
+
 #include "screen/screen.hpp"
+#include "parallel/parallel.hpp"
 
 #include <cmath>
 #include <stdexcept>
 
-#include "parallel/parallel.hpp"
+
 
 /// TESTING
 /* Prints the info contained in the header of the given .hdr file */

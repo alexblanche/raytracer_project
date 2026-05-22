@@ -79,7 +79,6 @@ exit_status menu::parse_aux(const std::vector<std::string>& args, const unsigned
                 }
                 const std::string& next = args[++i];
                 runtime_parameters.program.target_number_of_rays = std::stoul(next);
-
                 break;
             }
 
@@ -261,6 +260,7 @@ static exit_status run_offline(const runtime_parameters& runtime_parameters, std
         if ((i + 1) % EXPORT_INTERVAL == 0) {
             timer.interrupt();
 
+            printf(" ");
             const exit_status status = file_handler.export_raw_data("image.rtdata", i + 1, matrix, runtime_parameters);
             if (status == exit_status::Failure)
                 return exit_status::Failure;

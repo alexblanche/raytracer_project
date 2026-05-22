@@ -1,62 +1,30 @@
-/**
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 #pragma once
 
-#include <string>
-#include <SDL2/SDL.h>
-
-#include "screen/image.hpp"
+#include "screen/color.hpp"
+#include "screen/sdl.hpp"
 
 namespace rt {
 
-	/**
-	 * The screen class inherites from the image class in order
-	 * to draw something on the screen. It also wraps the SDL
-	 * initialization calls. Only one screen should be created.
-	 */
-	class screen : public image	{
-		
-		private:
-			static int initialized; /*!< Indicates how many instances of screen exist. */
+	class screen {
 
 		public:
-			/**
-			 * Main constructor, uses width and height.
-			 */
-			screen(int width, int height);
+			SDL_Window* window;
+			SDL_Renderer* renderer;
+			SDL_Rect srcrect;
+    		SDL_Rect dstrect;
+			SDL_Texture* texture;
 
-			/**
-			 * Destructor. Decrements the initialized
-			 * counter and closes the screen only if it goes to 0.
-			 */
+			screen(int width, int height);
 			~screen();
 
-			/**
-			 * Flushes the buffer to the screen
-			 */
+			void set_pixel(int x, int y, const color& c) const;
+			void set_pixel(int x, int y, Uint8 r, Uint8 g, Uint8 b) const;
+			void clear() const;
 			void update() const;
-
-			/**
-			 * Same as update, but first copies the texture onto the renderer
-			 */
 			void update_from_texture() const;
 
 			/****************************************************************************************************/
 			/** Event processing **/
-
 
 			enum class quit_event {
 				QuitEvent, KeyBoardEvent, Error	
@@ -80,9 +48,7 @@ namespace rt {
 
 			/****************************************************************************************************/
 
-			/**
-			 * Copies the rt::color matrix onto the screen, by averaging the number_of_rays colors per pixel
-			*/
+			/* Copies the rt::color matrix onto the screen, by averaging the number_of_rays colors per pixel */
 			void fast_copy(std::vector<std::vector<rt::color>>& matrix,
 				size_t width, size_t height,
 				unsigned int number_of_rays) const;

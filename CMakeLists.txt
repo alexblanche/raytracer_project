@@ -30,7 +30,6 @@ add_library(${libname} SHARED
 	src/scene/material/normal_map.cpp
 	src/scene/material/background.cpp
 	src/scene/material/material.cpp
-	src/screen/image.cpp
 	src/screen/screen.cpp
 	src/light/hit.cpp
 	src/light/ray.cpp
@@ -114,7 +113,6 @@ add_executable(${merger_name}
 set(legacy legacy_raytracer)
 add_executable(${legacy}
 	src/screen/color.cpp
-	src/screen/image.cpp
 	src/screen/screen.cpp
 	src/light/vector.cpp
 	src/light/ray.cpp
@@ -167,7 +165,6 @@ add_executable(testreader
 	src/file_readers/bmp_reader.cpp
 	src/file_readers/hdr_reader.cpp
 	src/screen/screen.cpp
-	src/screen/image.cpp
 	src/tests/test_reader.cpp
 )
 target_link_libraries(testreader
@@ -185,7 +182,6 @@ add_executable(testinfinite
 #	src/file_readers/bmp_reader.cpp
 	src/file_readers/hdr_reader.cpp
 	src/screen/screen.cpp
-	src/screen/image.cpp
 	src/tests/test_infinite_area.cpp
 )
 target_link_libraries(testinfinite
