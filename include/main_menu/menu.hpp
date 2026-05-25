@@ -4,6 +4,7 @@
 #include "main_menu/file_handler.hpp"
 #include "file_readers/scene_parser.hpp"
 
+#include <span>
 #include <optional>
 
 constexpr char const* default_filename = "../scene.txt";
@@ -25,5 +26,5 @@ class menu {
         exit_status run(const scene& scene) const;
 
     private:
-        exit_status parse_aux(const std::vector<std::string>& args, unsigned int index);
+        exit_status parse_aux(const std::span<const std::string> args);
 };

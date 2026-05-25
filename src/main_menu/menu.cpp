@@ -3,11 +3,13 @@
 #include "render/render_loops.hpp"
 #include "auxiliary/timer.hpp"
 
+#include <span>
 #include <filesystem>
+
 
 static bool is_number(const std::string& s) {
     try {
-        (void) std::stoul(s);
+        std::ignore = std::stoul(s);
         return true;
     }
     catch (std::exception& e) {
@@ -17,13 +19,14 @@ static bool is_number(const std::string& s) {
 
 static bool is_float(const std::string& s) {
     try {
-        (void) std::stof(s);
+        std::ignore = std::stof(s);
         return true;
     }
     catch (std::exception& e) {
         return false;
     }
 }
+
 
 enum class cli_argument {
     Time, TimeAll, Rays, Multisample, Gamma, Reinhardt, RussianRoulette, None
@@ -36,13 +39,13 @@ struct arg_pair {
 
 static cli_argument match(const std::string& input) {
     static const std::vector<arg_pair> keywords = {
-        { "-time",        cli_argument::Time            },
-        { "all",          cli_argument::TimeAll         },
-        { "-rays",        cli_argument::Rays            },
-        { "-multisample", cli_argument::Multisample     },
-        { "-gamma",       cli_argument::Gamma           },
-        { "-reinhardt",   cli_argument::Reinhardt       },
-        { "-rr",          cli_argument::RussianRoulette }
+        { "-time"s,        cli_argument::Time            },
+        { "all"s,          cli_argument::TimeAll         },
+        { "-rays"s,        cli_argument::Rays            },
+        { "-multisample"s, cli_argument::Multisample     },
+        { "-gamma"s,       cli_argument::Gamma           },
+        { "-reinhardt"s,   cli_argument::Reinhardt       },
+        { "-rr"s,          cli_argument::RussianRoulette }
     };
     for (const auto& [ keyword, value ] : keywords) {
         if (input == keyword)
@@ -51,14 +54,14 @@ static cli_argument match(const std::string& input) {
     return cli_argument::None;
 }
 
-exit_status menu::parse_aux(const std::vector<std::string>& args, const unsigned int index_arg) {
+exit_status menu::parse_aux(const std::span<const std::string> args) {
 
     const unsigned int size = args.size();
 
-    for (unsigned int i = index_arg; i < size; i++) {
+    for (unsigned int i = 0; i < size; i++) {
 
         const std::string& arg = args[i];
-        switch(match(arg)) {
+        switch (match(arg)) {
 
             case cli_argument::Time: {
                 runtime_parameters.time = time_mode::Simple;
@@ -157,7 +160,7 @@ exit_status menu::parse_arguments(int argc, char **argv) {
 
     // Other arguments
     if (index < size) {
-        const exit_status status = parse_aux(args, index);
+        const exit_status status = parse_aux(std::span<const std::string>(args).subspan(index));
         if (status == exit_status::Failure)
             return exit_status::Failure;
     }

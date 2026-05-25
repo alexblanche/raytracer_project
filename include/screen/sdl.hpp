@@ -1,13 +1,14 @@
 #pragma once
 
 #include <SDL2/SDL.h>
-#include <vector>
+#include <span>
 
+// Function that applies bitwise OR to a list of flags
 template<class T, typename UInt = uint32_t>
 requires std::is_enum_v<T>
     && std::is_convertible_v<std::underlying_type_t<T>, UInt>
 
-UInt fold(const std::vector<T>& elts) {
+UInt fold(const std::span<T> elts) {
     UInt acc = 0;
     for (T e : elts)
         acc |= static_cast<UInt>(e);
@@ -25,7 +26,7 @@ namespace sdl {
         Everything  = SDL_INIT_EVERYTHING
     };
 
-    inline void init(const std::vector<Init>& flags) {
+    inline void init(const std::span<Init> flags) {
         SDL_Init(fold(flags));
     }
 
@@ -52,14 +53,15 @@ namespace sdl {
         
         public:
             rect() {}
+
+            // Delete copy and move constructors
+
             rect(int x, int y, int w, int h)
                 : r({ x, y, w, h }) {}
 
-            const SDL_Rect * get() const {
-                return &r;
-            }
+        friend class window;
+        friend class texture;
     };
-
 
 
 
@@ -79,17 +81,19 @@ namespace sdl {
             SDL_Window *win = nullptr;
 
         public:
-            window() {}
-            // window = SDL_CreateWindow("Raytracer_project", 10, 10, width, height, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
+            window(const std::string& title, const rect& rect, const std::span<flag> flags) {
+                win = SDL_CreateWindow(title.c_str(), rect.r.x, rect.r.y, rect.r.w, rect.r.h, fold(flags));
+            }
+
+            window(window&&)                  = delete;
+            window(const window&)             = delete;
+            window& operator=(window&&)       = delete;
+            window& operator=(const window&)  = delete;
 
             ~window() {
                 if (win != nullptr)
                     SDL_DestroyWindow(win);
                 win = nullptr;
-            }
-
-            SDL_Window * get() const {
-                return win;
             }
 
             void set_full_sreen(flag flag) const {
@@ -99,6 +103,8 @@ namespace sdl {
             void warp_mouse(int x, int y) const {
                 SDL_WarpMouseInWindow(win, x, y);
             }
+
+        friend class renderer;
     };
 
 
@@ -118,20 +124,18 @@ namespace sdl {
             SDL_Renderer *ren = nullptr;
 
         public:
-            renderer(const window& win, std::vector<flag>& flags) {
+            renderer(const window& win, const std::span<flag> flags) {
                 constexpr int INDEX_FIRST_ONE = -1;
                 const uint32_t flag = fold(flags);
-                ren = SDL_CreateRenderer(win.get(), INDEX_FIRST_ONE, flag);
+                ren = SDL_CreateRenderer(win.win, INDEX_FIRST_ONE, flag);
             }
+
+            // Delete copy and move constructors
 
             ~renderer() {
                 if (ren != nullptr)
                     SDL_DestroyRenderer(ren);
                 ren = nullptr;
-            }
-
-            SDL_Renderer* get() const {
-                return ren;
             }
 
             void set_vsync(vsync_option v) const {
@@ -153,6 +157,8 @@ namespace sdl {
             void clear() const {
                 SDL_RenderClear(ren);
             }
+        
+        friend class texture;
     };
 
 
@@ -172,6 +178,11 @@ namespace sdl {
                     0, 0, 0, 0 // Masks for red, green, blue, alpha
                 );
             }
+
+            surface(surface&&)                  = delete;
+            surface(const surface&)             = delete;
+            surface& operator=(surface&&)       = delete;
+            surface& operator=(const surface&)  = delete;
 
             ~surface() {
                 if (sur != nullptr)
@@ -199,8 +210,8 @@ namespace sdl {
 
         public:
 
-            texture(const renderer& ren, PixelFormat format, Access access, int w, int h) {
-                txt = SDL_CreateTexture(ren.get(), static_cast<uint32_t>(format), static_cast<int>(access), w, h);
+            texture(const renderer& ren, PixelFormat format, Access access, int width, int height) {
+                txt = SDL_CreateTexture(ren.ren, static_cast<uint32_t>(format), static_cast<int>(access), width, height);
             }
 
             texture(texture&&)                  = delete;
@@ -229,7 +240,7 @@ namespace sdl {
             locked_info lock_texture(const rect& rect) const {
                 char * pixels;
                 int    pitch;
-                SDL_LockTexture(txt, rect.get(), reinterpret_cast<void**>(&pixels), &pitch);
+                SDL_LockTexture(txt, &rect.r, reinterpret_cast<void**>(&pixels), &pitch);
                 return { pixels, pitch };
             }
             
@@ -242,9 +253,10 @@ namespace sdl {
                 
                 private:
                     const texture& txt;
+                    
+                public:
                     locked_info info;
 
-                public:
                     lock(const texture& texture)
                         : txt(texture), info(txt.lock_texture()) {}
 
@@ -256,10 +268,6 @@ namespace sdl {
                     ~lock() {
                         txt.unlock_texture();
                     }
-
-                    locked_info get() const {
-                        return info;
-                    }
             };
 
             lock get_lock() const {
@@ -267,7 +275,7 @@ namespace sdl {
             }
 
             void render_copy(const renderer& ren, const rect& src_rect, const rect& dst_rect) const {
-                SDL_RenderCopy(ren.get(), txt, src_rect.get(), dst_rect.get());
+                SDL_RenderCopy(ren.ren, txt, &src_rect.r, &dst_rect.r);
             }
     };
 
