@@ -8,7 +8,7 @@ template<class T, typename UInt = uint32_t>
 requires std::is_enum_v<T>
     && std::is_convertible_v<std::underlying_type_t<T>, UInt>
 
-UInt fold(const std::span<T> elts) {
+UInt fold(const std::span<const T> elts) {
     UInt acc = 0;
     for (T e : elts)
         acc |= static_cast<UInt>(e);
@@ -26,7 +26,7 @@ namespace sdl {
         Everything  = SDL_INIT_EVERYTHING
     };
 
-    inline void init(const std::span<Init> flags) {
+    inline void init(const std::span<const Init> flags) {
         SDL_Init(fold(flags));
     }
 
@@ -69,19 +69,19 @@ namespace sdl {
 
     class window {
 
-        enum class flag {
-            AllowHighDPI = SDL_WINDOW_ALLOW_HIGHDPI,
-            Resizable    = SDL_WINDOW_RESIZABLE,
-            FullScreen   = SDL_WINDOW_FULLSCREEN,
-            Borderless   = SDL_WINDOW_BORDERLESS,
-            Windowed     = 0
-        };
-
         private:
             SDL_Window *win = nullptr;
 
         public:
-            window(const std::string& title, const rect& rect, const std::span<flag> flags) {
+            enum class flag {
+                AllowHighDPI = SDL_WINDOW_ALLOW_HIGHDPI,
+                Resizable    = SDL_WINDOW_RESIZABLE,
+                FullScreen   = SDL_WINDOW_FULLSCREEN,
+                Borderless   = SDL_WINDOW_BORDERLESS,
+                Windowed     = 0
+            };
+
+            window(const std::string& title, const rect& rect, const std::span<const flag> flags) {
                 win = SDL_CreateWindow(title.c_str(), rect.r.x, rect.r.y, rect.r.w, rect.r.h, fold(flags));
             }
 
@@ -112,34 +112,35 @@ namespace sdl {
 
     class renderer {
 
-        enum class vsync_option {
-            Disabled = 0, Enabled = 1
-        };
-        
-        enum class flag {
-            Accelerated = SDL_RENDERER_ACCELERATED
-        };
-
         private:
             SDL_Renderer *ren = nullptr;
 
         public:
-            renderer(const window& win, const std::span<flag> flags) {
+            enum class vsync_option {
+                Disabled = 0, Enabled = 1
+            };
+            
+            enum class flag {
+                Accelerated = SDL_RENDERER_ACCELERATED
+            };
+
+            renderer(const window& win, int width, int height, const std::span<const flag> flags, vsync_option vsync) {
                 constexpr int INDEX_FIRST_ONE = -1;
                 const uint32_t flag = fold(flags);
                 ren = SDL_CreateRenderer(win.win, INDEX_FIRST_ONE, flag);
+                SDL_RenderSetVSync(ren, static_cast<int>(vsync));
+		        SDL_RenderSetLogicalSize(ren, width, height);
             }
 
-            // Delete copy and move constructors
+            renderer(renderer&&)                  = delete;
+            renderer(const renderer&)             = delete;
+            renderer& operator=(renderer&&)       = delete;
+            renderer& operator=(const renderer&)  = delete;
 
             ~renderer() {
                 if (ren != nullptr)
                     SDL_DestroyRenderer(ren);
                 ren = nullptr;
-            }
-
-            void set_vsync(vsync_option v) const {
-                SDL_RenderSetVSync(ren, static_cast<int>(v));
             }
 
             void set_logical_size(int width, int height) const {
@@ -148,6 +149,10 @@ namespace sdl {
 
             void set_render_draw_color(Uint8 r, Uint8 g, Uint8 b) const {
                 SDL_SetRenderDrawColor(ren, r, g, b, 255);
+            }
+
+            void draw_point(int x, int y) const {
+                SDL_RenderDrawPoint(ren, x, y);
             }
 
             void render_present() const {
@@ -196,19 +201,18 @@ namespace sdl {
 
     class texture {
 
-        enum class PixelFormat {
-            RGB24 = SDL_PIXELFORMAT_RGB24,
-            BGR24 = SDL_PIXELFORMAT_BGR24
-        };
-
-        enum class Access {
-            Streaming = SDL_TEXTUREACCESS_STREAMING
-        };
-
         private:
             SDL_Texture *txt = nullptr;
 
         public:
+            enum class PixelFormat {
+                RGB24 = SDL_PIXELFORMAT_RGB24,
+                BGR24 = SDL_PIXELFORMAT_BGR24
+            };
+
+            enum class Access {
+                Streaming = SDL_TEXTUREACCESS_STREAMING
+            };
 
             texture(const renderer& ren, PixelFormat format, Access access, int width, int height) {
                 txt = SDL_CreateTexture(ren.ren, static_cast<uint32_t>(format), static_cast<int>(access), width, height);
@@ -284,23 +288,29 @@ namespace sdl {
 
     class event {
 
-        enum class type {
-            KeyDown         = SDL_KEYDOWN,
-            KeyUp           = SDL_KEYUP,
-            MouseMotion     = SDL_MOUSEMOTION,
-            MouseButtonDown = SDL_MOUSEBUTTONDOWN,
-            MouseButtonUp   = SDL_MOUSEBUTTONUP,
-            MouseWheel      = SDL_MOUSEWHEEL,
-            Quit            = SDL_QUIT
-        };
-
-        event(event&&)                  = delete;
-        event(const event&)             = delete;
-        event& operator=(event&&)       = delete;
-        event& operator=(const event&)  = delete;
-
         public:
             SDL_Event e;
+
+            enum class type {
+                KeyDown         = SDL_KEYDOWN,
+                KeyUp           = SDL_KEYUP,
+                MouseMotion     = SDL_MOUSEMOTION,
+                MouseButtonDown = SDL_MOUSEBUTTONDOWN,
+                MouseButtonUp   = SDL_MOUSEBUTTONUP,
+                MouseWheel      = SDL_MOUSEWHEEL,
+                Quit            = SDL_QUIT
+            };
+
+            event() {}
+
+            event(event&&)                  = delete;
+            event(const event&)             = delete;
+            event& operator=(event&&)       = delete;
+            event& operator=(const event&)  = delete;
+
+            enum class polling_type {
+                Wait, Poll
+            };
 
             bool poll_event() {
                 return SDL_PollEvent(&e);
@@ -308,6 +318,16 @@ namespace sdl {
 
             bool wait_event() {
                 return SDL_WaitEvent(&e);
+            }
+
+            template <polling_type type>
+            bool next_event() {
+                if constexpr (type == polling_type::Wait) {
+                    return wait_event();
+                }
+                else {
+                    return poll_event();
+                }
             }
 
             bool wait_event_timeout(int timeout) {

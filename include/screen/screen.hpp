@@ -8,11 +8,11 @@ namespace rt {
 	class screen {
 
 		public:
-			SDL_Window* window;
-			SDL_Renderer* renderer;
-			SDL_Rect srcrect;
-    		SDL_Rect dstrect;
-			SDL_Texture* texture;
+			sdl::window 	window;
+			sdl::renderer 	renderer;
+			sdl::rect 		srcrect;
+			sdl::rect 		dstrect;
+			sdl::texture	texture;
 
 			screen(int width, int height);
 			~screen();
