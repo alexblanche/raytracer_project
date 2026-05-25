@@ -52,7 +52,7 @@ std::vector<real> alias_table::compute_low_res_table(const std::vector<std::vect
 
     // Normalize the table
     real weight_sum = 0.0f;
-    for (real x : table)
+    for (const real x : table)
         weight_sum += x;
 
     for (real& x : table)

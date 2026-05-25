@@ -1,8 +1,9 @@
 #pragma once
 
-#include <vector>
 #include "screen/color.hpp"
 #include "auxiliary/randomgen.hpp"
+
+#include <vector>
 
 constexpr unsigned int LOWRES_DEFAULT_WIDTH  = 854;
 constexpr unsigned int LOWRES_DEFAULT_HEIGHT = 480;
@@ -10,7 +11,8 @@ constexpr unsigned int LOWRES_DEFAULT_HEIGHT = 480;
 struct alias_bin {
     real p = 0.0f;
     unsigned int alias = 0;
-
+    
+    alias_bin() {}
     alias_bin(real p, unsigned int alias)
         : p(p), alias(alias) {}
 };

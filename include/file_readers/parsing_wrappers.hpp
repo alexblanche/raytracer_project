@@ -2,6 +2,7 @@
 
 #include <string>
 #include <optional>
+#include <span>
 
 /* Struct containing a material or texture, its name and the index objects are going to store */
 
@@ -69,12 +70,12 @@ class wrapper {
         wrapper& operator=(const wrapper&)  = delete;
 
         /* type = "material", "texture", "normal map" */
-        static std::optional<unsigned int> find_element(const std::vector<wrapper>& wrapper_set, const char* vname) {
+        static std::optional<unsigned int> find_element(const std::span<const wrapper> wrapper_set, const char* vname) {
 
             std::optional<unsigned int> vindex;
         
             for (wrapper const& elt_wrap : wrapper_set) {
-                if (elt_wrap.name.has_value() && elt_wrap.name.value().compare(vname) == 0) {
+                if (elt_wrap.name.has_value() && elt_wrap.name.value() == vname) {
                     vindex = elt_wrap.index;
                     break;
                 }

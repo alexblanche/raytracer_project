@@ -110,16 +110,18 @@ std::optional<std::vector<std::vector<rt::color>>> read_raw(const char* file_nam
 /* Combines the n files whose names are in the array source_file_names into one bmp file dest_bmp_name (extension .bmp)
    and one raw data file dest_raw_name (extension .rtdata)
    Returns true if the operation was successful */
-exit_status combine_raw(const char* dest_bmp_name, const char* dest_raw_name, const int n, const char* const source_file_names[], const float gamma) {
+exit_status combine_raw(const std::string& dest_bmp_name, const std::string& dest_raw_name, const int n,
+    const std::span<const std::string> source_file_names, const float gamma) {
+
     if (n < 0) {
         printf("Error, not enough files provided\n");
         return exit_status::Failure;
     }
 
-    FILE* file0 = fopen(source_file_names[0], "r");
+    FILE* file0 = fopen(source_file_names[0].c_str(), "r");
 
     if (file0 == nullptr) {
-        printf("Error, first file (%s) not found\n", source_file_names[0]);
+        printf("Error, first file (%s) not found\n", source_file_names[0].c_str());
         return exit_status::Failure;
     }
 
@@ -129,7 +131,7 @@ exit_status combine_raw(const char* dest_bmp_name, const char* dest_raw_name, co
         &width, &height);
 
     if (ret0 < 0) {
-        printf("Reading error at first line of file %s\n", source_file_names[0]);
+        printf("Reading error at first line of file %s\n", source_file_names[0].c_str());
         fclose(file0);
         return exit_status::Failure;
     }
@@ -139,10 +141,11 @@ exit_status combine_raw(const char* dest_bmp_name, const char* dest_raw_name, co
     unsigned int total_number_of_rays = 0;
 
     /* Adding the value of each file to matrix */
-    for (unsigned int k = 0; k < (unsigned int) n; k++) {
-        FILE* file = fopen(source_file_names[k], "r");
+    for (const std::string& name : source_file_names) {
+
+        FILE* file = fopen(name.c_str(), "r");
         if (file == NULL) {
-            printf("Error, file (%s) not found\n", source_file_names[k]);
+            printf("Error, file (%s) not found\n", name.c_str());
             return exit_status::Failure;
         }
 
@@ -151,13 +154,13 @@ exit_status combine_raw(const char* dest_bmp_name, const char* dest_raw_name, co
             &width_k, &height_k, &number_of_rays_k);
 
         if (retk0 < 0) {
-            printf("Reading error at first line of file %s\n", source_file_names[k]);
+            printf("Reading error at first line of file %s\n", name.c_str());
             fclose(file);
             return exit_status::Failure;
         }
 
         if (width_k != width || height_k != height) {
-            printf("Error, incorrect width or height in file %s\n", source_file_names[k]);
+            printf("Error, incorrect width or height in file %s\n", name.c_str());
             fclose(file);
             return exit_status::Failure;
         }
@@ -170,7 +173,7 @@ exit_status combine_raw(const char* dest_bmp_name, const char* dest_raw_name, co
                 double r, g, b;
                 const int ret = fscanf(file, "%lf %lf %lf\n", &r, &g, &b);
                 if (ret < 0) {
-                    printf("Reading error at color line %u of file %s\n", widthj + i, source_file_names[k]);
+                    printf("Reading error at color line %u of file %s\n", widthj + i, name.c_str());
                     fclose(file);
                     return exit_status::Failure;
                 }
@@ -181,16 +184,16 @@ exit_status combine_raw(const char* dest_bmp_name, const char* dest_raw_name, co
     }
 
     /* Exporting the matrix as a bmp file */
-    const exit_status success_bmp = write_bmp(dest_bmp_name, matrix, total_number_of_rays, gamma);
-    const exit_status success_raw = export_raw(dest_raw_name, total_number_of_rays, matrix);
+    const exit_status success_bmp = write_bmp(dest_bmp_name.c_str(), matrix, total_number_of_rays, gamma);
+    const exit_status success_raw = export_raw(dest_raw_name.c_str(), total_number_of_rays, matrix);
 
     if ((success_bmp && success_raw) == exit_status::Success)
         return exit_status::Success;
     
     if (success_bmp == exit_status::Failure)
-        printf("Error in generating the bmp file %s\n", dest_bmp_name);
+        printf("Error in generating the bmp file %s\n", dest_bmp_name.c_str());
     if (success_raw == exit_status::Failure)
-        printf("Error in generating the raw data file %s\n", dest_raw_name);
+        printf("Error in generating the raw data file %s\n", dest_raw_name.c_str());
 
     return exit_status::Failure;
 }

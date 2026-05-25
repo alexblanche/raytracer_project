@@ -1,9 +1,9 @@
 #pragma once
 
-#include <vector>
 #include "screen/color.hpp"
 #include "auxiliary/exit_status.hpp"
 
+#include <span>
 #include <optional>
 
 /* Creates a file file_name, and writes in it the resolution of the image, the number of rays used to generate it,
@@ -29,5 +29,5 @@ std::optional<std::vector<std::vector<rt::color>>> read_raw(const char* file_nam
 /* Combines the n files whose names are in the array source_file_names into one bmp file dest_bmp_name (extension .bmp)
    and one raw data file dest_raw_name (extension .rtdata)
    Returns true if the operation was successful */
-exit_status combine_raw(const char* dest_bmp_name, const char* dest_raw_name, const int n,
-   const char* const source_file_names[], const float gamma = 1.0f);
+exit_status combine_raw(const std::string& dest_bmp_name, const std::string& dest_raw_name, const int n,
+   const std::span<const std::string> source_file_names, const float gamma = 1.0f);

@@ -9,9 +9,7 @@
 #include "auxiliary/clustering.hpp"
 #include "file_readers/mtl_parser.hpp"
 
-#include <cstring>
 #include <string>
-
 #include <stack>
 
 #include "file_readers/parsing_wrappers.hpp"
@@ -54,9 +52,9 @@ void add_triangle(const std::vector<rt::vector>& vertex_set, const std::vector<r
          texture_info(
             current_texture_index,
             std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-            {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
-            uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
-            uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y})
+            { uv_coord_set[vt1].x,  1 - uv_coord_set[vt1].y,
+              uv_coord_set[vt2].x,  1 - uv_coord_set[vt2].y,
+              uv_coord_set[vt3].x,  1 - uv_coord_set[vt3].y })
       );
    }
 
@@ -97,9 +95,9 @@ void add_triangle_subdiv(const std::vector<rt::vector>& vertex_set, const std::v
          texture_info(
             current_texture_index,
             std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-            {uv_coord_set[vtj].x, 1-uv_coord_set[vtj].y,
-            uv_coord_set[vti].x, 1-uv_coord_set[vti].y,
-            final_vt.x, 1-final_vt.y})
+            { uv_coord_set[vtj].x, 1 - uv_coord_set[vtj].y,
+              uv_coord_set[vti].x, 1 - uv_coord_set[vti].y,
+              final_vt.x,          1 - final_vt.y })
       );
    }
 
@@ -139,10 +137,10 @@ void add_quad(const std::vector<rt::vector>& vertex_set, const std::vector<rt::v
          texture_info(
             current_texture_index,
             std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-            {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
-            uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
-            uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y,
-            uv_coord_set[vt4].x,  1-uv_coord_set[vt4].y})
+            { uv_coord_set[vt1].x, 1 - uv_coord_set[vt1].y,
+              uv_coord_set[vt2].x, 1 - uv_coord_set[vt2].y,
+              uv_coord_set[vt3].x, 1 - uv_coord_set[vt3].y,
+              uv_coord_set[vt4].x, 1 - uv_coord_set[vt4].y })
       );
    }
 
@@ -182,9 +180,9 @@ void add_triangle_no_normal(const std::vector<rt::vector>& vertex_set, const std
          texture_info(
             current_texture_index,
             std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-            {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
-            uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
-            uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y})
+            { uv_coord_set[vt1].x, 1 - uv_coord_set[vt1].y,
+              uv_coord_set[vt2].x, 1 - uv_coord_set[vt2].y,
+              uv_coord_set[vt3].x, 1 - uv_coord_set[vt3].y })
       );
    }
 
@@ -221,9 +219,9 @@ void add_triangle_subdiv_no_normal(const std::vector<rt::vector>& vertex_set, co
          texture_info(
             current_texture_index,
             std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-            {uv_coord_set[vtj].x, 1-uv_coord_set[vtj].y,
-            uv_coord_set[vti].x, 1-uv_coord_set[vti].y,
-            final_vt.x, 1-final_vt.y})
+            { uv_coord_set[vtj].x, 1 - uv_coord_set[vtj].y,
+              uv_coord_set[vti].x, 1 - uv_coord_set[vti].y,
+              final_vt.x,          1 - final_vt.y })
       );
    }
 
@@ -260,10 +258,10 @@ void add_quad_no_normal(const std::vector<rt::vector>& vertex_set, const std::ve
          texture_info(
             current_texture_index,
             std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-            {uv_coord_set[vt1].x, 1-uv_coord_set[vt1].y,
-            uv_coord_set[vt2].x,  1-uv_coord_set[vt2].y,
-            uv_coord_set[vt3].x,  1-uv_coord_set[vt3].y,
-            uv_coord_set[vt4].x,  1-uv_coord_set[vt4].y})
+            { uv_coord_set[vt1].x, 1 - uv_coord_set[vt1].y,
+              uv_coord_set[vt2].x, 1 - uv_coord_set[vt2].y,
+              uv_coord_set[vt3].x, 1 - uv_coord_set[vt3].y,
+              uv_coord_set[vt4].x, 1 - uv_coord_set[vt4].y })
       );
    }
 
@@ -303,10 +301,13 @@ void add_subdivided_polygon(FILE* file,
    std::stack<unsigned int> v_stack;
    std::stack<unsigned int> vt_stack;
    std::stack<unsigned int> vn_stack;
-   v_stack.push(v1);   v_stack.push(v2);   v_stack.push(v3);   v_stack.push(v4);   v_stack.push(v5);
-   vt_stack.push(vt1); vt_stack.push(vt2); vt_stack.push(vt3); vt_stack.push(vt4); vt_stack.push(vt5);
-   vn_stack.push(vn1); vn_stack.push(vn2); vn_stack.push(vn3); vn_stack.push(vn4); vn_stack.push(vn5);
-
+   for (unsigned int v : { v1, v2, v3, v4, v5 })
+      v_stack.push(v);
+   for (unsigned int vt : { vt1, vt2, vt3, vt4, vt5 })
+      vt_stack.push(vt);
+   for (unsigned int vn : { vn1, vn2, vn3, vn4, vn5 })
+      v_stack.push(vn);
+   
    unsigned int cpt = 5;
    rt::vector final_v  = vertex_set[v1]    + vertex_set[v2]    + vertex_set[v3]    + vertex_set[v4]    + vertex_set[v5];
    rt::vector final_vt = uv_coord_set[vt1] + uv_coord_set[vt2] + uv_coord_set[vt3] + uv_coord_set[vt4] + uv_coord_set[vt5];
@@ -415,8 +416,10 @@ void add_subdivided_polygon_no_normal(FILE* file,
    
    std::stack<unsigned int> v_stack;
    std::stack<unsigned int> vt_stack;
-   v_stack.push(v1);   v_stack.push(v2);   v_stack.push(v3);   v_stack.push(v4);   v_stack.push(v5);
-   vt_stack.push(vt1); vt_stack.push(vt2); vt_stack.push(vt3); vt_stack.push(vt4); vt_stack.push(vt5);
+   for (unsigned int v : { v1, v2, v3, v4, v5 })
+      v_stack.push(v);
+   for (unsigned int vt : { vt1, vt2, vt3, vt4, vt5 })
+      vt_stack.push(vt);
 
    unsigned int cpt = 5;
    rt::vector final_v  = vertex_set[v1]    + vertex_set[v2]    + vertex_set[v3]    + vertex_set[v4]    + vertex_set[v5];
@@ -530,9 +533,9 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
    }
 
    /* Extraction of the path to the .obj file, to be appended to relative paths of mtl and texture files */
-   const string file_name_string = string(file_name);
+   const std::string file_name_string = file_name;
    const unsigned int last_slash = file_name_string.find_last_of("/\\");
-   const string path = file_name_string.substr(0, last_slash + 1);
+   const std::string path = file_name_string.substr(0, last_slash + 1);
 
    /* Storage */
    /* All indices start at 1, so for simplicity we add an unused first vector */
@@ -686,36 +689,23 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
             }
 
             /* Looking up the material name in the vector of already declared material names */
-            std::optional<unsigned int> vindex = std::nullopt;
-            for (wrapper<material> const& mat_wrap : material_wrapper_set) {
-               if (mat_wrap.name.has_value() && mat_wrap.name.value().compare(m_name) == 0) {
-                  vindex = mat_wrap.index;
-               }
-            }
+            const std::optional<unsigned int> vindex = wrapper<material>::find_element(material_wrapper_set, m_name);
             
             if (not vindex.has_value()) {
-               printf("Error, material %s not found\n", m_name);
                throw std::runtime_error("(material reading)");
             }
-            else {
-
-               // const material& m = material_wrapper_set[vindex.value()].content;
-               // printf("material %s: color:(%d, %d, %d), smooth:%lf, refl:%lf, has_spec:%d, refl_col:%d\n",
-               //    material_wrapper_set[vindex.value()].name.value().data(),
-               //    (int) m.get_color().get_red(), (int) m.get_color().get_green(), (int) m.get_color().get_blue(),
-               //    m.get_smoothness(), m.get_reflectivity(), m.is_specular(), m.does_reflect_color());
-
-               current_material_index = vindex.value();
-               if (mt_assoc.count(current_material_index) > 0) {
-                  // A texture was associated with the material by an mtl file
-                  current_texture_index = mt_assoc[current_material_index];
-                  apply_texture = true;
-               }
-               else {
-                  current_texture_index = default_texture_index.value_or(EMPTY_INDEX);
-                  apply_texture = default_texture_provided;
-               }
+            
+            current_material_index = vindex.value();
+            if (mt_assoc.count(current_material_index) > 0) {
+               // A texture was associated with the material by an mtl file
+               current_texture_index = mt_assoc[current_material_index];
+               apply_texture = true;
             }
+            else {
+               current_texture_index = default_texture_index.value_or(EMPTY_INDEX);
+               apply_texture = default_texture_provided;
+            }
+            
          }
          else if (strcmp(s, "mtllib") == 0) {
             char mtl_file_name[513];

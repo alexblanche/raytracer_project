@@ -26,9 +26,9 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
     std::vector<wrapper<texture>>& texture_wrapper_set,
     std::map<unsigned int, unsigned int>& mt_assoc, const real gamma) {
 
-    FILE* file = fopen((path + std::string(file_name)).data(), "r");
+    FILE* file = fopen((path + std::string(file_name)).c_str(), "r");
 
-    if (file == NULL) {
+    if (file == nullptr) {
         printf("Error, file %s not found\n", file_name);
         return false;
     }
@@ -60,7 +60,7 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
                 if (ret != 1) {
                     throw std::runtime_error("(newmtl)");
                 }
-                m_name.resize(strlen(m_name.data()));
+                m_name.resize(strlen(m_name.c_str()));
 
                 /*
                 Syntax example:
@@ -127,8 +127,8 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
                 /* Looking for a material with the same name */
                 bool already_exists = false;
                 for(wrapper<material> const& mat_wrap : material_wrapper_set) {
-                    if (mat_wrap.name.has_value() && mat_wrap.name.value().compare(m_name) == 0) {
-                        printf("\rDuplicate material %s ignored\n", m_name.data());
+                    if (mat_wrap.name.has_value() && mat_wrap.name.value() == m_name) {
+                        printf("\rDuplicate material %s ignored\n", m_name.c_str());
                         already_exists = true;
                         break;
                     }
@@ -141,7 +141,7 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
                     material_wrapper_set.emplace_back(std::move(m), m_name);
                 }
                 
-                const unsigned int m_i = material_wrapper_set[material_wrapper_set.size()-1].index;
+                const unsigned int m_i = material_wrapper_set.back().index;
 
                 /* Test for associated texture */
                 char tfile_name[513];
@@ -151,7 +151,7 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
                     // Texture loading
 
                     bool parsing_successful;
-                    texture txt((path + std::string(tfile_name)).data(), parsing_successful);
+                    texture txt((path + std::string(tfile_name)).c_str(), parsing_successful);
                     texture_wrapper_set.emplace_back(std::move(txt));
                     const unsigned int t_i = texture_wrapper_set[texture_wrapper_set.size()-1].index;
 

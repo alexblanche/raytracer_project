@@ -2,8 +2,6 @@
 
 #include "file_readers/obj_parser.hpp"
 
-#include <stdio.h>
-#include <string.h>
 #include <string>
 #include <sstream>
 #include <filesystem>
@@ -442,10 +440,7 @@ std::optional<texture_info> parse_texture_info(FILE* file,
                 return std::nullopt;
             }
 
-            return texture_info(vindex, nindex,
-                {static_cast<real>(u0), static_cast<real>(v0),
-                static_cast<real>(u1), static_cast<real>(v1),
-                static_cast<real>(u2), static_cast<real>(v2)});
+            return texture_info(vindex, nindex, std::vector<real>{ u0, v0, u1, v1, u2, v2 });
         }
                     
         case object_type::Quad: {
@@ -457,12 +452,7 @@ std::optional<texture_info> parse_texture_info(FILE* file,
                 return std::nullopt;
             }
 
-            return texture_info(vindex, nindex,
-                {static_cast<real>(u0), static_cast<real>(v0),
-                static_cast<real>(u1), static_cast<real>(v1),
-                static_cast<real>(u2), static_cast<real>(v2),
-                static_cast<real>(u3), static_cast<real>(v3)});
-
+            return texture_info(vindex, nindex, std::vector<real>{ u0, v0, u1, v1, u2, v2, u3, v3 });
         }
 
         case object_type::Sphere: {
@@ -475,9 +465,7 @@ std::optional<texture_info> parse_texture_info(FILE* file,
             }
 
             // texture_info is used to pass the coordinates for forward_dir and right_dir
-            return texture_info(vindex, nindex,
-                {static_cast<real>(x0), static_cast<real>(y0), static_cast<real>(z0),
-                static_cast<real>(x1), static_cast<real>(y1), static_cast<real>(z1)});
+            return texture_info(vindex, nindex, std::vector<real>{x0, y0, z0, x1, y1, z1});
         }
 
         case object_type::Plane: {
@@ -490,9 +478,7 @@ std::optional<texture_info> parse_texture_info(FILE* file,
             }
 
             // texture_info is used to pass the coordinates for forward_dir and right_dir
-            return texture_info(vindex, nindex,
-                {static_cast<real>(x0), static_cast<real>(y0), static_cast<real>(z0),
-                static_cast<real>(u0)});
+            return texture_info(vindex, nindex, std::vector<real>{x0, y0, z0, u0});
         }
 
         case object_type::Box:

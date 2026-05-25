@@ -18,7 +18,7 @@ texture::texture(const int width, const int height, std::vector<std::vector<rt::
    Writes true in parsing_successful if the operation was successful */
 texture::texture(const char* file_name, bool& parsing_successful, const real gamma) {
 
-    std::string extension = std::filesystem::path(file_name).extension().generic_string();
+    const std::string extension = std::filesystem::path(file_name).extension().generic_string();
     const bool is_bmp = extension == ".bmp";
     const bool is_right_format = is_bmp || extension == ".hdr";
     if (not is_right_format) {
