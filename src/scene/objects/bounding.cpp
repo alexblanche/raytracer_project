@@ -50,9 +50,6 @@ void bounding::check_box(const ray& r,
         return;
 
     if (not is_terminal) {
-        // for (const bounding* bd : children) {
-        //     bounding_stack.push(bd);
-        // }
         bounding_stack.push(children);
         return;
     }
@@ -87,7 +84,7 @@ void bounding::check_box_next(const ray& r,
 
     if (not is_terminal) {
         const unsigned int last_index = children.size() - 1;
-        bounding_stack.push(children.data(), last_index);
+        bounding_stack.push(std::span(children).first(last_index));
         next_bounding = children[last_index];
         bd_stored = true;
         return;
@@ -132,7 +129,7 @@ const bounding* containing_bounding_two(const bounding* bd0, const bounding* bd1
 
 /* Returns a non-terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the standard non-terminal bounding boxes in the children vector */
-const bounding* containing_bounding_any(vector<const bounding*>&& children) {
+const bounding* containing_bounding_any(std::vector<const bounding*>&& children) {
 
     if (children.size() == 0) {
         printf("Error, empty vector of children bounding boxes\n");
@@ -181,11 +178,11 @@ const bounding* containing_bounding_any(vector<const bounding*>&& children) {
    containing the (finite) objects whose indices are in the obj vector */
 const bounding* containing_objects(std::vector<const object*>&& objs) {
 
-    real min_x = infinity;
+    real min_x =  infinity;
     real max_x = -infinity;
-    real min_y = infinity;
+    real min_y =  infinity;
     real max_y = -infinity;
-    real min_z = infinity;
+    real min_z =  infinity;
     real max_z = -infinity;
 
     /* Computation of the dimensions of the object set */

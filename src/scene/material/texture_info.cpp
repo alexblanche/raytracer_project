@@ -3,7 +3,7 @@
 /** Texture infos **/
 
 texture_info::texture_info()
-    : uv_coordinates({}), texture_index(-1) {}
+    : uv_coordinates({}), texture_index(NONE) {}
 
 texture_info::texture_info(std::optional<int> t_index,
     std::optional<int> n_index,
@@ -11,8 +11,8 @@ texture_info::texture_info(std::optional<int> t_index,
     // std::optional<size_t> displacement_map_index,
     std::vector<real>&& uv_coordinates)
     : uv_coordinates(std::move(uv_coordinates)),
-    texture_index(t_index.value_or(-1)),
-    normal_map_index(n_index.value_or(-1)) {}
+    texture_index(t_index.value_or(NONE)),
+    normal_map_index(n_index.value_or(NONE)) {}
 
 /* Texturing */
 
@@ -49,7 +49,7 @@ uvcoord texture_info::get_barycenter(const barycentric_info& bary) const {
             v = 0;
             break;
     }
-    return uvcoord(u, v);
+    return { u, v };
 }
 
 /* Sets the tangent and bitangent vectors */

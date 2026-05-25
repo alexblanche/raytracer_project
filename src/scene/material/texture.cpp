@@ -7,14 +7,10 @@
 
 /* Constructors */
 
-texture::texture() {
-    // printf("Creation of an empty texture\n");
-}
-
 /* Default constructor */
-texture::texture(const int width, const int height, const std::vector<std::vector<rt::color>>&& data)
+texture::texture(const int width, const int height, std::vector<std::vector<rt::color>>&& data)
     : data(std::move(data)),
-        width_minus_one( static_cast<real>(width  - 1)),
+        width_minus_one(static_cast<real>(width  - 1)),
         height_minus_one(static_cast<real>(height - 1)),
         width(width), height(height) {}
 

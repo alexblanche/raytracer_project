@@ -160,7 +160,7 @@ exit_status menu::parse_arguments(int argc, char **argv) {
 
     // Other arguments
     if (index < size) {
-        const exit_status status = parse_aux(std::span<const std::string>(args).subspan(index));
+        const exit_status status = parse_aux(std::span(args).subspan(index));
         if (status == exit_status::Failure)
             return exit_status::Failure;
     }

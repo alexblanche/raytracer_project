@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <stack>
+#include <span>
 
 /* Infinite area light sample */
 

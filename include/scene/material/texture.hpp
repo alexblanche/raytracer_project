@@ -22,26 +22,19 @@ class texture {
         int width, height;
 
     public:      
-
-        /* Constructors */
-
-        texture();
+        texture() {}
 
         /* Default constructor */
-        texture(int width, int height, const std::vector<std::vector<rt::color>>&& data);
+        texture(int width, int height, std::vector<std::vector<rt::color>>&& data);
 
         /* Constructor from a .bmp or .hdr file
            Writes true in parsing_successful if the operation was successful */
         texture(const char* file_name, bool& parsing_successful, real gamma = 1.0f);
 
-        /* Accessor */
-
         /* Returns the color stored in data at UV-coordinates u, v (between 0 and 1) times width, height */
         const rt::color& get_color(real u, real v) const;
 
-        ~texture() = default; // {
-            // printf("Destruction of a texture (width = %d, height = %d, data = %lu)\n", width, height, data.size());
-        // }
+        ~texture() = default;
 
         texture(texture&&)                  = default;
         texture& operator=(texture&&)       = default;

@@ -98,20 +98,21 @@ namespace rt {
 					return screen::key::QuitEvent;
 				
 				case sdl::event::type::KeyDown:
-					switch(event.e.key.keysym.scancode) {
+					using key = sdl::event::key;
+					switch(event.get_key()) {
 						
-						case SDL_SCANCODE_ESCAPE:
+						case key::Escape:
 							return screen::key::QuitEvent;
 						
-						case SDL_SCANCODE_SPACE:
-						case SDL_SCANCODE_RETURN:
-						case SDL_SCANCODE_KP_ENTER:
+						case key::Space:
+						case key::Return:
+						case key::KeyPad_Enter:
 							return screen::key::SpaceEnter;
 
-						case SDL_SCANCODE_B:
+						case key::B:
 							return screen::key::B;
 						
-						case SDL_SCANCODE_R:
+						case key::R:
 							return screen::key::R;
 						
 						default:

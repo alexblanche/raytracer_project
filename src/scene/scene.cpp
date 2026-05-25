@@ -50,7 +50,7 @@ scene::~scene() {
         const bounding* bd = bd_stack.top();
         bd_stack.pop();
 
-        std::vector<const bounding*> bd_children = bd->get_children();
+        const std::vector<const bounding*>& bd_children = bd->get_children();
         for (const bounding* bd : bd_children) {
             bd_stack.push(bd);
         }

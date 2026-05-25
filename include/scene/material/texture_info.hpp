@@ -15,13 +15,13 @@
 /* Struct representing UV-coordinates */
 struct uvcoord {
     real u, v;
-    uvcoord(real u, real v)
-        : u(u), v(v) {}
 };
 
 class texture_info {
 
     public:
+        static constexpr int NONE = -1;
+
         /* Vector of UV coordinates (between 0 and 1)
            6 for a triangle (u0,v0,u1,v1,u2,v2) and 8 for a quad */
         std::vector<real> uv_coordinates;

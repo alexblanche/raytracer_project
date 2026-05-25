@@ -337,5 +337,18 @@ namespace sdl {
             type get_type() const {
                 return static_cast<type>(e.type);
             }
+
+            enum class key {
+                Escape          = SDL_SCANCODE_ESCAPE,
+                Space           = SDL_SCANCODE_SPACE,
+                Return          = SDL_SCANCODE_RETURN,
+                KeyPad_Enter    = SDL_SCANCODE_KP_ENTER,
+                B               = SDL_SCANCODE_B,
+                R               = SDL_SCANCODE_R
+            };
+
+            key get_key() const {
+                return static_cast<key>(e.key.keysym.scancode);
+            }
     };
 }

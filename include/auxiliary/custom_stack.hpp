@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cstring>
+#include <span>
 
 template <typename T>
 struct custom_stack {
@@ -28,13 +29,9 @@ struct custom_stack {
         v.push_back(t);
     }
 
-    inline void push(const T* const ts, unsigned int size) {
-        v.reserve(v.size() + size);
-        std::memcpy(v.data() + v.size(), ts, size);
-    }
-
-    inline void push(const std::vector<T>& ts) {
-        push(ts.data(), ts.size());
+    inline void push(const std::span<const T> ts) {
+        v.reserve(v.size() + ts.size());
+        std::memcpy(v.data() + v.size(), ts.data(), ts.size());
     }
 
     inline void set_empty() {

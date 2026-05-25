@@ -8,10 +8,9 @@ constexpr unsigned int LOWRES_DEFAULT_WIDTH  = 854;
 constexpr unsigned int LOWRES_DEFAULT_HEIGHT = 480;
 
 struct alias_bin {
-    real p;
-    unsigned int alias;
+    real p = 0.0f;
+    unsigned int alias = 0;
 
-    alias_bin() : p(0.0f), alias(0) {}
     alias_bin(real p, unsigned int alias)
         : p(p), alias(alias) {}
 };
@@ -44,7 +43,7 @@ struct alias_table {
 
     inline unsigned int sample(const randomgen& rg) const {
         const unsigned int i = rg.random_real(nb_bins);
-        const auto& [ p, alias ] = bins[i];
+        const auto [ p, alias ] = bins[i];
         return (rg.random_ratio() < p) ? i : alias;
     }
 
