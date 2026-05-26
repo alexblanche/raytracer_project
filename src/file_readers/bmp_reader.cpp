@@ -172,8 +172,8 @@ exit_status print_bmp_info(const char* file_name) {
         printf("Header size:           %u bytes\n", value_of_bytes<4>(buffer, 14));
         printf("Width:                 %u\n",       value_of_bytes<4>(buffer, 18));
         printf("Height:                %u\n",       value_of_bytes<4>(buffer, 22));
-        printf("Color planes:          %u\n",       value_of_bytes<4>(buffer, 26));
-        printf("Bits per pixel:        %u\n",       value_of_bytes<4>(buffer, 28));
+        printf("Color planes:          %u\n",       value_of_bytes<2>(buffer, 26));
+        printf("Bits per pixel:        %u\n",       value_of_bytes<2>(buffer, 28));
         printf("Compression method:    %u\n",       value_of_bytes<4>(buffer, 30));
         printf("Compressed size:       %u bytes\n", value_of_bytes<4>(buffer, 34));
         printf("Horizontal resolution: %u\n",       value_of_bytes<4>(buffer, 38));

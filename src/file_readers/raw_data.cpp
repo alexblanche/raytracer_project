@@ -110,18 +110,15 @@ std::optional<std::vector<std::vector<rt::color>>> read_raw(const char* file_nam
 /* Combines the n files whose names are in the array source_file_names into one bmp file dest_bmp_name (extension .bmp)
    and one raw data file dest_raw_name (extension .rtdata)
    Returns true if the operation was successful */
-exit_status combine_raw(const std::string& dest_bmp_name, const std::string& dest_raw_name, const int n,
+exit_status combine_raw(const std::string& dest_bmp_name, const std::string& dest_raw_name,
     const std::span<const std::string> source_file_names, const float gamma) {
 
-    if (n < 0) {
-        printf("Error, not enough files provided\n");
-        return exit_status::Failure;
-    }
+    printf("Merging %lu files...\n", source_file_names.size());
 
     FILE* file0 = fopen(source_file_names[0].c_str(), "r");
 
     if (file0 == nullptr) {
-        printf("Error, first file (%s) not found\n", source_file_names[0].c_str());
+        printf("Error: first file %s not found\n", source_file_names[0].c_str());
         return exit_status::Failure;
     }
 
@@ -145,7 +142,7 @@ exit_status combine_raw(const std::string& dest_bmp_name, const std::string& des
 
         FILE* file = fopen(name.c_str(), "r");
         if (file == NULL) {
-            printf("Error, file (%s) not found\n", name.c_str());
+            printf("Error: file %s not found\n", name.c_str());
             return exit_status::Failure;
         }
 

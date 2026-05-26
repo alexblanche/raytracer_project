@@ -17,19 +17,19 @@ class file_handler {
             Bmp, Raw
         };
 
-        exit_status export_file(const type file_type, const char* filename, const unsigned int number_of_rays,
+        exit_status export_file(const type file_type, const std::string& filename, const unsigned int number_of_rays,
             const std::vector<std::vector<rt::color>>& matrix, const runtime_parameters& runtime_parameters) const;
 
     public:
         file_handler();
 
-        inline exit_status export_raw_data(const char* filename, const unsigned int number_of_rays,
+        inline exit_status export_raw_data(const std::string& filename, const unsigned int number_of_rays,
             const std::vector<std::vector<rt::color>>& matrix, const runtime_parameters& runtime_parameters) const {
             
             return export_file(type::Raw, filename, number_of_rays, matrix, runtime_parameters);
         }
 
-        inline exit_status export_bmp(const char* filename, const unsigned int number_of_rays,
+        inline exit_status export_bmp(const std::string& filename, const unsigned int number_of_rays,
             const std::vector<std::vector<rt::color>>& matrix, const runtime_parameters& runtime_parameters) const {
 
             return export_file(type::Bmp, filename, number_of_rays, matrix, runtime_parameters);

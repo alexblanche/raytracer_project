@@ -1,4 +1,5 @@
 #include "main_menu/menu.hpp"
+#include "main_menu/file_handler.hpp"
 #include "screen/screen.hpp"
 #include "render/render_loops.hpp"
 #include "auxiliary/timer.hpp"
@@ -6,6 +7,17 @@
 #include <span>
 #include <filesystem>
 
+constexpr unsigned int EXPORT_INTERVAL = 1000;
+constexpr std::string DEFAULT_OUTPUT_FILE_NAME       = "image";
+constexpr std::string DEFAULT_OUTPUT_FINAL_FILE_NAME = "image_final";
+
+
+static constexpr std::string bmp(const std::string& file_name) {
+    return file_name + ".bmp";
+}
+static constexpr std::string raw(const std::string& file_name) {
+    return file_name + ".rtdata";
+}
 
 static bool is_number(const std::string& s) {
     try {
@@ -26,6 +38,8 @@ static bool is_float(const std::string& s) {
         return false;
     }
 }
+
+/////////////////////////////////////////////////////////////////////////////////
 
 
 enum class cli_argument {
@@ -133,11 +147,10 @@ exit_status menu::parse_aux(const std::span<const std::string> args) {
 exit_status menu::parse_arguments(int argc, char **argv) {
 
     const std::vector<std::string> args(argv + 1, argv + argc);
-    const unsigned int size = args.size();
     unsigned int index = 0;
 
     // Scene descriptor
-    const bool descriptor_specified = index < size && not is_number(args[index]);
+    const bool descriptor_specified = index < args.size() && not is_number(args[index]);
     if (descriptor_specified) {
         scene_descriptor_name = args[index];
         if (not std::filesystem::is_regular_file(scene_descriptor_name)) {
@@ -149,7 +162,7 @@ exit_status menu::parse_arguments(int argc, char **argv) {
     printf("Scene descriptor: %s\n", std::filesystem::path(scene_descriptor_name).filename().generic_string().c_str());
 
     // Number of bounces
-    if (index < size && is_number(args[index])) {
+    if (index < args.size() && is_number(args[index])) {
         runtime_parameters.number_of_bounces = std::stoul(args[index]);
         printf("Number of bounces: %u\n", runtime_parameters.number_of_bounces);
         index++;
@@ -159,7 +172,7 @@ exit_status menu::parse_arguments(int argc, char **argv) {
     }
 
     // Other arguments
-    if (index < size) {
+    if (index < args.size()) {
         const exit_status status = parse_aux(std::span(args).subspan(index));
         if (status == exit_status::Failure)
             return exit_status::Failure;
@@ -259,12 +272,11 @@ static exit_status run_offline(const runtime_parameters& runtime_parameters, std
         fflush(stdout);
 
         /* Exporting as rtdata every EXPORT_INTERVAL samples */
-        constexpr unsigned int EXPORT_INTERVAL = 1000;
         if ((i + 1) % EXPORT_INTERVAL == 0) {
             timer.interrupt();
 
             printf(" ");
-            const exit_status status = file_handler.export_raw_data("image.rtdata", i + 1, matrix, runtime_parameters);
+            const exit_status status = file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FILE_NAME), i + 1, matrix, runtime_parameters);
             if (status == exit_status::Failure)
                 return exit_status::Failure;
             
@@ -273,10 +285,10 @@ static exit_status run_offline(const runtime_parameters& runtime_parameters, std
     }
 
     timer.stop();
-    printf("\r%u / %u\n", target, target);
+    printf("\n");
     timer.print();
 
-    return file_handler.export_bmp("image.bmp", target, matrix, runtime_parameters);
+    return file_handler.export_bmp(bmp(DEFAULT_OUTPUT_FILE_NAME), target, matrix, runtime_parameters);
 }
 
 // Returns an exit_status if the program has to stop, either because of a failure or because a quit event happened
@@ -294,7 +306,7 @@ static std::optional<exit_status> process_events(const rt::screen& scr, const fi
         case rt::screen::key::B: {
             /* B */
             printf(" ");
-            const exit_status status = file_handler.export_bmp("image.bmp", number_of_rays, matrix, runtime_parameters);
+            const exit_status status = file_handler.export_bmp(bmp(DEFAULT_OUTPUT_FILE_NAME), number_of_rays, matrix, runtime_parameters);
             if (status == exit_status::Failure)
                 return exit_status::Failure;
             break;
@@ -302,7 +314,7 @@ static std::optional<exit_status> process_events(const rt::screen& scr, const fi
         case rt::screen::key::R: {
             /* R */
             printf(" ");
-            const exit_status status = file_handler.export_raw_data("image.rtdata", number_of_rays, matrix, runtime_parameters);
+            const exit_status status = file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FILE_NAME), number_of_rays, matrix, runtime_parameters);
             if (status == exit_status::Failure)
                 return exit_status::Failure;
             break;
@@ -328,6 +340,7 @@ static exit_status run_interactive(const runtime_parameters& runtime_parameters,
     const rt::screen scr(scene.width, scene.height);
     
     auto copy_to_texture = [&] (unsigned int iter) {
+
         switch (runtime_parameters.tone_mapping.mode) {
             case tone_mapping_parameters::mode::Disabled:
                 scr.fast_copy(matrix, scene.width, scene.height, iter);
@@ -363,8 +376,8 @@ static exit_status run_interactive(const runtime_parameters& runtime_parameters,
             return status.value();
     }
 
-    return file_handler.export_bmp(     "image_final.bmp",    MAX_RAYS, matrix, runtime_parameters)
-        && file_handler.export_raw_data("image_final.rtdata", MAX_RAYS, matrix, runtime_parameters);
+    return file_handler.export_bmp(     bmp(DEFAULT_OUTPUT_FINAL_FILE_NAME), MAX_RAYS, matrix, runtime_parameters)
+        && file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FINAL_FILE_NAME), MAX_RAYS, matrix, runtime_parameters);
 }
 
 exit_status menu::run(const scene& scene) const {

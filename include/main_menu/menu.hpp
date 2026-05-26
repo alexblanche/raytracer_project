@@ -1,19 +1,20 @@
 #pragma once
 
 #include "main_menu/runtime_parameters.hpp"
-#include "main_menu/file_handler.hpp"
+#include "auxiliary/exit_status.hpp"
 #include "file_readers/scene_parser.hpp"
 
+#include <string>
 #include <span>
 #include <optional>
 
-constexpr char const* default_filename = "../scene.txt";
+static constexpr std::string DEFAULT_DESCRIPTOR_FILE_NAME = "../scene.txt";
 
 class menu {
 
     public:
         runtime_parameters runtime_parameters;
-        std::string scene_descriptor_name = default_filename;
+        std::string scene_descriptor_name = DEFAULT_DESCRIPTOR_FILE_NAME;
 
         exit_status parse_arguments(int argc, char **argv);
 
