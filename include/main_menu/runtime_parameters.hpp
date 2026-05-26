@@ -20,7 +20,7 @@ struct tone_mapping_parameters {
     enum class mode {
         Disabled, Gamma, Reinhardt
     };
-    mode mode;
+    mode tm_mode;
     float gamma_value;
 };
 

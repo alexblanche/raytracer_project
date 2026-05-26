@@ -160,8 +160,8 @@ int main(int, char **) {
 
     std::vector<std::vector<rt::color>> matrix(width, std::vector<rt::color>(height));
     
-    const rt::screen scr(width, height);
-    scr.fast_copy(matrix, width, height, 1);
+    const rt::screen scr(matrix, width, height);
+    scr.fast_copy(1);
     scr.update_from_texture();
 
     /* Benchmark */
@@ -172,13 +172,13 @@ int main(int, char **) {
 
     /* Sequential */
     render_loop_seq(matrix, width, height, dist, screen_center, obj_set, light_set, total_time);
-    scr.fast_copy(matrix, width, height, 1);
+    scr.fast_copy(1);
     scr.update_from_texture();
     total_time = 0;
     const long int seq_time_init = get_time();
     for (size_t i = 0; i < number_of_renders; i++) {
         render_loop_seq(matrix, width, height, dist, screen_center, obj_set, light_set, total_time);
-        scr.fast_copy(matrix, width, height, 1);
+        scr.fast_copy(1);
         scr.update_from_texture();
     }
     const long int seq_curr_time = get_time();
@@ -188,19 +188,19 @@ int main(int, char **) {
     /* Parallel */
     const long int par_time_init = get_time();
     render_loop_parallel(matrix, width, height, dist, screen_center, obj_set, light_set, total_time);
-    scr.fast_copy(matrix, width, height, 1);
+    scr.fast_copy(1);
     scr.update_from_texture();
     total_time = 0;
     for (size_t i = 0; i < number_of_renders; i++) {
         render_loop_parallel(matrix, width, height, dist, screen_center, obj_set, light_set, total_time);
-        scr.fast_copy(matrix, width, height, 1);
+        scr.fast_copy(1);
         scr.update_from_texture();
     }
     const long int par_curr_time = get_time();
     printf("Total Parallel time: %ld ms\n", par_curr_time - par_time_init);
     printf("Average time: %d ms\n", (int) ((double) total_time / number_of_renders));
     
-    scr.fast_copy(matrix, width, height, 1);
+    scr.fast_copy(1);
     scr.update_from_texture();
 
     scr.wait_quit_event();

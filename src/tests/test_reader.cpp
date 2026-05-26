@@ -29,8 +29,8 @@ static void test_bmp() {
     printf("BMP ");
     timer.print();
 
-    rt::screen scr(width, height);
-    scr.fast_copy(matrix, width, height, 1);
+    rt::screen scr(matrix, width, height, tone_mapping_parameters::mode::Disabled);
+    scr.fast_copy(1);
     scr.update_from_texture();
     scr.wait_quit_event();
 }
@@ -57,8 +57,8 @@ static void test_hdr() {
     printf("HDR ");
     timer.print();
 
-    rt::screen scr(width, height);
-    scr.fast_copy(matrix, width, height, 1);
+    rt::screen scr(matrix, width, height);
+    scr.fast_copy(1);
     scr.update_from_texture();
     scr.wait_quit_event();
 }
@@ -78,13 +78,13 @@ static void test_fastcopy() {
 
     read_bmp(filename_bmp, matrix);
     
-    rt::screen scr(width, height);
+    rt::screen scr(matrix, width, height);
     // printf("\n");
     timer_ms timer;
     timer.start();
     constexpr int NB_ITERATIONS = 20;
     for (int k = 0; k < NB_ITERATIONS; k++) {
-        scr.fast_copy(matrix, width, height, 1);
+        scr.fast_copy(1);
         scr.update_from_texture();
         if (scr.poll_keyboard_event() == rt::screen::key::QuitEvent)
             return;

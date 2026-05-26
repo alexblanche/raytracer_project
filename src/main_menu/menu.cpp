@@ -112,8 +112,8 @@ exit_status menu::parse_aux(const std::span<const std::string> args) {
             }
 
             case cli_argument::Gamma: {
-                if (runtime_parameters.tone_mapping.mode != tone_mapping_parameters::mode::Reinhardt)
-                    runtime_parameters.tone_mapping.mode = tone_mapping_parameters::mode::Gamma;
+                if (runtime_parameters.tone_mapping.tm_mode != tone_mapping_parameters::mode::Reinhardt)
+                    runtime_parameters.tone_mapping.tm_mode = tone_mapping_parameters::mode::Gamma;
 
                 if (i + 1 >= size || not is_float(args[i + 1])) {
                     printf("Error, -gamma option expects 1 argument\n");
@@ -125,7 +125,7 @@ exit_status menu::parse_aux(const std::span<const std::string> args) {
             }
 
             case cli_argument::Reinhardt: {
-                runtime_parameters.tone_mapping.mode = tone_mapping_parameters::mode::Reinhardt;
+                runtime_parameters.tone_mapping.tm_mode = tone_mapping_parameters::mode::Reinhardt;
                 break;
             }
 
@@ -179,7 +179,7 @@ exit_status menu::parse_arguments(int argc, char **argv) {
     }
 
     // Display
-    switch (runtime_parameters.tone_mapping.mode) {
+    switch (runtime_parameters.tone_mapping.tm_mode) {
         case tone_mapping_parameters::mode::Reinhardt:
             printf("Reinhardt local tone mapping enabled\n");
         case tone_mapping_parameters::mode::Gamma:
@@ -198,7 +198,7 @@ exit_status menu::parse_arguments(int argc, char **argv) {
 void menu::update_gamma(const float new_gamma) {
 
     float& gamma = runtime_parameters.tone_mapping.gamma_value;
-    const bool gamma_disabled = runtime_parameters.tone_mapping.mode == tone_mapping_parameters::mode::Disabled;
+    const bool gamma_disabled = runtime_parameters.tone_mapping.tm_mode == tone_mapping_parameters::mode::Disabled;
 
     if (new_gamma != 1.0f) {
         if ((not gamma_disabled) && new_gamma != gamma)
@@ -206,7 +206,7 @@ void menu::update_gamma(const float new_gamma) {
                 gamma, (1.0f / new_gamma));
 
         if (gamma_disabled)
-            runtime_parameters.tone_mapping.mode = tone_mapping_parameters::mode::Gamma;
+            runtime_parameters.tone_mapping.tm_mode = tone_mapping_parameters::mode::Gamma;
 
         gamma = new_gamma;
         printf("Gamma correction: %.1f\n", (1.0f / gamma));
@@ -333,28 +333,11 @@ static exit_status run_interactive(const runtime_parameters& runtime_parameters,
     printf("Initialization complete, computing the first ray...");
     fflush(stdout);
 
-    const float gamma = runtime_parameters.tone_mapping.gamma_value;
-
     render(matrix, scene, runtime_parameters, 1);
 
-    const rt::screen scr(scene.width, scene.height);
-    
-    auto copy_to_texture = [&] (unsigned int iter) {
+    const rt::screen scr(matrix, scene.width, scene.height, runtime_parameters.tone_mapping.tm_mode, runtime_parameters.tone_mapping.gamma_value);
 
-        switch (runtime_parameters.tone_mapping.mode) {
-            case tone_mapping_parameters::mode::Disabled:
-                scr.fast_copy(matrix, scene.width, scene.height, iter);
-                break;
-            case tone_mapping_parameters::mode::Gamma:
-                scr.fast_copy_gamma(matrix, scene.width, scene.height, iter, gamma);
-                break;
-            case tone_mapping_parameters::mode::Reinhardt:
-                scr.fast_copy_reinhardt(matrix, scene.width, scene.height, iter, gamma);
-                break;
-        }
-    };
-
-    copy_to_texture(1);
+    scr.copy_to_texture(1);
     scr.update_from_texture();
 
     printf("\r                                                   ");
@@ -368,7 +351,7 @@ static exit_status run_interactive(const runtime_parameters& runtime_parameters,
         printf("\rNumber of samples per pixel: %u", number_of_rays);
         fflush(stdout);
 
-        copy_to_texture(number_of_rays);
+        scr.copy_to_texture(number_of_rays);
         scr.update_from_texture();
 
         const std::optional<exit_status> status = process_events(scr, file_handler, matrix, number_of_rays, runtime_parameters);

@@ -2,19 +2,30 @@
 
 #include "screen/color.hpp"
 #include "screen/sdl.hpp"
+#include "main_menu/runtime_parameters.hpp"
 
 namespace rt {
 
+	using tone_mapping = tone_mapping_parameters::mode;
+
 	class screen {
 
-		public:
+		private:
 			sdl::window 	window;
 			sdl::renderer 	renderer;
 			sdl::rect 		srcrect;
 			sdl::rect 		dstrect;
 			sdl::texture	texture;
-
-			screen(int width, int height);
+		
+			std::vector<std::vector<rt::color>>& matrix;
+			int width;
+			int height;
+			tone_mapping tone_mapping_mode;
+			float gamma;
+			
+		public:
+			screen(std::vector<std::vector<rt::color>>& matrix, int width, int height,
+				tone_mapping mode = tone_mapping::Disabled, float gamma = 1.0f);
 			~screen();
 
 			void set_pixel(int x, int y, const color& c) const;
@@ -49,17 +60,28 @@ namespace rt {
 			/****************************************************************************************************/
 
 			/* Copies the rt::color matrix onto the screen, by averaging the number_of_rays colors per pixel */
-			void fast_copy(std::vector<std::vector<rt::color>>& matrix,
-				size_t width, size_t height,
-				unsigned int number_of_rays) const;
+			void fast_copy(unsigned int number_of_rays) const;
 
-			void fast_copy_gamma(std::vector<std::vector<rt::color>>& matrix,
-				size_t width, size_t height,
-				unsigned int number_of_rays, real gamma) const;
+			void fast_copy_gamma(unsigned int number_of_rays) const;
 
-			void fast_copy_reinhardt(std::vector<std::vector<rt::color>>& matrix,
-				size_t width, size_t height,
-				unsigned int number_of_rays, real gamma) const;
+			void fast_copy_reinhardt(unsigned int number_of_rays) const;
+
+			inline void copy_to_texture(const unsigned int number_of_rays) const {
+
+				switch (tone_mapping_mode) {
+					case tone_mapping::Disabled:
+						fast_copy(number_of_rays);
+						break;
+					
+					case tone_mapping::Gamma:
+						fast_copy_gamma(number_of_rays);
+						break;
+
+					case tone_mapping::Reinhardt:
+						fast_copy_reinhardt(number_of_rays);
+						break;
+				}
+    		}
 	};
 
 }

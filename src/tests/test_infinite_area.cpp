@@ -61,7 +61,7 @@ int main() {
     //     printf("%u %u\n", i, samples[i]);
     // }
 
-    const rt::screen test_scr(dwidth, dheight);
+    const rt::screen test_scr(lrdata, dwidth, dheight);
     constexpr rt::color color_one(1.0f, 1.0f, 1.0f);
 
     while (true) {
@@ -70,7 +70,7 @@ int main() {
             rt::color& px = lrdata[s % dwidth][s / dheight];
             px += color_one;
         }
-        test_scr.fast_copy(lrdata, dwidth, dheight, 1);
+        test_scr.fast_copy(1);
         test_scr.update_from_texture();
         if (test_scr.poll_keyboard_event() == rt::screen::key::QuitEvent)
             break;

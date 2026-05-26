@@ -5,13 +5,16 @@
 #include <string>
 
 namespace rt {
+
+	static constexpr std::string DEFAULT_TITLE = "Raytracer_project";
 	
-	screen::screen(int width, int height)
-		: 	window("Raytracer_project", { 10, 10, width, height }, { sdl::window::flag::AllowHighDPI, sdl::window::flag::Resizable }),
+	screen::screen(std::vector<std::vector<rt::color>>& matrix, int width, int height, tone_mapping mode, float gamma)
+		: 	window(DEFAULT_TITLE, { 10, 10, width, height }, { sdl::window::flag::AllowHighDPI, sdl::window::flag::Resizable }),
 			renderer(window, width, height, {sdl::renderer::flag::Accelerated}, sdl::renderer::vsync_option::Disabled),
 			srcrect(0, 0, width, height),
 			dstrect(0, 0, width, height),
-			texture(renderer, sdl::texture::PixelFormat::RGB24, sdl::texture::Access::Streaming, width, height) {
+			texture(renderer, sdl::texture::PixelFormat::RGB24, sdl::texture::Access::Streaming, width, height),
+			matrix(matrix), width(width), height(height), tone_mapping_mode(mode), gamma(gamma) {
 
 		sdl::init({ sdl::Init::Video });
 	}
@@ -30,7 +33,7 @@ namespace rt {
 		Uint8 r = c.get_red();
 		Uint8 g = c.get_green();
 		Uint8 b = c.get_blue();
-		screen::set_pixel(x, y, r, g, b);
+		set_pixel(x, y, r, g, b);
 	}
 
 	void screen::clear() const {
@@ -57,17 +60,19 @@ namespace rt {
 	/****************************************************************************************************/
 	/** Event processing **/
 
+	using namespace sdl;
+
 	/* Stop at the next quit event */
-	template <sdl::event::polling_type type>
+	template <event::polling_type type>
 	static screen::quit_event next_quit_event() {
 
-		sdl::event event;
+		event event;
 		while (event.next_event<type>()) {
 			
 			switch (event.get_type()) {
-				case sdl::event::type::Quit:
+				case event::type::Quit:
 					return screen::quit_event::QuitEvent;
-				case sdl::event::type::KeyDown:
+				case event::type::KeyDown:
 					return screen::quit_event::KeyBoardEvent;
 				default:
 					break;
@@ -78,27 +83,27 @@ namespace rt {
 
 	/* Wait indefinitely for the next quit event */
 	screen::quit_event screen::wait_quit_event() const {
-		return next_quit_event<sdl::event::polling_type::Wait>();
+		return next_quit_event<event::polling_type::Wait>();
 	}
 
 	/* Stop at the next quit event */
 	screen::quit_event screen::is_quit_event() const {
-		return next_quit_event<sdl::event::polling_type::Poll>();
+		return next_quit_event<event::polling_type::Poll>();
 	}
 
-	template <sdl::event::polling_type type>
+	template <event::polling_type type>
 	static screen::key wait_poll_keyboard_event() {
 		
-		sdl::event event;
+		event event;
 		while (event.next_event<type>()) {
 			
 			switch (event.get_type()) {
 				
-				case sdl::event::type::Quit:
+				case event::type::Quit:
 					return screen::key::QuitEvent;
 				
-				case sdl::event::type::KeyDown:
-					using key = sdl::event::key;
+				case event::type::KeyDown:
+					using key = event::key;
 					switch(event.get_key()) {
 						
 						case key::Escape:
@@ -120,7 +125,7 @@ namespace rt {
 					}
 					break;
 				
-				case sdl::event::type::MouseButtonDown:
+				case event::type::MouseButtonDown:
 					printf("\nX = %d, Y = %d", event.e.button.x, event.e.button.y);
 					break;
 
@@ -132,12 +137,12 @@ namespace rt {
 	}
 
 	screen::key screen::wait_keyboard_event() const {
-		return wait_poll_keyboard_event<sdl::event::polling_type::Wait>();
+		return wait_poll_keyboard_event<event::polling_type::Wait>();
 	}
 
 	/* Same as wait_keyboard_event, with poll events */
 	screen::key screen::poll_keyboard_event() const {
-		return wait_poll_keyboard_event<sdl::event::polling_type::Poll>();
+		return wait_poll_keyboard_event<event::polling_type::Poll>();
 	}
 
 	/****************************************************************************************************/
@@ -145,23 +150,21 @@ namespace rt {
 	/**
 	 * Copies the rt::color matrix onto the screen, by averaging the number_of_rays colors per pixel
 	 */
-	void screen::fast_copy(std::vector<std::vector<color>>& matrix,
-		const size_t width, const size_t height,
-		const unsigned int number_of_rays) const {
+	void screen::fast_copy(const unsigned int number_of_rays) const {
 
 		const real invN = 1.0f / static_cast<real>(number_of_rays);
 
-		const sdl::texture::lock lock = texture.get_lock();
+		const texture::lock lock = texture.get_lock();
 		const auto [ texture_pixels, texture_pitch ] = lock.info;
 		
 		const unsigned int padding = texture_pitch % 3;
 		const unsigned int shift = 3 * width + padding;
 
-		for (size_t i = 0; i < width; i++) {
+		for (int i = 0; i < width; i++) {
 			const std::vector<color>& line = matrix[i];
 			const unsigned int threei = 3 * i;
 
-            for (size_t j = 0; j < height; j++) {
+            for (int j = 0; j < height; j++) {
 
 				const color& pixel_col = line[j];
 				color avg = pixel_col * invN;
@@ -177,25 +180,23 @@ namespace rt {
 	}
 
 	/* Copy matrix to the screen with gamma correction */
-	void screen::fast_copy_gamma(std::vector<std::vector<color>>& matrix,
-		const size_t width, const size_t height,
-		const unsigned int number_of_rays, const real gamma) const {
+	void screen::fast_copy_gamma(const unsigned int number_of_rays) const {
 
 		const real invN = 1.0 / number_of_rays;
 		constexpr real inv255 = 1.0 / 255.0;
 		const real inv = inv255 * invN;
 
-		const sdl::texture::lock lock = texture.get_lock();
+		const texture::lock lock = texture.get_lock();
 		const auto [ texture_pixels, texture_pitch ] = lock.info;
 
 		const unsigned int padding = texture_pitch % 3;
 		const unsigned int shift = 3 * width + padding;
 		
-		for (size_t i = 0; i < width; i++) {
+		for (int i = 0; i < width; i++) {
 			const std::vector<color>& line = matrix[i];
 			const unsigned int threei = 3 * i;
 
-            for (size_t j = 0; j < height; j++) {
+            for (int j = 0; j < height; j++) {
 				const color& pixel_col = line[j];
 				color corrected = pixel_col * inv;
 				corrected ^= gamma;
@@ -212,17 +213,15 @@ namespace rt {
 	}
 
 	/* Copy matrix to the screen with gamma correction and extended Reinhardt local tone mapping */
-	void screen::fast_copy_reinhardt(std::vector<std::vector<color>>& matrix,
-		const size_t width, const size_t height,
-		const unsigned int number_of_rays, const real gamma) const {
+	void screen::fast_copy_reinhardt(const unsigned int number_of_rays) const {
 
 		const real invN = 1.0 / number_of_rays;
 
 		// Computation of the maximum luminance
 		float max_luminance = 0.0f;
-		for (unsigned int i = 0; i < width; i++) {
+		for (int i = 0; i < width; i++) {
 			const std::vector<color>& line = matrix[i];
-			for (unsigned int j = 0; j < height; j++) {
+			for (int j = 0; j < height; j++) {
 				const rt::color& col = line[j];
 				const float luminance = (0.2126 * col.get_red() + 0.7152 * col.get_green() + 0.0722 * col.get_blue()) * invN;
 				// const float luminance = (col.get_red() + col.get_green() + col.get_blue()) * invN * 0.333;
@@ -232,7 +231,7 @@ namespace rt {
 		}
 		const float lwhitecorr = 1.0f / (max_luminance * max_luminance);
 
-		const sdl::texture::lock lock = texture.get_lock();
+		const texture::lock lock = texture.get_lock();
 		const auto [ texture_pixels, texture_pitch ] = lock.info;
 
 		const unsigned int padding = texture_pitch % 3;
@@ -242,10 +241,10 @@ namespace rt {
 		const real inv = inv255 * invN;
 
 		const unsigned int shift = 3 * width + padding;
-		for (size_t i = 0; i < width; i++) {
+		for (int i = 0; i < width; i++) {
 			const std::vector<color>& line = matrix[i];
 			const unsigned int threei = 3 * i;
-            for (size_t j = 0; j < height; j++) {
+            for (int j = 0; j < height; j++) {
 				const color& col = line[j];
 				const real lr = col.get_red();
 				const real lg = col.get_green();
