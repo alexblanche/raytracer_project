@@ -13,10 +13,10 @@
 class material;
 class texture;
 class normal_map;
-template<typename T = void> inline const char* type_str() = delete;
-template<> inline const char* type_str<material>  () { return "material"  ; }
-template<> inline const char* type_str<texture>   () { return "texture"   ; }
-template<> inline const char* type_str<normal_map>() { return "normal map"; }
+template<typename T = void> inline constexpr std::string type_str() = delete;
+template<> inline constexpr std::string type_str<material>  () { return "material"  ; }
+template<> inline constexpr std::string type_str<texture>   () { return "texture"   ; }
+template<> inline constexpr std::string type_str<normal_map>() { return "normal map"; }
 
 template<typename T>
 concept Wrappable = requires(T x) { type_str<T>(); };
@@ -73,7 +73,7 @@ class wrapper {
             }
 
             if (not vindex.has_value()) {
-                printf("Error, %s %s not found.\n", type_str<T>(), vname);
+                printf("Error, %s %s not found.\n", type_str<T>().c_str(), vname);
                 return std::nullopt;
             }
             return vindex;

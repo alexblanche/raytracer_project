@@ -12,6 +12,12 @@ int main() {
         f2.scanf("%d%d%d", a, b, c);
         printf("a = %d, b = %d, c = %d\n", a, b, c);
     }
+    
+    {
+        const std::string s = format_variadic<int, double, float, unsigned long long int, char, char>();
+        printf("%s", s.c_str()); printf("\n");
+        printf(s.c_str(), 3, 2.5, 5.8, 4, 'a', 'b'); printf("\n");
+    }
 
     {
         const file f("a.txt", "r");
@@ -29,9 +35,9 @@ int main() {
 
     {
         const file f("a.txt", "r");
-        const uint32_t a = f.scan<uint32_t>().value();
-        const  int32_t b = f.scan< int32_t>().value();
-        const uint64_t c = f.scan<uint64_t>().value();
+        const uint32_t a = f.scan<uint32_t>().value(); printf("a = %u\n", a);
+        const  int32_t b = f.scan< int32_t>().value(); printf("b = %d\n", b);
+        const uint64_t c = f.scan<uint64_t>().value(); printf("c = %llu\n", c);
         printf("a = %u, b = %d, c = %llu\n", a, b, c);
     }
 
@@ -56,6 +62,18 @@ int main() {
         printf("\n");
         f.skip_line();
         f.cat_from();
+    }
+
+    {
+        file f("a.txt");
+        const auto [ a, b, c ] = f.scan<int, float, double>().value();
+        printf("a = %d, b = %f, c = %lf\n", a, b, c);
+
+        f.rewind();
+        f.cat();
+        f.rewind();
+        const auto [ x, y, z ] = f.scan<int, 3>();
+        printf("Extraction from array: x = %d, y = %d, z = %d\n", x, y, z);
     }
 
     return EXIT_SUCCESS;

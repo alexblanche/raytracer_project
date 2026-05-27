@@ -18,5 +18,7 @@ inline exit_status exit_status_of(bool b) {
 
 template<typename T>
 inline std::optional<T> optional_of(exit_status s, T&& x) {
-    return (s == exit_status::Success) ? std::optional<T>(std::forward<T>(x)) : std::nullopt;
+    return (s == exit_status::Success) ?
+          std::optional<T>(std::forward<T>(x))
+        : std::nullopt;
 }
