@@ -1,5 +1,6 @@
 #include "file_readers/bmp_reader.hpp"
 #include "screen/color.hpp"
+#include "file_readers/file.hpp"
 
 #include <cstdio>
 #include <stdexcept>

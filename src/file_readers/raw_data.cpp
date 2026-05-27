@@ -66,8 +66,7 @@ std::optional<std::vector<std::vector<rt::color>>> read_raw(const std::string& f
 
         for (unsigned int j = 0; j < height; j++) {
             for (unsigned int i = 0; i < width; i++) {
-                double r, g, b;
-                f.scanf("%lf %lf %lf", r, g, b);
+                const auto [ r, g, b ] = f.scan<real, 3>();
                 matrix[i][j] = rt::color(r, g, b);
             }
         }
@@ -89,21 +88,14 @@ exit_status combine_raw(const std::string& dest_bmp_name, const std::string& des
 
     printf("Merging %lu files...\n", source_file_names.size());
 
-    FILE* file0 = fopen(source_file_names[0].c_str(), "r");
-
-    if (file0 == nullptr) {
-        printf("Error: first file %s not found\n", source_file_names[0].c_str());
-        return exit_status::Failure;
-    }
+    file f0(source_file_names[0]);
 
     /* Determination of the size of the matrix */
     unsigned int width, height;
-    const int ret0 = fscanf(file0, "width:%u height:%u",
-        &width, &height);
+    const exit_status status = f0.scanf("width:%u height:%u", width, height);
 
-    if (ret0 < 0) {
+    if (status == exit_status::Failure) {
         printf("Reading error at first line of file %s\n", source_file_names[0].c_str());
-        fclose(file0);
         return exit_status::Failure;
     }
 
@@ -114,44 +106,30 @@ exit_status combine_raw(const std::string& dest_bmp_name, const std::string& des
     /* Adding the value of each file to matrix */
     for (const std::string& name : source_file_names) {
 
-        FILE* file = fopen(name.c_str(), "r");
-        if (file == NULL) {
-            printf("Error: file %s not found\n", name.c_str());
-            return exit_status::Failure;
-        }
+        file f(name);
 
         unsigned int width_k, height_k, number_of_rays_k;
-        const int retk0 = fscanf(file, "width:%u height:%u number_of_rays:%u\n",
-            &width_k, &height_k, &number_of_rays_k);
+        const exit_status status = f.scanf("width:%u height:%u number_of_rays:%u\n", width_k, height_k, number_of_rays_k);
 
-        if (retk0 < 0) {
+        if (status == exit_status::Failure) {
             printf("Reading error at first line of file %s\n", name.c_str());
-            fclose(file);
             return exit_status::Failure;
         }
 
         if (width_k != width || height_k != height) {
             printf("Error, incorrect width or height in file %s\n", name.c_str());
-            fclose(file);
             return exit_status::Failure;
         }
 
         total_number_of_rays += number_of_rays_k;
 
-        for(unsigned int j = 0; j < height; j++) {
+        for (unsigned int j = 0; j < height; j++) {
             const unsigned int widthj = width * j;
-            for(unsigned int i = 0; i < width; i++) {
-                double r, g, b;
-                const int ret = fscanf(file, "%lf %lf %lf\n", &r, &g, &b);
-                if (ret < 0) {
-                    printf("Reading error at color line %u of file %s\n", widthj + i, name.c_str());
-                    fclose(file);
-                    return exit_status::Failure;
-                }
+            for (unsigned int i = 0; i < width; i++) {
+                const auto [ r, g, b ] = f.scan<real, 3>();
                 matrix[i][j] += rt::color(r, g, b);
             }
         }
-        fclose(file);
     }
 
     /* Exporting the matrix as a bmp file */

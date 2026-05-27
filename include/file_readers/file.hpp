@@ -145,9 +145,9 @@ class file {
             return optional_of<T>(status, std::move(x));
         }
 
-        template<Arithm T, size_t count, size_t... Is>
-        exit_status scanf_array_(const std::string& format, std::array<T, count>& t, std::index_sequence<Is...>) const {
-            return scanf(format, t[Is]...);
+        template<Arithm T, size_t count, size_t... i>
+        exit_status scanf_array_(const std::string& format, std::array<T, count>& t, std::index_sequence<i...>) const {
+            return scanf(format, t[i]...);
         }
 
         template<Arithm T, size_t count>
