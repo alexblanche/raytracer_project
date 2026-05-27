@@ -1037,10 +1037,8 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         }
 
         // Creation of the final structures
-        std::vector<material>   material_set   = wrapper<material>  ::build_set(material_wrapper_set  );
-        std::vector<texture>    texture_set    = wrapper<texture>   ::build_set(texture_wrapper_set   );
-        std::vector<normal_map> normal_map_set = wrapper<normal_map>::build_set(normal_map_wrapper_set);
-        
+        auto [ material_set, texture_set, normal_map_set ] = build_sets(material_wrapper_set, texture_wrapper_set, normal_map_wrapper_set);
+
         background_container&& background = (background_texture_is_set) ?
               background_container(std::move(background_texture), rx, ry, rz)
             : background_container(background_color);
