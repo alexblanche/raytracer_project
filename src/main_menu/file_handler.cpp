@@ -8,8 +8,8 @@
 
 using namespace std::filesystem;
 
-static constexpr std::string output_dir_name = "../output";
-static const path output_dir(output_dir_name);
+static constexpr std::string OUTPUT_DIR_NAME = "../output";
+static const path output_dir(OUTPUT_DIR_NAME);
 
 file_handler::file_handler()
     : output_dir_exists(exists(output_dir) && is_directory(output_dir)) {}

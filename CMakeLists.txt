@@ -191,3 +191,7 @@ target_include_directories(testinfinite
 	PUBLIC
 		${SDL2_INCLUDE_DIRS}
 )
+
+add_executable(testfile
+	src/tests/test_file.cpp
+)

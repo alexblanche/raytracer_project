@@ -23,7 +23,7 @@ Future plans involve the introduction of some bidirectionality to the path-traci
 
 ## How to run the code
 
-This C++ project requires a C++17-compatible compiler and the [SDL2 library](https://www.libsdl.org/).
+This C++ project requires a C++26-compatible compiler and the [SDL2 library](https://www.libsdl.org/).
 
 ### Windows
 To use SDL2 with MinGW-w64 on Windows, I downloaded the file ```SDL2-devel-2.28.5-mingw.zip``` from the [latest SDL2 release](https://github.com/libsdl-org/SDL/releases/tag/release-2.28.5), copied the folders ```include```, ```lib``` and the file ```bin/SDL2.dll``` (from the ```x86_64-w64-mingw32``` folder for 64-bit) in a folder ```sdl``` located at the root of my project.

@@ -132,19 +132,6 @@ exit_status read_bmp(const char* file_name, std::vector<std::vector<rt::color>>&
     }
 }
 
-/* Returns the integer stored in the buffer at index start_index on nb_bytes bytes (in Little Endian convention) */
-template<int nb_bytes>
-static inline unsigned int value_of_bytes(const unsigned char buffer[], const int start_index) {
-    if constexpr (nb_bytes == 4) {
-        const uint32_t value = * reinterpret_cast<const uint32_t*>(buffer + start_index);
-        return value;
-    }
-    else {
-        const uint16_t value = * reinterpret_cast<const uint16_t*>(buffer + start_index);
-        return static_cast<unsigned int>(value);
-    }
-}
-
 /* Prints the info contained in the header of the given .bmp file */
 exit_status print_bmp_info(const char* file_name) {
     FILE* file = fopen(file_name, "rb");
@@ -154,42 +141,28 @@ exit_status print_bmp_info(const char* file_name) {
         return exit_status::Failure;
     }
 
-    try {
-
-        int ret;
-
-        constexpr unsigned int HEADER_SIZE = 54;
-        unsigned char buffer[HEADER_SIZE];
-        ret = fread((void*) buffer, HEADER_SIZE, 1, file);
-        if (ret != 1)
-            throw std::runtime_error("Reading error in read_bmp");
-
-        printf("Type:                  %c%c\n",     buffer[0], buffer[1]);
-        printf("File size:             %u bytes\n", value_of_bytes<4>(buffer, 2));
-        printf("Reserved 1:            0x%x%x\n",   buffer[6], buffer[7]);
-        printf("Reserved 2:            0x%x%x\n",   buffer[8], buffer[9]);
-        printf("Offset:                %u\n",       value_of_bytes<4>(buffer, 10));
-        printf("Header size:           %u bytes\n", value_of_bytes<4>(buffer, 14));
-        printf("Width:                 %u\n",       value_of_bytes<4>(buffer, 18));
-        printf("Height:                %u\n",       value_of_bytes<4>(buffer, 22));
-        printf("Color planes:          %u\n",       value_of_bytes<2>(buffer, 26));
-        printf("Bits per pixel:        %u\n",       value_of_bytes<2>(buffer, 28));
-        printf("Compression method:    %u\n",       value_of_bytes<4>(buffer, 30));
-        printf("Compressed size:       %u bytes\n", value_of_bytes<4>(buffer, 34));
-        printf("Horizontal resolution: %u\n",       value_of_bytes<4>(buffer, 38));
-        printf("Vertical resolution:   %u\n",       value_of_bytes<4>(buffer, 42));
-        printf("Colors used:           %u\n",       value_of_bytes<4>(buffer, 46));
-        printf("Important colors:      %u\n",       value_of_bytes<4>(buffer, 50));
-
+    char filetype[2];
+    const int ret1 = fread(filetype, 2, 1, file);
+    if (ret1 != 1) {
         fclose(file);
-        return exit_status::Success;
-    }
-    catch(const std::exception& e) {
-        printf("%s\n", e.what());
-        fclose(file);
+        printf("Reading error in read_bmp type\n");
         return exit_status::Failure;
     }
+
+    bmp_header header;
+    const int ret2 = fread(static_cast<void*>(&header), sizeof(bmp_header), 1, file);
+    fclose(file);
+
+    if (ret2 != 1) {
+        printf("Reading error in read_bmp header\n");
+        return exit_status::Failure;
+    }
+    
+    printf("Type:                  %.2s\n", filetype);
+    header.print();
+    return exit_status::Success;
 }
+
 
 inline void throw_if_error(int ret) {
     if (ret < 0)

@@ -6,7 +6,6 @@
 #include <cstdlib>
 #include <iostream>
 
-
 static void test_bmp() {
     constexpr const char * filename_bmp = "../../../assets/cobblestone_street_night.bmp";
     constexpr int NB_ITERATIONS = 10;
@@ -66,7 +65,6 @@ static void test_hdr() {
 static void test_fastcopy() {
     constexpr const char * filename_bmp = "../../../assets/cobblestone_street_night.bmp";
     
-
     std::optional<dimensions> dims = read_bmp_size(filename_bmp);
     if (not dims.has_value()) {
         std::cout << "File not found" << std::endl;
@@ -79,7 +77,6 @@ static void test_fastcopy() {
     read_bmp(filename_bmp, matrix);
     
     rt::screen scr(matrix, width, height);
-    // printf("\n");
     timer_ms timer;
     timer.start();
     constexpr int NB_ITERATIONS = 20;
@@ -88,8 +85,6 @@ static void test_fastcopy() {
         scr.update_from_texture();
         if (scr.poll_keyboard_event() == rt::screen::key::QuitEvent)
             return;
-        // printf("\r%d / %d         ", (k + 1), NB_ITERATIONS);
-        // fflush(stdout);
     }
     timer.stop();
     printf("Fast_copy ");

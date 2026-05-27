@@ -12,6 +12,43 @@ struct dimensions {
       : width(width), height(height) {}
 };
 
+struct bmp_header {
+   uint32_t file_size;
+   unsigned char reserved1[2];
+   unsigned char reserved2[2];
+   uint32_t offset;
+   uint32_t header_size;
+   uint32_t width;
+   uint32_t height;
+   uint16_t color_planes;
+   uint16_t bits_per_pixel;
+   uint32_t compression_method;
+   uint32_t compressed_size;
+   uint32_t horizontal_resolution;
+   uint32_t vertical_resolution;
+   uint32_t colors_used;
+   uint32_t important_colors;
+
+   void print() const {
+      printf("File size:             %u bytes\n", file_size                 );
+      printf("Reserved 1:            0x%x%x\n",   reserved1[0], reserved1[1]);
+      printf("Reserved 2:            0x%x%x\n",   reserved2[0], reserved2[1]);
+      printf("Offset:                %u\n",       offset                    );
+      printf("Header size:           %u bytes\n", header_size               );
+      printf("Width:                 %u\n",       width                     );
+      printf("Height:                %u\n",       height                    );
+      printf("Color planes:          %u\n",       color_planes              );
+      printf("Bits per pixel:        %u\n",       bits_per_pixel            );
+      printf("Compression method:    %u\n",       compression_method        );
+      printf("Compressed size:       %u bytes\n", compressed_size           );
+      printf("Horizontal resolution: %u\n",       horizontal_resolution     );
+      printf("Vertical resolution:   %u\n",       vertical_resolution       );
+      printf("Colors used:           %u\n",       colors_used               );
+      printf("Important colors:      %u\n",       important_colors          );
+   }
+};
+
+
 /* Returns the width and height of the .bmp image contained in file_name */
 std::optional<dimensions> read_bmp_size(const char* file_name);
 
