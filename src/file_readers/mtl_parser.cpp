@@ -4,8 +4,6 @@
 #include "scene/material/texture.hpp"
 #include "file_readers/file.hpp"
 
-#include <vector>
-#include <string>
 #include <stdexcept>
 
 /* Mtl file parser */
@@ -25,12 +23,12 @@ static inline void check(exit_status status, const std::string& error_message) {
     }
 }
 
-exit_status parse_mtl_file(const std::string& file_name, const std::string& path,
+exit_status parse_mtl_file(const std::filesystem::path& path, const std::string& file_name,
     std::vector<wrapper<material>>& material_wrapper_set,
     std::vector<wrapper<texture>>& texture_wrapper_set,
     std::map<unsigned int, unsigned int>& mt_assoc, const real gamma) {
 
-    file f(path + file_name);
+    file f(path / file_name);
 
     try {
 
@@ -117,7 +115,7 @@ exit_status parse_mtl_file(const std::string& file_name, const std::string& path
                     // Texture loading
 
                     bool parsing_successful;
-                    texture txt(path + tfile_name, parsing_successful);
+                    texture txt(path / tfile_name, parsing_successful);
                     texture_wrapper_set.emplace_back(std::move(txt));
                     const unsigned int t_i = texture_wrapper_set.back().index;
 

@@ -33,7 +33,7 @@ exit_status file_handler::export_file(
     switch (file_type) {
         case file_handler::type::Bmp:
             status = write_bmp(
-                file_path.c_str(),
+                file_path,
                 matrix,
                 number_of_rays,
                 runtime_parameters.tone_mapping.gamma_value
@@ -41,7 +41,7 @@ exit_status file_handler::export_file(
             break;
         
         case file_handler::type::Raw:
-            status = export_raw(file_path.c_str(), number_of_rays, matrix);
+            status = export_raw(file_path, number_of_rays, matrix);
             break;
     }
 

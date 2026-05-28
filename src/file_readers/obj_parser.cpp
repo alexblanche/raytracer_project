@@ -14,9 +14,10 @@
 #include <string>
 #include <stack>
 #include <stdexcept>
-
+#include <filesystem>
 
 static constexpr bool DISPLAY_HIERARCHY = false;
+static constexpr bool DO_NOT_APPLY_TEXTURE = false;
 
 /* Quad splitting threshold: when the two triangles forming a quad form an angle
    superior to a certain amount depending on this constant,
@@ -36,7 +37,7 @@ static inline void correct(int& v, const int n) {
 }
 
 /* Auxiliary function that adds a trianlge to obj_set and to content if bounded_enabled is true */
-void add_triangle(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
+static void add_triangle(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    const std::vector<rt::vector>& normal_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    std::vector<texture_info>& texture_info_set,
@@ -79,7 +80,7 @@ void add_triangle(const std::vector<rt::vector>& vertex_set, const std::vector<r
 }
 
 /* Auxiliary function that adds a trianlge in a subdivided polygon with more than 5 sides */
-void add_triangle_subdiv(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
+static void add_triangle_subdiv(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    const std::vector<rt::vector>& normal_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    std::vector<texture_info>& texture_info_set,
@@ -121,7 +122,7 @@ void add_triangle_subdiv(const std::vector<rt::vector>& vertex_set, const std::v
 }
 
 /* Auxiliary function that adds a quad to obj_set and to content if bounded_enabled is true */
-void add_quad(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
+static void add_quad(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    const std::vector<rt::vector>& normal_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    std::vector<texture_info>& texture_info_set,
@@ -166,7 +167,7 @@ void add_quad(const std::vector<rt::vector>& vertex_set, const std::vector<rt::v
 
 
 /* Auxiliary function that adds a trianlge with no vertex normal */
-void add_triangle_no_normal(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
+static void add_triangle_no_normal(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    std::vector<texture_info>& texture_info_set,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
@@ -205,7 +206,7 @@ void add_triangle_no_normal(const std::vector<rt::vector>& vertex_set, const std
 }
 
 /* Auxiliary function that adds a trianlge in a subdivided polygon with more than 5 sides, with no vertex normal */
-void add_triangle_subdiv_no_normal(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
+static void add_triangle_subdiv_no_normal(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    std::vector<texture_info>& texture_info_set,
    unsigned int& number_of_polygons, unsigned int& number_of_triangles,
@@ -244,7 +245,7 @@ void add_triangle_subdiv_no_normal(const std::vector<rt::vector>& vertex_set, co
 }
 
 /* Auxiliary function that adds a quad with no vertex normal */
-void add_quad_no_normal(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
+static void add_quad_no_normal(const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    std::vector<texture_info>& texture_info_set,
    unsigned int& number_of_polygons, unsigned int& number_of_quads,
@@ -286,7 +287,7 @@ void add_quad_no_normal(const std::vector<rt::vector>& vertex_set, const std::ve
 
 /* Auxiliary function that subdivides a polygon with more than 5 sides into triangles, and adds all of them */
 /* Handles syntaxes "f v/vt/vn ..." and "f v//vn ..." */
-void add_subdivided_polygon(FILE* file,
+static void add_subdivided_polygon(const file& f,
    const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    const std::vector<rt::vector>& normal_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
@@ -315,23 +316,19 @@ void add_subdivided_polygon(FILE* file,
    rt::vector final_vn = normal_set[vn1]   + normal_set[vn2]   + normal_set[vn3]   + normal_set[vn4]   + normal_set[vn5];
 
    // Reading triplets until the end of the line
-   char c = fgetc(file);
+   char c = f.getc();
    while (c != '\n' && c != EOF) {
-      ungetc(c, file);
-      int ret;
+      f.ungetc(c);
+   
       int vi, vti, vni;
-      ret = fscanf(file, " %d/%d/%d", &vi, &vti, &vni);
+      const int ret = f.scanf_count(" %d/%d/%d", vi, vti, vni);
       if (ret < 1) {
-         fclose(file);
-         printf("Error in parsing of polygons of at least 5 sides (with normal)\n");
-         return;
+         throw std::runtime_error("Error in parsing of polygons of at least 5 sides (with normal)\n");
       }
       else if (ret == 1) {
-         ret = fscanf(file, "/%d", &vni);
-         if (ret != 1) {
-            fclose(file);
-            printf("Error in parsing of polygons of at least 5 sides (with normal) [2]\n");
-            return;
+         const int ret2 = f.scanf_count("/%d", vni);
+         if (ret2 != 1) {
+            throw std::runtime_error("Error in parsing of polygons of at least 5 sides (with normal) [2]\n");
          }
          apply_texture = false;
       }
@@ -350,9 +347,9 @@ void add_subdivided_polygon(FILE* file,
       final_vn = final_vn + normal_set[vni];
       cpt ++;
 
-      c = fgetc(file);
+      c = f.getc();
    }
-   ungetc(c, file);
+   f.ungetc(c);
 
    // New central vertex
    final_v = final_v / cpt;
@@ -404,7 +401,7 @@ void add_subdivided_polygon(FILE* file,
 
 /* Auxiliary function that subdivides a polygon with more than 5 sides into triangles with no vertex normal, and adds all of them */
 /* Handles syntaxes "f v ..." and "f v/vt ..." */
-void add_subdivided_polygon_no_normal(FILE* file,
+static void add_subdivided_polygon_no_normal(const file& f,
    const std::vector<rt::vector>& vertex_set, const std::vector<rt::vector>& uv_coord_set,
    std::vector<const object*>& obj_set, std::vector<const object*>& content, const bool bounding_enabled,
    std::vector<texture_info>& texture_info_set,
@@ -427,17 +424,14 @@ void add_subdivided_polygon_no_normal(FILE* file,
    rt::vector final_vt = uv_coord_set[vt1] + uv_coord_set[vt2] + uv_coord_set[vt3] + uv_coord_set[vt4] + uv_coord_set[vt5];
 
    // Reading triplets until the end of the line
-   char c = fgetc(file);
+   char c = f.getc();
    while (c != '\n' && c != EOF) {
-      ungetc(c, file);
-      int ret;
+      f.ungetc(c);
       int vi, vti;
-      ret = fscanf(file, "%d/%d", &vi, &vti);
+      const int ret = f.scanf_count("%d/%d", vi, vti);
 
       if (ret < 1) {
-         fclose(file);
-         printf("Error in parsing of polygons of at least 5 sides (without normal)\n");
-         return;
+         throw std::runtime_error("Error in parsing of polygons of at least 5 sides (without normal)\n");
       }
       else if (ret == 1) {
          apply_texture = false;
@@ -454,9 +448,9 @@ void add_subdivided_polygon_no_normal(FILE* file,
       if (apply_texture) { final_vt = final_vt + uv_coord_set[vti]; }
       cpt ++;
 
-      c = fgetc(file);
+      c = f.getc();
    }
-   ungetc(c, file);
+   f.ungetc(c);
 
    // New central vertex
    final_v = final_v / cpt;
@@ -526,30 +520,22 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
    printf("Parsing obj file...");
    fflush(stdout);
 
-
-   FILE* file = fopen(file_name.c_str(), "r");
-
-   if (file == nullptr) {
-      printf("Error, .obj file %s not found\n", file_name.c_str());
-      return exit_status::Failure;
-   }
+   file f(file_name);
 
    /* Extraction of the path to the .obj file, to be appended to relative paths of mtl and texture files */
-   const std::string file_name_string = file_name;
-   const unsigned int last_slash = file_name_string.find_last_of("/\\");
-   const std::string path = file_name_string.substr(0, last_slash + 1);
+   const std::filesystem::path path = std::filesystem::path(file_name).parent_path();
 
    /* Storage */
    /* All indices start at 1, so for simplicity we add an unused first vector */
    
    /* Vertices of the object */
-   std::vector<rt::vector> vertex_set = { rt::vector() };
+   std::vector<rt::vector> vertex_set  (1);
 
    /* UV-coordinates ("vt"), only the first two attributes (x, y) of the vectors are used */
-   std::vector<rt::vector> uv_coord_set = { rt::vector() };
+   std::vector<rt::vector> uv_coord_set(1);
 
    /* Vertex normals */
-   std::vector<rt::vector> normal_set = { rt::vector() };
+   std::vector<rt::vector> normal_set  (1);
 
    /* Material -> texture association table */
    map<unsigned int, unsigned int> mt_assoc;
@@ -588,21 +574,23 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
       // unsigned int cpt_loop = 0;
 
       /* Parsing loop */
-      while (not feof(file)) {
+      while (not f.eof()) {
 
          // cpt_loop ++;
          // if (cpt_loop % 1000 == 0) printf("\r%u vertices %u polygons %u normals %llu", cpt_loop, number_of_vertices, number_of_polygons, normal_set.size());
 
          // longest items are usemtl, mtllib
-         char s[7];
-         if (fscanf(file, "%6s ", s) != 1) {
+         std::array<char, 7> buffer = make_array<char, 7>('\0');
+         const exit_status status = f.read<char>({ buffer.data(), 6 });
+         if (status == exit_status::Failure) {
             break;
          }
+         const std::string s(buffer.data());
 
          /* New group definition
             If bounding_enabled is true, the current content vector of polygons
             is placed in a box that is added to the children vector */
-         if (bounding_enabled && (strcmp(s, "o") == 0 || strcmp(s, "g") == 0) && not content.empty()) {
+         if (bounding_enabled && (s == "o" || s == "g") && not content.empty()) {
 
             // Create a bounding hierarchy containing all the nodes
             /* Heuristic: each group is a depth 1 node in the global bounding box hierarchy */
@@ -615,80 +603,48 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
          }
 
          /* Commented line, or ignored command */
-         if (strcmp(s, "#") == 0
-            || strcmp(s, "s") == 0
-            || strcmp(s, "l") == 0
-            || strcmp(s, "g") == 0
-            || strcmp(s, "o") == 0
-            || strcmp(s, "vp") == 0) {
+         if (s == "#" || s == "s" || s == "l" || s == "g" || s == "o" || s == "vp") {
 
-            char c;
-            do {
-               c = fgetc(file);
-            }
-            while (c != '\n' && c != EOF);
-            ungetc(c, file);
+            f.skip_line();
          }
-         else if (strcmp(s, "v") == 0) {
+         else if (s == "v") {
             /* Vertex definition */
-            double x, y, z;
-            const int ret = fscanf(file, "%lf %lf %lf\n", &x, &y, &z);
-            if (ret != 3) {
-               throw std::runtime_error("(vertex definition)");
-            }
-            else {
-               vertex_set.push_back(rt::vector(x, y, z));
-               number_of_vertices ++;
+            const auto [ x, y, z ] = f.scan<double, 3>();
+            vertex_set.push_back(rt::vector(x, y, z));
+            number_of_vertices ++;
 
-               /* Updating max dimensions */
-               if (x > max_x) { max_x = x; }
-               if (x < min_x) { min_x = x; }
-               if (y > max_y) { max_y = y; }
-               if (y < min_y) { min_y = y; }
-               if (z > max_z) { max_z = z; }
-               if (z < min_z) { min_z = z; }
-            }
+            /* Updating max dimensions */
+            if (x > max_x) { max_x = x; }
+            if (x < min_x) { min_x = x; }
+            if (y > max_y) { max_y = y; }
+            if (y < min_y) { min_y = y; }
+            if (z > max_z) { max_z = z; }
+            if (z < min_z) { min_z = z; }
          }
-         else if (strcmp(s, "vt") == 0) {
+         else if (s == "vt") {
             /* Texture UV-coordinates definition */
-            double u, v;
-            const int ret = fscanf(file, "%lf %lf\n", &u, &v);
-            if (ret != 2) {
-               throw std::runtime_error("(UV-coordinates definition)");
+            const auto [ u, v ] = f.scan<double, 2>();
+            
+            if (u >= 0 && u <= 1 && v >= 0 && v <= 1) {
+               uv_coord_set.push_back(rt::vector(u, v, 0));
             }
             else {
-               if (u >= 0 && u <= 1 && v >= 0 && v <= 1) {
-                  uv_coord_set.push_back(rt::vector(u, v, 0));
-                  number_of_texture_coords++;
-               }
-               else {
-                  // Case that happened in one obj file
-                  const real nu = (u >= 0) ? 1 : ((u <= (-1)) ? 0 : 1 + u);
-                  const real nv = (v >= 0) ? 1 : ((v <= (-1)) ? 0 : 1 + v);
-                  uv_coord_set.push_back(rt::vector(nu, nv, 0));
-                  number_of_texture_coords++;
-               }
+               // Case that happened in one obj file
+               const real nu = (u >= 0) ? 1.0f : ((u <= (-1.0f)) ? 0.0f : 1.0f + u);
+               const real nv = (v >= 0) ? 1.0f : ((v <= (-1.0f)) ? 0.0f : 1.0f + v);
+               uv_coord_set.push_back(rt::vector(nu, nv, 0));
             }
+            number_of_texture_coords++;
          }
-         else if (strcmp(s, "vn") == 0) {
+         else if (s == "vn") {
             /* Vertex normal definition */
-            double x, y, z;
-            const int ret = fscanf(file, "%lf %lf %lf\n", &x, &y, &z);
-            if (ret != 3) {
-               throw std::runtime_error("(normal definition)");
-            }
-            else {
-               normal_set.push_back(rt::vector(x, y, z));
-               number_of_normals++;
-            }
+            const auto [ x, y, z ] = f.scan<double, 3>();
+            normal_set.push_back(rt::vector(x, y, z));
+            number_of_normals++;
          }
-         else if (strcmp(s, "usemtl") == 0) {
+         else if (s == "usemtl") {
             /* Using a new material */
-            char m_name[65];
-            const int ret = fscanf(file, " %64s", m_name);
-            if (ret != 1) {
-               throw std::runtime_error("(texture name in usemtl)");
-            }
+            const std::string m_name = f.read_string(64);
 
             /* Looking up the material name in the vector of already declared material names */
             const std::optional<unsigned int> vindex = wrapper<material>::find_element(material_wrapper_set, m_name);
@@ -709,53 +665,48 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
             }
             
          }
-         else if (strcmp(s, "mtllib") == 0) {
-            char mtl_file_name[513];
-            const int ret = fscanf(file, " %512s\n", mtl_file_name);
-            if (ret != 1) {
-               throw std::runtime_error("(mtllib)");
-            }
+         else if (s == "mtllib") {
+            const std::string mtl_file_name = f.read_string(512);
 
-            const bool mtl_parsing_successful =
-               (parse_mtl_file(mtl_file_name, path, material_wrapper_set,
-                  texture_wrapper_set, mt_assoc, gamma) == exit_status::Success);
+            const exit_status mtl_parsing_successful =
+               parse_mtl_file(path, mtl_file_name, material_wrapper_set,
+                  texture_wrapper_set, mt_assoc, gamma);
 
-            if (not mtl_parsing_successful) {
+            if (mtl_parsing_successful == exit_status::Failure) {
                throw std::runtime_error("(mtl file loading)");
             }
          }
-         else if (strcmp(s, "f") == 0) {
+         else if (s == "f") {
             /* Face declaration */
 
             /* 3 or 4 vertices will be parsed */
             int v1, vt1, vn1, v2, vt2, vn2, v3, vt3, vn3, v4, vt4, vn4, v5, vt5, vn5;
-            const int ret = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d",
-               &v1, &vt1, &vn1, &v2, &vt2, &vn2, &v3, &vt3, &vn3, &v4, &vt4, &vn4, &v5, &vt5, &vn5);
+            const int ret = f.scanf_count("%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d",
+               v1, vt1, vn1, v2, vt2, vn2, v3, vt3, vn3, v4, vt4, vn4, v5, vt5, vn5);
 
             if (ret >= 9) {
-               correct(v1, number_of_vertices);
+               correct(v1,  number_of_vertices);
                correct(vt1, number_of_texture_coords);
                correct(vn1, number_of_normals);
 
-               correct(v2, number_of_vertices);
+               correct(v2,  number_of_vertices);
                correct(vt2, number_of_texture_coords);
                correct(vn2, number_of_normals);
 
-               correct(v3, number_of_vertices);
+               correct(v3,  number_of_vertices);
                correct(vt3, number_of_texture_coords);
                correct(vn3, number_of_normals);
             }
             if (ret >= 12) {
-               correct(v4, number_of_vertices);
+               correct(v4,  number_of_vertices);
                correct(vt4, number_of_texture_coords);
                correct(vn4, number_of_normals);
             }
             if (ret >= 15) {
-               correct(v5, number_of_vertices);
+               correct(v5,  number_of_vertices);
                correct(vt5, number_of_texture_coords);
                correct(vn5, number_of_normals);
             }
-
 
             if (ret == 9) {
                /* Triangle */
@@ -813,10 +764,10 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
                      current_texture_index, current_material_index, apply_texture);
                }
             }
-            else if (ret > 12) {     
+            else if (ret >= 15) {     
                /* Polygons with more than 4 sides */
 
-               add_subdivided_polygon(file, vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+               add_subdivided_polygon(f, vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
                   texture_info_set,
                   number_of_polygons, number_of_triangles,
                   shift, scale,
@@ -828,12 +779,11 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
             else if (ret == 1) {
                /* Neither texture coordinates nor the vertex normals are specified */
 
-               const char c = fgetc(file);
+               const char c = f.getc();
                if (c == ' ') {
                   // f v1 v2 v3 ...
 
-                  const int ret2 = fscanf(file, "%d %d %d %d",
-                     &v2, &v3, &v4, &v5);
+                  const int ret2 = f.scanf_count("%d %d %d %d", v2, v3, v4, v5);
 
                   correct(v1, number_of_vertices);
                   if (ret2 >= 1) correct(v2, number_of_vertices);
@@ -849,7 +799,7 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
                         shift, scale,
                         v1, v2, v3,
                         0, 0, 0,
-                        0, current_material_index, false);
+                        0, current_material_index, DO_NOT_APPLY_TEXTURE);
                   }
                   else if (ret2 == 3) {
                      // Quad with no texture and normal
@@ -864,7 +814,7 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
                            shift, scale,
                            v1, v2, v3,
                            0, 0, 0,
-                           0, current_material_index, false);
+                           0, current_material_index, DO_NOT_APPLY_TEXTURE);
 
                         add_triangle_no_normal(vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
                            texture_info_set,
@@ -872,7 +822,7 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
                            shift, scale,
                            v1, v3, v4,
                            0, 0, 0,
-                           0, current_material_index, false);
+                           0, current_material_index, DO_NOT_APPLY_TEXTURE);
                      }
                      else {
                         // Keeping the quad with no texture and normal
@@ -882,25 +832,25 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
                            shift, scale,
                            v1, v2, v3, v4,
                            0, 0, 0, 0,
-                           0, current_material_index, false);
+                           0, current_material_index, DO_NOT_APPLY_TEXTURE);
                      }
                   }
                   else {
                      // Untextured polygon with more than 5 sides
-                     add_subdivided_polygon_no_normal(file, vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                     add_subdivided_polygon_no_normal(f, vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
                         texture_info_set,
                         number_of_polygons, number_of_triangles,
                         shift, scale,
                         v1, v2, v3, v4, v5,
                         0, 0, 0, 0, 0,
-                        0, current_material_index, false);
+                        0, current_material_index, DO_NOT_APPLY_TEXTURE);
                   }
                }
                else {
                   // By elimination: c = '/'
                   // f v1//vn1 v2//vn2 ...
-                  const int ret2 = fscanf(file, "%d %d//%d %d//%d %d//%d %d//%d",
-                     &vn1, &v2, &vn2, &v3, &vn3, &v4, &vn4, &v5, &vn5);
+                  const int ret2 = f.scanf_count("%d %d//%d %d//%d %d//%d %d//%d",
+                     vn1, v2, vn2, v3, vn3, v4, vn4, v5, vn5);
 
                   if (ret2 >= 5) {
                      correct(v1, number_of_vertices);
@@ -930,7 +880,7 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
                         v1, v2, v3,
                         0, 0, 0,
                         vn1, vn2, vn3,
-                        0, current_material_index, false);
+                        0, current_material_index, DO_NOT_APPLY_TEXTURE);
                   }
                   else if (ret2 == 7) {
                      // Untextured quad
@@ -946,7 +896,7 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
                            v1, v2, v3,
                            0, 0, 0,
                            vn1, vn2, vn3,
-                           0, current_material_index, false);
+                           0, current_material_index, DO_NOT_APPLY_TEXTURE);
 
                         add_triangle(vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
                            texture_info_set,
@@ -955,7 +905,7 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
                            v1, v3, v4,
                            0, 0, 0,
                            vn1, vn3, vn4,
-                           0, current_material_index, false);
+                           0, current_material_index, DO_NOT_APPLY_TEXTURE);
                      }
                      else {
                         // Keeping the untextured quad
@@ -966,19 +916,19 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
                            v1, v2, v3, v4,
                            0, 0, 0, 0,
                            vn1, vn2, vn3, vn4,
-                           0, current_material_index, false);
+                           0, current_material_index, DO_NOT_APPLY_TEXTURE);
                      }
                   }
                   else {
                      // Untextured polygon with more than 5 sides
-                     add_subdivided_polygon(file, vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
+                     add_subdivided_polygon(f, vertex_set, uv_coord_set, normal_set, obj_set, content, bounding_enabled,
                         texture_info_set,
                         number_of_polygons, number_of_triangles,
                         shift, scale,
                         v1, v2, v3, v4, v5,
                         0, 0, 0, 0, 0,
                         vn1, vn2, vn3, vn4, vn5,
-                        0, current_material_index, false);
+                        0, current_material_index, DO_NOT_APPLY_TEXTURE);
                   }
                }
                
@@ -986,8 +936,8 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
             else {
                // ret == 2
                // f v1/vt1 v2/vt2 ...
-               const int ret2 = fscanf(file, "%d/%d %d/%d %d/%d %d/%d",
-                  &v2, &vt2, &v3, &vt3, &v4, &vt4, &v5, &vt5);
+               const int ret2 = f.scanf_count("%d/%d %d/%d %d/%d %d/%d",
+                  v2, vt2, v3, vt3, v4, vt4, v5, vt5);
 
                if (ret2 >= 4) {
                   correct(v1, number_of_vertices);
@@ -1054,7 +1004,7 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
                }
                else {
                   // Polygon with more than 5 sides with no normal
-                  add_subdivided_polygon_no_normal(file, vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
+                  add_subdivided_polygon_no_normal(f, vertex_set, uv_coord_set, obj_set, content, bounding_enabled,
                      texture_info_set,
                      number_of_polygons, number_of_triangles,
                      shift, scale,
@@ -1066,7 +1016,7 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
          }
       }
       
-      fclose(file);
+      f.close();
       
       if (bounding_enabled) {
          /* Placing the last group into a bounding */
@@ -1078,12 +1028,10 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
          children.push_back(bd);
 
          /* Setting the final bounding */
-         if (children.size() == 1) {
+         if (children.size() == 1)
             output_bd = children[0];
-         }
-         else {
+         else
             output_bd = create_hierarchy_from_boundings(std::move(children));
-         }
       }
 
       printf("\r%s successfully loaded:\n", file_name.c_str());
@@ -1104,7 +1052,6 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
    catch(const std::exception& e) {
       printf("Parsing error in file %s ", file_name.c_str());
       printf("%s\n", e.what());
-      fclose(file);
       return exit_status::Failure;
    }
 }

@@ -10,6 +10,33 @@
 
 #include <optional>
 
+template<typename T>
+constexpr T id(size_t, T value) {
+    return value;
+}
+
+template<typename T, size_t... i>
+constexpr inline std::array<T, sizeof...(i)> make_array_aux_(T value, std::index_sequence<i...>) {
+    return { id<T>(i, value)... };
+}
+
+// Returns an array with all the elements initialized to value
+template<typename T, size_t count>
+constexpr inline std::array<T, count> make_array(T value) {
+    return make_array_aux_<T>(value, std::make_index_sequence<count>());
+}
+
+template<size_t count, size_t... i>
+constexpr inline std::string string_concat_aux_(const std::string& value, std::index_sequence<i...>) {
+    return (id(i, value) + ...);
+}
+
+// Returns a string made up of the string value repeated count times
+template<size_t count>
+constexpr inline std::string string_concat(const std::string& value) {
+    return string_concat_aux_<count>(value, std::make_index_sequence<count>());
+}
+
 template<typename T, typename U>
 concept Convertible = std::is_convertible_v<U, T>;
 
@@ -31,7 +58,7 @@ static constexpr std::string build_format_string() {
     return (data_format<T>() + ...);
 }
 
-constexpr int MAX_STRING_LENGTH = 1000;
+constexpr unsigned int MAX_STRING_LENGTH = 1000;
 
 class file {
     
@@ -51,6 +78,14 @@ class file {
     private:
         FILE *f;
         mode mode;
+
+    private:
+        // Helper function to scan
+        template<Arithm T, size_t count, size_t... i>
+        exit_status scanf_array_(const std::string& format, std::array<T, count>& t, std::index_sequence<i...>) const {
+            return scanf(format, t[i]...);
+        }
+
 
     public:
         file(const std::string& filename, const std::string& mode_s = "r") :
@@ -114,18 +149,18 @@ class file {
             return read<T>(std::span<T>(buffer));
         }
 
-        std::string read_string(int max_length = MAX_STRING_LENGTH) const {
-            std::array<char, MAX_STRING_LENGTH> t;
-            t.fill(0);
-            fgets(t.data(), max_length, f);
+
+        // Returns a string of length at most max_length (plus the '\0' terminating-character)
+        std::string read_string(unsigned int max_length = MAX_STRING_LENGTH) const {
+            if (max_length > MAX_STRING_LENGTH) {
+                std::printf("Error: read_string can read a string of length at most %d\n", MAX_STRING_LENGTH);
+                throw std::runtime_error("");
+            }
+            constexpr size_t LENGTH = MAX_STRING_LENGTH + 1;
+            std::array<char, LENGTH> t = make_array<char, LENGTH>('\0');
+            fgets(t.data(), max_length + 1, f);
             return std::string(t.data());
         }
-
-        // Experimental
-        // template<class T>
-        // exit_status read(T* elt) const {
-        //     return read({ *elt });
-        // }
 
         int getc() const {
             return fgetc(f);
@@ -135,7 +170,7 @@ class file {
             return std::ungetc(c, f);
         }
 
-        exit_status skip(int n) const {
+        exit_status skip(unsigned int n) const {
             std::vector<char> buffer(n);
             return read<char>(buffer);
         }
@@ -151,6 +186,12 @@ class file {
             const int ret = fscanf(f, format.c_str(), &x...);
             return exit_status_of(ret == sizeof...(Args));
         }
+
+        template<typename... Args>
+        int scanf_count(const std::string& format, Args&... x) const {
+            return fscanf(f, format.c_str(), &x...);
+        }
+
 
         template<Arithm... T>
         requires (sizeof...(T) > 1)
@@ -169,19 +210,14 @@ class file {
             return optional_of<T>(status, std::move(x));
         }
 
-        template<Arithm T, size_t count, size_t... i>
-        exit_status scanf_array_(const std::string& format, std::array<T, count>& t, std::index_sequence<i...>) const {
-            return scanf(format, t[i]...);
-        }
-
         template<Arithm T, size_t count>
         std::array<T, count> scan() const {
             constexpr std::string df = data_format<T>();
-            std::string format = "";
-            for (size_t i = 0; i < count; i++)
-                format += df;
+            constexpr std::string format = string_concat<count>(df);
             std::array<T, count> t;
-            scanf_array_(format, t, std::make_index_sequence<count>());
+            const exit_status status = scanf_array_(format, t, std::make_index_sequence<count>());
+            if (status == exit_status::Failure)
+                throw std::runtime_error("scan<T, count>");
             return t;
         }
 
@@ -234,8 +270,7 @@ class file {
 
         template<typename T, T value, size_t count>
         exit_status write() const {
-            std::array<T, count> t;
-            t.fill(value);
+            constexpr std::array<T, count> t = make_array<T, count>(value);
             return write<T, count>(t);
         }
 

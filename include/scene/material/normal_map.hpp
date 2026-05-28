@@ -1,7 +1,9 @@
 #pragma once
 
-#include <vector>
 #include "light/vector.hpp"
+
+#include <string>
+#include <vector>
 
 class normal_map {
 
@@ -18,7 +20,7 @@ class normal_map {
 
         /* Constructor from a .bmp file
            Writes true in parsing_successful if the operation was successful */
-        normal_map(const char* file_name, bool& parsing_successful);
+        normal_map(const std::string& file_name, bool& parsing_successful);
 
         normal_map(normal_map&&)                    = default;
         normal_map& operator=(normal_map&&)         = default;

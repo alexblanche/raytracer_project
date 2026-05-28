@@ -23,7 +23,7 @@ void convert_bmp_to_normal_field(const std::vector<std::vector<rt::color>>& col_
     }
 }
 
-exit_status read_normal_map(const char* file_name, std::vector<std::vector<rt::vector>>& data) {
+exit_status read_normal_map(const std::string& file_name, std::vector<std::vector<rt::vector>>& data) {
 
     const std::optional<dimensions> dims = read_bmp_size(file_name);
     if (not dims.has_value())

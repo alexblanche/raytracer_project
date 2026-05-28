@@ -13,7 +13,7 @@ normal_map::normal_map(const unsigned int width, const unsigned int height, std:
 
 /* Constructor from a .bmp file
    Writes true in parsing_successful if the operation was successful */
-normal_map::normal_map(const char* file_name, bool& parsing_successful) {
+normal_map::normal_map(const std::string& file_name, bool& parsing_successful) {
 
     parsing_successful = (read_normal_map(file_name, data) == exit_status::Success);
     
