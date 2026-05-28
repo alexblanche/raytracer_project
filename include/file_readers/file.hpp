@@ -10,6 +10,9 @@
 
 #include <optional>
 
+template<typename T, typename U>
+concept Convertible = std::is_convertible_v<U, T>;
+
 template<typename T>
 concept Arithm = std::is_arithmetic_v<T>;
 
@@ -109,6 +112,12 @@ class file {
             return read<T>(std::span<T>(buffer));
         }
 
+        // Experimental
+        // template<class T>
+        // exit_status read(T* elt) const {
+        //     return read({ *elt });
+        // }
+
         int getc() const {
             return fgetc(f);
         }
@@ -192,24 +201,53 @@ class file {
         }
 
         template<class T>
-        exit_status write(std::span<T> buffer) const {
-            const int ret = fwrite(static_cast<void*>(buffer.data()), sizeof(T), buffer.size(), f);
+        exit_status write(std::span<const T> buffer) const {
+            const int ret = fwrite(static_cast<const void*>(buffer.data()), sizeof(T), buffer.size(), f);
             return exit_status_of(ret == buffer.size());
         }
 
         template<class T, size_t extent>
-        exit_status write(std::span<T, extent> buffer) const {
-            const int ret = fwrite(static_cast<void*>(buffer.data()), sizeof(T), extent, f);
+        exit_status write(std::span<const T, extent> buffer) const {
+            const int ret = fwrite(static_cast<const void*>(buffer.data()), sizeof(T), extent, f);
             return exit_status_of(ret == extent);
+        }
+
+        template<class T>
+        exit_status write(const std::vector<T>& buffer) const {
+            return write(buffer);
+        }
+
+        template<typename T, T value, size_t count>
+        exit_status write() const {
+            std::array<T, count> t;
+            t.fill(value);
+            return write<T, count>(t);
+        }
+
+        template<typename T, T value>
+        exit_status write(int count) const {
+            const std::vector<T> v(count, value);
+            return write(v);
         }
 
         exit_status write(const std::string& s) const {
             return exit_status_of(fprintf(f, "%s", s.c_str()));
         }
 
+        template<typename T, Convertible<T>... Args>
+        exit_status write(const Args... x) const {
+            constexpr size_t extent = sizeof...(Args);
+            const std::array<T, extent> t = { static_cast<T>(x)... };
+            return write(std::span<const T, extent>(t));
+        }
+
         template<typename... Args>
-        exit_status printf(const std::string& format, Args... args) const {
+        exit_status printf(const std::string& format, const Args... args) const {
             const int ret = fprintf(f, format.c_str(), args...);
             return exit_status_of(ret != EOF);
+        }
+
+        exit_status printf(const std::string& s) const {
+            return printf("%s", s.c_str());
         }
 };

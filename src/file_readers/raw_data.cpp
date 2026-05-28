@@ -88,15 +88,16 @@ exit_status combine_raw(const std::string& dest_bmp_name, const std::string& des
 
     printf("Merging %lu files...\n", source_file_names.size());
 
-    file f0(source_file_names[0]);
-
     /* Determination of the size of the matrix */
     unsigned int width, height;
-    const exit_status status = f0.scanf("width:%u height:%u", width, height);
+    {
+        file f0(source_file_names[0]);
+        const exit_status status = f0.scanf("width:%u height:%u", width, height);
 
-    if (status == exit_status::Failure) {
-        printf("Reading error at first line of file %s\n", source_file_names[0].c_str());
-        return exit_status::Failure;
+        if (status == exit_status::Failure) {
+            printf("Reading error at first line of file %s\n", source_file_names[0].c_str());
+            return exit_status::Failure;
+        }
     }
 
     std::vector<std::vector<rt::color>> matrix(width, std::vector<rt::color>(height));
@@ -124,7 +125,6 @@ exit_status combine_raw(const std::string& dest_bmp_name, const std::string& des
         total_number_of_rays += number_of_rays_k;
 
         for (unsigned int j = 0; j < height; j++) {
-            const unsigned int widthj = width * j;
             for (unsigned int i = 0; i < width; i++) {
                 const auto [ r, g, b ] = f.scan<real, 3>();
                 matrix[i][j] += rt::color(r, g, b);

@@ -6,108 +6,81 @@
 #include <stdexcept>
 #include <cmath>
 
-static constexpr int MAX_PADDING = 4;
 static constexpr int BYTES_PER_COLOR = 3;
 
 /* Writes in the variables the width and height of the .bmp image contained in file_name */
-std::optional<dimensions> read_bmp_size(const char* file_name) {
-    FILE* file = fopen(file_name, "rb");
+std::optional<dimensions> read_bmp_size(const std::string& file_name) {
 
-    if (file == nullptr) {
-        printf("Error, file %s not found\n", file_name);
-        return std::nullopt;
-    }
+    file f(file_name, "rb");
 
     try {
-        int ret;
-
         /* 18 bytes ignored:
-        Type (2), Size (4), Reserved 1 (2), Reserved 2 (2), Offset (4), Size of the header (4)
+           Type (2), Size (4), Reserved 1 (2), Reserved 2 (2), Offset (4), Size of the header (4)
         */
-        char buffer18[18];
-        ret = fread((void*) buffer18, 18, 1, file);
-        if (ret != 1) {
-            throw std::runtime_error("Reading error in read_bmp_size (18 first bytes)");
-        }
+        f.skip(18);
 
         /* Width: 4 bytes */
         unsigned int bmpwidth;
-        ret = fread((void*) &bmpwidth, sizeof(int), 1, file);
-        if (ret != 1)
+        const exit_status status_w = f.read<unsigned int>({ &bmpwidth, 1 });
+        if (status_w == exit_status::Failure)
             throw std::runtime_error("Reading error in read_bmp_size (width)");
         
         const int width = static_cast<int>(bmpwidth);
 
         /* Height: 4 bytes */
         unsigned int bmpheight;
-        ret = fread((void*) &bmpheight, sizeof(int), 1, file);
-        if (ret != 1)
+        const exit_status status_h = f.read<unsigned int>({ &bmpheight, 1 });
+        if (status_h == exit_status::Failure)
             throw std::runtime_error("Reading error in read_bmp_size (height)");
         
         const int height = static_cast<int>(bmpheight);
 
-        fclose(file);
         return dimensions(width, height);
     }
     catch(const std::exception& e) {
         printf("%s\n", e.what());
-        fclose(file);
         return std::nullopt;
     }
-    
 }
 
 /* Extracts the data from the given .bmp file into the matrix data, which must have the right size */
-exit_status read_bmp(const char* file_name, std::vector<std::vector<rt::color>>& data) {
-    FILE* file = fopen(file_name, "rb");
+exit_status read_bmp(const std::string& file_name, std::vector<std::vector<rt::color>>& data) {
 
-    if (file == nullptr) {
-        printf("Error, file %s not found\n", file_name);
-        return exit_status::Failure;
-    }
+    file f(file_name, "rb");
 
     try {
-
-        constexpr int MAX_LENGTH = 28;
-        char buffer_ignore[MAX_LENGTH];
-        int ret;
-
         /* 18 bytes ignored:
-        Type (2), Size (4), Reserved 1 (2), Reserved 2 (2), Offset (4), Size of the header (4)
+           Type (2), Size (4), Reserved 1 (2), Reserved 2 (2), Offset (4), Size of the header (4)
         */
-        ret = fread(static_cast<void*>(buffer_ignore), 18, 1, file);
-        if (ret != 1)
-            throw std::runtime_error("Reading error in read_bmp (18 first bytes)");
+        f.skip(18);
         
         /* Width: 4 bytes */
         unsigned int bmpwidth;
-        ret = fread(static_cast<void*>(&bmpwidth), sizeof(int), 1, file);
-        if (ret != 1)
-            throw std::runtime_error("Reading error in read_bmp (width)");
+        const exit_status status_w = f.read<unsigned int>({ &bmpwidth, 1 });
+        if (status_w == exit_status::Failure)
+            throw std::runtime_error("Reading error in read_bmp_size (width)");
 
         /* Height: 4 bytes */
         unsigned int bmpheight;
-        ret = fread(static_cast<void*>(&bmpheight), sizeof(int), 1, file);
-        if (ret != 1)
-            throw std::runtime_error("Reading error in read_bmp (height)");
+        const exit_status status_h = f.read<unsigned int>({ &bmpheight, 1 });
+        if (status_h == exit_status::Failure)
+            throw std::runtime_error("Reading error in read_bmp_size (height)");
 
         /* 28 bytes ignored:
-        Number of color planes (2), Number of bits per pixel (2), Compression method used (4),
-        Compressed size of the image (4), Horizontal resolution (4), Vertical resolution (4),
-        Number of colors used (4), Number of important colors used (4)
+           Number of color planes (2), Number of bits per pixel (2), Compression method used (4),
+           Compressed size of the image (4), Horizontal resolution (4), Vertical resolution (4),
+           Number of colors used (4), Number of important colors used (4)
         */
-        ret = fread(static_cast<void*>(buffer_ignore), 28, 1, file);
-        if (ret != 1)
-            throw std::runtime_error("Reading error in read_bmp_size (28 bytes after height)");
-        
+        f.skip(28);
+
         /* Padding at the end of each row in the file */
         const unsigned int p = (4 - ((BYTES_PER_COLOR * bmpwidth) % 4)) % 4;
 
         /* Color data */
         const unsigned int nb_bytes = ((BYTES_PER_COLOR * bmpwidth) + p) * bmpheight;
         std::vector<unsigned char> buffer(nb_bytes);
-        ret = fread((void*) buffer.data(), 1, nb_bytes, file);
-        if (static_cast<unsigned int>(ret) != nb_bytes)
+        const exit_status status = f.read(buffer);
+        if (status == exit_status::Failure)
             throw std::runtime_error("Reading error in read_bmp (pixel data)");
 
         unsigned int index = 0;
@@ -123,57 +96,45 @@ exit_status read_bmp(const char* file_name, std::vector<std::vector<rt::color>>&
             index += p;
         }
 
-        fclose(file);
         return exit_status::Success;
     }
     catch(const std::exception& e) {
         printf("%s\n", e.what());
-        fclose(file);
         return exit_status::Failure;
     }
 }
 
 /* Prints the info contained in the header of the given .bmp file */
-exit_status print_bmp_info(const char* file_name) {
-    FILE* file = fopen(file_name, "rb");
+exit_status print_bmp_info(const std::string& file_name) {
 
-    if (file == nullptr) {
-        printf("Error, file %s not found\n", file_name);
-        return exit_status::Failure;
-    }
+    file f(file_name, "rb");
 
+    // "BM" characters
     char filetype[2];
-    const int ret1 = fread(filetype, 2, 1, file);
-    if (ret1 != 1) {
-        fclose(file);
-        printf("Reading error in read_bmp type\n");
-        return exit_status::Failure;
-    }
+    f.read<char>(filetype);
 
-    bmp_header header;
-    const int ret2 = fread(static_cast<void*>(&header), sizeof(bmp_header), 1, file);
-    fclose(file);
+    std::optional<bmp_header> h_opt = f.scan<bmp_header>();
 
-    if (ret2 != 1) {
+    if (not h_opt.has_value()) {
         printf("Reading error in read_bmp header\n");
         return exit_status::Failure;
     }
     
     printf("Type:                  %.2s\n", filetype);
-    header.print();
+    h_opt.value().print();
     return exit_status::Success;
 }
 
 
-inline void throw_if_error(int ret) {
-    if (ret < 0)
+inline void check(exit_status status) {
+    if (status == exit_status::Failure)
         throw std::runtime_error("");
 }
 
 /* Writes the data into a .bmp file with the given name
    The value (double) of each component of each color of data is divided by number_of_rays before being written in the file
    Returns true if the operation was successful */
-exit_status write_bmp(const char* file_name, const std::vector<std::vector<rt::color>>& data,
+exit_status write_bmp(const std::string& file_name, const std::vector<std::vector<rt::color>>& data,
     const unsigned int number_of_rays, const real gamma) {
 
     const int width  = data.size();
@@ -182,116 +143,90 @@ exit_status write_bmp(const char* file_name, const std::vector<std::vector<rt::c
     const unsigned int p = (4 - ((BYTES_PER_COLOR * width) % 4)) % 4;
     const bool padding = (p != 0);
 
-    FILE* file = fopen(file_name, "wb");
-
-    if (file == nullptr) {
-        printf("Error, file %s not found\n", file_name);
-        return exit_status::Failure;
-    }
+    file f(file_name, "wb");
 
     /* All sizes are stored in little-endian */
     try {
-        int ret;
-
         /** Header **/
 
         /* 2 bytes: BM */
-        ret = fprintf(file, "BM");
-        throw_if_error(ret);
+        check(f.printf("BM"));
 
         /* 4 bytes: File size */
         /* Size = 14 (header) + 40 (infoheader) + BYTES_PER_COLOR * width * height (pixel data) + p * height */
         const unsigned int file_size = 14 + 40 + (BYTES_PER_COLOR * width + p) * height;
-        ret = fprintf(file, "%c%c%c%c",
+        check(f.write<char>(
             file_size         & 0xFF,
             (file_size >> 8)  & 0xFF,
             (file_size >> 16) & 0xFF,
             (file_size >> 24) & 0xFF
-        );
-        throw_if_error(ret);
+        ));
 
         /* 4 bytes: 0 0 0 0 */
-        ret = fprintf(file, "%c%c%c%c", 0, 0, 0, 0);
-        throw_if_error(ret);
+        check(f.write<char, '\0', 4>());
 
         /* 4 bytes: Offset from beginning of file to the beginning of the bitmap data = 54 */
-        ret = fprintf(file, "%c%c%c%c", 54, 0, 0, 0);
-        throw_if_error(ret);
+        check(f.write<char>(54, 0, 0, 0));
 
         /** InfoHeader **/
 
         /* 4 bytes: Size of InfoHeader = 40 */
-        ret = fprintf(file, "%c%c%c%c", 40, 0, 0, 0);
-        throw_if_error(ret);
+        check(f.write<char>(40, 0, 0, 0));
 
         /* 4 bytes: Width */
-        ret = fprintf(file, "%c%c%c%c",
+        check(f.write<char>(
             width         & 0xFF,
             (width >> 8)  & 0xFF,
             (width >> 16) & 0xFF,
             (width >> 24) & 0xFF
-        );
-        throw_if_error(ret);
+        ));
 
         /* 4 bytes: Height */
-        ret = fprintf(file, "%c%c%c%c",
+        check(f.write<char>(
             height         & 0xFF,
             (height >> 8)  & 0xFF,
             (height >> 16) & 0xFF,
             (height >> 24) & 0xFF
-        );
-        throw_if_error(ret);
+        ));
 
         /* 2 bytes: Planes = 1 */
-        ret = fprintf(file, "%c%c", 1, 0);
-        throw_if_error(ret);
+        check(f.write<char>(1, 0));
 
         /* 2 bytes: Bits per Pixel (24 for 24 bits RGB) */
-        ret = fprintf(file, "%c%c", 24, 0);
-        throw_if_error(ret);
+        check(f.write<char>(24, 0));
 
         /* 4 bytes: compression (0 for no compression) */
-        ret = fprintf(file, "%c%c%c%c", 0, 0, 0, 0);
-        throw_if_error(ret);
+        check(f.write<char, '\0', 4>());
 
         /* 4 bytes: Size of the pixel data */
         /* Size = 3 * width * height (pixel data) + p * height */
         const unsigned int data_size = (BYTES_PER_COLOR * width + p) * height;
-        ret = fprintf(file, "%c%c%c%c",
+        check(f.write<char>(
             data_size         & 0xFF,
             (data_size >> 8)  & 0xFF,
             (data_size >> 16) & 0xFF,
             (data_size >> 24) & 0xFF
-        );
-        throw_if_error(ret);
+        ));
 
         /* 4 bytes: Horizontal resolution (in pixels/meter)
         Unimportant: leaving it as 0 */
-        ret = fprintf(file, "%c%c%c%c", 0, 0, 0, 0);
-        throw_if_error(ret);
+        check(f.write<char, '\0', 4>());
 
         /* 4 bytes: Vertical resolution (in pixels/meter)
         Unimportant: leaving it as 0 */
-        ret = fprintf(file, "%c%c%c%c", 0, 0, 0, 0);
-        throw_if_error(ret);
+        check(f.write<char, '\0', 4>());
 
         /* 4 bytes: Number of actually used colors
         Unimportant: leaving it as 0 */
-        ret = fprintf(file, "%c%c%c%c", 0, 0, 0, 0);
-        throw_if_error(ret);
+        check(f.write<char, '\0', 4>());
 
         /* 4 bytes: Important colors
         Unimportant: leaving it as 0 */
-        ret = fprintf(file, "%c%c%c%c", 0, 0, 0, 0);
-        throw_if_error(ret);
+        check(f.write<char, '\0', 4>());
         
 
         /** Color data **/
         /* Each pixel is represented as 3 bytes BGR, each line (sequence of 3*width bytes) is followed by p bytes '0' of padding */
-
-        /* Padding bytes at the end of each line (if padding = true) */
-        char padding_zeroes[MAX_PADDING] = { 0 };
-
         const bool gamma_enabled = gamma != 1.0f;
         const real invN = 1.0 / number_of_rays;
         constexpr real inv255 = 1.0 / 255.0;
@@ -315,23 +250,18 @@ exit_status write_bmp(const char* file_name, const std::vector<std::vector<rt::c
                 const unsigned char b = col.get_blue();
                 // const rt::color::uint8_color color_data = corrected.to_uint8_bgr();
                 // std::memcpy(buffer + index, &color_data, 3);
-                const int ret = fprintf(file, "%c%c%c", b, g, r);
-                throw_if_error(ret);
+                f.write<char>(b, g, r);
             }
             /* Writing p bytes '0' of padding */
-            if (padding) {
-                const int ret = fwrite((void*) padding_zeroes, p, 1, file);
-                if (ret != 1)
-                    throw std::runtime_error("");
-            }
+            if (padding)
+                f.write<char, '\0'>(p);
         }
 
-        fclose(file);
         return exit_status::Success;
     }
     catch(const std::exception& e) {
-        fclose(file);
-        printf("Writing error in file %s\n", file_name);
+
+        printf("Writing error in file %s\n", file_name.c_str());
         return exit_status::Failure;
     }
 }
