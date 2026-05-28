@@ -30,7 +30,7 @@ static void parallel_for_aux(const unsigned int nb_elements,
     }
 }
 
-void parallel_for(int nb_elements, const std::function<void (int i)> functor) {
+void parallel_for(int nb_elements, const std::function<void (int i)>& functor) {
     parallel_for_aux(nb_elements, [&] (int start, int end) {
         for (int i = start; i < end; i++) {
             functor(i);
@@ -38,6 +38,6 @@ void parallel_for(int nb_elements, const std::function<void (int i)> functor) {
     });
 }
 
-void parallel_for(int nb_elements, const std::function<void (int start, int end)> functor) {
+void parallel_for(int nb_elements, const std::function<void (int start, int end)>& functor) {
     parallel_for_aux(nb_elements, functor);
 }

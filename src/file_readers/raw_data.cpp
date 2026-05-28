@@ -133,8 +133,8 @@ exit_status combine_raw(const std::string& dest_bmp_name, const std::string& des
     }
 
     /* Exporting the matrix as a bmp file */
-    const exit_status success_bmp = write_bmp(dest_bmp_name.c_str(), matrix, total_number_of_rays, gamma);
-    const exit_status success_raw = export_raw(dest_raw_name.c_str(), total_number_of_rays, matrix);
+    const exit_status success_bmp = write_bmp(dest_bmp_name, matrix, total_number_of_rays, gamma);
+    const exit_status success_raw = export_raw(dest_raw_name, total_number_of_rays, matrix);
 
     if ((success_bmp && success_raw) == exit_status::Success)
         return exit_status::Success;

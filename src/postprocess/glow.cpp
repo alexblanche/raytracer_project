@@ -18,13 +18,13 @@ struct pixel {
     double alpha;
     double total_alpha;
 
-    pixel() : col(rt::color::BLACK), alpha(0), total_alpha(0) {}
+    pixel() : col(rt::BLACK), alpha(0), total_alpha(0) {}
 
     pixel(const rt::color& col, const double& alpha)
         : col(col), alpha(alpha), total_alpha(alpha) {}
 
     void add(const rt::color& ncol, const double& nalpha) {
-        if (col == rt::color::BLACK) {
+        if (col == rt::BLACK) {
             col = ncol;
             alpha = nalpha;
             total_alpha = nalpha;
@@ -107,7 +107,7 @@ void blur_pixel(std::vector<std::vector<pixel>>& glow_image,
     for(int i = std::max((int) -radius, -a); i < std::min((int) radius, width - a); i++) {
         for(int j = std::max((int) -radius, -b); j < std::min((int) radius, height - b); j++) {
 
-            if (bright_pixels[i + a][j + b] == rt::color::BLACK) {
+            if (bright_pixels[i + a][j + b] == rt::BLACK) {
 
                 const double gaussian = exp(div * (i * i + j * j));
                 glow_image[i + a][j + b].add(normalized_color, gaussian);
@@ -129,7 +129,7 @@ std::vector<std::vector<pixel>> generate_glow(const std::vector<std::vector<rt::
 
     for (size_t i = 0; i < width; i++) {
         for (size_t j = 0; j < height; j++) {
-            if (not (bright_pixels[i][j] == rt::color::BLACK)) {
+            if (not (bright_pixels[i][j] == rt::BLACK)) {
                 const normalized nc = get_normalized_color(bright_pixels[i][j], number_of_rays);
                 blur_pixel(glow, bright_pixels, i, j, nc.normalized_color, nc.intensity, glow_intensity);
             }
@@ -149,7 +149,7 @@ std::vector<std::vector<pixel>> generate_glow(const std::vector<std::vector<rt::
    - A blur is applied to the bright pixels, depending on the brightness, and added to the original image
  */
 std::vector<std::vector<rt::color>> apply_glow(const std::vector<std::vector<rt::color>>& image,
-    const unsigned int number_of_rays, const double& threshold, const double& glow_intensity) {
+    const unsigned int number_of_rays, double threshold, double glow_intensity) {
 
     std::vector<std::vector<rt::color>> bright_pixels = extract_bright_pixels(image, number_of_rays, threshold);
     std::vector<std::vector<pixel>> glow_image = generate_glow(bright_pixels, number_of_rays, glow_intensity);
@@ -216,9 +216,9 @@ int main(int argc, char* argv[]) {
 
     printf("Done.\n");
 
-    const bool success_export = write_bmp(argv[output_arg], postprocessed_image, 1);
+    const exit_status success_export = write_bmp(argv[output_arg], postprocessed_image, 1);
 
-    if (success_export) {
+    if (success_export == exit_status::Success) {
         printf("File %s created\n", argv[output_arg]);
     }
     else {
