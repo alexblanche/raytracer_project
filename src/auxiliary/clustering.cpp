@@ -91,7 +91,7 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
 
         unsigned int cpt = 0;
 
-        PARALLEL_FOR_BEGIN(old_group.size()) {
+        parallel_for(old_group.size(), [&] (int i) {
 
             const element& elt = old_group[i];
             const rt::vector& v = elt.get_position();
@@ -150,7 +150,7 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
             cpt++;
             mut.unlock();
 
-        } PARALLEL_FOR_END();
+        });
         // }
 
         return true;
@@ -158,7 +158,7 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
     else {
         // All other iterations, 
         bool change = false;
-        PARALLEL_FOR_BEGIN(nb_of_groups) {
+        parallel_for(nb_of_groups, [&] (int i) {
             for (element const& elt : old_groups[i]) {
 
                 const rt::vector& v = elt.get_position();
@@ -232,7 +232,7 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
                 new_groups[closest_index].push_back(elt);
                 mut.unlock();
             }
-        } PARALLEL_FOR_END();
+        });
 
         return change;
     }

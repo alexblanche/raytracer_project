@@ -138,7 +138,7 @@ exit_status read_hdr(const std::string& file_name, std::vector<std::vector<rt::c
 
         f.close();
 
-        PARALLEL_FOR_BEGIN(width) {
+        parallel_for(width, [&] (int i) {
             std::vector<rt::color>& data_line = data[i];
             for (unsigned int j = 0; j < height; j++) {
                 const unsigned int index = j * width + i;
@@ -151,7 +151,7 @@ exit_status read_hdr(const std::string& file_name, std::vector<std::vector<rt::c
                 const real radiance_val = pow(2.0f, e - 128);
                 data_line[j] *= radiance_val;
             }
-        } PARALLEL_FOR_END();
+        });
 
         return exit_status::Success;
     }

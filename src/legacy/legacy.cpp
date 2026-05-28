@@ -69,7 +69,7 @@ void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
     const long int init_time = get_time();
     constexpr rt::vector zero;
 
-    PARALLEL_FOR_BEGIN(width) {
+    parallel_for(width, [&] (int i) {
 
         std::vector<rt::color>& output = matrix[i];
         const real direct_x = i - screen_center.x;
@@ -84,7 +84,7 @@ void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
             output[j] = raytrace(r, obj_set, light_set);
         }
 
-    } PARALLEL_FOR_END();
+    });
 
     const long int curr_time = get_time();
     const long int time_elapsed = curr_time - init_time;

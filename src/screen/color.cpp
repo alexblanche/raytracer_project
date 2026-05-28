@@ -40,7 +40,7 @@ namespace rt {
 		const unsigned int width = data.size();
 		const unsigned int height = data[0].size();
 
-		PARALLEL_FOR_BEGIN(width) {
+		parallel_for(width, [&] (int i) {
 
 			std::vector<color>& data_line = data[i];
 			for (unsigned int j = 0; j < height; j++) {
@@ -50,6 +50,6 @@ namespace rt {
 				const real b = pow(col.get_blue()  * (1.0f / 255.0f), gamma) * 255.0f;
 				data_line[j] = color(r, g, b);
 			}
-		} PARALLEL_FOR_END();
+		});
 	}
 }

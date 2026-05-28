@@ -31,10 +31,9 @@ void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
 void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
     const scene& scene, const unsigned int number_of_bounces, const russian_roulette_mode russian_roulette, const unsigned int iteration) {
 
-    PARALLEL_FOR_BEGIN(scene.width) {
+    parallel_for(scene.width, [&] (int i) {
         
         static thread_local const randomgen rg;
-
         std::vector<rt::color>& data_line = matrix[i];
 
         for (int j = 0; j < scene.height; j++) {
@@ -43,8 +42,7 @@ void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
             const rt::color new_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette);
             data_line[j] += new_col;
         }
-        
-    } PARALLEL_FOR_END();
+    });
 }
 
 /* Render loop that handles time measurement
@@ -61,7 +59,7 @@ void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
     timer_ms timer;
     timer.start();
     
-    PARALLEL_FOR_BEGIN(scene.width) {
+    parallel_for(scene.width, [&] (int i) {
 
         static thread_local const randomgen rg;
         std::vector<rt::color>& data_line = matrix[i];
@@ -92,7 +90,7 @@ void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
                 );
         }
         
-    } PARALLEL_FOR_END();
+    });
 
     timer.stop();
     const uint64_t elapsed = timer.elapsed();
@@ -119,7 +117,7 @@ void render_loop_parallel_time(std::vector<std::vector<rt::color>>& matrix,
 void render_loop_parallel_multisample(std::vector<std::vector<rt::color>>& matrix,
     const scene& scene, const unsigned int number_of_bounces, const unsigned int number_of_samples) {
 
-    PARALLEL_FOR_BEGIN(scene.width) {
+    parallel_for(scene.width, [&] (int i) {
 
         static thread_local const randomgen rg;
         std::vector<rt::color>& data_line = matrix[i];
@@ -131,5 +129,5 @@ void render_loop_parallel_multisample(std::vector<std::vector<rt::color>>& matri
             data_line[j] += new_col;
         }
         
-    } PARALLEL_FOR_END();
+    });
 }
