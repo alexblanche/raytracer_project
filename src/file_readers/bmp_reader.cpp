@@ -126,7 +126,7 @@ exit_status print_bmp_info(const std::string& file_name) {
 }
 
 
-inline void check(exit_status status) {
+static inline void check(exit_status status) {
     if (status == exit_status::Failure)
         throw std::runtime_error("");
 }

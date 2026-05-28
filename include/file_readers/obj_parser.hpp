@@ -3,12 +3,11 @@
 #include "scene/objects/object.hpp"
 #include "scene/objects/bounding.hpp"
 #include "scene/material/texture.hpp"
+#include "file_readers/parsing_wrappers.hpp"
+#include "auxiliary/exit_status.hpp"
 
 #include <vector>
 #include <string>
-
-#include "file_readers/parsing_wrappers.hpp"
-
 #include <optional>
 
 /* Wavefront .obj file parser */
@@ -27,7 +26,7 @@
    
    Returns true if the operation was successful
 */
-bool parse_obj_file(const char* file_name, const std::optional<unsigned int> default_texture_index,
+exit_status parse_obj_file(const std::string& file_name, const std::optional<unsigned int> default_texture_index,
    std::vector<const object*>& obj_set,
    std::vector<wrapper<material>>& material_wrapper_set,
    std::vector<wrapper<texture>>& texture_wrapper_set,

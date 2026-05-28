@@ -2,12 +2,10 @@
 
 #include "scene/material/material.hpp"
 #include "scene/material/texture.hpp"
+#include "file_readers/file.hpp"
 
 #include <vector>
-#include <stdio.h>
-#include <string.h>
 #include <string>
-
 #include <stdexcept>
 
 /* Mtl file parser */
@@ -21,46 +19,39 @@
 
    Returns true if the operation was successful */
 
-bool parse_mtl_file(const char* file_name, const std::string& path,
+static inline void check(exit_status status, const std::string& error_message) {
+    if (status == exit_status::Failure) {
+        throw std::runtime_error(error_message + "\n");
+    }
+}
+
+exit_status parse_mtl_file(const std::string& file_name, const std::string& path,
     std::vector<wrapper<material>>& material_wrapper_set,
     std::vector<wrapper<texture>>& texture_wrapper_set,
     std::map<unsigned int, unsigned int>& mt_assoc, const real gamma) {
 
-    FILE* file = fopen((path + std::string(file_name)).c_str(), "r");
-
-    if (file == nullptr) {
-        printf("Error, file %s not found\n", file_name);
-        return false;
-    }
+    file f(path + file_name);
 
     try {
 
         /* Parsing loop */
-        while (not feof(file)) {
+        while (not f.eof()) {
+
             // longest items are newmtl
-            char s[7];
-            if (fscanf(file, "%6s ", s) != 1) {
+            char buffer[7];
+            const exit_status status = f.read<char>(buffer);
+            if (status == exit_status::Failure)
                 break;
-            }
+            
+            const std::string s(buffer);
 
             /* Commented line, or ignored command */
-            if (strcmp(s, "#") == 0) {
-
-                char c;
-                do {
-                    c = fgetc(file);
-                }
-                while (c != '\n' && c != EOF);
-                ungetc(c, file);
+            if (s == "#") {
+                f.skip_line();
             }
-            else if (strcmp(s, "newmtl") == 0) {
+            else if (s == "newmtl") {
                 /* Generating a new material */
-                std::string m_name(65, '\0');
-                int ret = fscanf(file, " %64s\n", (char*) m_name.data());
-                if (ret != 1) {
-                    throw std::runtime_error("(newmtl)");
-                }
-                m_name.resize(strlen(m_name.c_str()));
+                std::string m_name = f.read_string(64);
 
                 /*
                 Syntax example:
@@ -77,61 +68,36 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
                 map_Kd file_name.png
                 */
                 double ns;
-                ret = fscanf(file, "Ns %lf\n", &ns);
-                if (ret != 1) {
-                    throw std::runtime_error("(Ns)\n");
-                }
+                check(f.scanf("Ns %lf\n", ns), "(Ns)");
 
                 double ka_r, ka_g, ka_b;
-                ret = fscanf(file, "Ka %lf %lf %lf\n", &ka_r, &ka_g, &ka_b);
-                if (ret != 3) {
-                    throw std::runtime_error("(Ka)");
-                }
+                check(f.scanf("Ka %lf %lf %lf\n", ka_r, ka_g, ka_b), "(Ka)");
 
                 double kd_r, kd_g, kd_b;
-                ret = fscanf(file, "Kd %lf %lf %lf\n", &kd_r, &kd_g, &kd_b);
-                if (ret != 3) {
-                    throw std::runtime_error("(Kd)");
-                }
+                check(f.scanf("Kd %lf %lf %lf\n", kd_r, kd_g, kd_b), "(Kd)");
 
                 double ks_r, ks_g, ks_b;
-                ret = fscanf(file, "Ks %lf %lf %lf\n", &ks_r, &ks_g, &ks_b);
-                if (ret != 3) {
-                    throw std::runtime_error("(Ks)");
-                }
+                check(f.scanf("Ks %lf %lf %lf\n", ks_r, ks_g, ks_b), "(Ks)");
 
                 double ke_r, ke_g, ke_b;
-                ret = fscanf(file, "Ke %lf %lf %lf\n", &ke_r, &ke_g, &ke_b);
-                if (ret != 3) {
-                    throw std::runtime_error("(Ke)");
-                }
+                check(f.scanf("Ke %lf %lf %lf\n", ke_r, ke_g, ke_b), "(Ke)");
 
                 double ni;
-                ret = fscanf(file, "Ni %lf\n", &ni);
-                if (ret != 1) {
-                    throw std::runtime_error("(Ni)");
-                }
+                check(f.scanf("Ni %lf\n", ni), "(Ni)");
 
                 double d;
-                ret = fscanf(file, "d %lf\n", &d);
-                if (ret != 1) {
-                    throw std::runtime_error("(d)");
-                }
+                check(f.scanf("d %lf\n", d), "(d)");
 
                 unsigned int illum;
-                ret = fscanf(file, "illum %u\n", &illum);
-                if (ret != 1) {
-                    throw std::runtime_error("(illum)");
-                }
+                check(f.scanf("illum %u\n", illum), "(illum)");
 
                 /* Looking for a material with the same name */
                 bool already_exists = false;
-                for(wrapper<material> const& mat_wrap : material_wrapper_set) {
-                    if (mat_wrap.name.has_value() && mat_wrap.name.value() == m_name) {
-                        printf("\rDuplicate material %s ignored\n", m_name.c_str());
-                        already_exists = true;
-                        break;
-                    }
+                constexpr bool SILENT = true;
+                std::optional<unsigned int> v_opt = wrapper<material>::find_element(material_wrapper_set, m_name, SILENT);
+                if (v_opt.has_value()) {
+                    printf("\rDuplicate material %s ignored\n", m_name.c_str());
+                    already_exists = true;
                 }
 
                 if (not already_exists) {
@@ -144,23 +110,22 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
                 const unsigned int m_i = material_wrapper_set.back().index;
 
                 /* Test for associated texture */
-                char tfile_name[513];
                 char c;
-                ret = fscanf(file, "map_K%c %512s\n", &c, tfile_name);
-                if (ret == 2 && not already_exists) {
+                const exit_status status = f.scanf("map_K%c", c);
+                const std::string tfile_name = f.read_string(512);
+                if (status == exit_status::Success && not already_exists) {
                     // Texture loading
 
                     bool parsing_successful;
-                    texture txt((path + std::string(tfile_name)).c_str(), parsing_successful);
+                    texture txt(path + tfile_name, parsing_successful);
                     texture_wrapper_set.emplace_back(std::move(txt));
-                    const unsigned int t_i = texture_wrapper_set[texture_wrapper_set.size()-1].index;
+                    const unsigned int t_i = texture_wrapper_set.back().index;
 
                     if (parsing_successful) {
-                        printf("\rmtl_parser: %s texture loaded\n", tfile_name);
-                        fflush(stdout);
+                        printf("\rmtl_parser: %s texture loaded\n", tfile_name.c_str());
                     }
                     else {
-                        printf("mtl_parser: %s texture reading failed\n", tfile_name);
+                        printf("mtl_parser: %s texture reading failed\n", tfile_name.c_str());
                         throw std::runtime_error("(texture reading)");
                     }
 
@@ -170,14 +135,12 @@ bool parse_mtl_file(const char* file_name, const std::string& path,
             }
         }
 
-        fclose(file);
-        return true;
+        return exit_status::Success;
 
     }
     catch(const std::exception& e) {
-        printf("Parsing error in file %s ", file_name);
+        printf("Parsing error in file %s ", file_name.c_str());
         printf("%s\n", e.what());
-        fclose(file);
-        return false;
+        return exit_status::Failure;
     }
 }

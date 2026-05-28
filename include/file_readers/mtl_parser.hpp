@@ -2,6 +2,7 @@
 
 #include "scene/material/material.hpp"
 #include "scene/material/texture.hpp"
+#include "auxiliary/exit_status.hpp"
 
 #include "parsing_wrappers.hpp"
 
@@ -24,7 +25,7 @@
 
    Returns true if the operation was successful */
 
-bool parse_mtl_file(const char* file_name, const std::string& path,
+exit_status parse_mtl_file(const std::string& file_name, const std::string& path,
     std::vector<wrapper<material>>& material_wrapper_set,
     std::vector<wrapper<texture>>& texture_wrapper_set,
     std::map<unsigned int, unsigned int>& mt_assoc, real gamma);

@@ -4,6 +4,7 @@
 #include "screen/color.hpp"
 #include "light/vector.hpp"
 
+#include <string>
 #include <iostream>
 
 
@@ -29,7 +30,7 @@ class texture {
 
         /* Constructor from a .bmp or .hdr file
            Writes true in parsing_successful if the operation was successful */
-        texture(const char* file_name, bool& parsing_successful, real gamma = 1.0f);
+        texture(const std::string& file_name, bool& parsing_successful, real gamma = 1.0f);
 
         /* Returns the color stored in data at UV-coordinates u, v (between 0 and 1) times width, height */
         const rt::color& get_color(real u, real v) const;

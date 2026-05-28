@@ -14,7 +14,7 @@ int main() {
     }
     
     {
-        const std::string s = format_variadic<int, double, float, unsigned long long int, char, char>();
+        const std::string s = build_format_string<int, double, float, unsigned long long int, char, char>();
         printf("%s", s.c_str()); printf("\n");
         printf(s.c_str(), 3, 2.5, 5.8, 4, 'a', 'b'); printf("\n");
     }

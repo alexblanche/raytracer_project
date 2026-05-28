@@ -27,9 +27,11 @@ constexpr std::string data_format() {
 }
 
 template<Arithm... T>
-static constexpr std::string format_variadic() {
+static constexpr std::string build_format_string() {
     return (data_format<T>() + ...);
 }
+
+constexpr int MAX_STRING_LENGTH = 1000;
 
 class file {
     
@@ -112,6 +114,13 @@ class file {
             return read<T>(std::span<T>(buffer));
         }
 
+        std::string read_string(int max_length = MAX_STRING_LENGTH) const {
+            std::array<char, MAX_STRING_LENGTH> t;
+            t.fill(0);
+            fgets(t.data(), max_length, f);
+            return std::string(t.data());
+        }
+
         // Experimental
         // template<class T>
         // exit_status read(T* elt) const {
@@ -122,13 +131,19 @@ class file {
             return fgetc(f);
         }
 
+        int ungetc(int c) const {
+            return std::ungetc(c, f);
+        }
+
         exit_status skip(int n) const {
             std::vector<char> buffer(n);
             return read<char>(buffer);
         }
 
         void skip_line() const {
-            while (!eof() && getc() != '\n');
+            char c;
+            while (!eof() && (c = getc()) != '\n');
+            ungetc(c);
         }
 
         template<typename... Args>
@@ -141,14 +156,14 @@ class file {
         requires (sizeof...(T) > 1)
         std::optional<std::tuple<T...>> scan() const {
             std::tuple<T...> t;
-            constexpr std::string format = format_variadic<T...>();
+            constexpr std::string format = build_format_string<T...>();
             const exit_status status = scanf(format, std::get<T>(t)...);
             return optional_of(status, std::move(t));
         }
 
         template<Arithm T>
         std::optional<T> scan() const {
-            constexpr std::string format = format_variadic<T>();
+            constexpr std::string format = build_format_string<T>();
             T x;
             const exit_status status = scanf(format, x);
             return optional_of<T>(status, std::move(x));

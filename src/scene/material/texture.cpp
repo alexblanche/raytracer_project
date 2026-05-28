@@ -16,7 +16,7 @@ texture::texture(const int width, const int height, std::vector<std::vector<rt::
 
 /* Constructor from a .bmp or .hdr file
    Writes true in parsing_successful if the operation was successful */
-texture::texture(const char* file_name, bool& parsing_successful, const real gamma) {
+texture::texture(const std::string& file_name, bool& parsing_successful, const real gamma) {
 
     const std::string extension = std::filesystem::path(file_name).extension().generic_string();
     const bool is_bmp = extension == ".bmp";

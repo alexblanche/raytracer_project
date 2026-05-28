@@ -1007,11 +1007,13 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 }
 
                 const bounding* output_bd;
-                const bool parsing_successful = parse_obj_file(ofile_name, t_index, object_set,
-                    material_wrapper_set, texture_wrapper_set,
-                    texture_info_set,
-                    scale, rt::vector(sx, sy, sz),
-                    bounding_enabled, polygons_per_bounding, output_bd, inverse_gamma);
+                const bool parsing_successful =
+                    (parse_obj_file(ofile_name, t_index, object_set,
+                        material_wrapper_set, texture_wrapper_set,
+                        texture_info_set,
+                        scale, rt::vector(sx, sy, sz),
+                        bounding_enabled, polygons_per_bounding, output_bd, inverse_gamma)
+                    == exit_status::Success);
 
                 if (not parsing_successful) {
                     printf("%s obj file reading failed\n", ofile_name);

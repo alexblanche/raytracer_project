@@ -8,12 +8,13 @@
 
 #include "auxiliary/clustering.hpp"
 #include "file_readers/mtl_parser.hpp"
+#include "file_readers/parsing_wrappers.hpp"
+#include "file_readers/file.hpp"
 
 #include <string>
 #include <stack>
-
-#include "file_readers/parsing_wrappers.hpp"
 #include <stdexcept>
+
 
 static constexpr bool DISPLAY_HIERARCHY = false;
 
@@ -30,7 +31,7 @@ static constexpr real QUAD_SPLIT_THRESHOLD = 1.0E-7f;
    In the future, maybe split polygons with >= 5 sides into triangles */
 
 /* When indices are negative, convert them to positive */
-inline void correct(int& v, const int n) {
+static inline void correct(int& v, const int n) {
    v += ((v < 0) ? n + 1 : 0);
 }
 
@@ -513,7 +514,7 @@ void add_subdivided_polygon_no_normal(FILE* file,
    Returns true if the operation was successful
 */
 
-bool parse_obj_file(const char* file_name, const std::optional<unsigned int> default_texture_index,
+exit_status parse_obj_file(const std::string& file_name, const std::optional<unsigned int> default_texture_index,
    std::vector<const object*>& obj_set,
    std::vector<wrapper<material>>& material_wrapper_set,
    std::vector<wrapper<texture>>& texture_wrapper_set,
@@ -525,11 +526,12 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
    printf("Parsing obj file...");
    fflush(stdout);
 
-   FILE* file = fopen(file_name, "r");
+
+   FILE* file = fopen(file_name.c_str(), "r");
 
    if (file == nullptr) {
-      printf("Error, .obj file %s not found\n", file_name);
-      return false;
+      printf("Error, .obj file %s not found\n", file_name.c_str());
+      return exit_status::Failure;
    }
 
    /* Extraction of the path to the .obj file, to be appended to relative paths of mtl and texture files */
@@ -715,8 +717,8 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
             }
 
             const bool mtl_parsing_successful =
-               parse_mtl_file(mtl_file_name, path, material_wrapper_set,
-                  texture_wrapper_set, mt_assoc, gamma);
+               (parse_mtl_file(mtl_file_name, path, material_wrapper_set,
+                  texture_wrapper_set, mt_assoc, gamma) == exit_status::Success);
 
             if (not mtl_parsing_successful) {
                throw std::runtime_error("(mtl file loading)");
@@ -1084,7 +1086,7 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
          }
       }
 
-      printf("\r%s successfully loaded:\n", file_name);
+      printf("\r%s successfully loaded:\n", file_name.c_str());
       printf("%u vertices, %u polygons (%u triangles, %u quads)\n",
          number_of_vertices, number_of_polygons, number_of_triangles, number_of_quads);
       printf("Dimensions: (x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf])\n",
@@ -1095,16 +1097,15 @@ bool parse_obj_file(const char* file_name, const std::optional<unsigned int> def
             shift.y + scale * min_y, shift.y + scale * max_y,
             shift.z + scale * min_z, shift.z + scale * max_z);   
       }
-      fflush(stdout);
 
-      return true;
+      return exit_status::Success;
 
    }
    catch(const std::exception& e) {
-      printf("Parsing error in file %s ", file_name);
+      printf("Parsing error in file %s ", file_name.c_str());
       printf("%s\n", e.what());
       fclose(file);
-      return false;
+      return exit_status::Failure;
    }
 }
 
