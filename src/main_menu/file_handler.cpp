@@ -24,7 +24,7 @@ exit_status file_handler::export_file(
     const type file_type, const std::string& filename,
     const unsigned int number_of_rays,
     const std::vector<std::vector<rt::color>>& matrix,
-    const runtime_parameters& runtime_parameters) const {
+    const real gamma) const {
 
     create_dir();
     const std::string file_path = path(output_dir).append(filename).generic_string();
@@ -32,12 +32,7 @@ exit_status file_handler::export_file(
     exit_status status;
     switch (file_type) {
         case file_handler::type::Bmp:
-            status = write_bmp(
-                file_path,
-                matrix,
-                number_of_rays,
-                runtime_parameters.tone_mapping.gamma_value
-            );
+            status = write_bmp(file_path, matrix, number_of_rays, gamma);
             break;
         
         case file_handler::type::Raw:

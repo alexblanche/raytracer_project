@@ -35,7 +35,7 @@ std::optional<dimensions> read_bmp_size(const std::string& file_name) {
         
         const int height = static_cast<int>(bmpheight);
 
-        return dimensions(width, height);
+        return dimensions({ width, height });
     }
     catch(const std::exception& e) {
         printf("%s\n", e.what());

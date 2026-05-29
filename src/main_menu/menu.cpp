@@ -276,7 +276,7 @@ static exit_status run_offline(const runtime_parameters& runtime_parameters, std
             timer.interrupt();
 
             printf(" ");
-            const exit_status status = file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FILE_NAME), i + 1, matrix, runtime_parameters);
+            const exit_status status = file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FILE_NAME), i + 1, matrix);
             if (status == exit_status::Failure)
                 return exit_status::Failure;
             
@@ -288,7 +288,7 @@ static exit_status run_offline(const runtime_parameters& runtime_parameters, std
     printf("\n");
     timer.print();
 
-    return file_handler.export_bmp(bmp(DEFAULT_OUTPUT_FILE_NAME), target, matrix, runtime_parameters);
+    return file_handler.export_bmp(bmp(DEFAULT_OUTPUT_FILE_NAME), target, matrix, runtime_parameters.tone_mapping.gamma_value);
 }
 
 // Returns an exit_status if the program has to stop, either because of a failure or because a quit event happened
@@ -306,7 +306,8 @@ static std::optional<exit_status> process_events(const rt::screen& scr, const fi
         case rt::screen::key::B: {
             /* B */
             printf(" ");
-            const exit_status status = file_handler.export_bmp(bmp(DEFAULT_OUTPUT_FILE_NAME), number_of_rays, matrix, runtime_parameters);
+            const real gamma = runtime_parameters.tone_mapping.gamma_value;
+            const exit_status status = file_handler.export_bmp(bmp(DEFAULT_OUTPUT_FILE_NAME), number_of_rays, matrix, gamma);
             if (status == exit_status::Failure)
                 return exit_status::Failure;
             break;
@@ -314,7 +315,7 @@ static std::optional<exit_status> process_events(const rt::screen& scr, const fi
         case rt::screen::key::R: {
             /* R */
             printf(" ");
-            const exit_status status = file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FILE_NAME), number_of_rays, matrix, runtime_parameters);
+            const exit_status status = file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FILE_NAME), number_of_rays, matrix);
             if (status == exit_status::Failure)
                 return exit_status::Failure;
             break;
@@ -335,7 +336,8 @@ static exit_status run_interactive(const runtime_parameters& runtime_parameters,
 
     render(matrix, scene, runtime_parameters, 1);
 
-    const rt::screen scr(matrix, scene.width, scene.height, runtime_parameters.tone_mapping.tm_mode, runtime_parameters.tone_mapping.gamma_value);
+    const real gamma = runtime_parameters.tone_mapping.gamma_value;
+    const rt::screen scr(matrix, scene.width, scene.height, runtime_parameters.tone_mapping.tm_mode, gamma);
 
     scr.copy_to_texture(1);
     scr.update_from_texture();
@@ -359,8 +361,8 @@ static exit_status run_interactive(const runtime_parameters& runtime_parameters,
             return status.value();
     }
 
-    return file_handler.export_bmp(     bmp(DEFAULT_OUTPUT_FINAL_FILE_NAME), MAX_RAYS, matrix, runtime_parameters)
-        && file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FINAL_FILE_NAME), MAX_RAYS, matrix, runtime_parameters);
+    return file_handler.export_bmp(     bmp(DEFAULT_OUTPUT_FINAL_FILE_NAME), MAX_RAYS, matrix, gamma)
+        && file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FINAL_FILE_NAME), MAX_RAYS, matrix);
 }
 
 exit_status menu::run(const scene& scene) const {
