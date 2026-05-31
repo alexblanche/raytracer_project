@@ -11,29 +11,29 @@
 #include <optional>
 
 template<typename T>
-constexpr T id(size_t, T value) {
+static consteval T id(size_t, T value) {
     return value;
 }
 
 template<typename T, size_t... i>
-constexpr inline std::array<T, sizeof...(i)> make_array_aux_(T value, std::index_sequence<i...>) {
+static consteval inline std::array<T, sizeof...(i)> make_array_aux_(T value, std::index_sequence<i...>) {
     return { id<T>(i, value)... };
 }
 
 // Returns an array with all the elements initialized to value
 template<typename T, size_t count>
-constexpr inline std::array<T, count> make_array(T value) {
+static consteval inline std::array<T, count> make_array(T value) {
     return make_array_aux_<T>(value, std::make_index_sequence<count>());
 }
 
 template<size_t count, size_t... i>
-constexpr inline std::string string_concat_aux_(const std::string& value, std::index_sequence<i...>) {
+static consteval inline std::string string_concat_aux_(const std::string& value, std::index_sequence<i...>) {
     return (id(i, value) + ...);
 }
 
 // Returns a string made up of the string value repeated count times
 template<size_t count>
-constexpr inline std::string string_concat(const std::string& value) {
+static consteval inline std::string string_concat(const std::string& value) {
     return string_concat_aux_<count>(value, std::make_index_sequence<count>());
 }
 
@@ -44,7 +44,7 @@ template<typename T>
 concept Arithm = std::is_arithmetic_v<T>;
 
 template<Arithm T>
-constexpr std::string data_format() {
+static consteval std::string data_format() {
     constexpr std::string prefix = (sizeof(T) <= sizeof(int)) ? "" : (sizeof(T) == sizeof(long int)) ? "l" : "ll";
     constexpr std::string suffix =
         std::is_floating_point_v<T> ? "f" :
@@ -54,7 +54,7 @@ constexpr std::string data_format() {
 }
 
 template<Arithm... T>
-static constexpr std::string build_format_string() {
+static consteval std::string build_format_string() {
     return (data_format<T>() + ...);
 }
 

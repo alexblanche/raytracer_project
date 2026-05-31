@@ -202,9 +202,9 @@ namespace rt  {
 	inline color fma(const color& c1, const color& c2, const color& c3) {
 		return
 			color(
-				std::fma(c1.get_red(),   c2.get_red()   / ((real) 255.0f), c3.get_red()),
-				std::fma(c1.get_green(), c2.get_green() / ((real) 255.0f), c3.get_green()),
-				std::fma(c1.get_blue(),  c2.get_blue()  / ((real) 255.0f), c3.get_blue())
+				std::fma(c1.get_red(),   c2.get_red()   / static_cast<real>(255.0f), c3.get_red()),
+				std::fma(c1.get_green(), c2.get_green() / static_cast<real>(255.0f), c3.get_green()),
+				std::fma(c1.get_blue(),  c2.get_blue()  / static_cast<real>(255.0f), c3.get_blue())
 			);
 	}
 }

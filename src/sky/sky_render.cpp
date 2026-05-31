@@ -3,23 +3,29 @@
 static constexpr float tan_reset_threshold = 1.0f;
 static constexpr float tan_reset_threshold_phi = 40.0f;
 
-enum loop_version_theta {
-    UpdateThetaDerivative, UpdateThetaTestPhi,
-    UpdateThetaAtanBefore, UpdateThetaAtanAfter,
-    UpdateThetaBothBefore, UpdateThetaBothAfter
-};
-enum loop_version_phi {
-    TestPhi, NoTestPhi
-};
-enum loop_version_limit {
-    LimitCase, NotLimitCase
+struct loop_version {
+
+    enum class theta {
+        UpdateThetaDerivative, UpdateThetaTestPhi,
+        UpdateThetaAtanBefore, UpdateThetaAtanAfter,
+        UpdateThetaBothBefore, UpdateThetaBothAfter
+    };
+    enum class phi {
+        TestPhi, NoTestPhi
+    };
+    enum class limit {
+        LimitCase, NotLimitCase
+    };
 };
 
 
-
-template<loop_version_theta vtheta, loop_version_phi vphi, loop_version_limit vlim>
+template<loop_version::theta vtheta, loop_version::phi vphi, loop_version::limit vlim>
 inline void segment_loop(const render_parameters& param, segment_loop_parameters& sl_param,
     const int bound, const float const_theta) {
+
+    using enum loop_version::theta;
+    using enum loop_version::phi;
+    using enum loop_version::limit;
     
     int i = sl_param.index_loop;
     for (; i < bound; i++) {
@@ -168,11 +174,13 @@ void compute_bounds_theta_update(int& k1_io, int& k2_io,
     k2_io = k2;
 }
 
-enum phi_test_bounds {
+enum class phi_test_bounds {
     AlwaysTest, NeverTest, TestBetween, TestOutside
 };
 
+
 void print_ptb(phi_test_bounds ptb) {
+    using enum phi_test_bounds;
     switch (ptb) {
         case AlwaysTest : printf("AlwaysTest\n" ); break;
         case NeverTest  : printf("NeverTest\n"  ); break;
@@ -185,6 +193,8 @@ void print_ptb(phi_test_bounds ptb) {
 // False if no solution was found
 phi_test_bounds compute_bounds_phi_update(int& k1_io, int& k2_io,
     const sky::vector& v, const sky::vector& dv) {
+
+    using enum phi_test_bounds;
     
     // Resolution of ak^2 + bk + c < 0
     const float m2 = tan_reset_threshold_phi * tan_reset_threshold_phi;
@@ -305,6 +315,11 @@ void render(const render_parameters& param) {
         phi_test_bounds ptb = compute_bounds_phi_update(k1_phi, k2_phi, sl_param.cartesian, param.scaled_x_axis);
         (void) ptb; // Sometimes unused
 
+        using enum loop_version::theta;
+        using enum loop_version::phi;
+        using enum loop_version::limit;
+        using enum phi_test_bounds;
+
         if (!(k2_theta < 0 || k1_theta >= width)) {
         // if ((k1_theta >= 0 && k1_theta < width) || (k2_theta >= 0 && k2_theta < width)) {
             //const int index_start = index;
@@ -355,6 +370,7 @@ void render(const render_parameters& param) {
 #define TEMPLATE_LOOPS
 #ifdef TEMPLATE_LOOPS
             //print_ptb(ptb);
+
             ptb = (ptb == NeverTest) || ((!(ptb == AlwaysTest)) && (((ptb == TestOutside) && (k1_phi < 0 && k2_phi >= width)) || ((ptb == TestBetween) && (k2_phi < 0 || k1_phi >= width)))) ?
                 NeverTest : AlwaysTest;
             

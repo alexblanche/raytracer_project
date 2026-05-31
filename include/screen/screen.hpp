@@ -6,7 +6,7 @@
 
 namespace rt {
 
-	using tone_mapping = tone_mapping_parameters::mode;
+	using enum tone_mapping_parameters::mode;
 
 	class screen {
 
@@ -20,12 +20,12 @@ namespace rt {
 			std::vector<std::vector<rt::color>>& matrix;
 			int width;
 			int height;
-			tone_mapping tone_mapping_mode;
+			tone_mapping_parameters::mode tone_mapping_mode;
 			float gamma;
 			
 		public:
 			screen(std::vector<std::vector<rt::color>>& matrix, int width, int height,
-				tone_mapping mode = tone_mapping::Disabled, float gamma = 1.0f);
+				tone_mapping_parameters::mode mode = Disabled, float gamma = 1.0f);
 			~screen();
 
 			void set_pixel(int x, int y, const color& c) const;
@@ -69,15 +69,15 @@ namespace rt {
 			inline void copy_to_texture(const unsigned int number_of_rays) const {
 
 				switch (tone_mapping_mode) {
-					case tone_mapping::Disabled:
+					case Disabled:
 						fast_copy(number_of_rays);
 						break;
 					
-					case tone_mapping::Gamma:
+					case Gamma:
 						fast_copy_gamma(number_of_rays);
 						break;
 
-					case tone_mapping::Reinhardt:
+					case Reinhardt:
 						fast_copy_reinhardt(number_of_rays);
 						break;
 				}

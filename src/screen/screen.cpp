@@ -8,9 +8,9 @@ namespace rt {
 
 	static constexpr std::string DEFAULT_TITLE = "Raytracer_project";
 	
-	screen::screen(std::vector<std::vector<rt::color>>& matrix, int width, int height, tone_mapping mode, float gamma)
+	screen::screen(std::vector<std::vector<rt::color>>& matrix, int width, int height, tone_mapping_parameters::mode mode, float gamma)
 		: 	window(DEFAULT_TITLE, { 10, 10, width, height }, { sdl::window::flag::AllowHighDPI, sdl::window::flag::Resizable }),
-			renderer(window, width, height, {sdl::renderer::flag::Accelerated}, sdl::renderer::vsync_option::Disabled),
+			renderer(window, width, height, { sdl::renderer::flag::Accelerated }, sdl::renderer::vsync_option::Disabled),
 			srcrect(0, 0, width, height),
 			dstrect(0, 0, width, height),
 			texture(renderer, sdl::texture::PixelFormat::RGB24, sdl::texture::Access::Streaming, width, height),
@@ -61,34 +61,34 @@ namespace rt {
 	/** Event processing **/
 
 	using namespace sdl;
+	using enum event::polling_type;
 
 	/* Stop at the next quit event */
 	template <event::polling_type type>
 	static screen::quit_event next_quit_event() {
 
+		using enum screen::quit_event;
+
 		event event;
 		while (event.next_event<type>()) {
-			
+			using enum event::type;
 			switch (event.get_type()) {
-				case event::type::Quit:
-					return screen::quit_event::QuitEvent;
-				case event::type::KeyDown:
-					return screen::quit_event::KeyBoardEvent;
-				default:
-					break;
+				case Quit: 		return QuitEvent;
+				case KeyDown:	return KeyBoardEvent;
+				default:		break;
 			}
 		}
-		return screen::quit_event::Error;
+		return Error;
 	}
 
 	/* Wait indefinitely for the next quit event */
 	screen::quit_event screen::wait_quit_event() const {
-		return next_quit_event<event::polling_type::Wait>();
+		return next_quit_event<Wait>();
 	}
 
 	/* Stop at the next quit event */
 	screen::quit_event screen::is_quit_event() const {
-		return next_quit_event<event::polling_type::Poll>();
+		return next_quit_event<Poll>();
 	}
 
 	template <event::polling_type type>
@@ -96,28 +96,30 @@ namespace rt {
 		
 		event event;
 		while (event.next_event<type>()) {
+
+			using enum event::type;
 			
 			switch (event.get_type()) {
 				
-				case event::type::Quit:
+				case Quit:
 					return screen::key::QuitEvent;
 				
-				case event::type::KeyDown:
-					using key = event::key;
+				case KeyDown:
+					using enum event::key;
 					switch(event.get_key()) {
 						
-						case key::Escape:
+						case Escape:
 							return screen::key::QuitEvent;
 						
-						case key::Space:
-						case key::Return:
-						case key::KeyPad_Enter:
+						case Space:
+						case Return:
+						case KeyPad_Enter:
 							return screen::key::SpaceEnter;
 
-						case key::B:
+						case B:
 							return screen::key::B;
 						
-						case key::R:
+						case R:
 							return screen::key::R;
 						
 						default:
@@ -125,7 +127,7 @@ namespace rt {
 					}
 					break;
 				
-				case event::type::MouseButtonDown:
+				case MouseButtonDown:
 					printf("\nX = %d, Y = %d", event.e.button.x, event.e.button.y);
 					break;
 
@@ -137,12 +139,12 @@ namespace rt {
 	}
 
 	screen::key screen::wait_keyboard_event() const {
-		return wait_poll_keyboard_event<event::polling_type::Wait>();
+		return wait_poll_keyboard_event<Wait>();
 	}
 
 	/* Same as wait_keyboard_event, with poll events */
 	screen::key screen::poll_keyboard_event() const {
-		return wait_poll_keyboard_event<event::polling_type::Poll>();
+		return wait_poll_keyboard_event<Poll>();
 	}
 
 	/****************************************************************************************************/

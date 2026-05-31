@@ -126,8 +126,9 @@ void specular_reflective_case(ray& r, const hit& h, const randomgen& rg, const r
 // Run-time
 void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, const randomgen& rg, const orientation_type ray_orientation) {
 
+    using enum orientation_type;
     r.set_direction(
-        ((ray_orientation == orientation_type::Inward ?
+        ((ray_orientation == Inward ?
             local_normal : (-1.0f) * local_normal)
             + random_direction<angle::Pi>(rg, local_normal)
         ).unit()
@@ -135,7 +136,7 @@ void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, const ra
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
     /* Apply the bias outward the surface */
-    apply_bias(r, h.get_point(), h.get_normal(), ray_orientation, orientation_type::Outward);
+    apply_bias(r, h.get_point(), h.get_normal(), ray_orientation, Outward);
 }
 
 // Compile-time
@@ -225,9 +226,8 @@ rt::color pathtrace(ray& r, const scene& scene, const randomgen& rg, const unsig
     static thread_local custom_stack<real> refr_stack(20);
     refr_stack.set_empty();
 
-    const bvh_option bvh = (scene.polygons_per_bounding != 0) ?
-          bvh_option::Enabled
-        : bvh_option::Disabled;
+    using enum bvh_option;
+    const bvh_option bvh = (scene.polygons_per_bounding != 0) ? Enabled : Disabled;
 
     const bool russian_roulette = russian_roulette_mode == russian_roulette_mode::Enabled;
 
@@ -329,15 +329,16 @@ rt::color pathtrace(ray& r, const scene& scene, const randomgen& rg, const unsig
             /* Computation of the new refraction index */
             // const bool inward = ray_orientation == orientation_type::Inward;
             real next_refr_i;
+            using enum orientation_type;
             switch (ray_orientation) {
-                case orientation_type::Inward:
+                case Inward:
                     next_refr_i = m.get_refraction_index();
                     if (refr_index != 1.0f) {
                         refr_stack.push(refr_index);
                     }
                     break;
                 
-                case orientation_type::Outward:
+                case Outward:
                     next_refr_i = refr_stack.empty() ? 1.0f : refr_stack.top();
                     if (not refr_stack.empty()) {
                         refr_stack.pop();
@@ -348,14 +349,14 @@ rt::color pathtrace(ray& r, const scene& scene, const randomgen& rg, const unsig
             /* Computation of the Fresnel coefficient */
             // const real kr = inward ? h.get_fresnel(sin_theta_2_sq, refr_index, next_refr_i) : 0.0f;
 
-            if ((ray_orientation == orientation_type::Inward)
+            if ((ray_orientation == Inward)
                 &&
                 rg.random_ratio() * m.get_transparency() <= get_schlick(h, normal, refr_index, next_refr_i)) {
             
                 /* The ray is reflected */
                 
                 /* Is it a pure specular or a mix of specular and diffuse just like in the previous case? */
-                specular_reflective_case<orientation_type::Inward>(r, h, rg, smoothness, normal);
+                specular_reflective_case<Inward>(r, h, rg, smoothness, normal);
 
                 //acc.update(m, color, false);
                 if (m.is_emissive()) acc.update_emitted_col(m);
@@ -385,7 +386,6 @@ rt::color pathtrace(ray& r, const scene& scene, const randomgen& rg, const unsig
                     if (m.is_emissive()) acc.update_emitted_col(m);
                     acc.update_color_mat(color);
                 }
-
             }
         }
         

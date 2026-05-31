@@ -101,10 +101,11 @@ class scene {
         std::optional<hit> find_closest_object_bounding(ray& r) const;
 
         inline std::optional<hit> find_closest(ray& r, const bvh_option bvh) const {
+            using enum bvh_option;
             switch (bvh) {
-                case bvh_option::Enabled:
+                case Enabled:
                     return find_closest_object_bounding(r);
-                case bvh_option::Disabled:
+                case Disabled:
                     return find_closest_object(r);
             }
         }
