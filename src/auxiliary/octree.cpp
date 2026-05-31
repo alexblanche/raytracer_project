@@ -1,8 +1,8 @@
 #include "auxiliary/octree.hpp"
 
 #include <optional>
-
 #include <stack>
+#include <span>
 #include <iostream>
 
 static constexpr unsigned int MAX_ELTS_PER_LEAF = 10;
@@ -15,16 +15,17 @@ static constexpr unsigned int MAX_ELTS_PER_LEAF = 10;
 // Reorganizes the elements between index_min and index_max by region w.r.t. their isobarycenter
 // Adds the center to the internal nodes
 // Returns an array of 8 unsigned integers containing the starting index of each computed subregion
-std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tree& tree, std::vector<unsigned int>& elts,
-    const unsigned int index_root, const unsigned int index_min, const unsigned int index_max) {
+static std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tree& tree, const unsigned int index_root,
+    //std::vector<unsigned int>& elts, const unsigned int index_min, const unsigned int index_max) {
+    std::span<unsigned int> elts, const unsigned int index_min) {
 
-    const unsigned int nb_indices = index_max - index_min + 1;
+    const unsigned int nb_indices = elts.size();
     if (nb_indices == 0) throw;
 
     // Computing the average coordinates
     rt::vector avg;
-    for (unsigned int i = index_min; i <= index_max; i++) {
-        avg += means[elts[i]];
+    for (unsigned int elt : elts) {
+        avg += means[elt];
     }
     avg *= 1.0f / static_cast<real>(nb_indices);
 
@@ -35,8 +36,8 @@ std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tre
     unsigned int nb_elt_region[8];
     std::memset(nb_elt_region, 0, 8 * sizeof(unsigned int));
     
-    for (unsigned int i = index_min; i <= index_max; i++) {
-        const rt::vector& v = means[elts[i]];
+    for (unsigned int elt : elts) {
+        const rt::vector& v = means[elt];
         const unsigned char bx = v.x >= avg.x;
         const unsigned char by = v.y >= avg.y;
         const unsigned char bz = v.z >= avg.z;
@@ -60,19 +61,18 @@ std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tre
     // Organizing the elements by region
     std::vector<unsigned int> elts_temp(nb_indices);
     
-    for (unsigned int i = index_min; i <= index_max; i++) {
+    for (unsigned int elt : elts) {
 
-        const rt::vector& v = means[elts[i]];
-
+        const rt::vector& v = means[elt];
         const unsigned char bx = v.x >= avg.x;
         const unsigned char by = v.y >= avg.y;
         const unsigned char bz = v.z >= avg.z;
         const unsigned char region = (bx << 2) + (by << 1) + bz;
-        elts_temp[first_index[region] - index_min] = elts[i];
+        elts_temp[first_index[region] - index_min] = elt;
         first_index[region]++;
     }
 
-    std::memcpy(elts.data() + index_min, elts_temp.data(), nb_indices);
+    std::memcpy(elts.data(), elts_temp.data(), nb_indices);
 
     return output;
 }
@@ -133,15 +133,14 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
 
             const unsigned int index_min     = groups[g];
             const unsigned int nb_elts_group = group_size[g];
-            const unsigned int index_max     = index_min + nb_elts_group - 1;
             const unsigned int tree_index    = tree_indices[g];
 
             // if (tree_index >= tree.internal_nodes.size()) {
-            //     printf("Erroneous index: %u (>= %u) \n", tree_index, (unsigned int) tree.internal_nodes.size());
+            //     printf("Erroneous index: %u (>= %zu)\n", tree_index, tree.internal_nodes.size());
             //     throw;
             // }
             // if (g >= max_groups) {
-            //     printf("Erroneous group: %u (>= %u)\n", g, (unsigned int) max_groups);
+            //     printf("Erroneous group: %u (>= %u)\n", g, max_groups);
             //     throw;
             // }
             
@@ -158,7 +157,7 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
             else {
 
                 // new_regions has size 9: each of the 8 regions (0..7) is defined by the interval [new_regions[i] .. new_regions[i+1]]
-                std::vector<unsigned int> new_regions = split(means, tree, elts, tree_index, index_min, index_max);
+                std::vector<unsigned int> new_regions = split(means, tree, tree_index, std::span(elts.data() + index_min, nb_elts_group), index_min);
 
                 // Add the new groups
                 // const unsigned int ng = new_nb_non_term_groups;

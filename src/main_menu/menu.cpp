@@ -179,10 +179,11 @@ exit_status menu::parse_arguments(int argc, char **argv) {
     }
 
     // Display
+    using enum tone_mapping_parameters::mode;
     switch (runtime_parameters.tone_mapping.tm_mode) {
-        case tone_mapping_parameters::mode::Reinhardt:
+        case Reinhardt:
             printf("Reinhardt local tone mapping enabled\n");
-        case tone_mapping_parameters::mode::Gamma:
+        case Gamma:
             printf("Gamma correction: %.1f\n", (1.0f / runtime_parameters.tone_mapping.gamma_value));
             break;
         default:
@@ -198,7 +199,8 @@ exit_status menu::parse_arguments(int argc, char **argv) {
 void menu::update_gamma(const float new_gamma) {
 
     float& gamma = runtime_parameters.tone_mapping.gamma_value;
-    const bool gamma_disabled = runtime_parameters.tone_mapping.tm_mode == tone_mapping_parameters::mode::Disabled;
+    using enum tone_mapping_parameters::mode;
+    const bool gamma_disabled = runtime_parameters.tone_mapping.tm_mode == Disabled;
 
     if (new_gamma != 1.0f) {
         if ((not gamma_disabled) && new_gamma != gamma)
@@ -206,7 +208,7 @@ void menu::update_gamma(const float new_gamma) {
                 gamma, (1.0f / new_gamma));
 
         if (gamma_disabled)
-            runtime_parameters.tone_mapping.tm_mode = tone_mapping_parameters::mode::Gamma;
+            runtime_parameters.tone_mapping.tm_mode = Gamma;
 
         gamma = new_gamma;
         printf("Gamma correction: %.1f\n", (1.0f / gamma));
@@ -216,8 +218,9 @@ void menu::update_gamma(const float new_gamma) {
 static inline void render_simple(std::vector<std::vector<rt::color>>& matrix, const scene& scene,
     const runtime_parameters& runtime_parameters, const unsigned int iter) {
 
+    using enum sampling_parameters::mode;
     switch (runtime_parameters.sampling.mode) {
-        case sampling_parameters::mode::MultiSample:
+        case MultiSample:
             render_loop_parallel_multisample(
                 matrix,
                 scene,
@@ -225,7 +228,7 @@ static inline void render_simple(std::vector<std::vector<rt::color>>& matrix, co
                 runtime_parameters.sampling.multisample_number_of_samples
             );
             break;
-        case sampling_parameters::mode::UniSample:
+        case UniSample:
             render_loop_parallel(
                 matrix,
                 scene,
@@ -240,13 +243,14 @@ static inline void render_simple(std::vector<std::vector<rt::color>>& matrix, co
 static inline void render(std::vector<std::vector<rt::color>>& matrix, const scene& scene,
     const runtime_parameters& runtime_parameters, const unsigned int iter) {
     
+    using enum time_mode;
     switch (runtime_parameters.time) {
-        case time_mode::Simple:
-        case time_mode::Full:
+        case Simple:
+        case Full:
             render_loop_parallel_time(matrix, scene, runtime_parameters.number_of_bounces, runtime_parameters.time);
             break;
         
-        case time_mode::Disabled:
+        case Disabled:
             render_simple(matrix, scene, runtime_parameters, iter);
             break;
     }
@@ -296,15 +300,15 @@ static std::optional<exit_status> process_events(const rt::screen& scr, const fi
         const std::vector<std::vector<rt::color>>& matrix, const unsigned int number_of_rays,
         const runtime_parameters& runtime_parameters) {
 
+    using enum rt::screen::key;
     switch (scr.poll_keyboard_event()) {
 
-        case rt::screen::key::QuitEvent:
+        case QuitEvent:
             /* Esc or the window exit "X" clicked */
             printf("\n");
             return exit_status::Success;
 
-        case rt::screen::key::B: {
-            /* B */
+        case B: {
             printf(" ");
             const real gamma = runtime_parameters.tone_mapping.gamma_value;
             const exit_status status = file_handler.export_bmp(bmp(DEFAULT_OUTPUT_FILE_NAME), number_of_rays, matrix, gamma);
@@ -312,8 +316,7 @@ static std::optional<exit_status> process_events(const rt::screen& scr, const fi
                 return exit_status::Failure;
             break;
         }
-        case rt::screen::key::R: {
-            /* R */
+        case R: {
             printf(" ");
             const exit_status status = file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FILE_NAME), number_of_rays, matrix);
             if (status == exit_status::Failure)
@@ -370,11 +373,12 @@ exit_status menu::run(const scene& scene) const {
     std::vector<std::vector<rt::color>> matrix(scene.width, std::vector<rt::color>(scene.height));
     const file_handler file_handler;
 
+    using enum program_parameters::mode;
     switch (runtime_parameters.program.mode) {
-        case program_parameters::mode::Offline:
+        case Offline:
             return run_offline(runtime_parameters, matrix, scene, file_handler);
         
-        case program_parameters::mode::Interactive:
+        case Interactive:
             return run_interactive(runtime_parameters, matrix, scene, file_handler);
     }
 }

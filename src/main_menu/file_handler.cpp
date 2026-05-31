@@ -29,13 +29,14 @@ exit_status file_handler::export_file(
     create_dir();
     const std::string file_path = path(output_dir).append(filename).generic_string();
 
+    using enum file_handler::type;
     exit_status status;
     switch (file_type) {
-        case file_handler::type::Bmp:
+        case Bmp:
             status = write_bmp(file_path, matrix, number_of_rays, gamma);
             break;
         
-        case file_handler::type::Raw:
+        case Raw:
             status = export_raw(file_path, number_of_rays, matrix);
             break;
     }

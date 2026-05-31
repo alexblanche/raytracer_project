@@ -85,9 +85,10 @@ alias_table::alias_table(const std::vector<real>& prob_table,
     
     // Partition the bins into the under and over 1/n
     
-    for (int i = 0; i < n; i++) {
-        std::stack<alias_bin>& stack = (prob_table[i] < invn) ? under : over;
-        stack.emplace(prob_table[i], i);
+    for (int i = 0; real p : prob_table) {
+        std::stack<alias_bin>& stack = (p < invn) ? under : over;
+        stack.emplace(p, i);
+        i++;
     }
 
     while (not (under.empty() || over.empty())) {

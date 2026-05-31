@@ -242,7 +242,7 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
 void fill_empty_clusters(std::vector<std::vector<element>>& groups) {
     std::stack<unsigned int> empty_groups;
     std::queue<unsigned int> non_empty_groups;
-    for(unsigned int n = 0; n < groups.size(); n++) {
+    for (unsigned int n = 0; n < groups.size(); n++) {
         if (groups[n].empty()) {
             empty_groups.push(n);
         }
@@ -251,7 +251,7 @@ void fill_empty_clusters(std::vector<std::vector<element>>& groups) {
         }
     }
 
-    while(not empty_groups.empty()) {
+    while (not empty_groups.empty()) {
         const unsigned int empty = empty_groups.top();
         const unsigned int non_empty = non_empty_groups.front();
         
@@ -320,15 +320,11 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
     }
 
     if constexpr (DISPLAY_KMEANS) {
-        if (MAX_NUMBER_OF_ITERATIONS - iterations < 2) {
-            printf("\r> k_means: %u iteration (maximum = %u, n = %u, k = %u)\n",
-            MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS, (unsigned int) obj.size(), k);
-        }
-        else {
-            printf("\r> k_means: %u iterations (maximum = %u, n = %u, k = %u)\n",
-            MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS, (unsigned int) obj.size(), k);
-        }
-        fflush(stdout);
+        
+        printf("\r> k_means: %u iteration%s (maximum = %u, n = %zu, k = %u)\n",
+            MAX_NUMBER_OF_ITERATIONS - iterations,
+            (MAX_NUMBER_OF_ITERATIONS - iterations < 2) ? "" : "s",
+            MAX_NUMBER_OF_ITERATIONS, obj.size(), k);
     }
 
     return groups;
@@ -385,8 +381,6 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
 
     std::vector<element> nodes = get_element_vector(term_nodes);
 
-    //printf("LALA\n");
-
     while (nodes.size() > CARDINAL_OF_BOX_GROUP) {
 
         const unsigned int k = 1 + nodes.size() / CARDINAL_OF_BOX_GROUP;
@@ -405,7 +399,6 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
         }
         if constexpr (DISPLAY_KMEANS) {
             printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
-            fflush(stdout);
         }
 
         nodes.clear();
@@ -448,8 +441,8 @@ const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
     }
     else {
         printf("\rOptimizing the data structure...");
+        fflush(stdout);
     }
-    fflush(stdout);
 
     /* Splitting the objects into groups of polygons_per_bounding polygons (on average) */
     const unsigned int k = 1 + content.size() / polygons_per_bounding;
@@ -469,7 +462,6 @@ const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
     }
     if constexpr (DISPLAY_KMEANS) {
         printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
-        fflush(stdout);
     }
     
     return create_hierarchy_from_boundings(std::move(term_nodes));
@@ -507,13 +499,13 @@ void display_hierarchy_properties(const bounding* bd0) {
                 arity = bd->get_content().size();
             }
             else {
-                arity = bd->get_children().size();
-                for (size_t j = 0; j < arity; j++) {
-                    next_bds.push(bd->get_children()[j]);
-                }
+                const std::vector<const bounding*>& bds = bd->get_children();
+                arity = bds.size();
+                for (const bounding* b : bds)
+                    next_bds.push(b);
             }
-            if (arity > max) {max = arity;}
-            if (arity < min) {min = arity;}
+            if (arity > max) { max = arity; }
+            if (arity < min) { min = arity; }
             total += arity;
         }
 
@@ -526,7 +518,7 @@ void display_hierarchy_properties(const bounding* bd0) {
             else {
                 printf("|| Level %u: nodes: %u, all terminal\n", level, number_of_nodes);
                 printf("|| Minimum object arity: %u, maximum: %u, average: %lf\n",
-                    min, max, ((real) total) / number_of_nodes);
+                    min, max, static_cast<real>(total) / number_of_nodes);
             }
         }
         else {
@@ -536,7 +528,7 @@ void display_hierarchy_properties(const bounding* bd0) {
             }
             else {
                 printf("|| Level %u: nodes: %u, terminal: %u, minimum arity: %u, maximum: %u, average: %lf\n",
-                    level, number_of_nodes, terminal_nodes, min, max, ((real) total) / number_of_nodes);
+                    level, number_of_nodes, terminal_nodes, min, max, static_cast<real>(total) / number_of_nodes);
             }
         }
         
@@ -549,5 +541,4 @@ void display_hierarchy_properties(const bounding* bd0) {
         level++;
     }
     printf("===============================================================================\n");
-    fflush(stdout);
 }
