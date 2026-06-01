@@ -250,7 +250,7 @@ min_max_coord cylinder::get_min_max_coord() const {
         min_z = position.z + length * direction.z - radius;
     }
 
-    return min_max_coord(min_x, max_x, min_y, max_y, min_z, max_z);
+    return { min_x, max_x, min_y, max_y, min_z, max_z };
 }
 
 /* Returns the barycentric info (the texture is mapped onto the top, the bottom, and the curved surface) [to be implemented] */

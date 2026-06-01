@@ -8,8 +8,4 @@
 #include <vector>
 #include <optional>
 
-//exit_status print_hdr_info(const char* file_name);
-
-std::optional<dimensions> read_hdr_size(const std::string& file_name);
-
 std::optional<matrix> read_hdr(const std::string& file_name);

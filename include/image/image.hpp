@@ -8,7 +8,7 @@ class image {
         const real gamma = 1.0f;
         unsigned int number_of_samples = 0;
 
-        image(unsigned int width, unsigned int height, real gamma = 1.0f)
+        image(int width, int height, real gamma = 1.0f)
             : data(width, height), gamma(gamma) {}
 
         image(image&&)                 = default;

@@ -1,52 +1,11 @@
 #include "file_readers/hdr_reader.hpp"
+
 #include "screen/screen.hpp"
 #include "parallel/parallel.hpp"
 #include "file_readers/file.hpp"
 
 #include <cmath>
 #include <stdexcept>
-
-std::optional<dimensions> read_hdr_size(const std::string& file_name) {
-
-    file f(file_name, "rb");
-
-    try {
-
-        float gamma;
-        int p1, p2, p3, p4, p5, p6, p7, p8;
-        char format[16];
-        {
-            const exit_status status = f.scanf("#?RADIANCE\n#?RADIANCE\nGAMMA=%f\nPRIMARIES=%d %d %d %d %d %d %d %d\nFORMAT=%15s",
-                gamma, p1, p2, p3, p4, p5, p6, p7, p8, format);
-            if (status == exit_status::Failure) {
-                const exit_status status = f.scanf("FORMAT=%15s", format);
-                if (status == exit_status::Failure)
-                    throw std::runtime_error("Reading error in print_hdr_info: header");
-            }
-        }
-        
-        char s1, s2, l1, l2;
-        unsigned int v1, v2;
-        {
-            const exit_status status = f.scanf("\n%c%c %u %c%c %u\n", s1, l1, v1, s2, l2, v2);
-            if (status == exit_status::Failure)
-                throw std::runtime_error("Reading error in print_hdr_info: dimensions");
-        }
-        
-        if ((l1 != 'X' && l1 != 'Y') || (l2 != 'X' && l2 != 'Y') || (s1 != '-' && s1 != '+') || (s2 != '-' && s2 != '+'))
-            throw std::runtime_error("Incorrect dimensions");
-
-        const bool l1_is_x = l1 == 'X';
-        const unsigned int width  = l1_is_x ? v1 : v2;
-        const unsigned int height = l1_is_x ? v2 : v1;
-
-        return dimensions(width, height);
-    }
-    catch(const std::exception& e) {
-        printf("%s\n", e.what());
-        return std::nullopt;
-    }
-}
 
 std::optional<matrix> read_hdr(const std::string& file_name) {
 

@@ -28,7 +28,7 @@ class matrix {
         matrix& operator=(const matrix&) = delete;
 
         dimensions get_dimensions() const {
-            return dimensions({ width, height });
+            return { width, height };
         }
 
         std::span<rt::color> column(int i) {

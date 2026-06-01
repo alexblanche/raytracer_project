@@ -15,17 +15,6 @@
 /* Output struct from min_max_coord */
 struct min_max_coord {
     real min_x, max_x, min_y, max_y, min_z, max_z;
-
-    min_max_coord(const real min_x, const real max_x,
-        const real min_y, const real max_y,
-        const real min_z, const real max_z)
-
-        :
-        min_x(min_x), max_x(max_x),
-        min_y(min_y), max_y(max_y), 
-        min_z(min_z), max_z(max_z) {}
-
-    min_max_coord() {}
 };
 
 constexpr unsigned int EMPTY_INDEX = std::numeric_limits<unsigned int>::max();

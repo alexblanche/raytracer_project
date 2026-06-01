@@ -306,27 +306,27 @@ std::optional<real> quad::measure_distance(const ray& r) const {
 	const rt::vector c = u + (t * dir) - position;
     
     real detv2, l2;
-    switch (case_det)
-    {
-    case det_case::Default:
-        detv2 = c.x * v2.y - c.y * v2.x;
-        l2 = (v1.x * c.y - v1.y * c.x) / det12;
-        break;
-    
-    case det_case::XZ:
-        detv2 = c.x * v2.z - c.z * v2.x;
-        l2 = (v1.x * c.z - v1.z * c.x) / det12;
-        break;
+    using enum det_case;
+    switch (case_det) {
+        case Default:
+            detv2 = c.x * v2.y - c.y * v2.x;
+            l2 = (v1.x * c.y - v1.y * c.x) / det12;
+            break;
+        
+        case XZ:
+            detv2 = c.x * v2.z - c.z * v2.x;
+            l2 = (v1.x * c.z - v1.z * c.x) / det12;
+            break;
 
-    case det_case::YZ:
-        detv2 = c.y * v2.z - c.z * v2.y;
-        l2 = (v1.y * c.z - v1.z * c.y) / det12;
-        break;
-    
-    default:
-        detv2 = 0;
-        l2 = 0;
-        break;
+        case YZ:
+            detv2 = c.y * v2.z - c.z * v2.y;
+            l2 = (v1.y * c.z - v1.z * c.y) / det12;
+            break;
+        
+        default:
+            detv2 = 0;
+            l2 = 0;
+            break;
     }
     const real l1 = detv2 / det12;
 
@@ -339,16 +339,11 @@ std::optional<real> quad::measure_distance(const ray& r) const {
         return std::nullopt;
         
     real l2a;
-    switch (case_det)
-    {
-    case det_case::Default: l2a = (v3.x * c.y - v3.y * c.x) / det23;
-        break;
-    case det_case::XZ:      l2a = (v3.x * c.z - v3.z * c.x) / det23;
-        break;
-    case det_case::YZ:      l2a = (v3.y * c.z - v3.z * c.y) / det23;
-        break;
-    default:                l2a = 0;
-        break;
+    switch (case_det) {
+        case Default: l2a = (v3.x * c.y - v3.y * c.x) / det23; break;
+        case XZ:      l2a = (v3.x * c.z - v3.z * c.x) / det23; break;
+        case YZ:      l2a = (v3.y * c.z - v3.z * c.y) / det23; break;
+        default:      l2a = 0;
     }
 
     return (l2a >= 0.0f && l1a + l2a <= 1.0f) ?
@@ -418,18 +413,19 @@ barycentric_info quad::get_barycentric(const rt::vector& p) const {
     const rt::vector c = p - position;
 
     real detv2, l2;
+    using enum det_case;
     switch (case_det) {
-        case det_case::Default:
+        case Default:
             detv2 = c.x * v2.y - c.y * v2.x;
             l2 = (v1.x * c.y - v1.y * c.x) / det12;
             break;
 
-        case det_case::XZ:
+        case XZ:
             detv2 = c.x * v2.z - c.z * v2.x;
             l2 = (v1.x * c.z - v1.z * c.x) / det12;
             break;
 
-        case det_case::YZ:
+        case YZ:
             detv2 = c.y * v2.z - c.z * v2.y;
             l2 = (v1.y * c.z - v1.z * c.y) / det12;
             break;
@@ -446,14 +442,10 @@ barycentric_info quad::get_barycentric(const rt::vector& p) const {
     }
 
     switch (case_det) {
-        case det_case::Default: l2 = (v3.x * c.y - v3.y * c.x) / det23;
-            break;
-        case det_case::XZ:      l2 = (v3.x * c.z - v3.z * c.x) / det23;
-            break;
-        case det_case::YZ:      l2 = (v3.y * c.z - v3.z * c.y) / det23;
-            break;
-        default:                l2 = 0;
-            break;
+        case Default: l2 = (v3.x * c.y - v3.y * c.x) / det23; break;
+        case XZ:      l2 = (v3.x * c.z - v3.z * c.x) / det23; break;
+        case YZ:      l2 = (v3.y * c.z - v3.z * c.y) / det23; break;
+        default:      l2 = 0;
     }
     const real l11 = detv2 / det23;
 
@@ -514,16 +506,16 @@ min_max_coord quad::get_min_max_coord() const {
     const rt::vector p2 = position + v2;
     const rt::vector p3 = position + v3;
 
-    const real min_x = std::min(position.x, std::min(p1.x, std::min(p2.x, p3.x)));
-    const real max_x = std::max(position.x, std::max(p1.x, std::max(p2.x, p3.x)));
+    return {
+        .min_x = std::min(position.x, std::min(p1.x, std::min(p2.x, p3.x))),
+        .max_x = std::max(position.x, std::max(p1.x, std::max(p2.x, p3.x))),
 
-    const real min_y = std::min(position.y, std::min(p1.y, std::min(p2.y, p3.y)));
-    const real max_y = std::max(position.y, std::max(p1.y, std::max(p2.y, p3.y)));
-    
-    const real min_z = std::min(position.z, std::min(p1.z, std::min(p2.z, p3.z)));
-    const real max_z = std::max(position.z, std::max(p1.z, std::max(p2.z, p3.z)));
-
-    return min_max_coord(min_x, max_x, min_y, max_y, min_z, max_z);
+        .min_y = std::min(position.y, std::min(p1.y, std::min(p2.y, p3.y))),
+        .max_y = std::max(position.y, std::max(p1.y, std::max(p2.y, p3.y))),
+        
+        .min_z = std::min(position.z, std::min(p1.z, std::min(p2.z, p3.z))),
+        .max_z = std::max(position.z, std::max(p1.z, std::max(p2.z, p3.z)))
+    };
 }
 
 /* Prints the quad */

@@ -1,38 +1,48 @@
 #pragma once
 
-#include <vector>
 #include "light/vector.hpp"
 #include "scene/objects/object.hpp"
 #include "scene/objects/bounding.hpp"
+
+#include <variant>
+#include <vector>
 
 /* K-means clustering algorithm */
 
 /* Struct containing either an object* or a bounding*, to make the clustering functions polymorphic */
 struct element {
-   std::optional<const object*> obj;
-   std::optional<const bounding*> bd;
-
-   /* Constructors */
-
-   element() {}
+   enum class type {
+      Object, Bounding
+   };
+   type type;
+   std::variant<const object*, const bounding*> content;
 
    element(const object* o) :
-      obj(o) {}
+      type(type::Object), content(std::in_place_type_t<const object*>(), o) {}
 
    element(const bounding* b) :
-      bd(b) {}
+      type(type::Bounding), content(std::in_place_type_t<const bounding*>(), b) {}
 
-   /* Position accessor */
+   inline const object* get_object() const {
+      return std::get<const object*>(content);
+   }
+   inline const bounding* get_bounding() const {
+      return std::get<const bounding*>(content);
+   }
 
    inline rt::vector get_position() const {
-      if (obj.has_value()) {
-         return obj.value()->get_position();
-      }
-      else if (bd.value()->get_b().has_value()) {
-         return bd.value()->get_b().value()->get_position();
-      }
-      else {
-         return bd.value()->get_content()[0]->get_position();
+      using enum type;
+      switch (type) {
+         case Object:
+            return std::get<const object*>(content)->get_position();
+         
+         case Bounding: {
+            const bounding* bd = std::get<const bounding*>(content);
+            const std::optional<const box*>& b = bd->get_b();
+            return (b.has_value()) ?
+                 b.value()->get_position()
+               : bd->get_content()[0]->get_position();
+         }
       }
    }
 };

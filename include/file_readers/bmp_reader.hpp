@@ -42,10 +42,6 @@ struct bmp_header {
 	}
 };
 
-
-/* Returns the width and height of the .bmp image contained in file_name */
-// std::optional<dimensions> read_bmp_size(const std::string& file_name);
-
 /* Extracts the data from the given .bmp file: stores the width and height in the provided
    	references, and returns a matrix of width rows and height columns containing colors
    	Returns true if the operation was successful */

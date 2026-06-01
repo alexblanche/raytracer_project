@@ -2,7 +2,13 @@
 
 #include "light/vector.hpp"
 
+#include <vector>
+#include <span>
+
 struct search_tree {
+
+    using BOOL = char;
+
     // Internal nodes are points that divide the 3D space into 8 regions
     std::vector<rt::vector> internal_nodes;
 
@@ -10,14 +16,14 @@ struct search_tree {
     std::vector<std::vector<unsigned int>> leaves;
 
     // Each index contains a boolean that indicates whether the node is terminal (a leaf) or internal
-    std::vector<bool> terminal_state;
+    std::vector<BOOL> terminal_state;
 
     void initial_resize(unsigned int number_of_nodes) {
         internal_nodes.resize(number_of_nodes);
         leaves.resize(number_of_nodes);
         terminal_state.resize(number_of_nodes);
-        for (unsigned int i = 0; i < terminal_state.size(); i++)
-            terminal_state[i] = false;
+        for (BOOL& state : terminal_state)
+            state = false;
     }
 
     void increase_size(unsigned int wanted_index) {
@@ -28,8 +34,9 @@ struct search_tree {
         internal_nodes.resize(new_size);
         leaves.resize(new_size);
         terminal_state.resize(new_size);
-        for (unsigned int i = current_size; i < new_size; i++)
-            terminal_state[i] = false;
+        std::span terms(terminal_state.data() + current_size, new_size - current_size);
+        for (BOOL& state : terms)
+            state = false;
     }
 };
 

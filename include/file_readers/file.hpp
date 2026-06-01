@@ -66,13 +66,14 @@ class file {
         R, RB, W, WB, A, AB
     };
     static constexpr mode string(const std::string& s) {
-        if (s == "r" ) return mode::R;
-        if (s == "rb") return mode::RB;
-        if (s == "w" ) return mode::W;
-        if (s == "wb") return mode::WB;
-        if (s == "a" ) return mode::A;
-        if (s == "ab") return mode::AB;
-        return mode::R;
+        using enum mode;
+        if (s == "r" ) return R;
+        if (s == "rb") return RB;
+        if (s == "w" ) return W;
+        if (s == "wb") return WB;
+        if (s == "a" ) return A;
+        if (s == "ab") return AB;
+        return R; // default
     }
 
     private:
@@ -107,18 +108,6 @@ class file {
             close();
         }
 
-        size_t length() const {
-            const size_t position = ftell(f);
-            fseek(f, 0, SEEK_END);
-            const size_t length = ftell(f);
-            fseek(f, position, SEEK_SET);
-            return length;
-        }
-
-        bool eof() const {
-            return feof(f);
-        }
-
         size_t position() const {
             return ftell(f);
         }
@@ -129,6 +118,18 @@ class file {
 
         void rewind() const {
             seek(0);
+        }
+
+        size_t length() const {
+            const size_t pos = position();
+            fseek(f, 0, SEEK_END); // go to end of file
+            const size_t length = position();
+            seek(pos);
+            return length;
+        }
+
+        bool eof() const {
+            return feof(f);
         }
 
         template<class T>

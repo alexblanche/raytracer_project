@@ -16,22 +16,22 @@ std::pair<real, det_case> set_up_det(const rt::vector& v1, const rt::vector& v2)
     
     const real detxy = v1.x * v2.y - v1.y * v2.x;
     if (abs(detxy) > 0.00000001f)
-        return std::pair(detxy, det_case::Default);
+        return { detxy, det_case::Default };
 
     // The vectors v1, v2 are colinear when projected on the plane z = 0
     // Another attempt with rows x, z
     const real detxz = v1.x * v2.z - v1.z * v2.x;
     if (abs(detxz) > 0.00000001f)
-        return std::pair(detxz, det_case::XZ);
+        return { detxz, det_case::XZ };
     
     // The vectors v1, v2 are colinear when projected on the planes y = 0 and z = 0
     // (e.g. the triangle lies in the plane x = constant)
     // Last attempt with rows y, z
     const real detyz = v1.y * v2.z - v1.z * v2.y;
     if (abs(detyz) > 0.00000001f)
-        return std::pair(detyz, det_case::YZ);
+        return { detyz, det_case::YZ };
 
-    return std::pair(0, det_case::Error);
+    return { 0, det_case::Error };
     
 }
 
@@ -311,32 +311,23 @@ std::optional<real> triangle::measure_distance(const ray& r) const {
     // printf("c = (%lf, %lf, %lf), detxy = %lf, abs(detxy) = %lf, cond = %d\n", c.x, c.y, c.z, detxy, abs(detxy), abs(detxy) > 0.00000001);
 
     real l1;
-    switch (case_det)
-    {
-    case det_case::Default: l1 = (c.x * v2.y - c.y * v2.x) / det;
-        break;
-    case det_case::XZ:      l1 = (c.x * v2.z - c.z * v2.x) / det;
-        break;
-    case det_case::YZ:      l1 = (c.y * v2.z - c.z * v2.y) / det;
-        break;
-    default:                l1 = 0.0f;
-        break;
+    using enum det_case;
+    switch (case_det) {
+        case Default: l1 = (c.x * v2.y - c.y * v2.x) / det; break;
+        case XZ:      l1 = (c.x * v2.z - c.z * v2.x) / det; break;
+        case YZ:      l1 = (c.y * v2.z - c.z * v2.y) / det; break;
+        default:      l1 = 0.0f;
     }
 
     if (l1 < 0.0f || l1 > 1.0f)
         return std::nullopt;
 
     real l2;
-    switch (case_det)
-    {
-    case det_case::Default: l2 = (v1.x * c.y - v1.y * c.x) / det;
-        break;
-    case det_case::XZ:      l2 = (v1.x * c.z - v1.z * c.x) / det;
-        break;
-    case det_case::YZ:      l2 = (v1.y * c.z - v1.z * c.y) / det;
-        break;
-    default:                l2 = 0.0f;
-        break;
+    switch (case_det) {
+        case Default: l2 = (v1.x * c.y - v1.y * c.x) / det; break;
+        case XZ:      l2 = (v1.x * c.z - v1.z * c.x) / det; break;
+        case YZ:      l2 = (v1.y * c.z - v1.z * c.y) / det; break;
+        default:      l2 = 0.0f;
     }
 
     return (l2 >= 0.0f && l1 + l2 <= 1.0f) ?
@@ -379,27 +370,27 @@ barycentric_info triangle::get_barycentric(const rt::vector& p) const {
     const rt::vector c = p - position;
 
     real l1, l2;
-    switch (case_det)
-    {
-    case det_case::Default:
-        l1 = (c.x * v2.y - c.y * v2.x) / det;
-        l2 = (v1.x * c.y - v1.y * c.x) / det;
-        break;
+    using enum det_case;
+    switch (case_det) {
+        case Default:
+            l1 = (c.x * v2.y - c.y * v2.x) / det;
+            l2 = (v1.x * c.y - v1.y * c.x) / det;
+            break;
 
-    case det_case::XZ:
-        l1 = (c.x * v2.z - c.z * v2.x) / det;
-        l2 = (v1.x * c.z - v1.z * c.x) / det;
-        break;
+        case XZ:
+            l1 = (c.x * v2.z - c.z * v2.x) / det;
+            l2 = (v1.x * c.z - v1.z * c.x) / det;
+            break;
 
-    case det_case::YZ:
-        l1 = (c.y * v2.z - c.z * v2.y) / det;
-        l2 = (v1.y * c.z - v1.z * c.y) / det;
-        break;
+        case YZ:
+            l1 = (c.y * v2.z - c.z * v2.y) / det;
+            l2 = (v1.y * c.z - v1.z * c.y) / det;
+            break;
 
-    default:
-        l1 = 0.0f;
-        l2 = 0.0f;
-        break;
+        default:
+            l1 = 0.0f;
+            l2 = 0.0f;
+            break;
     }
 
     return barycentric_info(l1, l2, object_type::Triangle);
@@ -442,16 +433,14 @@ min_max_coord triangle::get_min_max_coord() const {
     const rt::vector p1 = position + v1;
     const rt::vector p2 = position + v2;
 
-    const real min_x = std::min(position.x, std::min(p1.x, p2.x));
-    const real max_x = std::max(position.x, std::max(p1.x, p2.x));
-
-    const real min_y = std::min(position.y, std::min(p1.y, p2.y));
-    const real max_y = std::max(position.y, std::max(p1.y, p2.y));
-    
-    const real min_z = std::min(position.z, std::min(p1.z, p2.z));
-    const real max_z = std::max(position.z, std::max(p1.z, p2.z));
-
-    return min_max_coord(min_x, max_x, min_y, max_y, min_z, max_z);
+    return {
+        .min_x = std::min(position.x, std::min(p1.x, p2.x)),
+        .max_x = std::max(position.x, std::max(p1.x, p2.x)),
+        .min_y = std::min(position.y, std::min(p1.y, p2.y)),
+        .max_y = std::max(position.y, std::max(p1.y, p2.y)),
+        .min_z = std::min(position.z, std::min(p1.z, p2.z)),
+        .max_z = std::max(position.z, std::max(p1.z, p2.z))
+    };
 }
 
 /* Prints the triangle */

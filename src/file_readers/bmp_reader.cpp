@@ -1,47 +1,12 @@
 #include "file_readers/bmp_reader.hpp"
-#include "screen/color.hpp"
+
 #include "file_readers/file.hpp"
 
-#include <cstdio>
+#include <iostream>
 #include <stdexcept>
 #include <cmath>
 
 static constexpr int BYTES_PER_COLOR = 3;
-
-/* Writes in the variables the width and height of the .bmp image contained in file_name */
-std::optional<dimensions> read_bmp_size(const std::string& file_name) {
-
-    file f(file_name, "rb");
-
-    try {
-        /* 18 bytes ignored:
-           Type (2), Size (4), Reserved 1 (2), Reserved 2 (2), Offset (4), Size of the header (4)
-        */
-        f.skip(18);
-
-        /* Width: 4 bytes */
-        unsigned int bmpwidth;
-        const exit_status status_w = f.read<unsigned int>({ &bmpwidth, 1 });
-        if (status_w == exit_status::Failure)
-            throw std::runtime_error("Reading error in read_bmp_size (width)");
-        
-        const int width = static_cast<int>(bmpwidth);
-
-        /* Height: 4 bytes */
-        unsigned int bmpheight;
-        const exit_status status_h = f.read<unsigned int>({ &bmpheight, 1 });
-        if (status_h == exit_status::Failure)
-            throw std::runtime_error("Reading error in read_bmp_size (height)");
-        
-        const int height = static_cast<int>(bmpheight);
-
-        return dimensions({ width, height });
-    }
-    catch(const std::exception& e) {
-        printf("%s\n", e.what());
-        return std::nullopt;
-    }
-}
 
 /* Extracts the data from the given .bmp file into the matrix data, which must have the right size */
 std::optional<matrix> read_bmp(const std::string& file_name) {

@@ -237,7 +237,7 @@ min_max_coord box::get_min_max_coord() const {
     const real max_z = (position + l1 * (a1z * n1) + l2 * (a2z * n2) + l3 * (a3z * n3)).z;
     const real min_z = (position + l1 * ((- a1z) * n1) + l2 * ((- a2z) * n2) + l3 * ((- a3z) * n3)).z;
 
-    return min_max_coord(min_x, max_x, min_y, max_y, min_z, max_z);
+    return { min_x, max_x, min_y, max_y, min_z, max_z };
 }
 
 

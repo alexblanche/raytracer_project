@@ -3,12 +3,16 @@
 #include "screen/screen.hpp"
 #include "auxiliary/timer.hpp"
 
+#include <string>
 #include <cstdlib>
 #include <iostream>
 #include <cassert>
 
+static const std::string BMP_FILE_NAME = "../../../assets/cobblestone_street_night.bmp";
+static const std::string HDR_FILE_NAME = "../../../assets/sundowner_overlook.hdr";
+
 static void test_bmp() {
-    constexpr const char * filename_bmp = "../../../assets/cobblestone_street_night.bmp";
+    const std::string& filename_bmp = BMP_FILE_NAME;
     constexpr int NB_ITERATIONS = 10;
 
     std::optional<matrix> mat_opt;
@@ -30,7 +34,7 @@ static void test_bmp() {
 }
 
 static void test_hdr() {
-    constexpr const char * filename_hdr = "../../../assets/sundowner_overlook.hdr";
+    const std::string& filename_hdr = HDR_FILE_NAME;
     constexpr int NB_ITERATIONS = 5;
 
     std::optional<matrix> mat_opt;
@@ -52,7 +56,7 @@ static void test_hdr() {
 }
 
 static void test_fastcopy() {
-    constexpr const char * filename_bmp = "../../../assets/cobblestone_street_night.bmp";
+    const std::string& filename_bmp = BMP_FILE_NAME;
     
     std::optional<matrix> mat_opt = read_bmp(filename_bmp);
     if (not mat_opt.has_value())

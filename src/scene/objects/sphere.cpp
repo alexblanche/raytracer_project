@@ -104,16 +104,16 @@ hit sphere::compute_intersection(ray& r, const real t) const {
 /* Minimum and maximum coordinates */
 min_max_coord sphere::get_min_max_coord() const {
     
-    const real min_x = position.x - radius;
-    const real max_x = position.x + radius;
+    return {
+        .min_x = position.x - radius,
+        .max_x = position.x + radius,
 
-    const real min_y = position.y - radius;
-    const real max_y = position.y + radius;
+        .min_y = position.y - radius,
+        .max_y = position.y + radius,
 
-    const real min_z = position.z - radius;
-    const real max_z = position.z + radius;
-
-    return min_max_coord(min_x, max_x, min_y, max_y, min_z, max_z);
+        .min_z = position.z - radius,
+        .max_z = position.z + radius
+    };
 }
 
 /* Returns the barycentric info for the object (l1 = longitude, l2 = latitude) (both between 0 and 1) */

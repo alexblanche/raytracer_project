@@ -354,7 +354,7 @@ std::vector<const object*> get_object_vector(const std::vector<element>& elts) {
     std::vector<const object*> obj;
     obj.reserve(elts.size());
     for (element const& elt : elts) {
-        obj.push_back(elt.obj.value());
+        obj.push_back(elt.get_object());
     }
     return obj;
 }
@@ -363,7 +363,7 @@ std::vector<const bounding*> get_bounding_vector(const std::vector<element>& elt
     std::vector<const bounding*> bds;
     bds.reserve(elts.size());
     for (element const& elt : elts) {
-        bds.push_back(elt.bd.value());
+        bds.push_back(elt.get_bounding());
     }
     return bds;
 }
@@ -406,7 +406,7 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
     }
 
     if (nodes.size() == 1)
-        return nodes[0].bd.value();
+        return nodes[0].get_bounding();
     else
         return containing_bounding_any(get_bounding_vector(nodes));
 }
