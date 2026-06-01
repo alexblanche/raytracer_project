@@ -1,6 +1,5 @@
 #pragma once
 
-#include "screen/color.hpp"
 #include "auxiliary/exit_status.hpp"
 #include "image/image.hpp"
 

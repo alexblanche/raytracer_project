@@ -22,13 +22,14 @@ texture_info::texture_info(std::optional<int> t_index,
 uvcoord texture_info::get_barycenter(const barycentric_info& bary) const {
     
     real u, v;
+    using enum object_type;
     switch (bary.type) {
-        case object_type::Sphere:
-        case object_type::Plane:
+        case Sphere:
+        case Plane:
             u = bary.l1;
             v = bary.l2;
             break;
-        case object_type::Quad:
+        case Quad:
             if (bary.triangle_side == side::LowerTriangle) {
                 // Quads with (u0, v0), (u3, v3), (u2, v2) (in this order) considered
                 const real l0 = 1.0f - bary.l1 - bary.l2;
@@ -37,7 +38,7 @@ uvcoord texture_info::get_barycenter(const barycentric_info& bary) const {
                 break;
             }
             // else: same as Triangle case
-        case object_type::Triangle: {
+        case Triangle: {
                 // Triangles or Quads with (u0, v0), (u1, v1), (u2, v2) considered
                 const real l0 = 1.0f - bary.l1 - bary.l2;
                 u = l0 * uv_coordinates[0] + bary.l1 * uv_coordinates[2] + bary.l2 * uv_coordinates[4];

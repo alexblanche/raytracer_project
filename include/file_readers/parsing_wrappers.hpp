@@ -2,9 +2,8 @@
 
 #include <string>
 #include <optional>
-#include <span>
-
 #include <vector>
+#include <span>
 #include <tuple>
 
 /* Struct containing a material, texture or normal map, its name and the index that the objects are going to store */

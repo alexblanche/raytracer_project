@@ -10,6 +10,7 @@
 
 #include <optional>
 
+// Used to ignore unused indices from std::index_sequence
 template<typename T>
 static consteval T id(size_t, T value) {
     return value;
@@ -17,7 +18,7 @@ static consteval T id(size_t, T value) {
 
 template<typename T, size_t... i>
 static consteval inline std::array<T, sizeof...(i)> make_array_aux_(T value, std::index_sequence<i...>) {
-    return { id<T>(i, value)... };
+    return { id(i, value)... };
 }
 
 // Returns an array with all the elements initialized to value
