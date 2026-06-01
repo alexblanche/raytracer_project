@@ -1,8 +1,5 @@
 #pragma once
 
-#include "light/vector.hpp"
-#include "auxiliary/exit_status.hpp"
-#include "image/matrix.hpp"
 #include "scene/material/normal_map.hpp"
 
 #include <string>

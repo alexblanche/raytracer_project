@@ -2,10 +2,6 @@
 
 #include "object.hpp"
 
-#include "light/vector.hpp"
-#include "light/hit.hpp"
-#include "scene/material/material.hpp"
-
 #include <optional>
 
 class box : public object {

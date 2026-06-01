@@ -1,17 +1,10 @@
 #pragma once
 
-#include "object.hpp"
 #include "box.hpp"
 
-#include "light/vector.hpp"
-#include "light/hit.hpp"
-#include "scene/material/material.hpp"
-
-// #include <stack>
-#include <vector>
 #include "auxiliary/custom_stack.hpp"
 
-#include <stack>
+#include <vector>
 
 class bounding {
     

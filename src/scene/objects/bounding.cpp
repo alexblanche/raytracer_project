@@ -1,10 +1,7 @@
-#include "scene/objects/box.hpp"
-#include "scene/objects/triangle.hpp"
 #include "scene/objects/bounding.hpp"
 
-#include "light/vector.hpp"
-#include "light/hit.hpp"
-#include "scene/material/material.hpp"
+#include "scene/objects/triangle.hpp"
+
 #include <optional>
 
 

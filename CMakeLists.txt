@@ -18,68 +18,110 @@ find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
 
 ##################################################################
-### Main path-tracer
+### Source bundles
 ##################################################################
 
-# libmyraytracer.so
-set (libname raytracer)
-add_library(${libname} SHARED
+set(MATRIX_SOURCES
 	src/screen/color.cpp
 	src/image/matrix.cpp
-	src/scene/material/texture_info.cpp
-	src/scene/material/texture.cpp
-	src/scene/material/normal_map.cpp
-	src/scene/material/background.cpp
-	src/scene/material/material.cpp
+)
+
+set(IMAGE_READERS_SOURCES
+	src/file_readers/bmp_reader.cpp
+	src/file_readers/hdr_reader.cpp
+	src/file_readers/raw_data.cpp
+)
+
+set(IMAGE_SOURCES
+	${MATRIX_SOURCES}
+	${IMAGE_READERS_SOURCES}
 	src/screen/screen.cpp
-	src/light/hit.cpp
-	src/light/ray.cpp
-	src/light/vector.cpp
+	src/parallel/parallel.cpp
+)
+
+set(PARSERS_SOURCES
+	src/file_readers/scene_parser.cpp
+	src/file_readers/obj_parser.cpp
+	src/file_readers/mtl_parser.cpp
+	src/file_readers/normal_map_reader.cpp
+)
+
+set(OBJECTS_SOURCES
 	src/scene/objects/object.cpp
 	src/scene/objects/plane.cpp
 	src/scene/objects/sphere.cpp
 	src/scene/objects/triangle.cpp
 	src/scene/objects/quad.cpp
 	src/scene/objects/box.cpp
-	src/scene/objects/bounding.cpp
 	src/scene/objects/cylinder.cpp
-	src/tracing/directions.cpp
+	src/scene/objects/bounding.cpp
+)
+
+set(MATERIAL_SOURCES
+	src/scene/material/texture_info.cpp
+	src/scene/material/texture.cpp
+	src/scene/material/normal_map.cpp
+	src/scene/material/background.cpp
+	src/scene/material/material.cpp
+)
+
+set(SCENE_SOURCES
+	${MATERIAL_SOURCES}
+	${OBJECTS_SOURCES}
 	src/scene/light_sources/infinite_area.cpp
-	src/tracing/tracing.cpp
 	src/scene/camera.cpp
-	src/file_readers/scene_parser.cpp
 	src/scene/scene.cpp
-	src/file_readers/bmp_reader.cpp
-	src/file_readers/hdr_reader.cpp
-	src/file_readers/normal_map_reader.cpp
-	src/file_readers/raw_data.cpp
+)
+
+set(TRACING_SOURCES
+	src/light/hit.cpp
+	src/light/ray.cpp
+	src/light/vector.cpp
+	src/tracing/directions.cpp
+	src/tracing/tracing.cpp
+	src/tracing/multisample.cpp
+	src/render/render_loops.cpp
+)
+
+set(AUXILIARY_ALGORITHMS_SOURCES
 	src/auxiliary/octree.cpp
 	src/auxiliary/clustering.cpp
-	src/file_readers/obj_parser.cpp
-	src/file_readers/mtl_parser.cpp
-	src/tracing/multisample.cpp
-	src/parallel/parallel.cpp
-	src/render/render_loops.cpp
+)
+
+set(MENU_SOURCES
 	src/main_menu/file_handler.cpp
 	src/main_menu/menu.cpp
 )
 
-target_link_libraries(${libname}
-	${SDL2_LIBRARIES}
-)
-
-target_include_directories(${libname}
-	PUBLIC
-		${SDL2_INCLUDE_DIRS}
-)
+##################################################################
+### Main path-tracer
+##################################################################
 
 # Main executable
 set(main_name main)
 add_executable(${main_name}
 	src/main.cpp
 )
+
+target_sources(${main_name}
+	PUBLIC
+		${IMAGE_SOURCES}
+		${SCENE_SOURCES}
+		${PARSERS_SOURCES}
+		${TRACING_SOURCES}
+		${AUXILIARY_ALGORITHMS_SOURCES}
+		${MENU_SOURCES}
+		
+		src/parallel/parallel.cpp
+)
+
 target_link_libraries(${main_name}
-	${libname}
+	${SDL2_LIBRARIES}
+)
+
+target_include_directories(${main_name}
+	PUBLIC
+		${SDL2_INCLUDE_DIRS}
 )
 
 ##################################################################
@@ -90,22 +132,12 @@ target_link_libraries(${main_name}
 # Executable that combines an array of raw data files into a bmp file
 set(merger_name merge)
 add_executable(${merger_name}
-	src/screen/color.cpp
-	src/image/matrix.cpp
-	src/file_readers/raw_data.cpp
-	src/file_readers/bmp_reader.cpp
+	${MATRIX_SOURCES}
+	${IMAGE_READERS_SOURCES}
 	src/file_readers/merger.cpp
 	src/parallel/parallel.cpp
 )
 
-# Executable that applies glow postprocessing to a raw data file and generates a bmp file
-# set(glow postprocess)
-# add_executable(${glow}
-# 	src/screen/color.cpp
-# 	src/file_readers/raw_data.cpp
-# 	src/file_readers/bmp_reader.cpp
-# 	src/postprocess/glow.cpp
-# )
 
 ##################################################################
 ### Legacy raytracer
@@ -114,9 +146,7 @@ add_executable(${merger_name}
 # Legacy raytracer (first version, 2014)
 set(legacy legacy_raytracer)
 add_executable(${legacy}
-	src/screen/color.cpp
-	src/image/matrix.cpp
-	src/screen/screen.cpp
+	${IMAGE_SOURCES}
 	src/light/vector.cpp
 	src/light/ray.cpp
 	src/legacy/light/hit.cpp
@@ -143,17 +173,18 @@ target_include_directories(${legacy}
 ### Test sky dome
 ##################################################################
 
-add_executable(sky
+set(sky_name sky)
+add_executable(${sky_name}
 	src/sky/bmp_reader.cpp
 	src/sky/image.cpp
 	src/sky/screen.cpp
 	src/sky/sky_render.cpp
 	src/sky/test_sky.cpp
 )
-target_link_libraries(sky
+target_link_libraries(${sky_name}
 	${SDL2_LIBRARIES}
 )
-target_include_directories(sky
+target_include_directories(${sky_name}
 	PUBLIC
 		${SDL2_INCLUDE_DIRS}
 )
@@ -162,36 +193,29 @@ target_include_directories(sky
 ### Tests
 ##################################################################
 
-add_executable(testreader
-	src/parallel/parallel.cpp
-	src/screen/color.cpp
-	src/image/matrix.cpp
-	src/file_readers/bmp_reader.cpp
-	src/file_readers/hdr_reader.cpp
-	src/screen/screen.cpp
+set(test_reader_name testreader)
+add_executable(${test_reader_name}
+	${IMAGE_SOURCES}
 	src/tests/test_reader.cpp
 )
-target_link_libraries(testreader
+target_link_libraries(${test_reader_name}
 	${SDL2_LIBRARIES}
 )
-target_include_directories(testreader
+target_include_directories(${test_reader_name}
 	PUBLIC
 		${SDL2_INCLUDE_DIRS}
 )
 
-add_executable(testinfinite
+set(test_infinite_name testinfinite)
+add_executable(${test_infinite_name}
+	${IMAGE_SOURCES}
 	src/scene/light_sources/infinite_area.cpp
-	src/parallel/parallel.cpp
-	src/screen/color.cpp
-	src/image/matrix.cpp
-	src/file_readers/hdr_reader.cpp
-	src/screen/screen.cpp
 	src/tests/test_infinite_area.cpp
 )
-target_link_libraries(testinfinite
+target_link_libraries(${test_infinite_name}
 	${SDL2_LIBRARIES}
 )
-target_include_directories(testinfinite
+target_include_directories(${test_infinite_name}
 	PUBLIC
 		${SDL2_INCLUDE_DIRS}
 )

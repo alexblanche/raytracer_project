@@ -3,6 +3,7 @@
 #include "light/vector.hpp"
 #include "light/hit.hpp"
 #include "light/ray.hpp"
+
 #include "scene/material/material.hpp"
 #include "scene/material/texture.hpp"
 #include "scene/material/texture_info.hpp"
