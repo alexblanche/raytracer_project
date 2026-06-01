@@ -157,10 +157,9 @@ int main(int, char **) {
     
     // Vector that will center the 'screen' in the scene
     constexpr rt::vector screen_center(width / 2, height / 2, 0);
-
-    std::vector<std::vector<rt::color>> matrix(width, std::vector<rt::color>(height));
+    matrix matrix(width, height);
     
-    const rt::screen scr(matrix, width, height);
+    const rt::screen scr(matrix);
     scr.fast_copy(1);
     scr.update_from_texture();
 
@@ -171,13 +170,13 @@ int main(int, char **) {
     long int total_time = 0;
 
     /* Sequential */
-    render_loop_seq(matrix, width, height, dist, screen_center, obj_set, light_set, total_time);
+    render_loop_seq(matrix.data, width, height, dist, screen_center, obj_set, light_set, total_time);
     scr.fast_copy(1);
     scr.update_from_texture();
     total_time = 0;
     const long int seq_time_init = get_time();
     for (size_t i = 0; i < number_of_renders; i++) {
-        render_loop_seq(matrix, width, height, dist, screen_center, obj_set, light_set, total_time);
+        render_loop_seq(matrix.data, width, height, dist, screen_center, obj_set, light_set, total_time);
         scr.fast_copy(1);
         scr.update_from_texture();
     }
@@ -187,12 +186,12 @@ int main(int, char **) {
 
     /* Parallel */
     const long int par_time_init = get_time();
-    render_loop_parallel(matrix, width, height, dist, screen_center, obj_set, light_set, total_time);
+    render_loop_parallel(matrix.data, width, height, dist, screen_center, obj_set, light_set, total_time);
     scr.fast_copy(1);
     scr.update_from_texture();
     total_time = 0;
     for (size_t i = 0; i < number_of_renders; i++) {
-        render_loop_parallel(matrix, width, height, dist, screen_center, obj_set, light_set, total_time);
+        render_loop_parallel(matrix.data, width, height, dist, screen_center, obj_set, light_set, total_time);
         scr.fast_copy(1);
         scr.update_from_texture();
     }

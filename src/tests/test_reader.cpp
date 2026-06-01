@@ -5,30 +5,25 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <cassert>
 
 static void test_bmp() {
     constexpr const char * filename_bmp = "../../../assets/cobblestone_street_night.bmp";
     constexpr int NB_ITERATIONS = 10;
 
-    std::optional<dimensions> dims = read_bmp_size(filename_bmp);
-    if (not dims.has_value()) {
-        std::cout << "File not found" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    const auto [ width, height ] = dims.value();
-    std::vector<std::vector<rt::color>> matrix(width, std::vector<rt::color>(height));
+    std::optional<matrix> mat_opt;
 
     timer_ms timer;
     timer.start();
     for (int k = 0; k < NB_ITERATIONS; k++) {
-        read_bmp(filename_bmp, matrix);
+        mat_opt = read_bmp(filename_bmp);
+        assert(mat_opt.has_value());
     }
     timer.stop();
     printf("BMP ");
     timer.print();
 
-    rt::screen scr(matrix, width, height, tone_mapping_parameters::mode::Disabled);
+    rt::screen scr(mat_opt.value());
     scr.fast_copy(1);
     scr.update_from_texture();
     scr.wait_quit_event();
@@ -38,25 +33,19 @@ static void test_hdr() {
     constexpr const char * filename_hdr = "../../../assets/sundowner_overlook.hdr";
     constexpr int NB_ITERATIONS = 5;
 
-    std::optional<dimensions> dims = read_hdr_size(filename_hdr);
-    if (not dims.has_value()) {
-        std::cout << "File not found" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    const auto [ width, height ] = dims.value();
-    std::vector<std::vector<rt::color>> matrix(width, std::vector<rt::color>(height));
+    std::optional<matrix> mat_opt;
 
     timer_ms timer;
     timer.start();
     for (int k = 0; k < NB_ITERATIONS; k++) {
-        read_hdr(filename_hdr, matrix);
+        mat_opt = read_hdr(filename_hdr);
+        assert(mat_opt.has_value());
     }
     timer.stop();
     printf("HDR ");
     timer.print();
 
-    rt::screen scr(matrix, width, height);
+    rt::screen scr(mat_opt.value());
     scr.fast_copy(1);
     scr.update_from_texture();
     scr.wait_quit_event();
@@ -65,18 +54,12 @@ static void test_hdr() {
 static void test_fastcopy() {
     constexpr const char * filename_bmp = "../../../assets/cobblestone_street_night.bmp";
     
-    std::optional<dimensions> dims = read_bmp_size(filename_bmp);
-    if (not dims.has_value()) {
-        std::cout << "File not found" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    const auto [ width, height ] = dims.value();
-    std::vector<std::vector<rt::color>> matrix(width, std::vector<rt::color>(height));
-
-    read_bmp(filename_bmp, matrix);
+    std::optional<matrix> mat_opt = read_bmp(filename_bmp);
+    if (not mat_opt.has_value())
+        return;
+    matrix& matrix = mat_opt.value();
     
-    rt::screen scr(matrix, width, height);
+    rt::screen scr(matrix);
     timer_ms timer;
     timer.start();
     constexpr int NB_ITERATIONS = 20;

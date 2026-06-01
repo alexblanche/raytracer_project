@@ -16,7 +16,6 @@ static constexpr unsigned int MAX_ELTS_PER_LEAF = 10;
 // Adds the center to the internal nodes
 // Returns an array of 8 unsigned integers containing the starting index of each computed subregion
 static std::vector<unsigned int> split(const std::vector<rt::vector>& means, search_tree& tree, const unsigned int index_root,
-    //std::vector<unsigned int>& elts, const unsigned int index_min, const unsigned int index_max) {
     std::span<unsigned int> elts, const unsigned int index_min) {
 
     const unsigned int nb_indices = elts.size();

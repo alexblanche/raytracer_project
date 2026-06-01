@@ -7,12 +7,12 @@
 
 /* Constructors */
 
-/* Default constructor */
-texture::texture(const int width, const int height, std::vector<std::vector<rt::color>>&& data)
-    : data(std::move(data)),
-        width_minus_one(static_cast<real>(width  - 1)),
-        height_minus_one(static_cast<real>(height - 1)),
-        width(width), height(height) {}
+// /* Default constructor */
+// texture::texture(const int width, const int height, std::vector<std::vector<rt::color>>&& data)
+//     : data(std::move(data)),
+//         width_minus_one(static_cast<real>(width  - 1)),
+//         height_minus_one(static_cast<real>(height - 1)),
+//         width(width), height(height) {}
 
 /* Constructor from a .bmp or .hdr file
    Writes true in parsing_successful if the operation was successful */
@@ -25,31 +25,19 @@ texture::texture(const std::string& file_name, bool& parsing_successful, const r
         printf("Error in texture definition: wrong file format\n");
         throw;
     }
-
-    const std::optional<dimensions> dims = (is_bmp) ?
-          read_bmp_size(file_name)
-        : read_hdr_size(file_name);
     
-    if (dims.has_value()) {
-        width  = dims.value().width;
-        height = dims.value().height;
-        data = std::vector<std::vector<rt::color>>(width, std::vector<rt::color>(height));
-        const exit_status read_success = (is_bmp) ?
-              read_bmp(file_name, data)
-            : read_hdr(file_name, data);
-        if (gamma != 1.0f)
-            apply_gamma(data, gamma);
-        width_minus_one  = static_cast<real>(width  - 1);
-        height_minus_one = static_cast<real>(height - 1);
-        parsing_successful = read_success == exit_status::Success;
-    }
-    else {
-        parsing_successful = false;
-    }
+    std::optional<matrix> mat_opt = (is_bmp) ? read_bmp(file_name) : read_hdr(file_name);
+    parsing_successful = mat_opt.has_value();
+    if (not parsing_successful)
+        return;
+
+    data = std::move(mat_opt.value());
+    if (gamma != 1.0f)
+        data.apply_gamma(gamma);
+    width_minus_one  = static_cast<real>(data.width  - 1);
+    height_minus_one = static_cast<real>(data.height - 1);
 }
 
-
-/* Accessor */
 
 /* Returns the color stored in data at UV-coordinates u, v (between 0 and 1) times width, height */
 const rt::color& texture::get_color(const real u, const real v) const {
@@ -57,8 +45,8 @@ const rt::color& texture::get_color(const real u, const real v) const {
     const int y = v * height_minus_one;
     // Due to floating-point imprecision, some "unit" vector have a norm slightly larger than 1,
     // producing out of range coordinates
-    return (x < 0 || x >= width || y < 0 || y >= height) ?
-        data[std::min(width - 1, std::max(0, x))][std::min(height - 1, std::max(0, y))]
+    return (x < 0 || x >= data.width || y < 0 || y >= data.height) ?
+        data.data[std::min(data.width - 1, std::max(0, x))][std::min(data.height - 1, std::max(0, y))]
         :
-        data[x][y];
+        data.data[x][y];
 }

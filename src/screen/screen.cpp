@@ -7,17 +7,22 @@
 namespace rt {
 
 	static constexpr std::string DEFAULT_TITLE = "Raytracer_project";
+
+	using enum sdl::window::flag;
 	
-	screen::screen(std::vector<std::vector<rt::color>>& matrix, int width, int height, tone_mapping_parameters::mode mode, float gamma)
-		: 	window(DEFAULT_TITLE, { 10, 10, width, height }, { sdl::window::flag::AllowHighDPI, sdl::window::flag::Resizable }),
-			renderer(window, width, height, { sdl::renderer::flag::Accelerated }, sdl::renderer::vsync_option::Disabled),
-			srcrect(0, 0, width, height),
-			dstrect(0, 0, width, height),
-			texture(renderer, sdl::texture::PixelFormat::RGB24, sdl::texture::Access::Streaming, width, height),
-			matrix(matrix), width(width), height(height), tone_mapping_mode(mode), gamma(gamma) {
+	screen::screen(matrix& matrix, tone_mapping_parameters::mode mode, float gamma)
+		: 	window(DEFAULT_TITLE, { 10, 10, matrix.width, matrix.height }, { AllowHighDPI, Resizable }),
+			renderer(window, matrix.width, matrix.height, { sdl::renderer::flag::Accelerated }, sdl::renderer::vsync_option::Disabled),
+			srcrect(0, 0, matrix.width, matrix.height),
+			dstrect(0, 0, matrix.width, matrix.height),
+			texture(renderer, sdl::texture::PixelFormat::RGB24, sdl::texture::Access::Streaming, matrix.width, matrix.height),
+			mat(matrix), width(matrix.width), height(matrix.height), tone_mapping_mode(mode), gamma(gamma) {
 
 		sdl::init({ sdl::Init::Video });
 	}
+
+	screen::screen(image& image, tone_mapping_parameters::mode mode)
+		: screen(image.data, mode, image.gamma) {}
 
 	screen::~screen() {
 		sdl::quit();
@@ -162,13 +167,12 @@ namespace rt {
 		const unsigned int padding = texture_pitch % 3;
 		const unsigned int shift = 3 * width + padding;
 
-		for (int i = 0; i < width; i++) {
-			const std::vector<color>& line = matrix[i];
+		for (int i = 0; std::vector<color>& line : mat.data) {
+			
 			const unsigned int threei = 3 * i;
 
-            for (int j = 0; j < height; j++) {
+            for (int j = 0; const color& pixel_col : line) {
 
-				const color& pixel_col = line[j];
 				color avg = pixel_col * invN;
 				avg.in_place_max_out();
 				const unsigned int index = j * shift + threei;
@@ -177,7 +181,9 @@ namespace rt {
 				texture_pixels[index + 1] = static_cast<Uint8>(avg.get_green());
 				texture_pixels[index + 2] = static_cast<Uint8>(avg.get_blue());
 				//std::memcpy(texture_pixels + index, &color_data, 3);
+				j++;
             }
+			i++;
         }
 	}
 
@@ -194,12 +200,12 @@ namespace rt {
 		const unsigned int padding = texture_pitch % 3;
 		const unsigned int shift = 3 * width + padding;
 		
-		for (int i = 0; i < width; i++) {
-			const std::vector<color>& line = matrix[i];
+		for (int i = 0; const std::vector<color>& line : mat.data) {
+			
 			const unsigned int threei = 3 * i;
 
-            for (int j = 0; j < height; j++) {
-				const color& pixel_col = line[j];
+            for (int j = 0; const color& pixel_col : line) {
+
 				color corrected = pixel_col * inv;
 				corrected ^= gamma;
 				corrected *= static_cast<real>(255.0f);
@@ -210,7 +216,9 @@ namespace rt {
 				texture_pixels[index + 1] = static_cast<Uint8>(corrected.get_green());
 				texture_pixels[index + 2] = static_cast<Uint8>(corrected.get_blue());
 				//std::memcpy(texture_pixels + index, &color_data, 3);
+				j++;
             }
+			i++;
         }
 	}
 
@@ -221,12 +229,9 @@ namespace rt {
 
 		// Computation of the maximum luminance
 		float max_luminance = 0.0f;
-		for (int i = 0; i < width; i++) {
-			const std::vector<color>& line = matrix[i];
-			for (int j = 0; j < height; j++) {
-				const rt::color& col = line[j];
+		for (const std::vector<color>& line : mat.data) {
+			for (const rt::color& col : line) {
 				const float luminance = (0.2126 * col.get_red() + 0.7152 * col.get_green() + 0.0722 * col.get_blue()) * invN;
-				// const float luminance = (col.get_red() + col.get_green() + col.get_blue()) * invN * 0.333;
 				if (luminance > max_luminance)
 					max_luminance = luminance;
 			}
@@ -243,11 +248,11 @@ namespace rt {
 		const real inv = inv255 * invN;
 
 		const unsigned int shift = 3 * width + padding;
-		for (int i = 0; i < width; i++) {
-			const std::vector<color>& line = matrix[i];
+		for (int i = 0; const std::vector<color>& line : mat.data) {
+			
 			const unsigned int threei = 3 * i;
-            for (int j = 0; j < height; j++) {
-				const color& col = line[j];
+            for (int j = 0; const color& col : line) {
+
 				const real lr = col.get_red();
 				const real lg = col.get_green();
 				const real lb = col.get_blue();
@@ -267,7 +272,9 @@ namespace rt {
 				texture_pixels[index + 1] = static_cast<Uint8>(corrected.get_green());
 				texture_pixels[index + 2] = static_cast<Uint8>(corrected.get_blue());
 				// std::memcpy(texture_pixels + index, &color_data, 3);
+				j++;
             }
+			i++;
         }
 	}
 }

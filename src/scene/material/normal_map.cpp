@@ -4,7 +4,7 @@
 
 normal_map::normal_map() {}
 
-normal_map::normal_map(const unsigned int width, const unsigned int height, std::vector<std::vector<rt::vector>>&& data)
+normal_map::normal_map(const unsigned int width, const unsigned int height, vector_matrix&& data)
     : width(width), height(height),
     data(std::move(data)),
     width_minus_one(static_cast<real>(width - 1)),
@@ -15,10 +15,12 @@ normal_map::normal_map(const unsigned int width, const unsigned int height, std:
    Writes true in parsing_successful if the operation was successful */
 normal_map::normal_map(const std::string& file_name, bool& parsing_successful) {
 
-    parsing_successful = (read_normal_map(file_name, data) == exit_status::Success);
-    
+    std::optional<vector_matrix> vm_opt = read_normal_map(file_name);
+    parsing_successful = vm_opt.has_value();
+
+    data = std::move(vm_opt.value());
     if (parsing_successful) {
-        width = data.size();
+        width  = data.size();
         height = data[0].size();
         width_minus_one  = static_cast<real>(width  - 1);
         height_minus_one = static_cast<real>(height - 1);

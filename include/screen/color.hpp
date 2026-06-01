@@ -1,8 +1,9 @@
 #pragma once
 
 #include "parameters.hpp"
-#include <vector>
 
+#include <vector>
+#include <span>
 #include <cmath>
 
 namespace rt  {
@@ -180,13 +181,10 @@ namespace rt  {
 	
 
 	/* Adds all the colors of the given color vector */
-	color add_col_vect(const std::vector<color>& color_set);
+	color add_col_vect(std::span<const color> color_set);
 
 	/* Returns the average of all the colors of the given color vector */
-	color average_col_vect(const std::vector<color>& color_set);
-
-	/* Applies gamma correction to the color data */
-	void apply_gamma(std::vector<std::vector<color>>& data, real gamma);
+	color average_col_vect(std::span<const color> color_set);
 
 	// Returns c1 * a + c2
 	inline color fma(const color& c1, const real a, const color& c2) {

@@ -25,6 +25,7 @@ include_directories(${SDL2_INCLUDE_DIRS})
 set (libname raytracer)
 add_library(${libname} SHARED
 	src/screen/color.cpp
+	src/image/matrix.cpp
 	src/scene/material/texture_info.cpp
 	src/scene/material/texture.cpp
 	src/scene/material/normal_map.cpp
@@ -90,6 +91,7 @@ target_link_libraries(${main_name}
 set(merger_name merge)
 add_executable(${merger_name}
 	src/screen/color.cpp
+	src/image/matrix.cpp
 	src/file_readers/raw_data.cpp
 	src/file_readers/bmp_reader.cpp
 	src/file_readers/merger.cpp
@@ -113,6 +115,7 @@ add_executable(${merger_name}
 set(legacy legacy_raytracer)
 add_executable(${legacy}
 	src/screen/color.cpp
+	src/image/matrix.cpp
 	src/screen/screen.cpp
 	src/light/vector.cpp
 	src/light/ray.cpp
@@ -162,6 +165,7 @@ target_include_directories(sky
 add_executable(testreader
 	src/parallel/parallel.cpp
 	src/screen/color.cpp
+	src/image/matrix.cpp
 	src/file_readers/bmp_reader.cpp
 	src/file_readers/hdr_reader.cpp
 	src/screen/screen.cpp
@@ -179,7 +183,7 @@ add_executable(testinfinite
 	src/scene/light_sources/infinite_area.cpp
 	src/parallel/parallel.cpp
 	src/screen/color.cpp
-#	src/file_readers/bmp_reader.cpp
+	src/image/matrix.cpp
 	src/file_readers/hdr_reader.cpp
 	src/screen/screen.cpp
 	src/tests/test_infinite_area.cpp

@@ -545,7 +545,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
             depth_of_field_enabled = false;
         }
 
-        real fovh = fovw * ((real) height) / ((real) width);
+        real fovh = fovw * static_cast<real>(height) / static_cast<real>(width);
 
         camera cam = (depth_of_field_enabled) ?
             camera(rt::vector(posx, posy, posz), rt::vector(dx, dy, dz), rt::vector(rdx, rdy, rdz),

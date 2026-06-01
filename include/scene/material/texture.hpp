@@ -1,11 +1,12 @@
 #pragma once
 
-#include <vector>
 #include "screen/color.hpp"
 #include "light/vector.hpp"
+#include "image/matrix.hpp"
 
-#include <string>
 #include <iostream>
+#include <string>
+#include <vector>
 
 
 /* Class representing texture data
@@ -18,15 +19,17 @@
 class texture {
 
     private:
-        std::vector<std::vector<rt::color>> data;
+        matrix data;
         real width_minus_one, height_minus_one;
-        int width, height;
 
     public:      
         texture() {}
 
         /* Default constructor */
-        texture(int width, int height, std::vector<std::vector<rt::color>>&& data);
+        texture(matrix&& matrix) :
+            data(std::move(matrix)),
+            width_minus_one(static_cast<real>(matrix.width - 1)),
+            height_minus_one(static_cast<real>(matrix.height - 1)) {}
 
         /* Constructor from a .bmp or .hdr file
            Writes true in parsing_successful if the operation was successful */

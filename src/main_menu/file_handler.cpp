@@ -20,11 +20,7 @@ void file_handler::create_dir() const {
     output_dir_exists = create_directories(output_dir);
 }
 
-exit_status file_handler::export_file(
-    const type file_type, const std::string& filename,
-    const unsigned int number_of_rays,
-    const std::vector<std::vector<rt::color>>& matrix,
-    const real gamma) const {
+exit_status file_handler::export_file(const type file_type, const std::string& filename, const image& image) const {
 
     create_dir();
     const std::string file_path = path(output_dir).append(filename).generic_string();
@@ -33,11 +29,10 @@ exit_status file_handler::export_file(
     exit_status status;
     switch (file_type) {
         case Bmp:
-            status = write_bmp(file_path, matrix, number_of_rays, gamma);
+            status = write_bmp(file_path, image);
             break;
-        
         case Raw:
-            status = export_raw(file_path, number_of_rays, matrix);
+            status = export_raw(file_path, image);
             break;
     }
 

@@ -21,35 +21,17 @@ int main() {
     const char* file_name = //"../../../raytracer_project/sky/dome/garden_8k.hdr";
         "../../../assets/sundowner_overlook.hdr";
 
-    std::optional<dimensions> size = read_hdr_size(file_name);
-    if (not size.has_value())
+    const std::optional<matrix> mat_opt = read_hdr(file_name);
+    if (not mat_opt.has_value())
         return EXIT_FAILURE;
 
-    const auto [ width, height ] = size.value();
-    std::vector<std::vector<rt::color>> data(width, std::vector<rt::color>(height));
-
-    const exit_status hdr_success = read_hdr(file_name, data);
-    if (hdr_success == exit_status::Failure)
-        return EXIT_FAILURE;
-
-    const std::vector<real> lrt = alias_table::compute_low_res_table(data);
+    const matrix& mat = mat_opt.value();
+    const std::vector<real> lrt = alias_table::compute_low_res_table(mat.data);
     const unsigned int dwidth  = LOWRES_DEFAULT_WIDTH;
     const unsigned int dheight = LOWRES_DEFAULT_HEIGHT;
-    std::vector<std::vector<rt::color>> lrdata(dwidth, std::vector<rt::color>(dheight));
-    // for (unsigned int i = 0; i < LOWRES_DEFAULT_WIDTH; i++) {
-    //     for (unsigned int j = 0; j < LOWRES_DEFAULT_HEIGHT; j++) {
-    //         const real x = 255.0f * 100000.0f * lrt[j * LOWRES_DEFAULT_WIDTH + i];
-    //         //printf("%f\n", x);
-    //         lrdata[i][j] = rt::color(x, x, x);
-    //     }
-    // }
+    matrix lrdata(dwidth, dheight);
 
-    // const rt::screen test_scr(LOWRES_DEFAULT_WIDTH, LOWRES_DEFAULT_HEIGHT);
-    // test_scr.fast_copy(lrdata, LOWRES_DEFAULT_WIDTH, LOWRES_DEFAULT_HEIGHT, 1);
-    // test_scr.update_from_texture();
-    // test_scr.wait_keyboard_event();
-
-    alias_table alt(lrt, width, height, dwidth, dheight);
+    alias_table alt(lrt, mat.width, mat.height, dwidth, dheight);
     const randomgen rand;
     // std::vector<unsigned int> samples(1000);
     // for (unsigned int i = 0; i < samples.size(); i++) {
@@ -61,7 +43,7 @@ int main() {
     //     printf("%u %u\n", i, samples[i]);
     // }
 
-    const rt::screen test_scr(lrdata, dwidth, dheight);
+    const rt::screen test_scr(lrdata);
     constexpr rt::color color_one(1.0f, 1.0f, 1.0f);
 
     while (true) {

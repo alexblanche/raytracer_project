@@ -2,6 +2,7 @@
 
 #include "screen/color.hpp"
 #include "file_readers/bmp_reader.hpp"
+#include "image/matrix.hpp"
 
 #include <string>
 #include <vector>
@@ -11,4 +12,4 @@
 
 std::optional<dimensions> read_hdr_size(const std::string& file_name);
 
-exit_status read_hdr(const std::string& file_name, std::vector<std::vector<rt::color>>& data);
+std::optional<matrix> read_hdr(const std::string& file_name);

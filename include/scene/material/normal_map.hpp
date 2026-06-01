@@ -7,16 +7,19 @@
 
 class normal_map {
 
+    public:
+        using vector_matrix = std::vector<std::vector<rt::vector>>;
+
     private:
         int width, height;
-        std::vector<std::vector<rt::vector>> data;
+        vector_matrix data;
         real width_minus_one, height_minus_one;
     
     public:
 
         normal_map();
 
-        normal_map(unsigned int width, unsigned int height, std::vector<std::vector<rt::vector>>&& data);
+        normal_map(unsigned int width, unsigned int height, vector_matrix&& data);
 
         /* Constructor from a .bmp file
            Writes true in parsing_successful if the operation was successful */

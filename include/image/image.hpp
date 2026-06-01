@@ -4,19 +4,32 @@
 
 class image {
     public:
-        matrix matrix;
+        matrix data;
         const real gamma = 1.0f;
         unsigned int number_of_samples = 0;
 
         image(unsigned int width, unsigned int height, real gamma = 1.0f)
-            : matrix(width, height), gamma(gamma) {}
+            : data(width, height), gamma(gamma) {}
 
-        image(image&&)                 = delete;
+        image(image&&)                 = default;
         image(const image&)            = delete;
         image& operator=(image&&)      = delete;
         image& operator=(const image&) = delete;
 
-        void increase() {
-            number_of_samples++;
+        int width() const {
+            return data.width;
+        }
+
+        int height() const {
+            return data.height;
+        }
+
+        void increase_sample_count(int nb_samples = 1) {
+            number_of_samples += nb_samples;
+        }
+
+        /* Applies gamma correction to the color data */
+        void apply_gamma() {
+            data.apply_gamma(gamma);
         }
 };

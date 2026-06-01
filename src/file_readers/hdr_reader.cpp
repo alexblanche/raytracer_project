@@ -48,7 +48,7 @@ std::optional<dimensions> read_hdr_size(const std::string& file_name) {
     }
 }
 
-exit_status read_hdr(const std::string& file_name, std::vector<std::vector<rt::color>>& data) {
+std::optional<matrix> read_hdr(const std::string& file_name) {
 
     file f(file_name, "rb");
 
@@ -138,8 +138,10 @@ exit_status read_hdr(const std::string& file_name, std::vector<std::vector<rt::c
 
         f.close();
 
+        matrix data(width, height);
+
         parallel_for(width, [&] (int i) {
-            std::vector<rt::color>& data_line = data[i];
+            std::vector<rt::color>& data_line = data.data[i];
             for (unsigned int j = 0; j < height; j++) {
                 const unsigned int index = j * width + i;
                 data_line[j] = rt::color(
@@ -153,10 +155,10 @@ exit_status read_hdr(const std::string& file_name, std::vector<std::vector<rt::c
             }
         });
 
-        return exit_status::Success;
+        return data;
     }
     catch(const std::exception& e) {
         printf("%s\n", e.what());
-        return exit_status::Failure;
+        return std::nullopt;
     }
 }

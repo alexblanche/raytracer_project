@@ -1,5 +1,4 @@
 #include <iostream>
-#include <cstdlib>
 
 #include "main_menu/menu.hpp"
 

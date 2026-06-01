@@ -16,14 +16,20 @@ class matrix {
         int width;
         int height;
 
+        matrix() {}
+
         matrix(int width, int height) 
             : data(width, std::vector<rt::color>(height)),
               width(width), height(height) {}
 
-        matrix(matrix&&)                 = delete;
+        matrix(matrix&&)                 = default;
+        matrix& operator=(matrix&&)      = default;
         matrix(const matrix&)            = delete;
-        matrix& operator=(matrix&&)      = delete;
         matrix& operator=(const matrix&) = delete;
+
+        dimensions get_dimensions() const {
+            return dimensions({ width, height });
+        }
 
         std::span<rt::color> column(int i) {
             return data[i];
@@ -41,7 +47,5 @@ class matrix {
             return column(i);
         }
 
-        dimensions get_dimensions() const {
-            return dimensions({ width, height });
-        }
+        void apply_gamma(real gamma);
 };

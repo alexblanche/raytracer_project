@@ -2,6 +2,7 @@
 
 #include "screen/color.hpp"
 #include "screen/sdl.hpp"
+#include "image/image.hpp"
 #include "main_menu/runtime_parameters.hpp"
 
 namespace rt {
@@ -17,15 +18,15 @@ namespace rt {
 			sdl::rect 		dstrect;
 			sdl::texture	texture;
 		
-			std::vector<std::vector<rt::color>>& matrix;
+			matrix& mat;
 			int width;
-			int height;
+			[[maybe_unused]] int height;
 			tone_mapping_parameters::mode tone_mapping_mode;
 			float gamma;
 			
 		public:
-			screen(std::vector<std::vector<rt::color>>& matrix, int width, int height,
-				tone_mapping_parameters::mode mode = Disabled, float gamma = 1.0f);
+			screen(matrix& matrix, tone_mapping_parameters::mode mode = Disabled, float gamma = 1.0f);
+			screen(image& image,   tone_mapping_parameters::mode mode = Disabled);
 			~screen();
 
 			void set_pixel(int x, int y, const color& c) const;

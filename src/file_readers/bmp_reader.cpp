@@ -44,7 +44,7 @@ std::optional<dimensions> read_bmp_size(const std::string& file_name) {
 }
 
 /* Extracts the data from the given .bmp file into the matrix data, which must have the right size */
-exit_status read_bmp(const std::string& file_name, std::vector<std::vector<rt::color>>& data) {
+std::optional<matrix> read_bmp(const std::string& file_name) {
 
     file f(file_name, "rb");
 
@@ -83,6 +83,8 @@ exit_status read_bmp(const std::string& file_name, std::vector<std::vector<rt::c
         if (status == exit_status::Failure)
             throw std::runtime_error("Reading error in read_bmp (pixel data)");
 
+        matrix matrix(bmpwidth, bmpheight);
+
         unsigned int index = 0;
         for (unsigned int j = 0; j < bmpheight; j++) {
             const unsigned int indexj = bmpheight - j - 1;
@@ -90,17 +92,17 @@ exit_status read_bmp(const std::string& file_name, std::vector<std::vector<rt::c
                 const real b = buffer[index];
                 const real g = buffer[index + 1];
                 const real r = buffer[index + 2];
-                data[i][indexj] = rt::color(r, g, b);
+                matrix.data[i][indexj] = rt::color(r, g, b);
                 index += 3;
             }
             index += p;
         }
 
-        return exit_status::Success;
+        return matrix;
     }
     catch(const std::exception& e) {
         printf("%s\n", e.what());
-        return exit_status::Failure;
+        return std::nullopt;
     }
 }
 
@@ -134,11 +136,9 @@ static inline void check(exit_status status) {
 /* Writes the data into a .bmp file with the given name
    The value (double) of each component of each color of data is divided by number_of_rays before being written in the file
    Returns true if the operation was successful */
-exit_status write_bmp(const std::string& file_name, const std::vector<std::vector<rt::color>>& data,
-    const unsigned int number_of_rays, const real gamma) {
+exit_status write_bmp(const std::string& file_name, const image& image) {
 
-    const int width  = data.size();
-    const int height = data[0].size();
+    const auto [ width, height ] = image.data.get_dimensions();
 
     const unsigned int p = (4 - ((BYTES_PER_COLOR * width) % 4)) % 4;
     const bool padding = (p != 0);
@@ -227,21 +227,21 @@ exit_status write_bmp(const std::string& file_name, const std::vector<std::vecto
 
         /** Color data **/
         /* Each pixel is represented as 3 bytes BGR, each line (sequence of 3*width bytes) is followed by p bytes '0' of padding */
-        const bool gamma_enabled = gamma != 1.0f;
-        const real invN = 1.0 / number_of_rays;
+        const bool gamma_enabled = image.gamma != 1.0f;
+        const real invN = 1.0f / image.number_of_samples;
         constexpr real inv255 = 1.0 / 255.0;
     
         for (int j = 0; j < height; j++) {
             const int indexj = height - j - 1;
             for (int i = 0; i < width; i++) {
-                const rt::color& c = data[i][indexj];
+                const rt::color& c = image.data.data[i][indexj];
                 
                 rt::color col = c * invN;
                 col.in_place_max_out();
 
                 if (gamma_enabled) {
                     col *= inv255;
-                    col ^= gamma;
+                    col ^= image.gamma;
                     col *= static_cast<real>(255.0f);
                 }
 

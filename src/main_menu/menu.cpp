@@ -215,14 +215,14 @@ void menu::update_gamma(const float new_gamma) {
     }
 }
 
-static inline void render_simple(std::vector<std::vector<rt::color>>& matrix, const scene& scene,
-    const runtime_parameters& runtime_parameters, const unsigned int iter) {
+static inline void render_simple(image& image, const scene& scene,
+    const runtime_parameters& runtime_parameters) {
 
     using enum sampling_parameters::mode;
     switch (runtime_parameters.sampling.mode) {
         case MultiSample:
             render_loop_parallel_multisample(
-                matrix,
+                image,
                 scene,
                 runtime_parameters.number_of_bounces,
                 runtime_parameters.sampling.multisample_number_of_samples
@@ -230,33 +230,32 @@ static inline void render_simple(std::vector<std::vector<rt::color>>& matrix, co
             break;
         case UniSample:
             render_loop_parallel(
-                matrix,
+                image,
                 scene,
                 runtime_parameters.number_of_bounces,
-                runtime_parameters.russian_roulette,
-                iter
+                runtime_parameters.russian_roulette
             );
             break;
     }
 }
 
-static inline void render(std::vector<std::vector<rt::color>>& matrix, const scene& scene,
-    const runtime_parameters& runtime_parameters, const unsigned int iter) {
+static inline void render(image& image, const scene& scene,
+    const runtime_parameters& runtime_parameters) {
     
     using enum time_mode;
     switch (runtime_parameters.time) {
         case Simple:
         case Full:
-            render_loop_parallel_time(matrix, scene, runtime_parameters.number_of_bounces, runtime_parameters.time);
+            render_loop_parallel_time(image, scene, runtime_parameters.number_of_bounces, runtime_parameters.time);
             break;
         
         case Disabled:
-            render_simple(matrix, scene, runtime_parameters, iter);
+            render_simple(image, scene, runtime_parameters);
             break;
     }
 }
 
-static exit_status run_offline(const runtime_parameters& runtime_parameters, std::vector<std::vector<rt::color>>& matrix,
+static exit_status run_offline(const runtime_parameters& runtime_parameters, image& image,
     const scene& scene, const file_handler& file_handler) {
 
     const unsigned int target = runtime_parameters.program.target_number_of_rays;
@@ -270,7 +269,7 @@ static exit_status run_offline(const runtime_parameters& runtime_parameters, std
 
     for (unsigned int i = 0; i < target; i++) {
 
-        render_simple(matrix, scene, runtime_parameters, i);
+        render_simple(image, scene, runtime_parameters);
 
         printf("\r%u / %u", i + 1, target);
         fflush(stdout);
@@ -280,7 +279,7 @@ static exit_status run_offline(const runtime_parameters& runtime_parameters, std
             timer.interrupt();
 
             printf(" ");
-            const exit_status status = file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FILE_NAME), i + 1, matrix);
+            const exit_status status = file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FILE_NAME), image);
             if (status == exit_status::Failure)
                 return exit_status::Failure;
             
@@ -292,13 +291,11 @@ static exit_status run_offline(const runtime_parameters& runtime_parameters, std
     printf("\n");
     timer.print();
 
-    return file_handler.export_bmp(bmp(DEFAULT_OUTPUT_FILE_NAME), target, matrix, runtime_parameters.tone_mapping.gamma_value);
+    return file_handler.export_bmp(bmp(DEFAULT_OUTPUT_FILE_NAME), image);
 }
 
 // Returns an exit_status if the program has to stop, either because of a failure or because a quit event happened
-static std::optional<exit_status> process_events(const rt::screen& scr, const file_handler& file_handler,
-        const std::vector<std::vector<rt::color>>& matrix, const unsigned int number_of_rays,
-        const runtime_parameters& runtime_parameters) {
+static std::optional<exit_status> process_events(const rt::screen& scr, const file_handler& file_handler, const image& image) {
 
     using enum rt::screen::key;
     switch (scr.poll_keyboard_event()) {
@@ -310,15 +307,14 @@ static std::optional<exit_status> process_events(const rt::screen& scr, const fi
 
         case B: {
             printf(" ");
-            const real gamma = runtime_parameters.tone_mapping.gamma_value;
-            const exit_status status = file_handler.export_bmp(bmp(DEFAULT_OUTPUT_FILE_NAME), number_of_rays, matrix, gamma);
+            const exit_status status = file_handler.export_bmp(bmp(DEFAULT_OUTPUT_FILE_NAME), image);
             if (status == exit_status::Failure)
                 return exit_status::Failure;
             break;
         }
         case R: {
             printf(" ");
-            const exit_status status = file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FILE_NAME), number_of_rays, matrix);
+            const exit_status status = file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FILE_NAME), image);
             if (status == exit_status::Failure)
                 return exit_status::Failure;
             break;
@@ -332,15 +328,14 @@ static std::optional<exit_status> process_events(const rt::screen& scr, const fi
 
 
 static exit_status run_interactive(const runtime_parameters& runtime_parameters,
-    std::vector<std::vector<rt::color>>& matrix, const scene& scene, const file_handler& file_handler) {
+    image& image, const scene& scene, const file_handler& file_handler) {
 
     printf("Initialization complete, computing the first ray...");
     fflush(stdout);
 
-    render(matrix, scene, runtime_parameters, 1);
+    render(image, scene, runtime_parameters);
 
-    const real gamma = runtime_parameters.tone_mapping.gamma_value;
-    const rt::screen scr(matrix, scene.width, scene.height, runtime_parameters.tone_mapping.tm_mode, gamma);
+    const rt::screen scr(image, runtime_parameters.tone_mapping.tm_mode);
 
     scr.copy_to_texture(1);
     scr.update_from_texture();
@@ -351,7 +346,7 @@ static exit_status run_interactive(const runtime_parameters& runtime_parameters,
 
     for (unsigned int number_of_rays = 2; number_of_rays <= MAX_RAYS; number_of_rays++) {
 
-        render(matrix, scene, runtime_parameters, number_of_rays);
+        render(image, scene, runtime_parameters);
 
         printf("\rNumber of samples per pixel: %u", number_of_rays);
         fflush(stdout);
@@ -359,26 +354,26 @@ static exit_status run_interactive(const runtime_parameters& runtime_parameters,
         scr.copy_to_texture(number_of_rays);
         scr.update_from_texture();
 
-        const std::optional<exit_status> status = process_events(scr, file_handler, matrix, number_of_rays, runtime_parameters);
+        const std::optional<exit_status> status = process_events(scr, file_handler, image);
         if (status.has_value())
             return status.value();
     }
 
-    return file_handler.export_bmp(     bmp(DEFAULT_OUTPUT_FINAL_FILE_NAME), MAX_RAYS, matrix, gamma)
-        && file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FINAL_FILE_NAME), MAX_RAYS, matrix);
+    return file_handler.export_bmp(     bmp(DEFAULT_OUTPUT_FINAL_FILE_NAME), image)
+        && file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FINAL_FILE_NAME), image);
 }
 
 exit_status menu::run(const scene& scene) const {
 
-    std::vector<std::vector<rt::color>> matrix(scene.width, std::vector<rt::color>(scene.height));
+    image image(scene.width, scene.height, scene.gamma);
     const file_handler file_handler;
 
     using enum program_parameters::mode;
     switch (runtime_parameters.program.mode) {
         case Offline:
-            return run_offline(runtime_parameters, matrix, scene, file_handler);
+            return run_offline(runtime_parameters, image, scene, file_handler);
         
         case Interactive:
-            return run_interactive(runtime_parameters, matrix, scene, file_handler);
+            return run_interactive(runtime_parameters, image, scene, file_handler);
     }
 }
