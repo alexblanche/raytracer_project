@@ -6,6 +6,7 @@
 #include <iostream>
 
 static constexpr unsigned int MAX_ELTS_PER_LEAF = 10;
+static constexpr unsigned int NB_REGIONS = 8;
 
 // Each index stores a 3D point p. Dividing the space into 8 regions 0..7
 // (1st bit: x < or > p.x; 2nd bit: y < or > p.y; 3rd bit: z < or > p.z)
@@ -19,22 +20,22 @@ static std::vector<unsigned int> split(const std::vector<rt::vector>& means, sea
     std::span<unsigned int> elts, const unsigned int index_min) {
 
     const unsigned int nb_indices = elts.size();
-    if (nb_indices == 0) throw;
+    if (nb_indices == 0)
+        throw;
 
     // Computing the average coordinates
     rt::vector avg;
-    for (unsigned int elt : elts) {
+    for (unsigned int elt : elts)
         avg += means[elt];
-    }
     avg *= 1.0f / static_cast<real>(nb_indices);
 
     tree.increase_size(index_root);
     tree.internal_nodes[index_root] = avg;
     
     // Counting the number of element in each region, and the average of each region
-    unsigned int nb_elt_region[8];
-    std::memset(nb_elt_region, 0, 8 * sizeof(unsigned int));
-    
+    std::array<unsigned int, NB_REGIONS> nb_elt_region;
+    nb_elt_region.fill(0);
+
     for (unsigned int elt : elts) {
         const rt::vector& v = means[elt];
         const unsigned char bx = v.x >= avg.x;
@@ -46,16 +47,16 @@ static std::vector<unsigned int> split(const std::vector<rt::vector>& means, sea
     
     // Computing partial sums
     unsigned int last = index_min;
-    unsigned int* first_index = nb_elt_region;
-    for (unsigned char r = 0; r < 8; r++) {
+    std::array<unsigned int, NB_REGIONS>& first_index = nb_elt_region;
+    for (unsigned int r = 0; r < NB_REGIONS; r++) {
         const unsigned int nbr = nb_elt_region[r];
         first_index[r] = last;
         last += nbr;
     }
 
-    std::vector<unsigned int> output(9);
-    std::memcpy(output.data(), first_index, 8);
-    output[8] = last;
+    std::vector<unsigned int> output(NB_REGIONS + 1);
+    output.assign_range(first_index);
+    output.back() = last;
 
     // Organizing the elements by region
     std::vector<unsigned int> elts_temp(nb_indices);
@@ -71,8 +72,7 @@ static std::vector<unsigned int> split(const std::vector<rt::vector>& means, sea
         first_index[region]++;
     }
 
-    std::memcpy(elts.data(), elts_temp.data(), nb_indices);
-
+    std::copy(elts_temp.begin(), elts_temp.end(), elts.begin());
     return output;
 }
 
@@ -86,23 +86,11 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
         elts[i] = i;
 
     const unsigned int max_groups = tree.internal_nodes.size();
-    std::vector<unsigned int> g1;
-    std::vector<unsigned int> g2;
-    std::vector<unsigned int> gs1;
-    std::vector<unsigned int> gs2;
-    std::vector<unsigned int> ti1;
-    std::vector<unsigned int> ti2;
-    g1.reserve(max_groups);
-    g2.reserve(max_groups);
-    gs1.reserve(max_groups);
-    gs2.reserve(max_groups);
-    ti1.reserve(max_groups);
-    ti2.reserve(max_groups);
+    std::vector<unsigned int> g1, g2, gs1, gs2, ti1, ti2;
+    for (auto v : { &g1, &g2, &gs1, &gs2, &ti1, &ti2 })
+        v->reserve(max_groups);
 
     // First iteration: one group, with all the elements
-    // g1[0] = 0;
-    // gs1[0] = means.size();
-    // ti1[0] = 0;
     g1.push_back(0);
     gs1.push_back(means.size());
     ti1.push_back(0);
@@ -110,7 +98,7 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
     unsigned int nb_non_terminal_groups = 1;
     bool parity = true;
 
-    while (nb_non_terminal_groups) {
+    while (nb_non_terminal_groups != 0) {
 
         unsigned int new_nb_non_term_groups = 0;
 
@@ -150,7 +138,7 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
                 tree.leaves[tree_index].resize(nb_elts_group);
                 std::vector<unsigned int>& leaf = tree.leaves[tree_index];
 
-                std::memcpy(leaf.data(), elts.data() + index_min, nb_elts_group);
+                std::memcpy(leaf.data(), elts.data() + index_min, nb_elts_group * sizeof(unsigned int));
                 tree.terminal_state[tree_index] = true;
             }
             else {
@@ -179,7 +167,7 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
     }
 }
 
-unsigned int compute_subregion_index(const search_tree& tree, const rt::vector& v, const unsigned int index) {
+static unsigned int compute_subregion_index(const search_tree& tree, const rt::vector& v, const unsigned int index) {
     
     const rt::vector& root = tree.internal_nodes[index];
     const unsigned char bx = v.x >= root.x;
@@ -191,7 +179,7 @@ unsigned int compute_subregion_index(const search_tree& tree, const rt::vector& 
 }
 
 /* Returns the distance (squared) to the closest centroid to the vector v, and the index of the centroid */
-std::pair<real, std::optional<unsigned int>> compute_min_dist_sq(const std::vector<rt::vector>& means, const search_tree& tree,
+static std::pair<real, std::optional<unsigned int>> compute_min_dist_sq(const std::vector<rt::vector>& means, const search_tree& tree,
     const rt::vector& v, const unsigned int index) {
 
     real min_dist_sq = infinity;
@@ -239,18 +227,13 @@ real distance_sq_to_region(const rt::vector& v, const rt::vector& root, const un
 */
 
 // Optimized version
-inline real distance_sq_to_region(const real dx2, const real dy2, const real dz2,
-    const unsigned char region, const bool bx, const bool by, const bool bz) {
+static inline real distance_sq_to_region(const rt::vector& d2,
+    const unsigned char region, const unsigned char b) {
 
-    const bool rx = region & 0x04;
-    const bool ry = region & 0x02;
-    const bool rz = region & 0x01;
-
-    return ((bx != rx) ? dx2 : 0.0f) + ((by != ry) ? dy2 : 0.0f) + ((bz != rz) ? dz2 : 0.0f);
-
-    // all bx, by, bz into one unsigned char b
-    // r = region ^ b (xor)
-    // return ((r & 0x04) ? d2.x : 0.0f) + (...)
+    const unsigned char r = region ^ b;
+    return ((r & 0x04) ? d2.x : 0.0f)
+         + ((r & 0x02) ? d2.y : 0.0f)
+         + ((r & 0x01) ? d2.z : 0.0f);
 }
 
 struct tree_search_info {
@@ -314,24 +297,17 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
             bool gobackdown = false;
 
             // Pre-computation for distance checking
-            const bool bx = v.x >= root.x;
-            const real dx = v.x - root.x;
-            const real dx2 = dx * dx;
-
-            const bool by = v.y >= root.y;
-            const real dy = v.y - root.y;
-            const real dy2 = dy * dy;
-
-            const bool bz = v.z >= root.z;
-            const real dz = v.z - root.z;
-            const real dz2 = dz * dz;
+            
+            const rt::vector d = v - root;
+            const unsigned char b = ((d.x >= 0.0f) << 2) + ((d.y >= 0.0f) << 1) + (d.z >= 0.0f);
+            const rt::vector d2(d.x * d.x, d.y * d.y, d.z * d.z);
 
             for (unsigned char i = region_to_start_from; i < 8; i++) {
 
-                if (i == r || i == original_region) continue;
+                if (i == r || i == original_region)
+                    continue;
 
-                //const real di = distance_sq_to_region(v, root, i);
-                const real di = distance_sq_to_region(dx2, dy2, dz2, i, bx, by, bz);
+                const real di = distance_sq_to_region(d2, i, b);
                 // if (verbose) printf("Neighbor region %u (%u): distance %f\n", i, 8 * parent_index + i + 1, di);
 
                 if (di < min_dist) {
@@ -345,10 +321,11 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
                     }
                     else {
                         // Add a new element
-                        tree_search_info tsi;
-                        tsi.index_stack = parent_index;
-                        tsi.max_region_checked = i;
-                        tsi.original_region = r;
+                        const tree_search_info tsi = {
+                            .index_stack        = parent_index,
+                            .original_region    = r,
+                            .max_region_checked = i
+                        };
                         stack.push(tsi);
                     }
 
@@ -359,10 +336,12 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
                 }
             }
 
-            if (gobackdown) break;
+            if (gobackdown)
+                break;
 
             index = parent_index;
-            if (resume && not stack.empty()) stack.pop();
+            if (resume && not stack.empty())
+                stack.pop();
         }
     }
 

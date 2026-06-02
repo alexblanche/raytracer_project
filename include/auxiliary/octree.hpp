@@ -7,7 +7,7 @@
 
 struct search_tree {
 
-    using BOOL = char;
+    using bool_type = char;
 
     // Internal nodes are points that divide the 3D space into 8 regions
     std::vector<rt::vector> internal_nodes;
@@ -16,13 +16,13 @@ struct search_tree {
     std::vector<std::vector<unsigned int>> leaves;
 
     // Each index contains a boolean that indicates whether the node is terminal (a leaf) or internal
-    std::vector<BOOL> terminal_state;
+    std::vector<bool_type> terminal_state;
 
     void initial_resize(unsigned int number_of_nodes) {
         internal_nodes.resize(number_of_nodes);
         leaves.resize(number_of_nodes);
         terminal_state.resize(number_of_nodes);
-        for (BOOL& state : terminal_state)
+        for (bool_type& state : terminal_state)
             state = false;
     }
 
@@ -34,8 +34,8 @@ struct search_tree {
         internal_nodes.resize(new_size);
         leaves.resize(new_size);
         terminal_state.resize(new_size);
-        std::span terms(terminal_state.data() + current_size, new_size - current_size);
-        for (BOOL& state : terms)
+        std::span terms = std::span(terminal_state).subspan(current_size);
+        for (bool_type& state : terms)
             state = false;
     }
 };

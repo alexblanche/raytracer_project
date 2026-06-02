@@ -20,40 +20,27 @@ static constexpr bool DISPLAY_KMEANS = false;
 
 
 /* Auxiliary function that computes the centroid of a vector of objects */
-rt::vector compute_centroid(const std::vector<element>& elts) {
+static rt::vector compute_centroid(const std::vector<element>& elts) {
     if (elts.empty()) {
         printf("Error, empty element set\n");
-        return rt::vector();
+        throw;
     }
 
-    real sum_x = 0;
-    real sum_y = 0;
-    real sum_z = 0;
+    rt::vector sum;
+    for (element const& elt : elts)
+        sum += elt.get_position();
 
-    /* Computation of the dimensions of the object set */
-    for (element const& elt : elts) {
-        
-        const rt::vector& pos = elt.get_position();
-        sum_x += pos.x;
-        sum_y += pos.y;
-        sum_z += pos.z;
-    }
-
-    const unsigned int k = elts.size();
-
-    return rt::vector(sum_x / k, sum_y / k, sum_z / k);
+    return sum / elts.size();
 }
 
-unsigned int linear_search(const std::vector<rt::vector>& means, const rt::vector& v) {
+static unsigned int linear_search(const std::vector<rt::vector>& means, const rt::vector& v) {
 
     unsigned int closest_index = 0;
     real distance_to_closest = (means[0] - v).normsq();
 
     for (unsigned int m = 1; m < means.size(); m++) {
         const real d = (means[m] - v).normsq();
-        // const rt::vector dv = means[m] - v;
-        // const real d = abs(dv.x) + abs(dv.y) + abs(dv.z);
-        if(d < distance_to_closest) {
+        if (d < distance_to_closest) {
             distance_to_closest = d;
             closest_index = m;
         }
@@ -70,7 +57,7 @@ enum class search_type {
 /* Auxiliary function that adds each element of old_group to one of the k vectors of new_group,
    according to which of the vectors of means they are the closest
    Returns true if there has been a change of group for at least one element */
-bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std::vector<std::vector<element>>& new_groups,
+static bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std::vector<std::vector<element>>& new_groups,
     const std::vector<rt::vector>& means) {
 
     search_type search_type = search_type::Linear;
@@ -239,7 +226,7 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
 }
 
 /* Auxiliary function that fills all empty_clusters */
-void fill_empty_clusters(std::vector<std::vector<element>>& groups) {
+static void fill_empty_clusters(std::vector<std::vector<element>>& groups) {
     std::stack<unsigned int> empty_groups;
     std::queue<unsigned int> non_empty_groups;
     for (unsigned int n = 0; n < groups.size(); n++) {
@@ -268,7 +255,7 @@ void fill_empty_clusters(std::vector<std::vector<element>>& groups) {
 
 
 /* Returns a vector of k vectors of elements representing the k clusters */
-std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const unsigned int k) {
+static std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const unsigned int k) {
 
     /* Vectors containing the k initial means */
     std::vector<rt::vector> means(k);
@@ -332,7 +319,7 @@ std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const
 
 /** Auxiliary conversion functions **/
 
-std::vector<element> get_element_vector(const std::vector<const object*>& objs) {
+static std::vector<element> get_element_vector(const std::vector<const object*>& objs) {
     std::vector<element> elts;
     elts.reserve(objs.size());
     for (const object* obj : objs) {
@@ -341,7 +328,7 @@ std::vector<element> get_element_vector(const std::vector<const object*>& objs) 
     return elts;
 }
 
-std::vector<element> get_element_vector(const std::vector<const bounding*>& objs) {
+static std::vector<element> get_element_vector(const std::vector<const bounding*>& objs) {
     std::vector<element> elts;
     elts.reserve(objs.size());
     for (const bounding* bd : objs) {
@@ -350,7 +337,7 @@ std::vector<element> get_element_vector(const std::vector<const bounding*>& objs
     return elts;
 }
 
-std::vector<const object*> get_object_vector(const std::vector<element>& elts) {
+static std::vector<const object*> get_object_vector(const std::vector<element>& elts) {
     std::vector<const object*> obj;
     obj.reserve(elts.size());
     for (element const& elt : elts) {
@@ -359,7 +346,7 @@ std::vector<const object*> get_object_vector(const std::vector<element>& elts) {
     return obj;
 }
 
-std::vector<const bounding*> get_bounding_vector(const std::vector<element>& elts) {
+static std::vector<const bounding*> get_bounding_vector(const std::vector<element>& elts) {
     std::vector<const bounding*> bds;
     bds.reserve(elts.size());
     for (element const& elt : elts) {

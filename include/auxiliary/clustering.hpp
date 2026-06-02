@@ -30,7 +30,7 @@ struct element {
       return std::get<const bounding*>(content);
    }
 
-   inline rt::vector get_position() const {
+   inline const rt::vector& get_position() const {
       using enum type;
       switch (type) {
          case Object:
@@ -46,9 +46,6 @@ struct element {
       }
    }
 };
-
-/* Returns a vector of k vectors of elements representing the k clusters */
-std::vector<std::vector<element>> k_means(const std::vector<element>& elts, unsigned int k);
 
 /* Auxiliary function to create_bounding_hierarchy
    Performs the second step of the algorithm: creates the hierarchy of the terminal boundings */
