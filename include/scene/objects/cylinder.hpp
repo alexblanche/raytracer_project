@@ -1,12 +1,8 @@
 #pragma once
 
-#include "object.hpp"
-
-#include "light/vector.hpp"
+#include "scene/objects/object.hpp"
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
-
-#include <optional>
 
 class cylinder : public object {
     
@@ -16,16 +12,12 @@ class cylinder : public object {
         real radius, length;
 
     public:
-
-        /* Constructors */
         
         cylinder();
 
         cylinder(const rt::vector& origin, const rt::vector& direction,
             real radius, real length,
             unsigned int material_index);
-
-        /* Accessors */
 
         inline rt::vector get_origin() const {
             return position;

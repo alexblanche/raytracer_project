@@ -1,7 +1,8 @@
 #pragma once
 
-#include <vector>
 #include "screen/color.hpp"
+
+#include <vector>
 
 class material {
     

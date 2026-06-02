@@ -1,8 +1,6 @@
 #pragma once
 
-#include "light/vector.hpp"
 #include "light/hit.hpp"
-#include "light/ray.hpp"
 
 #include "scene/material/material.hpp"
 #include "scene/material/texture.hpp"
@@ -45,7 +43,7 @@ class object {
         object& operator=(const object&) = delete;
         object& operator=(object&&)      = delete;
 
-        virtual ~object()                = default;
+        virtual ~object() noexcept       = default;
 
         inline const rt::vector& get_position() const {
             return position;

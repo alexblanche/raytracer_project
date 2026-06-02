@@ -7,7 +7,7 @@ namespace rt {
 
 	[[nodiscard]] color color::max_out() const {
 		constexpr real max = 255.0;
-		return rt::color(
+		return color(
 			std::min(red,   max),
 			std::min(green, max),
 			std::min(blue,  max)

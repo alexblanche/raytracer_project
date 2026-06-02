@@ -1,20 +1,15 @@
 #pragma once
 
-#include "object.hpp"
+#include "scene/objects/object.hpp"
 
-#include "light/vector.hpp"
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
 #include "auxiliary/randomgen.hpp"
-
-#include <optional>
 
 struct sphere_orientation {
     rt::vector forward_dir;
     rt::vector right_dir;
     rt::vector up_dir;
-
-    sphere_orientation() {}
 };
 
 class sphere : public object {
@@ -27,8 +22,6 @@ class sphere : public object {
 
     public:
 
-        /* Constructors */
-        
         sphere();
 
         sphere(const rt::vector& center, const real radius, unsigned int material_index);

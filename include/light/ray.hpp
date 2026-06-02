@@ -1,9 +1,6 @@
 #pragma once
 
-#include "vector.hpp"
-#include "screen/color.hpp"
-
-using namespace std;
+#include "light/vector.hpp"
 
 /** 
  * The ray class contains the information of a ray of light:

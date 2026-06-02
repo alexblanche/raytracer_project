@@ -7,8 +7,6 @@
 #include "scene/material/material.hpp"
 #include "scene/objects/triangle.hpp"
 
-#include <optional>
-
 class quad : public object {
     
     private:

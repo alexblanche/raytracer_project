@@ -1,6 +1,5 @@
 #pragma once
 
-#include "screen/color.hpp"
 #include "light/vector.hpp"
 #include "image/matrix.hpp"
 

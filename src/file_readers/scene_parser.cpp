@@ -1059,7 +1059,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
             1.0f / inverse_gamma
         );
     }
-    catch (const exception& e) {
+    catch (const std::exception& e) {
         printf("Error during scene parsing:\n");
         printf("%s\n", e.what());
         

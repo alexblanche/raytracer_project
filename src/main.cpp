@@ -1,6 +1,6 @@
-#include <iostream>
-
 #include "main_menu/menu.hpp"
+
+#include <iostream>
 
 /** Loop keys:
  * Space/Enter: Continue
@@ -8,6 +8,7 @@
  * R key:       Save raw data as image.rtdata
  * Esc:         Exit
  */
+
 
 int main(int argc, char *argv[]) {
 

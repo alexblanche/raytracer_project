@@ -15,5 +15,5 @@ class source {
 
         source(const rt::vector& position, const rt::color& color);
 
-        rt::color apply_obj(const hit& h, const vector<const object*>& obj_set) const;
+        rt::color apply_obj(const hit& h, const std::vector<const object*>& obj_set) const;
 };

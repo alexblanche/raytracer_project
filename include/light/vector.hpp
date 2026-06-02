@@ -1,108 +1,72 @@
 #pragma once
 
-#include "screen/color.hpp"
+#include "parameters.hpp"
+
 #include <cmath>
 
 namespace rt {
 	
-	/**
-	 * This structure describes a 3D vector, providing
-	 * basic operations (addition, scalar product, etc.)
-	 * by overloading common operators.
-	 */
 	struct vector {
 		
 		real x, y ,z;
 	
-		// Constructors
 		constexpr vector() : x(0), y(0), z(0) {}
 		
 		constexpr vector(real a, real b, real c) : x(a), y(b), z(c) {}
 
-		/**
-		 * Comparison
-		 */
 		inline bool operator==(const vector& other) const {
 			return (other.x == x && other.y == y && other.z == z);
 		}
 		
-		/**
-		 * Addition: (a,b,c) + (d,e,f) = (a+d,b+e,c+f)
-		 */
 		inline vector operator+(const vector& other) const {
-			return vector(x+other.x, y+other.y, z+other.z);
+			return vector(x + other.x, y + other.y, z + other.z);
 		}
 
-		/**
-		 * Substraction (a,b,c) - (d,e,f) = (a-d,b-e,c-f)
-		 */
 		inline vector operator-(const vector& other) const {
-			return vector(x-other.x, y-other.y, z-other.z);
+			return vector(x - other.x, y - other.y, z - other.z);
 		}
 
-		/**
-		 * Vectorial (cross) product 
-		 * (a,b,c) ^ (d,e,f) = (bf-ce,cd-af,ae-bd)
-		 */
+		/* Cross product */
 		inline vector operator^(const vector& other) const {
 			return
-				vector(y*other.z - z*other.y,
-					z*other.x - x*other.z,
-					x*other.y - y*other.x
+				vector(
+					y * other.z - z * other.y,
+					z * other.x - x * other.z,
+					x * other.y - y * other.x
 				);
 		}
 
-		/**
-		 * Scalar (dot) product
-		 * ((a,b,c) | (d,e,f)) = ad + be + cf
-		 */
-		// inline real operator|(const vector& other) const {
-		// 	return (x*other.x + y*other.y + z*other.z);
-		// }
+		/* Dot product */
 		inline real operator|(const vector& other) const {
 			return std::fma(x, other.x, std::fma(y, other.y, z * other.z));
 		}
 
-		/**
-		 * Returns the squared norm of the vector (x^2+y^2+z^2)
-		 */
+		/* Returns the squared norm of the vector */
 		inline real normsq() const {
-			//return x*x + y*y + z*z;
 			return std::fma(x, x, std::fma(y, y, z * z));
 		}
 
-		/**
-		 * Returns the norm of the vector
-		 */
+		/* Returns the norm of the vector */
 		inline real norm() const {
-			//return std::sqrt(x*x + y*y + z*z);
 			return std::sqrt(normsq());
 		}
 
-		/**
-		 * return a vector of the same direction but of norm 1
-		 */
+		/* Returns a vector of the same direction but of norm 1 */
 		inline vector unit() const {
 			const real invn = 1.0f / norm();
 			return vector(x * invn, y * invn, z * invn);
 		}
 
-		/**
-		 * Rotation around axis x by an angle theta
-		 * */
+		/* Rotation around axis x by an angle theta */
 		vector rotate_x(real theta) const;
 
-		/**
-		 * Rotation around axis y by an angle theta
-		 * */
+		/* Rotation around axis y by an angle theta */
 		vector rotate_y(real theta) const;
 
-		/**
-		 * Rotation around axis z by an angle theta
-		 * */
+		/* Rotation around axis z by an angle theta */
 		vector rotate_z(real theta) const;
 
-		// In-place transformations	
+		/* In-place transformations	*/
 		inline void to_unit() {
 			const real invn = 1.0f / norm();
 			x *= invn;
@@ -111,10 +75,7 @@ namespace rt {
 		}
 	};
 
-	/**
-	 * Left multiplication with a scalar
-	 * x * (a,b,c) = (xa,xb,xc)
-	 */
+	/* Left multiplication with a scalar */
 	inline vector operator*(real a, const vector& v) {
 		return vector(
 			a * v.x,
@@ -123,24 +84,18 @@ namespace rt {
 		);
 	}
 
-	/**
-	 * Right multiplication with a scalar
-	 * (a,b,c) * x = (ax,bx,cx)
-	 */
+	/* Right multiplication with a scalar */
 	inline vector operator*(const vector& v, real a) {
 		return a * v;
 	}
 
-	/**
-	 * Division by a scalar
-	 * (a,b,c) / x = (a/x, b/x, c/x)
-	 */
+	/* Division by a scalar */
 	inline vector operator/(const vector& v, const real a) {
 		const real inva = 1.0f / a;
 		return v * inva;
 	}
 
-	// In-place transformations
+	/* In-place transformations */
 	inline void operator +=(vector& v, const vector& other) {
 		v.x += other.x;
 		v.y += other.y;
@@ -159,7 +114,7 @@ namespace rt {
 		v.z *= a;
 	}
 
-	// Returns v1 * a + v2, where a is a scalar
+	/* Returns v1 * a + v2, where a is a scalar */
 	inline vector fma(const vector& v1, const real a, const vector& v2) {
 		return
 			vector(
@@ -169,17 +124,16 @@ namespace rt {
 			);
 	}
 
-	// Returns a1 * v1 + a2 * v2 + a3 * v3
+	/* Returns a1 * v1 + a2 * v2 + a3 * v3 */
 	inline vector matprod(
 		const vector& v1, const real a1,
 		const vector& v2, const real a2,
 		const vector& v3, const real a3
 	) {
-		
 		return
-			fma(v1, a1,
-			fma(v2, a2,
-			v3 * a3));
+			fma(v1,  a1,
+			fma(v2,  a2,
+				v3 * a3));
 	}
 }
 

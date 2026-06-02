@@ -1,6 +1,5 @@
 #pragma once
 
-#include "light/vector.hpp"
 #include "light/ray.hpp"
 
 // Sampling modes

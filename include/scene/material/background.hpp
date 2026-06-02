@@ -1,7 +1,7 @@
 #pragma once
 
-#include "light/vector.hpp"
-#include "texture.hpp"
+#include "scene/material/texture.hpp"
+
 #include <optional>
 #include <cmath>
 

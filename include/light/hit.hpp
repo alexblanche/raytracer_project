@@ -1,7 +1,6 @@
 #pragma once
 
-#include "vector.hpp"
-#include "ray.hpp"
+#include "light/ray.hpp"
 #include "auxiliary/randomgen.hpp"
 
 #include <vector>

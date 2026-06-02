@@ -81,7 +81,7 @@ bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std:
         search_type = search_type::Accelerated;
     }
 
-    mutex mut;
+    std::mutex mut;
     const unsigned int nb_of_groups = old_groups.size();
 
     if (nb_of_groups == 1) {

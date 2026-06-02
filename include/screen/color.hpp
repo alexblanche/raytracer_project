@@ -138,9 +138,7 @@ namespace rt  {
 				blue  = pow(blue,  a);
 			}
 
-			/**
-			 * Maxing out color components at 255.
-			 */
+			/* Maxing out color components at 255. */
 			color max_out() const;
 
 			inline void in_place_max_out() {
@@ -151,9 +149,7 @@ namespace rt  {
 			}
 
 			struct uint8_color {
-				unsigned char r;
-				unsigned char g;
-				unsigned char b;
+				unsigned char r, g, b;
 			};
 
 			inline uint8_color to_uint8() const {

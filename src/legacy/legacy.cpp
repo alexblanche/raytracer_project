@@ -132,7 +132,7 @@ int main(int, char **) {
     /* Object set */
     /* Storing pointers allow the overridden methods send and intersect (from sphere, plane)
        to be executed instead of the base (object) one */
-    const vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1};
+    const std::vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1};
 
 
     /* *************************** */
@@ -144,7 +144,7 @@ int main(int, char **) {
     const source light2(rt::vector(750, 0, 900),  my_blue);
 
     // Array of the lights in the scene
-    const vector<source> light_set {light0, light1, light2};
+    const std::vector<source> light_set {light0, light1, light2};
 
     /* *************************** */
 

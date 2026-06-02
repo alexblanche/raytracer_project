@@ -1,11 +1,10 @@
 #pragma once
 
-#include <vector>
 #include "objects/object.hpp"
 #include "objects/bounding.hpp"
 #include "material/texture.hpp"
 #include "auxiliary/randomgen.hpp"
-#include "camera.hpp"
+#include "scene/camera.hpp"
 #include "material/background.hpp"
 #include "material/normal_map.hpp"
 

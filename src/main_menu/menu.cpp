@@ -4,6 +4,7 @@
 #include "render/render_loops.hpp"
 #include "auxiliary/timer.hpp"
 
+#include <string>
 #include <span>
 #include <filesystem>
 
@@ -53,13 +54,13 @@ struct arg_pair {
 
 static cli_argument match(const std::string& input) {
     static const std::vector<arg_pair> keywords = {
-        { "-time"s,        cli_argument::Time            },
-        { "all"s,          cli_argument::TimeAll         },
-        { "-rays"s,        cli_argument::Rays            },
-        { "-multisample"s, cli_argument::Multisample     },
-        { "-gamma"s,       cli_argument::Gamma           },
-        { "-reinhardt"s,   cli_argument::Reinhardt       },
-        { "-rr"s,          cli_argument::RussianRoulette }
+        { "-time",        cli_argument::Time            },
+        { "all",          cli_argument::TimeAll         },
+        { "-rays",        cli_argument::Rays            },
+        { "-multisample", cli_argument::Multisample     },
+        { "-gamma",       cli_argument::Gamma           },
+        { "-reinhardt",   cli_argument::Reinhardt       },
+        { "-rr",          cli_argument::RussianRoulette }
     };
     for (const auto& [ keyword, value ] : keywords) {
         if (input == keyword)

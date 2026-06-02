@@ -1,8 +1,6 @@
 #pragma once
 
-#include "object.hpp"
-
-#include <optional>
+#include "scene/objects/object.hpp"
 
 class box : public object {
     

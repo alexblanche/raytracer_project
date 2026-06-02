@@ -1,10 +1,7 @@
 #pragma once
 
-#include "box.hpp"
-
+#include "scene/objects/box.hpp"
 #include "auxiliary/custom_stack.hpp"
-
-#include <vector>
 
 class bounding {
     
@@ -73,7 +70,6 @@ class bounding {
         */
         void check_box(const ray& r,
             real& distance_to_closest, std::optional<const object*>& closest_object,
-            //std::stack<const bounding*>& bounding_stack
             custom_stack<const bounding*>& bounding_stack
             ) const;
 
@@ -81,7 +77,6 @@ class bounding {
            immediately popping on the stack */
         void check_box_next(const ray& r,
             real& distance_to_closest, std::optional<const object*>& closest_object,
-            //std::stack<const bounding*>& bounding_stack,
             custom_stack<const bounding*>& bounding_stack,
             bool& bd_stored, const bounding*& next_bounding) const;
 };
@@ -92,7 +87,7 @@ const bounding* containing_bounding_two(const bounding* bd0, const bounding* bd1
 
 /* Returns a non-terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the standard non-terminal bounding boxes in the children vector */
-const bounding* containing_bounding_any(vector<const bounding*>&& children);
+const bounding* containing_bounding_any(std::vector<const bounding*>&& children);
 
 /* Returns a bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the objects whose indices are in the obj vector */

@@ -1,19 +1,14 @@
 #pragma once
 
-#include "object.hpp"
+#include "scene/objects/object.hpp"
 
-#include "light/vector.hpp"
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
-
-#include <optional>
 
 struct plane_orientation {
     rt::vector right_dir;
     rt::vector down_dir;
-    real inv_texture_scale;
-
-    plane_orientation() : inv_texture_scale(1.0f) {}
+    real inv_texture_scale = 1.0f;
 };
 
 class plane : public object {
@@ -30,8 +25,6 @@ class plane : public object {
 
     public:
 
-        /* Constructors */
-
         plane();
         
         plane(real sa, real sb, real sc, real sd,
@@ -44,12 +37,10 @@ class plane : public object {
             unsigned int material_index,
             unsigned int texture_info_index, const rt::vector& right, real scale);
 
-        /* Accessors */
 
         inline const rt::vector& get_normal() const {
             return normal;
         }
-
 
         /* Intersection determination */
 

@@ -538,7 +538,7 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
    std::vector<rt::vector> normal_set  (1);
 
    /* Material -> texture association table */
-   map<unsigned int, unsigned int> mt_assoc;
+   std::map<unsigned int, unsigned int> mt_assoc;
 
    unsigned int current_material_index = 0;
    unsigned int current_texture_index = default_texture_index.value_or(EMPTY_INDEX);

@@ -2,12 +2,9 @@
 
 #pragma once
 
-#include "object.hpp"
+#include "scene/objects/object.hpp"
 #include "scene/material/texture.hpp"
 #include "scene/material/barycentric.hpp"
-
-#include <optional>
-
 
 /* Virtual class derived from object, containing triangles and quads */
 

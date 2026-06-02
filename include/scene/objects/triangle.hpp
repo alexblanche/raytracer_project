@@ -1,12 +1,10 @@
 #pragma once
 
-#include "object.hpp"
+#include "scene/objects/object.hpp"
 
 #include "light/vector.hpp"
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
-
-#include <optional>
 
 enum class det_case {
     Default, XZ, YZ, Error
@@ -32,8 +30,6 @@ class triangle : public object {
 
 
     public:
-
-        /* Constructors */
 
         triangle();
         

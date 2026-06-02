@@ -5,6 +5,7 @@
 #include <span>
 
 template <typename T>
+requires std::is_trivially_destructible_v<T>
 struct custom_stack {
 
     std::vector<T> v;
