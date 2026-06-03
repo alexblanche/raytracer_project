@@ -8,7 +8,7 @@
 struct plane_orientation {
     rt::vector right_dir;
     rt::vector down_dir;
-    real inv_texture_scale = 1.0f;
+    real inv_texture_scale = 1.0_r;
 };
 
 class plane : public object {

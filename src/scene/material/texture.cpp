@@ -32,7 +32,7 @@ texture::texture(const std::string& file_name, bool& parsing_successful, const r
         return;
 
     data = std::move(mat_opt.value());
-    if (gamma != 1.0f)
+    if (gamma != 1.0_r)
         data.apply_gamma(gamma);
     width_minus_one  = static_cast<real>(data.width  - 1);
     height_minus_one = static_cast<real>(data.height - 1);

@@ -18,7 +18,7 @@ std::vector<real> alias_table::compute_low_res_table(const std::vector<std::vect
     const int table_size = width * height;
     std::vector<real> table(table_size);
 
-    real phi = 0.0f;
+    real phi = 0.0_r;
     for (int ly = 0; ly < height; ly++) {
 
         const real sinphi = sin(phi);
@@ -51,7 +51,7 @@ std::vector<real> alias_table::compute_low_res_table(const std::vector<std::vect
     }
 
     // Normalize the table
-    real weight_sum = 0.0f;
+    real weight_sum = 0.0_r;
     for (const real x : table)
         weight_sum += x;
 
@@ -78,7 +78,7 @@ alias_table::alias_table(const std::vector<real>& prob_table,
 
     const int n = prob_table.size();
     bins.resize(n);
-    const real invn = 1.0f / nb_bins;
+    const real invn = 1.0_r / nb_bins;
     
     std::stack<alias_bin> under;
     std::stack<alias_bin> over;
@@ -115,7 +115,7 @@ alias_table::alias_table(const std::vector<real>& prob_table,
     auto handle_remaining = [] (std::vector<alias_bin>& bins, std::stack<alias_bin>& stack) {
         while (not stack.empty()) {
             const unsigned int alias = stack.top().alias;
-            bins[alias] = { 1.0f, alias };
+            bins[alias] = { 1.0_r, alias };
             stack.pop();
         }
     };

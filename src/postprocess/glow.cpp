@@ -202,21 +202,25 @@ int main(int argc, char* argv[]) {
     fflush(stdout);
 
     unsigned int number_of_rays;
-    std::optional<std::vector<std::vector<rt::color>>> image = read_raw(argv[input_arg], number_of_rays);
+    std::optional<image> image_opt = read_raw(argv[input_arg]);
+
     
-    if (not image.has_value()) {
+    if (not image_opt.has_value()) {
         printf("Error reading file %s\n", argv[input_arg]);
         return EXIT_SUCCESS;
     }
 
+    image& image = image_opt.value();
+
     printf("\rThreshold: %lf, glow intensity: %lf\nApplying glow...\n", threshold, glow_intensity);
     fflush(stdout);
 
-    std::vector<std::vector<rt::color>> postprocessed_image = apply_glow(image.value(), number_of_rays, threshold, glow_intensity);
+    image.data.data = apply_glow(image.data.data, number_of_rays, threshold, glow_intensity);
+    image.number_of_samples = 1;
 
     printf("Done.\n");
 
-    const exit_status success_export = write_bmp(argv[output_arg], postprocessed_image, 1);
+    const exit_status success_export = write_bmp(argv[output_arg], image);
 
     if (success_export == exit_status::Success) {
         printf("File %s created\n", argv[output_arg]);

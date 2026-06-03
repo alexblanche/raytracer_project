@@ -47,15 +47,15 @@ material::material(const real ns,
         transparency = 0;
     }
 
-    if (gamma != 1.0f) {
-        const real gr = pow(color.get_red()   / 255.0f, gamma) * 255.0f;
-        const real gg = pow(color.get_green() / 255.0f, gamma) * 255.0f;
-        const real gb = pow(color.get_blue()  / 255.0f, gamma) * 255.0f;
+    if (gamma != 1.0_r) {
+        const real gr = pow(color.get_red()   / 255.0_r, gamma) * 255.0_r;
+        const real gg = pow(color.get_green() / 255.0_r, gamma) * 255.0_r;
+        const real gb = pow(color.get_blue()  / 255.0_r, gamma) * 255.0_r;
         color = rt::color(gr, gg, gb);
 
-        // const real ger = pow(emitted_color.get_red()   / 255.0f, gamma) * 255.0f;
-        // const real geg = pow(emitted_color.get_green() / 255.0f, gamma) * 255.0f;
-        // const real geb = pow(emitted_color.get_blue()  / 255.0f, gamma) * 255.0f;
+        // const real ger = pow(emitted_color.get_red()   / 255.0_r, gamma) * 255.0_r;
+        // const real geg = pow(emitted_color.get_green() / 255.0_r, gamma) * 255.0_r;
+        // const real geb = pow(emitted_color.get_blue()  / 255.0_r, gamma) * 255.0_r;
         // emitted_color = rt::color(ger, geg, geb);
     }
 }

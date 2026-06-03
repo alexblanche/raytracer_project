@@ -261,7 +261,7 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
     std::vector<rt::vector> means(k);
 
     /* Filling the vector with k elements uniformly distributed along the obj vector */
-    const real step = std::max(static_cast<real>(obj.size() / k), static_cast<real>(1.0f));
+    const real step = std::max(static_cast<real>(obj.size() / k), 1.0_r);
 
     const int bound = std::min(static_cast<unsigned int>(obj.size()), k);
     for (int i = 0; i < bound; i++) {
@@ -319,40 +319,22 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
 
 /** Auxiliary conversion functions **/
 
-static std::vector<element> get_element_vector(const std::vector<const object*>& objs) {
+template<ElementContent T>
+static std::vector<element> get_element_vector(const std::vector<T>& v) {
     std::vector<element> elts;
-    elts.reserve(objs.size());
-    for (const object* obj : objs) {
-        elts.push_back(element(obj));
-    }
+    elts.reserve(v.size());
+    for (T x : v)
+        elts.emplace_back(x);
     return elts;
 }
 
-static std::vector<element> get_element_vector(const std::vector<const bounding*>& objs) {
-    std::vector<element> elts;
-    elts.reserve(objs.size());
-    for (const bounding* bd : objs) {
-        elts.push_back(element(bd));
-    }
-    return elts;
-}
-
-static std::vector<const object*> get_object_vector(const std::vector<element>& elts) {
-    std::vector<const object*> obj;
-    obj.reserve(elts.size());
-    for (element const& elt : elts) {
-        obj.push_back(elt.get_object());
-    }
-    return obj;
-}
-
-static std::vector<const bounding*> get_bounding_vector(const std::vector<element>& elts) {
-    std::vector<const bounding*> bds;
-    bds.reserve(elts.size());
-    for (element const& elt : elts) {
-        bds.push_back(elt.get_bounding());
-    }
-    return bds;
+template<ElementContent T>
+static std::vector<T> get_vector(const std::vector<element>& elts) {
+    std::vector<T> v;
+    v.reserve(elts.size());
+    for (element const& elt : elts)
+        v.push_back(elt.get_content<T>());
+    return v;
 }
 
 /* Auxiliary function to create_bounding_hierarchy
@@ -380,7 +362,7 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
         for (std::vector<element> const& elts : groups) {
             
             if (not elts.empty()) {
-                new_bd_nodes.push_back(containing_bounding_any(get_bounding_vector(elts)));
+                new_bd_nodes.push_back(containing_bounding_any(get_vector<const bounding*>(elts)));
                 cpt ++;
             }
         }
@@ -395,7 +377,7 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
     if (nodes.size() == 1)
         return nodes[0].get_bounding();
     else
-        return containing_bounding_any(get_bounding_vector(nodes));
+        return containing_bounding_any(get_vector<const bounding*>(nodes));
 }
 
 
@@ -443,7 +425,7 @@ const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
     std::vector<const bounding*> term_nodes;
     for (unsigned int i = 0; i < k; i++) {
         if (not groups[i].empty()) {
-            term_nodes.push_back(containing_objects(get_object_vector(groups[i])));
+            term_nodes.push_back(containing_objects(get_vector<const object*>(groups[i])));
             cpt ++;
         }
     }

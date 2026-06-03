@@ -66,7 +66,7 @@ plane::plane(const real pa, const real pb, const real pc, const rt::vector& posi
 
     orientation.right_dir = right.unit();
     orientation.down_dir = orientation.right_dir ^ normal;
-    orientation.inv_texture_scale = 1.0f / scale;
+    orientation.inv_texture_scale = 1.0_r / scale;
 }
 
 /* Intersection determination */
@@ -89,7 +89,7 @@ std::optional<real> plane::measure_distance(const ray& r) const {
     
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
     
-    return (pdt * upln < 0.0f) ?
+    return (pdt * upln < 0.0_r) ?
         std::optional<real>(- upln / pdt)
         :
         std::nullopt;
@@ -112,12 +112,12 @@ hit plane::compute_intersection(ray& r, const real t) const {
 barycentric_info plane::get_barycentric(const rt::vector& p) const {
 
     const real right_component = (p | orientation.right_dir) * orientation.inv_texture_scale;
-    real x_value = fmod(right_component, static_cast<real>(1.0f));
-    if (x_value < 0) x_value += 1.0f;
+    real x_value = fmod(right_component, 1.0_r);
+    if (x_value < 0) x_value += 1.0_r;
 
     const real down_component = (p | orientation.down_dir) * orientation.inv_texture_scale;
-    real y_value = fmod(down_component, static_cast<real>(1.0f));
-    if (y_value < 0) y_value += 1.0f;
+    real y_value = fmod(down_component, 1.0_r);
+    if (y_value < 0) y_value += 1.0_r;
 
     return barycentric_info(x_value, y_value, object_type::Plane);
 }

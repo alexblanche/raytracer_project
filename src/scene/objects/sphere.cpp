@@ -11,7 +11,7 @@
 /* Constructors */
 
 sphere::sphere() {
-    radius = 0;
+    radius = 0.0_r;
 }
 
 sphere::sphere(const rt::vector& center, const real radius, const unsigned int material_index)
@@ -57,7 +57,7 @@ std::optional<real> sphere::measure_distance(const ray& r) const {
     const real delta = dv * dv + radius * radius - nv2;
     // delta is actually the discriminant divided by 4
 
-    if (delta >= 0.0f) {
+    if (delta >= 0.0_r) {
         /* Two solutions: t1 = dv - sqrt(delta) and t2 = dv + sqrt(delta),
            If t1 >= 0, this means the ray originates from outside the sphere
            and the sphere is in front of the origin, and thus t1 is returned,
@@ -67,18 +67,18 @@ std::optional<real> sphere::measure_distance(const ray& r) const {
         
         const real sqrtdelta = sqrt(delta);
         const real t1 = dv - sqrtdelta;
-        // if (t1 >= 0.0f) {
+        // if (t1 >= 0.0_r) {
         //     return t1;
         // }
         // else {
         //     const real t2 = dv + sqrtdelta;
-        //     if (t2 >= 0.0f) {
+        //     if (t2 >= 0.0_r) {
         //         return t2;
         //     }
         // }
-        return (t1 >= 0.0f) ? std::optional<real>(t1)
+        return (t1 >= 0.0_r) ? std::optional<real>(t1)
             :
-            (t1 >= -2.0f * sqrtdelta) ? std::optional<real>(dv + sqrtdelta)
+            (t1 >= -2.0_r * sqrtdelta) ? std::optional<real>(dv + sqrtdelta)
             :
             std::nullopt;
     }
@@ -125,11 +125,11 @@ barycentric_info sphere::get_barycentric(const rt::vector& p) const {
 
     const real theta = asin(up_component);
     const real x = acos(forward_component / cos(theta));
-    const real phi = (right_component < 0.0f) ? -x + 2.0f * PI : x;
+    const real phi = (right_component < 0.0_r) ? -x + 2.0_r * PI : x;
 
     return barycentric_info(
-        phi   * ((1.0 / PI) * 0.5f),
-        theta * (1.0 / PI) + 0.5f,
+        phi   * ((1.0_r / PI) * 0.5_r),
+        theta * (1.0_r / PI) + 0.5_r,
         object_type::Sphere
     );
 }
@@ -153,20 +153,20 @@ rt::vector sphere::compute_normal_from_map(const rt::vector& tangent_space_norma
 
 /* Uniformly samples a point on the sphere */
 rt::vector sphere::sample(randomgen& rg) const {
-    //return position + (radius * random_direction(rg, rt::vector(0.0f, 1.0f, 0.0f), PI));
-    return //fma(random_direction<PI>(rg, rt::vector(0.0f, 1.0f, 0.0f)), radius, position);
-        fma(random_direction(rg, rt::vector(0.0f, 1.0f, 0.0f), PI), radius, position);
+    //return position + (radius * random_direction(rg, rt::vector(0, 1, 0), PI));
+    return //fma(random_direction<PI>(rg, rt::vector(0, 1, 0)), radius, position);
+        fma(random_direction(rg, rt::vector(0, 1, 0), PI), radius, position);
 }
 
 /* Uniformly samples a point on the sphere that is visible from pt */
 rt::vector sphere::sample_visible(randomgen& rg, const rt::vector& pt) const {
     /*
     const rt::vector v = sample(rg);
-    if (((v - position) | (pt - position)) >= 0.0f)
+    if (((v - position) | (pt - position)) >= 0.0_r)
         return v;
     else
-        return 2.0f * position - v;
+        return 2.0_r * position - v;
     */
     // Optimized
-    return random_direction(rg, (pt - position).unit(), PI / 2.0);
+    return random_direction(rg, (pt - position).unit(), PI / 2.0_r);
 }

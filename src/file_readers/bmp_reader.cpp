@@ -207,7 +207,7 @@ exit_status write_bmp(const std::string& file_name, const image& image) {
                 if (gamma_enabled) {
                     col *= inv255;
                     col ^= image.gamma;
-                    col *= static_cast<real>(255.0f);
+                    col *= 255.0_r;
                 }
 
                 const unsigned char r = col.get_red();

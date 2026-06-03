@@ -33,7 +33,7 @@ inline void update_accumulators(
 
 rt::vector random_dir(const randomgen& rg, const rt::vector central_dir, const real scattering) {
     
-    return (central_dir + (1.0f - scattering) * random_direction<angle::Pi>(rg, central_dir)).unit();
+    return (central_dir + (1.0_r - scattering) * random_direction<angle::Pi>(rg, central_dir)).unit();
 }
 
 rt::vector compute_bias(const rt::vector& hit_point, const rt::vector& normal,
@@ -49,10 +49,10 @@ constexpr bool SECOND = false;
 void compute_bouncing_ray(const material& m, const hit& h,
     // Output
     rt::vector& orig1, rt::vector& orig2, rt::vector& central_dir1, std::optional<rt::vector>& central_dir2, real& scattering1, real& scattering2,
-    real& proba_1, // if rg.random_real(1.0f) <= proba_1, choose central_dir1 with scattering1, otherwise central_dir2, scattering2
+    real& proba_1, // if rg.random_real(1.0_r) <= proba_1, choose central_dir1 with scattering1, otherwise central_dir2, scattering2
     rt::color& color_materials1, rt::color& color_materials2, rt::color& emitted_colors, real& init_refr_index) {
 
-    init_refr_index = 1.0f;
+    init_refr_index = 1.0_r;
 
     color_materials1 = rt::WHITE;
     color_materials2 = rt::WHITE;
@@ -79,16 +79,16 @@ void compute_bouncing_ray(const material& m, const hit& h,
             proba_1 = m.get_reflectivity();
 
             const rt::vector& normal = h.get_normal();
-            central_dir2 = inward ? normal : (-1.0f) * normal;
-            scattering2 = 0.0f;
+            central_dir2 = inward ? normal : (-1.0_r) * normal;
+            scattering2 = 0.0_r;
             orig2 = compute_bias(h.get_point(), normal, inward, true);
             update_acc(true, m.get_color(), SECOND);
         }
         else {
             // Only diffuse
             const rt::vector& normal = h.get_normal();
-            central_dir1 = inward ? normal : (-1.0f) * normal;
-            scattering1 = 0.0f;
+            central_dir1 = inward ? normal : (-1.0_r) * normal;
+            scattering1 = 0.0_r;
             orig1 = compute_bias(h.get_point(), normal, inward, true);
 
             update_acc(true, m.get_color(), FIRST);
@@ -99,16 +99,16 @@ void compute_bouncing_ray(const material& m, const hit& h,
             Kr is the probability that the ray is reflected, Kt the probability that the ray is transmitted */
 
         /* Computation of the new refraction index */
-        const real next_refr_i = inward ? m.get_refraction_index() : 1.0f;
+        const real next_refr_i = inward ? m.get_refraction_index() : 1.0_r;
 
         /* Pre-computation of the refracted direction */
         real sin_theta_2_sq;
-        const rt::vector vx = get_sin_refracted(h, h.get_normal(), 1.0f, next_refr_i, sin_theta_2_sq);
+        const rt::vector vx = get_sin_refracted(h, h.get_normal(), 1.0_r, next_refr_i, sin_theta_2_sq);
 
         /* Computation of the Fresnel coefficient */
-        const real kr = inward ? get_schlick(h, h.get_normal(), 1.0f, next_refr_i) : 0.0f;
+        const real kr = inward ? get_schlick(h, h.get_normal(), 1.0_r, next_refr_i) : 0.0_r;
 
-        if (sin_theta_2_sq >= 1.0f) {
+        if (sin_theta_2_sq >= 1.0_r) {
             // Total internal reflection
 
             central_dir1 = get_central_reflected_direction(h, h.get_normal(), m.get_smoothness(), ray_orientation);
@@ -122,7 +122,7 @@ void compute_bouncing_ray(const material& m, const hit& h,
 
             // Transmission
             central_dir1 = get_refracted_direction(h.get_normal(), vx, sin_theta_2_sq, ray_orientation);
-            scattering1 = 1.0f - m.get_refraction_scattering();
+            scattering1 = 1.0_r - m.get_refraction_scattering();
 
             init_refr_index = next_refr_i;
             orig1 = compute_bias(h.get_point(), h.get_normal(), inward, false);
@@ -136,7 +136,7 @@ void compute_bouncing_ray(const material& m, const hit& h,
 
                 update_acc(false, m.get_color(), SECOND);
 
-                proba_1 = 1.0f - std::min(std::max(kr / m.get_transparency(), (real) 0.0f), (real) 1.0f);
+                proba_1 = 1.0_r - std::min(std::max(kr / m.get_transparency(), (real) 0.0_r), (real) 1.0_r);
             }
         }
     }
@@ -157,7 +157,7 @@ rt::color pathtrace_multisample(ray& r, const scene& scene, const randomgen& rg,
         const object* obj = h.get_object();
         const material& m = scene.material_set[obj->get_material_index()];
 
-        if (m.is_emissive() && m.get_emission_intensity() >= 1.0f) {
+        if (m.is_emissive() && m.get_emission_intensity() >= 1.0_r) {
 
             if (obj->is_textured()) {
                 // Only polygons (triangles and quads) can be textured (for now)
@@ -184,13 +184,13 @@ rt::color pathtrace_multisample(ray& r, const scene& scene, const randomgen& rg,
         std::optional<rt::vector> central_dir2;
         real scattering1;
         real scattering2;
-        real proba_1 = 1.0f;
+        real proba_1 = 1.0_r;
         real init_refr_index;
         compute_bouncing_ray(m, h,
             orig1, orig2, central_dir1, central_dir2, scattering1, scattering2, proba_1,
             color_materials1, color_materials2, emitted_colors, init_refr_index);
 
-        const bool one_direction = (not central_dir2.has_value()) || (proba_1 == 1.0f);
+        const bool one_direction = (not central_dir2.has_value()) || (proba_1 == 1.0_r);
 
         if (one_direction) {
             // Accumulator
@@ -200,7 +200,7 @@ rt::color pathtrace_multisample(ray& r, const scene& scene, const randomgen& rg,
 
                 const rt::vector dir = random_dir(rg, central_dir1, scattering1);
                 ray bouncing_ray(orig1, dir);
-                const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, russian_roulette_mode::Disabled, 1.0f);
+                const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, russian_roulette_mode::Disabled, 1.0_r);
                 output_color = output_color + sample_color;
             }
 
@@ -226,7 +226,7 @@ rt::color pathtrace_multisample(ray& r, const scene& scene, const randomgen& rg,
                 else {
                     const rt::vector dir = random_dir(rg, central_dir2.value(), scattering2);
                     ray bouncing_ray(orig2, dir);
-                    const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, russian_roulette_mode::Disabled, 1.0f);
+                    const rt::color sample_color = pathtrace(bouncing_ray, scene, rg, bounce - 1, russian_roulette_mode::Disabled, 1.0_r);
                     output_color2 = output_color2 + sample_color;
                     nb_samples2++;
                 }

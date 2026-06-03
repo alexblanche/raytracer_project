@@ -51,12 +51,12 @@ namespace rt  {
 			}
 
 			inline real get_average() const {
-				return (red + green + blue) * (1.0f / 3.0f);
+				return (red + green + blue) * (1.0_r / 3.0_r);
 			}
 
 			// Same between 0 and 1
 			inline real get_average_ratio() const {
-				return (red + green + blue) * (1.0f / (3.0f * 255.0f));
+				return (red + green + blue) * (1.0_r / (3.0_r * 255.0_r));
 			}
 
 			inline bool operator==(const color& c) const {
@@ -82,7 +82,7 @@ namespace rt  {
 			}
 
 			inline color operator*(const color& c) const {
-				constexpr real inv255 = 1.0f / 255.0f;
+				constexpr real inv255 = 1.0_r / 255.0_r;
 				return color(
 					red   * c.red   * inv255,
 					green * c.green * inv255,
@@ -91,7 +91,7 @@ namespace rt  {
 			}
 			
 			inline color operator/(const real x) const {
-				const real invx = 1.0f / x;
+				const real invx = 1.0_r / x;
 				return color(
 					red   * invx,
 					green * invx,
@@ -113,7 +113,7 @@ namespace rt  {
 			}
 
 			inline void operator *=(const color& other) {
-				constexpr real inv255 = 1.0f / 255.0f;
+				constexpr real inv255 = 1.0_r / 255.0_r;
 				red   *= other.red   * inv255;
 				green *= other.green * inv255;
 				blue  *= other.blue  * inv255;
@@ -196,9 +196,9 @@ namespace rt  {
 	inline color fma(const color& c1, const color& c2, const color& c3) {
 		return
 			color(
-				std::fma(c1.get_red(),   c2.get_red()   / static_cast<real>(255.0f), c3.get_red()),
-				std::fma(c1.get_green(), c2.get_green() / static_cast<real>(255.0f), c3.get_green()),
-				std::fma(c1.get_blue(),  c2.get_blue()  / static_cast<real>(255.0f), c3.get_blue())
+				std::fma(c1.get_red(),   c2.get_red()   / 255.0_r, c3.get_red()),
+				std::fma(c1.get_green(), c2.get_green() / 255.0_r, c3.get_green()),
+				std::fma(c1.get_blue(),  c2.get_blue()  / 255.0_r, c3.get_blue())
 			);
 	}
 }

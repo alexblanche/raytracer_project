@@ -91,10 +91,10 @@ void specular_reflective_case(ray& r, const hit& h, const randomgen& rg, const r
     const rt::vector central_dir = get_central_reflected_direction(h, local_normal, smoothness, ray_orientation);
                     
     /* Direction according to Lambert's cosine law */
-    const rt::vector dir = (smoothness >= 1.0f) ?
+    const rt::vector dir = (smoothness >= 1.0_r) ?
         central_dir
         :
-        (fma(random_direction<angle::Pi>(rg, central_dir), 1.0f - smoothness, central_dir)).unit();
+        (fma(random_direction<angle::Pi>(rg, central_dir), 1.0_r - smoothness, central_dir)).unit();
     r.set_direction(dir);
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
@@ -110,10 +110,10 @@ void specular_reflective_case(ray& r, const hit& h, const randomgen& rg, const r
     const rt::vector central_dir = get_central_reflected_direction(h, local_normal, smoothness, ray_orientation);
 
     /* Direction according to Lambert's cosine law */
-    const rt::vector dir = (smoothness >= 1.0f) ?
+    const rt::vector dir = (smoothness >= 1.0_r) ?
         central_dir
         :
-        (fma(random_direction<angle::Pi>(rg, central_dir), 1.0f - smoothness, central_dir)).unit();
+        (fma(random_direction<angle::Pi>(rg, central_dir), 1.0_r - smoothness, central_dir)).unit();
     r.set_direction(dir);
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
@@ -129,7 +129,7 @@ void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, const ra
     using enum orientation_type;
     r.set_direction(
         ((ray_orientation == Inward ?
-            local_normal : (-1.0f) * local_normal)
+            local_normal : (-1.0_r) * local_normal)
             + random_direction<angle::Pi>(rg, local_normal)
         ).unit()
     );
@@ -147,7 +147,7 @@ void diffuse_case(ray& r, const hit& h, const rt::vector& local_normal, const ra
 //         r.set_direction((local_normal + random_direction<angle::Pi>(rg, local_normal)).unit());
 //     }
 //     else {
-//         r.set_direction((((-1.0f) * local_normal) + random_direction<angle::Pi>(rg, local_normal)).unit());
+//         r.set_direction((((-1.0_r) * local_normal) + random_direction<angle::Pi>(rg, local_normal)).unit());
 //     }
     
     
@@ -166,7 +166,7 @@ void refractive_case(ray& r, const hit& h, const randomgen& rg, const real scatt
 
     /* Setting the refracted direction */
     r.set_direction(
-        scattering != 0.0f ?
+        scattering != 0.0_r ?
             get_random_refracted_direction(
                 rg,
                 scattering,
@@ -235,8 +235,8 @@ rt::color pathtrace(ray& r, const scene& scene, const randomgen& rg, const unsig
 
         if (russian_roulette) {
             const real avg = acc.color_materials.get_average_ratio();
-            if (avg < 1.0f) {
-                if (rg.random_ratio() <= 1.0f - avg)
+            if (avg < 1.0_r) {
+                if (rg.random_ratio() <= 1.0_r - avg)
                     return acc.emitted_colors;
                 else
                     acc.color_materials /= avg;
@@ -253,7 +253,7 @@ rt::color pathtrace(ray& r, const scene& scene, const randomgen& rg, const unsig
         const material& m = scene.material_set[obj->get_material_index()];
 
         /* Full-intensity light source reached */
-        if (m.is_emissive() && m.get_emission_intensity() >= 1.0f) {
+        if (m.is_emissive() && m.get_emission_intensity() >= 1.0_r) {
 
             const rt::color& color = obj->is_textured() ?
                 scene.sample_texture(obj->get_texture_info_index(), obj->get_barycentric(h.get_point()))
@@ -298,7 +298,7 @@ rt::color pathtrace(ray& r, const scene& scene, const randomgen& rg, const unsig
                 /* Specular bounce */
 
                 const bool is_specular_bounce = rg.random_ratio() <= m.get_reflectivity();
-                const real specular_smoothness = is_specular_bounce ? smoothness : 0.0f;
+                const real specular_smoothness = is_specular_bounce ? smoothness : 0.0_r;
                 
                 specular_reflective_case(r, h, rg, specular_smoothness, normal, ray_orientation);
 
@@ -333,18 +333,18 @@ rt::color pathtrace(ray& r, const scene& scene, const randomgen& rg, const unsig
             switch (ray_orientation) {
                 case Inward:
                     next_refr_i = m.get_refraction_index();
-                    if (refr_index != 1.0f) {
+                    if (refr_index != 1.0_r) {
                         refr_stack.push(refr_index);
                     }
                     break;
                 
                 case Outward:
-                    next_refr_i = (not refr_stack.empty()) ? refr_stack.pop() : 1.0f;
+                    next_refr_i = (not refr_stack.empty()) ? refr_stack.pop() : 1.0_r;
                     break;
             }
 
             /* Computation of the Fresnel coefficient */
-            // const real kr = inward ? h.get_fresnel(sin_theta_2_sq, refr_index, next_refr_i) : 0.0f;
+            // const real kr = inward ? h.get_fresnel(sin_theta_2_sq, refr_index, next_refr_i) : 0.0_r;
 
             if ((ray_orientation == Inward)
                 &&
@@ -367,7 +367,7 @@ rt::color pathtrace(ray& r, const scene& scene, const randomgen& rg, const unsig
                 /* The ray is transmitted */
 
                 /* Determination of whether the ray is transmitted (refracted) or in total interal reflection */
-                if (sin_theta_2_sq >= 1.0f) {
+                if (sin_theta_2_sq >= 1.0_r) {
                     /* Total internal reflection */
 
                     specular_reflective_case(r, h, rg, smoothness, normal, ray_orientation);

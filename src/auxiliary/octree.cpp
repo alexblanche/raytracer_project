@@ -27,7 +27,7 @@ static std::vector<unsigned int> split(const std::vector<rt::vector>& means, sea
     rt::vector avg;
     for (unsigned int elt : elts)
         avg += means[elt];
-    avg *= 1.0f / static_cast<real>(nb_indices);
+    avg *= 1.0_r / static_cast<real>(nb_indices);
 
     tree.increase_size(index_root);
     tree.internal_nodes[index_root] = avg;

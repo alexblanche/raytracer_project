@@ -10,7 +10,7 @@ camera::camera(const rt::vector& origin, const rt::vector& direction, const rt::
 
     : origin(origin), direction(direction.unit()), to_the_right(to_the_right.unit()),
       to_the_bottom((direction ^ to_the_right).unit()), distance(dist),
-      di(fov_w / ((real) width)), dj(fov_h / ((real) height)),
+      di(fov_w / (static_cast<real>(width))), dj(fov_h / (static_cast<real>(height))),
       mhalf_fovw(-fov_w/2), mhalf_fovh(-fov_h/2),
       focal_length(-1), aperture(-1),
       mode(camera_mode_option::Cam_Normal_AA, camera_mode_option::Cam_Stratified) {}
@@ -31,8 +31,8 @@ camera::camera(const rt::vector& origin, const rt::vector& direction, const rt::
 /* Returns the ray that goes toward the pixel i,j of the screen */
 ray camera::gen_ray_classic(const int i, const int j, const unsigned int iteration) const {
 
-    const real ishift = mhalf_fovw + (static_cast<real>(i) + (mode.uses_stratified() ? 0.25f * ( iteration &  3)       : 0.0f)) * di;
-    const real jshift = mhalf_fovh + (static_cast<real>(j) + (mode.uses_stratified() ? 0.25f * ((iteration & 15) >> 2) : 0.0f)) * dj;
+    const real ishift = mhalf_fovw + (static_cast<real>(i) + (mode.uses_stratified() ? 0.25_r * ( iteration &  3)       : 0.0_r)) * di;
+    const real jshift = mhalf_fovh + (static_cast<real>(j) + (mode.uses_stratified() ? 0.25_r * ((iteration & 15) >> 2) : 0.0_r)) * dj;
     const rt::vector dir =
         (matprod(
             to_the_right,  ishift,
@@ -47,8 +47,8 @@ ray camera::gen_ray_classic(const int i, const int j, const unsigned int iterati
 ray camera::gen_ray_normal(const int i, const int j, const randomgen& rg, const unsigned int iteration) const {
 
     const auto [ shift_horiz, shift_vert ] = rg.random_pair_normal(); //rg.random_pair_normal(0.0f, std_dev);
-    const real ishift = mhalf_fovw + (static_cast<real>(i) + shift_horiz  + (mode.uses_stratified() ? 0.25f * ( iteration &  3)       : 0.0f)) * di;
-    const real jshift = mhalf_fovh + (static_cast<real>(j) + shift_vert + (mode.uses_stratified() ? 0.25f * ((iteration & 15) >> 2) : 0.0f)) * dj;
+    const real ishift = mhalf_fovw + (static_cast<real>(i) + shift_horiz  + (mode.uses_stratified() ? 0.25_r * ( iteration &  3)       : 0.0_r)) * di;
+    const real jshift = mhalf_fovh + (static_cast<real>(j) + shift_vert   + (mode.uses_stratified() ? 0.25_r * ((iteration & 15) >> 2) : 0.0_r)) * dj;
     const rt::vector dir =
         (matprod(
             to_the_right,  ishift,
@@ -61,8 +61,8 @@ ray camera::gen_ray_normal(const int i, const int j, const randomgen& rg, const 
 /* Returns the ray that goes toward the pixel i,j of the screen, with depth of field */
 ray camera::gen_ray_dof(const int i, const int j, const randomgen& rg, const unsigned int iteration) const {
 
-    const real ishift = mhalf_fovw + (static_cast<real>(i) + (mode.uses_stratified() ? 0.25f * ( iteration &  3)       : 0.0f)) * di;
-    const real jshift = mhalf_fovh + (static_cast<real>(j) + (mode.uses_stratified() ? 0.25f * ((iteration & 15) >> 2) : 0.0f)) * dj;
+    const real ishift = mhalf_fovw + (static_cast<real>(i) + (mode.uses_stratified() ? 0.25_r * ( iteration &  3)       : 0.0_r)) * di;
+    const real jshift = mhalf_fovh + (static_cast<real>(j) + (mode.uses_stratified() ? 0.25_r * ((iteration & 15) >> 2) : 0.0_r)) * dj;
     const rt::vector focus_point =
         focal_length *
         ((matprod(

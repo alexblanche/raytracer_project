@@ -65,8 +65,8 @@ std::optional<real> box::measure_distance(const ray& r) const {
 
     // Factor that depends on whether u is outside or inside the box
     const real a = (abs(pmun1) <= l1 && abs(pmun2) <= l2 && abs(pmun3) <= l3) ?
-        /* inside */ 1.0f :
-        /* outside */ -1.0f;
+        /* inside */ 1.0_r :
+        /* outside */ -1.0_r;
 
     const real pdt1 = (dir | n1);
     const real pdt2 = (dir | n2);
@@ -78,7 +78,7 @@ std::optional<real> box::measure_distance(const ray& r) const {
         const real t1 = pmun1 / pdt1 + a * l1 / abspdt1;
         // Check that t1 gives a point inside the face
         if (abs(pmun2 - t1 * pdt2) <= l2 && abs(pmun3 - t1 * pdt3) <= l3) {
-            return (t1 >= 0.0f) ?
+            return (t1 >= 0.0_r) ?
                 std::optional<real>(t1)
                 :
                 std::nullopt;
@@ -89,7 +89,7 @@ std::optional<real> box::measure_distance(const ray& r) const {
     if (abspdt2 > 0.0000001f) {
         const real t2 = pmun2 / pdt2 + a * l2 / abspdt2;
         if (abs(pmun1 - t2 * pdt1) <= l1 && abs(pmun3 - t2 * pdt3) <= l3) {
-            return (t2 >= 0.0f) ?
+            return (t2 >= 0.0_r) ?
                 std::optional<real>(t2)
                 :
                 std::nullopt;
@@ -99,7 +99,7 @@ std::optional<real> box::measure_distance(const ray& r) const {
     const real abspdt3 = abs(pdt3);
     if (abspdt3 > 0.0000001f) {
         const real t3 = pmun3 / pdt3 + a * l3 / abspdt3;
-        return (t3 >= 0.0f && abs(pmun1 - t3 * pdt1) <= l1 && abs(pmun2 - t3 * pdt2) <= l2) ?
+        return (t3 >= 0.0_r && abs(pmun1 - t3 * pdt1) <= l1 && abs(pmun2 - t3 * pdt2) <= l2) ?
             std::optional<real>(t3)
             :
             std::nullopt;
@@ -261,25 +261,25 @@ bool box::is_hit_by(const ray& r) const {
         return true;
     }
 
-    if (dir.x != 0.0f) {
+    if (dir.x != 0.0_r) {
         // Determination of t1
         const real t1 = pmux * inv_dir.x - l1 * abs_inv_dir.x;
         // Check that t1 gives a point inside the face
         if (abs(pmuy - t1 * dir.y) <= l2 && abs(pmuz - t1 * dir.z) <= l3) {
-            return (t1 >= 0.0f);
+            return (t1 >= 0.0_r);
         }
     }
 
-    if (dir.y != 0.0f) {
+    if (dir.y != 0.0_r) {
         const real t2 = pmuy * inv_dir.y - l2 * abs_inv_dir.y;
         if (abs(pmux - t2 * dir.x) <= l1 && abs(pmuz - t2 * dir.z) <= l3) {
-            return (t2 >= 0.0f);
+            return (t2 >= 0.0_r);
         }
     }
 
-    if (dir.z != 0.0f) {
+    if (dir.z != 0.0_r) {
         const real t3 = pmuz * inv_dir.z - l3 * abs_inv_dir.z;
-        return (t3 >= 0.0f && abs(pmux - t3 * dir.x) <= l1 && abs(pmuy - t3 * dir.y) <= l2);
+        return (t3 >= 0.0_r && abs(pmux - t3 * dir.x) <= l1 && abs(pmuy - t3 * dir.y) <= l2);
     }
 
     return false;
@@ -287,7 +287,7 @@ bool box::is_hit_by(const ray& r) const {
 
 /* Returns the barycentric info (the faces behave like quads) [to be implemented] */
 barycentric_info box::get_barycentric(const rt::vector&) const {
-    return barycentric_info(0.0f, 0.0f, object_type::Box);
+    return barycentric_info(0.0_r, 0.0_r, object_type::Box);
 }
 
 rt::vector box::compute_normal_from_map(

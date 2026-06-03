@@ -159,7 +159,7 @@ namespace rt {
 	 */
 	void screen::fast_copy(const unsigned int number_of_rays) const {
 
-		const real invN = 1.0f / static_cast<real>(number_of_rays);
+		const real invN = 1.0_r / static_cast<real>(number_of_rays);
 
 		const texture::lock lock = texture.get_lock();
 		const auto [ texture_pixels, texture_pitch ] = lock.info;
@@ -168,20 +168,15 @@ namespace rt {
 		const unsigned int shift = 3 * width + padding;
 
 		for (int i = 0; std::vector<color>& line : mat.data) {
-			
-			const unsigned int threei = 3 * i;
 
-            for (int j = 0; const color& pixel_col : line) {
+            for (int index = 3 * i; const color& pixel_col : line) {
 
 				color avg = pixel_col * invN;
 				avg.in_place_max_out();
-				const unsigned int index = j * shift + threei;
-				//color::uint8_color color_data = avg.to_uint8();
 				texture_pixels[index] 	  = static_cast<Uint8>(avg.get_red());
 				texture_pixels[index + 1] = static_cast<Uint8>(avg.get_green());
 				texture_pixels[index + 2] = static_cast<Uint8>(avg.get_blue());
-				//std::memcpy(texture_pixels + index, &color_data, 3);
-				j++;
+				index += shift;
             }
 			i++;
         }
@@ -191,7 +186,7 @@ namespace rt {
 	void screen::fast_copy_gamma(const unsigned int number_of_rays) const {
 
 		const real invN = 1.0 / number_of_rays;
-		constexpr real inv255 = 1.0 / 255.0;
+		constexpr real inv255 = 1.0_r / 255.0_r;
 		const real inv = inv255 * invN;
 
 		const texture::lock lock = texture.get_lock();
@@ -201,22 +196,17 @@ namespace rt {
 		const unsigned int shift = 3 * width + padding;
 		
 		for (int i = 0; const std::vector<color>& line : mat.data) {
-			
-			const unsigned int threei = 3 * i;
 
-            for (int j = 0; const color& pixel_col : line) {
+            for (int index = 3 * i; const color& pixel_col : line) {
 
 				color corrected = pixel_col * inv;
 				corrected ^= gamma;
-				corrected *= static_cast<real>(255.0f);
+				corrected *= 255.0_r;
 				corrected.in_place_max_out();
-				const unsigned int index = j * shift + threei;
-				//color::uint8_color color_data = corrected.to_uint8();
 				texture_pixels[index] 	  = static_cast<Uint8>(corrected.get_red());
 				texture_pixels[index + 1] = static_cast<Uint8>(corrected.get_green());
 				texture_pixels[index + 2] = static_cast<Uint8>(corrected.get_blue());
-				//std::memcpy(texture_pixels + index, &color_data, 3);
-				j++;
+				index += shift;
             }
 			i++;
         }
@@ -228,15 +218,15 @@ namespace rt {
 		const real invN = 1.0 / number_of_rays;
 
 		// Computation of the maximum luminance
-		float max_luminance = 0.0f;
+		real max_luminance = 0.0_r;
 		for (const std::vector<color>& line : mat.data) {
 			for (const rt::color& col : line) {
-				const float luminance = (0.2126 * col.get_red() + 0.7152 * col.get_green() + 0.0722 * col.get_blue()) * invN;
+				const real luminance = (0.2126_r * col.get_red() + 0.7152_r * col.get_green() + 0.0722_r * col.get_blue()) * invN;
 				if (luminance > max_luminance)
 					max_luminance = luminance;
 			}
 		}
-		const float lwhitecorr = 1.0f / (max_luminance * max_luminance);
+		const real lwhitecorr = 1.0_r / (max_luminance * max_luminance);
 
 		const texture::lock lock = texture.get_lock();
 		const auto [ texture_pixels, texture_pitch ] = lock.info;
@@ -244,35 +234,31 @@ namespace rt {
 		const unsigned int padding = texture_pitch % 3;
         
 		//unsigned int index = 0;
-		constexpr real inv255 = 1.0f / 255.0f;
+		constexpr real inv255 = 1.0_r / 255.0_r;
 		const real inv = inv255 * invN;
 
 		const unsigned int shift = 3 * width + padding;
 		for (int i = 0; const std::vector<color>& line : mat.data) {
 			
-			const unsigned int threei = 3 * i;
-            for (int j = 0; const color& col : line) {
+            for (int index = 3 * i; const color& col : line) {
 
 				const real lr = col.get_red();
 				const real lg = col.get_green();
 				const real lb = col.get_blue();
 				
-				const real lin = (0.2126 * lr + 0.7152 * lg + 0.0722 * lb) * inv;
+				const real lin = (0.2126_r * lr + 0.7152_r * lg + 0.0722_r * lb) * inv;
 				// const real lin = (lr + lg + lb) * inv * 0.333;
-				const real lcorr = (1.0f + lin * lwhitecorr) / (1.0f + lin);
+				const real lcorr = (1.0_r + lin * lwhitecorr) / (1.0_r + lin);
 
 				color corrected = col * (lcorr * inv);
 				corrected ^= gamma;
-				corrected *= static_cast<real>(255.0f);
+				corrected *= 255.0_r;
 				corrected.in_place_max_out();
 
-				const unsigned int index = j * shift + threei;
-				// color::uint8_color color_data = corrected.to_uint8();
 				texture_pixels[index] 	  = static_cast<Uint8>(corrected.get_red());
 				texture_pixels[index + 1] = static_cast<Uint8>(corrected.get_green());
 				texture_pixels[index + 2] = static_cast<Uint8>(corrected.get_blue());
-				// std::memcpy(texture_pixels + index, &color_data, 3);
-				j++;
+				index += shift;
             }
 			i++;
         }

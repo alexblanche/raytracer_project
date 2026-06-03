@@ -78,9 +78,9 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
     const real t1 = (- ab - sqrtdelta) / bb;
     bool outside = true;
     
-    if (t1 >= 0.0f) {
+    if (t1 >= 0.0_r) {
         const real s1 = umpdirec + t1 * dirdirec;
-        if (s1 >= 0.0f) {
+        if (s1 >= 0.0_r) {
             if (s1 <= length) {
                 return t1;
             }
@@ -94,13 +94,13 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
         else {
             const real t2 = (- ab + sqrtdelta) / bb;
             const real s2 = umpdirec + t2 * dirdirec;
-            if (s2 < 0.0f) { return std::nullopt; }
+            if (s2 < 0.0_r) { return std::nullopt; }
             // else: the ray goes through one or both edge disks
         }
     }
     else {
         const real t2 = (- ab + sqrtdelta) / bb;
-        if (t2 >= 0.0f) {
+        if (t2 >= 0.0_r) {
             /* Case analysis:
                We compute s1 (associated with t1), s2 and whether we are outside the cylinder.
                "s ok" means that 0 <= s <= length, i.e. the projection on the line is within the cylinder.
@@ -119,9 +119,9 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
 
             const real s1 = umpdirec + t1 * dirdirec;
             const real s2 = umpdirec + t2 * dirdirec;
-            const bool s1ok = s1 >= 0.0f && s1 <= length;
-            const bool s2ok = s2 >= 0.0f && s2 <= length;
-            outside = umpdirec < 0.0f || umpdirec > length;
+            const bool s1ok = s1 >= 0.0_r && s1 <= length;
+            const bool s2ok = s2 >= 0.0_r && s2 <= length;
+            outside = umpdirec < 0.0_r || umpdirec > length;
             if (s2ok) {
                 if (s1ok || (not outside)) { return t2; }
                 // else: the edge disk is between u and the intersection at t2
@@ -130,8 +130,8 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
                 // if ((s1ok && outside) || (s1 < 0 && s2 < 0) || (s1 > length && s2 > length)) {
                 //     return infinity;
                 // }
-                if (s1 < 0.0f) {
-                    if (s2 < 0.0f) { return std::nullopt; }
+                if (s1 < 0.0_r) {
+                    if (s2 < 0.0_r) { return std::nullopt; }
                 }
                 else {
                     if (s1 <= length) {
@@ -169,7 +169,7 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
 
     // We may assume that (dir | direction) != 0, since otherwise we would have concluded at step 1
 
-    // if (outside == (dirdirec >= 0.0f)) {
+    // if (outside == (dirdirec >= 0.0_r)) {
     //     // v = position
     //     // t = ((v - u) | direction) / (dir | direction)
     //     return - umpdirec / dirdirec;
@@ -180,7 +180,7 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
     //     //   = (-umpdirec + length (direction | direction)) / dirdirec
     //     return (- umpdirec + length) / dirdirec;
     // }
-    return (outside == (dirdirec >= 0.0f)) ?
+    return (outside == (dirdirec >= 0.0_r)) ?
         - umpdirec / dirdirec
         :
         (- umpdirec + length) / dirdirec;
@@ -223,7 +223,7 @@ min_max_coord cylinder::get_min_max_coord() const {
     real min_x, max_x, min_y, max_y, min_z, max_z;
     
     /* Exact solution is not trivial, so I leave a upper bound */
-    if (direction.x >= 0.0f) {
+    if (direction.x >= 0.0_r) {
         max_x = position.x + length * direction.x + radius;
         min_x = position.x - radius;
     }
@@ -232,7 +232,7 @@ min_max_coord cylinder::get_min_max_coord() const {
         min_x = position.x + length * direction.x - radius;
     }
 
-    if (direction.y >= 0.0f) {
+    if (direction.y >= 0.0_r) {
         max_y = position.y + direction.y + radius;
         min_y = position.y - radius;
     }
@@ -241,7 +241,7 @@ min_max_coord cylinder::get_min_max_coord() const {
         min_y = position.y + length * direction.y - radius;
     }
 
-    if (direction.z >= 0.0f) {
+    if (direction.z >= 0.0_r) {
         max_z = position.z + length * direction.z + radius;
         min_z = position.z - radius;
     }

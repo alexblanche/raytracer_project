@@ -9,7 +9,7 @@ constexpr unsigned int LOWRES_DEFAULT_WIDTH  = 854;
 constexpr unsigned int LOWRES_DEFAULT_HEIGHT = 480;
 
 struct alias_bin {
-    real p = 0.0f;
+    real p = 0.0_r;
     unsigned int alias = 0;
     
     alias_bin() {}

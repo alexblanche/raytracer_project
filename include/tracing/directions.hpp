@@ -25,8 +25,8 @@ enum class angle {
 template <angle theta_max>
 rt::vector random_direction(const randomgen& rg, const rt::vector& central_dir) {
 
-    constexpr real cos_theta_max = (theta_max == angle::Pi) ? -1.0f : /* placeholder */ 0.0f;
-    constexpr real one_m_costhetamax = 1.0f - cos_theta_max;
+    constexpr real cos_theta_max = (theta_max == angle::Pi) ? -1.0_r : /* placeholder */ 0.0_r;
+    constexpr real one_m_costhetamax = 1.0_r - cos_theta_max;
 
     // random ray in the cone of angle theta_max to central_dir
     /*
@@ -35,7 +35,7 @@ rt::vector random_direction(const randomgen& rg, const rt::vector& central_dir) 
     y = sin(phi) sin(theta) = sin(phi) * sqrt(1 - (1 - p(1-cos(theta_max))^2))
     z = cos(theta)          = 1 - p(1-cos(theta_max))
     */
-    if constexpr (one_m_costhetamax != 0) {
+    if constexpr (one_m_costhetamax != 0.0_r) {
 
         const real p   = rg.random_ratio();
         const real phi = rg.random_angle();
@@ -45,22 +45,22 @@ rt::vector random_direction(const randomgen& rg, const rt::vector& central_dir) 
 
         // Orthonormal base of the plane orthogonal to central_dir
         rt::vector X, Y;
-        if (a != 0.0f) {
+        if (a != 0.0_r) {
             const real nX = a * a + b * b;
-            X = rt::vector(- b, a, 0.0f) / sqrt(nX);
+            X = rt::vector(- b, a, 0.0_r) / sqrt(nX);
             Y = rt::vector(a * c, b * c, -nX).unit();
-        } else if (b != 0.0f) {
+        } else if (b != 0.0_r) {
             // central_dir = (0,b,c)
-            X = rt::vector(0.0f, - c, b).unit();
-            Y = rt::vector(1.0f, 0.0f, 0.0f);
+            X = rt::vector(0.0_r, - c, b).unit();
+            Y = rt::vector(1, 0, 0);
         } else {
             // central_dir = (0,0,1)
-            X = rt::vector(1.0f, 0.0f, 0.0f);
-            Y = rt::vector(0.0f, 1.0f, 0.0f);
+            X = rt::vector(1, 0, 0);
+            Y = rt::vector(0, 1, 0);
         }
 
-        const real cos_theta = 1.0f - p * one_m_costhetamax;
-        const real sin_theta = sqrt(1.0f - cos_theta * cos_theta);
+        const real cos_theta = 1.0_r - p * one_m_costhetamax;
+        const real sin_theta = sqrt(1.0_r - cos_theta * cos_theta);
         
         return
             matprod(

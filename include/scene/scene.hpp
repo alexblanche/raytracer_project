@@ -114,7 +114,7 @@ class scene {
 
         /* Sampling maps */
         map_sample sample_maps(unsigned int texture_info_index, const barycentric_info& bary,
-            const rt::color& default_color, const rt::vector& default_normal, real default_reflectivity = 0.0f) const;
+            const rt::color& default_color, const rt::vector& default_normal, real default_reflectivity = 0.0_r) const;
 
         inline const texture_info& get_texture_info (const object* obj) const {
             return texture_info_set[obj->get_texture_info_index()];

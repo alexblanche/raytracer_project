@@ -9,8 +9,12 @@
 
 /* K-means clustering algorithm */
 
+template<typename T>
+concept ElementContent = std::is_same_v<T, const object*> || std::is_same_v<T, const bounding*>;
+
 /* Struct containing either an object* or a bounding*, to make the clustering functions polymorphic */
 struct element {
+
    enum class type {
       Object, Bounding
    };
@@ -28,6 +32,11 @@ struct element {
    }
    inline const bounding* get_bounding() const {
       return std::get<const bounding*>(content);
+   }
+
+   template<ElementContent T>
+   inline T get_content() const {
+      return std::get<T>(content);
    }
 
    inline const rt::vector& get_position() const {

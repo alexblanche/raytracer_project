@@ -13,31 +13,31 @@ background_container::background_container(texture&& txt, const real rx, const r
 const rt::color& background_container::get_color(const rt::vector& dir) const {
 
     rt::vector dir_rotated = dir;
-    if (rotate_x != 0.0f) {
+    if (rotate_x != 0.0_r) {
         dir_rotated = dir_rotated.rotate_x(rotate_x);
     }
-    if (rotate_y != 0.0f) {
+    if (rotate_y != 0.0_r) {
         dir_rotated = dir_rotated.rotate_y(rotate_y);
     }
-    if (rotate_z != 0.0f) {
+    if (rotate_z != 0.0_r) {
         dir_rotated = dir_rotated.rotate_z(rotate_z);
     }
 
     
     /* Determining the pixel of the background texture to display */      
-    real phi = asinf(dir_rotated.y) + 0.5f * PI;
+    real phi = asinf(dir_rotated.y) + 0.5_r * PI;
     // dir is a unit vector, but due to floating-point imprecision, dir.y can be greater than 1
-    if (std::abs(dir_rotated.y) >= 1.0f) {
-        phi = (dir_rotated.y > 0.0f) ? PI : 0;
+    if (std::abs(dir_rotated.y) >= 1.0_r) {
+        phi = (dir_rotated.y > 0.0_r) ? PI : 0.0_r;
     }
 
-    const real theta = (dir_rotated.x != 0.0f) ?
-        atanf(dir_rotated.z / dir_rotated.x) + (dir_rotated.x > 0.0f ? 1.5f : 0.5f) * PI
+    const real theta = (dir_rotated.x != 0.0_r) ?
+        atanf(dir_rotated.z / dir_rotated.x) + (dir_rotated.x > 0.0_r ? 1.5_r : 0.5_r) * PI
         :
-        0.0f;
+        0.0_r;
 
     /* Determining the UV-coordinates */
-    const real u = 1.0f - theta / (2.0f * PI);
+    const real u = 1.0_r - theta / (2.0_r * PI);
     const real v = phi / PI;
 
     return bg_texture.value().get_color(u, v);

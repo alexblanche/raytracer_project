@@ -195,7 +195,7 @@ const bounding* containing_objects(std::vector<const object*>&& objs) {
     }
 
     const box* b = new box(
-        rt::vector((max_x + min_x) / 2.0f, (max_y + min_y) / 2.0f, (max_z + min_z) / 2.0f),
+        rt::vector((max_x + min_x) / 2.0_r, (max_y + min_y) / 2.0_r, (max_z + min_z) / 2.0_r),
         rt::vector(1, 0, 0), rt::vector(0, 1, 0),
         max_x - min_x,
         max_y - min_y,
