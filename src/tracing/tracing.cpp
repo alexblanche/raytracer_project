@@ -339,10 +339,7 @@ rt::color pathtrace(ray& r, const scene& scene, const randomgen& rg, const unsig
                     break;
                 
                 case Outward:
-                    next_refr_i = refr_stack.empty() ? 1.0f : refr_stack.top();
-                    if (not refr_stack.empty()) {
-                        refr_stack.pop();
-                    }
+                    next_refr_i = (not refr_stack.empty()) ? refr_stack.pop() : 1.0f;
                     break;
             }
 

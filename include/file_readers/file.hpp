@@ -51,7 +51,7 @@ static consteval std::string data_format() {
         std::is_floating_point_v<T> ? "f" :
         sizeof(T) == 1              ? "c" :
         std::is_unsigned_v<T>       ? "u" : "d";
-    return "%" + prefix + suffix + " ";
+    return "%" + prefix + suffix;
 }
 
 template<Arithm... T>
@@ -184,14 +184,14 @@ class file {
         }
 
         template<typename... Args>
-        exit_status scanf(const std::string& format, Args&... x) const {
-            const int ret = fscanf(f, format.c_str(), &x...);
-            return exit_status_of(ret == sizeof...(Args));
+        int scanf_count(const std::string& format, Args&... x) const {
+            return fscanf(f, format.c_str(), &x...);
         }
 
         template<typename... Args>
-        int scanf_count(const std::string& format, Args&... x) const {
-            return fscanf(f, format.c_str(), &x...);
+        exit_status scanf(const std::string& format, Args&... x) const {
+            const int ret = scanf_count(format, x...);
+            return exit_status_of(ret == sizeof...(Args));
         }
 
 

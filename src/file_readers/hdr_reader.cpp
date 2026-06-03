@@ -52,45 +52,34 @@ std::optional<matrix> read_hdr(const std::string& file_name) {
         for (unsigned int j = 0; j < height; j++) {
             const unsigned int indexj = j * width;
 
-            const unsigned char b1 = f.getc();
-            const unsigned char b2 = f.getc();
+            const auto [ b1, b2, width1, width2 ] = f.scan<unsigned char, 4>();
+
             if (b1 != 2 || b2 != 2)
                 throw std::runtime_error("Reading error in read_hdr: bytes '2' at beginning of row");
-            
-            const unsigned int width1 = f.getc();
-            const unsigned int width2 = f.getc();
-            if ((width1 << 8) + width2 != width)
+
+            if (static_cast<unsigned int>((width1 << 8) | width2) != width)
                 throw std::runtime_error("Reading error in read_hdr: width at beginning of row");
             
-
             for (int component = 0; component < 4; component++) {
 
                 std::vector<unsigned char>& buffer = data_buffer[component];
-                //unsigned char* const bufferj = buffer.data() + indexj;
+                unsigned char* const buffer_j = buffer.data() + indexj;
                 
                 for (unsigned int i = 0; i < width; ) {
                     
                     const unsigned char byte = f.getc();
+                    unsigned int count;
                     if (byte > 0x80) {
                         // Run
-                        unsigned char count = byte & 0x7F;
-                        const unsigned char value = f.getc();
-                        while (count--) {
-                            buffer[indexj + i++] = value;
-                        }
-                        // std::memset(bufferj + i, fgetc(file), count);
-                        // i += count;
+                        count = byte & 0x7F;
+                        std::memset(buffer_j + i, f.getc(), count);
                     }
                     else  {
                         // Consecutive distinct bytes
-                        unsigned char count = byte;
-                        while(count--) {
-                            buffer[indexj + i++] = f.getc();
-                        }
-                        // if (1 != fread(static_cast<void*>(bufferj + i), count, 1, file))
-                        //      throw std::runtime_error("Reading error in read_hdr: pixel data");
-                        // i += count;
+                        count = byte;
+                        f.read<unsigned char>({ buffer_j + i, count });
                     }
+                    i += count;
                 }
             }
         }
@@ -101,16 +90,16 @@ std::optional<matrix> read_hdr(const std::string& file_name) {
 
         parallel_for(width, [&] (int i) {
             std::vector<rt::color>& data_line = data.data[i];
-            for (unsigned int j = 0; j < height; j++) {
-                const unsigned int index = j * width + i;
-                data_line[j] = rt::color(
+            for (unsigned int index = i; rt::color& color : data_line) {
+                color = rt::color(
                     data_buffer[0][index],
                     data_buffer[1][index],
                     data_buffer[2][index]
                 );
                 const int e =  data_buffer[3][index];
-                const real radiance_val = pow(2.0f, e - 128);
-                data_line[j] *= radiance_val;
+                const real radiance_val = pow(static_cast<real>(2.0f), e - 128);
+                color *= radiance_val;
+                index += width;
             }
         });
 

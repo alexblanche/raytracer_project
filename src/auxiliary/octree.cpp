@@ -135,10 +135,10 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
                 // Compute leaf
                 tree.increase_size(tree_index);
 
-                tree.leaves[tree_index].resize(nb_elts_group);
                 std::vector<unsigned int>& leaf = tree.leaves[tree_index];
-
-                std::memcpy(leaf.data(), elts.data() + index_min, nb_elts_group * sizeof(unsigned int));
+                leaf.reserve(nb_elts_group);
+                const std::span<const unsigned int> leaf_elts(elts.data() + index_min, nb_elts_group);
+                leaf.insert(leaf.end(), leaf_elts.begin(), leaf_elts.end());
                 tree.terminal_state[tree_index] = true;
             }
             else {

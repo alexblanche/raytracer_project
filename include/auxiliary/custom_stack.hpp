@@ -1,41 +1,85 @@
 #pragma once
 
-#include <vector>
 #include <cstring>
 #include <span>
 
 template <typename T>
-requires std::is_trivially_destructible_v<T>
-struct custom_stack {
+requires (sizeof(T) <= 8) && std::is_trivially_destructible_v<T>
+class custom_stack {
 
-    std::vector<T> v;
+    T*  data     = nullptr;
+    int size     = 0;
+    int capacity = 0;
 
-    custom_stack(unsigned int init_size) {
-        v.reserve(init_size);
-    }
+    private:
+        
+        inline void increase_capacity(int target) {
+            T* new_data = new T[target];
+            std::memcpy(new_data, data, size * sizeof(T));
+            data = new_data;
+            capacity = target;
+        }
 
-    [[nodiscard]] inline bool empty() const {
-        return v.empty();
-    }
+        inline void check_capacity() {
+            if (size >= capacity)
+                increase_capacity(2 * capacity);
+        }
 
-    inline void pop() {
-        v.pop_back();
-    }
+        inline void reserve(int target) {
+            if (capacity < target)
+                increase_capacity(std::max(target, 2 * capacity));
+        }
 
-    inline const T& top() const {
-        return v.back();
-    }
+    public:
 
-    inline void push(const T t) {
-        v.push_back(t);
-    }
+        inline custom_stack(unsigned int init_size = 10) {
+            size = 0;
+            capacity = init_size;
+            data = new T[capacity];
+        }
 
-    inline void push(const std::span<const T> ts) {
-        v.reserve(v.size() + ts.size());
-        std::memcpy(v.data() + v.size(), ts.data(), ts.size());
-    }
+        inline ~custom_stack() noexcept {
+            delete[] data;
+        }
 
-    inline void set_empty() {
-        v.clear();
-    }
+        // int get_size() const {
+        //     return size;
+        // }
+        // int get_capacity() const {
+        //     return capacity;
+        // }
+
+        std::span<const T> get_content() const {
+            return { data, static_cast<size_t>(size) };
+        }
+
+        [[nodiscard]] inline bool empty() const noexcept {
+            return size == 0;
+        }
+
+        inline T pop() {
+            size--;
+            return data[size];
+        }
+
+        [[nodiscard]] inline const T& top() const {
+            return data[size - 1];
+        }
+
+        inline void push(const T t) {
+            check_capacity();
+            data[size] = t;
+            size++;
+        }
+
+        inline void push(const std::span<const T> ts) {
+            const int new_size = size + ts.size();
+            reserve(new_size);
+            std::memcpy(data + size, ts.data(), ts.size() * sizeof(T));
+            size = new_size;
+        }
+
+        inline void set_empty() {
+            size = 0;
+        }
 };
