@@ -4,7 +4,7 @@
 #include <span>
 
 template <typename T>
-requires (sizeof(T) <= 8) && std::is_trivially_destructible_v<T>
+requires (sizeof(T) <= 16) && std::is_trivially_destructible_v<T>
 class custom_stack {
 
     T*  data     = nullptr;
@@ -40,11 +40,14 @@ class custom_stack {
 
         inline ~custom_stack() noexcept {
             delete[] data;
+            size = 0;
+            capacity = 0;
         }
 
-        // int get_size() const {
-        //     return size;
-        // }
+        int get_size() const {
+            return size;
+        }
+
         // int get_capacity() const {
         //     return capacity;
         // }
@@ -66,10 +69,20 @@ class custom_stack {
             return data[size - 1];
         }
 
-        inline void push(const T t) {
+        [[nodiscard]] inline T& top() {
+            return data[size - 1];
+        }
+
+        template<typename... Args>
+        requires (requires (Args... args) { T(args...); })
+        inline void emplace(Args&&... args) {
             check_capacity();
-            data[size] = t;
+            data[size] = T(std::forward<Args>(args)...);
             size++;
+        }
+
+        inline void push(const T t) {
+            emplace(t);
         }
 
         inline void push(const std::span<const T> ts) {

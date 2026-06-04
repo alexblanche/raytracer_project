@@ -4,7 +4,7 @@
 
 static normal_map::vector_matrix convert_bmp_to_normal_field(const matrix& col_data) {
 
-    constexpr real s = 2.0f / 255.0f;
+    constexpr real s = 2.0_r / 255.0_r;
     normal_map::vector_matrix norm_data(col_data.width, std::vector<rt::vector>(col_data.height));
 
     for (int i = 0; i < col_data.width; i++) {
@@ -14,9 +14,9 @@ static normal_map::vector_matrix convert_bmp_to_normal_field(const matrix& col_d
             const rt::color& col = col_data_line[j];
             // Conversion from [0..255] to [-1;1]
             norm_data_line[j] = rt::vector (
-                col.get_red()   * s - 1.0f,
-                col.get_green() * s - 1.0f,
-                col.get_blue()  * s - 1.0f
+                col.get_red()   * s - 1.0_r,
+                col.get_green() * s - 1.0_r,
+                col.get_blue()  * s - 1.0_r
             ).unit();
         }
     }

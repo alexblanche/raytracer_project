@@ -630,8 +630,8 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
             }
             else {
                // Case that happened in one obj file
-               const real nu = (u >= 0) ? 1.0f : ((u <= (-1.0f)) ? 0.0f : 1.0f + u);
-               const real nv = (v >= 0) ? 1.0f : ((v <= (-1.0f)) ? 0.0f : 1.0f + v);
+               const real nu = (u >= 0) ? 1.0_r : ((u <= (-1.0_r)) ? 0.0_r : 1.0_r + u);
+               const real nv = (v >= 0) ? 1.0_r : ((v <= (-1.0_r)) ? 0.0_r : 1.0_r + v);
                uv_coord_set.push_back(rt::vector(nu, nv, 0));
             }
             number_of_texture_coords++;

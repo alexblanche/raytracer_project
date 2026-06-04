@@ -27,7 +27,7 @@ namespace rt {
 		public:
 			screen(matrix& matrix, tone_mapping_parameters::mode mode = Disabled, float gamma = 1.0f);
 			screen(image& image,   tone_mapping_parameters::mode mode = Disabled);
-			~screen();
+			~screen() noexcept;
 
 			void set_pixel(int x, int y, const color& c) const;
 			void set_pixel(int x, int y, Uint8 r, Uint8 g, Uint8 b) const;
@@ -70,17 +70,9 @@ namespace rt {
 			inline void copy_to_texture(const unsigned int number_of_rays) const {
 
 				switch (tone_mapping_mode) {
-					case Disabled:
-						fast_copy(number_of_rays);
-						break;
-					
-					case Gamma:
-						fast_copy_gamma(number_of_rays);
-						break;
-
-					case Reinhardt:
-						fast_copy_reinhardt(number_of_rays);
-						break;
+					case Disabled: 	fast_copy(number_of_rays); 			 break;
+					case Gamma: 	fast_copy_gamma(number_of_rays); 	 break;
+					case Reinhardt:	fast_copy_reinhardt(number_of_rays); break;
 				}
     		}
 	};

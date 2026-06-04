@@ -209,7 +209,7 @@ real distance_sq_to_region(const rt::vector& v, const rt::vector& root, const un
     const bool ry = region & 0x02;
     const bool rz = region & 0x01;
 
-    real d = 0.0f;
+    real d = 0.0_r;
     if (bx != rx) {
         const real dx = v.x - root.x;
         d += dx * dx;
@@ -231,9 +231,9 @@ static inline real distance_sq_to_region(const rt::vector& d2,
     const unsigned char region, const unsigned char b) {
 
     const unsigned char r = region ^ b;
-    return ((r & 0x04) ? d2.x : 0.0f)
-         + ((r & 0x02) ? d2.y : 0.0f)
-         + ((r & 0x01) ? d2.z : 0.0f);
+    return ((r & 0x04) ? d2.x : 0.0_r)
+         + ((r & 0x02) ? d2.y : 0.0_r)
+         + ((r & 0x01) ? d2.z : 0.0_r);
 }
 
 struct tree_search_info {
@@ -299,7 +299,7 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
             // Pre-computation for distance checking
             
             const rt::vector d = v - root;
-            const unsigned char b = ((d.x >= 0.0f) << 2) + ((d.y >= 0.0f) << 1) + (d.z >= 0.0f);
+            const unsigned char b = ((d.x >= 0.0_r) << 2) + ((d.y >= 0.0_r) << 1) + (d.z >= 0.0_r);
             const rt::vector d2(d.x * d.x, d.y * d.y, d.z * d.z);
 
             for (unsigned char i = region_to_start_from; i < 8; i++) {

@@ -90,7 +90,7 @@ namespace sdl {
             window& operator=(window&&)       = delete;
             window& operator=(const window&)  = delete;
 
-            ~window() {
+            ~window() noexcept {
                 if (win != nullptr)
                     SDL_DestroyWindow(win);
                 win = nullptr;
@@ -137,7 +137,7 @@ namespace sdl {
             renderer& operator=(renderer&&)       = delete;
             renderer& operator=(const renderer&)  = delete;
 
-            ~renderer() {
+            ~renderer() noexcept {
                 if (ren != nullptr)
                     SDL_DestroyRenderer(ren);
                 ren = nullptr;
@@ -189,7 +189,7 @@ namespace sdl {
             surface& operator=(surface&&)       = delete;
             surface& operator=(const surface&)  = delete;
 
-            ~surface() {
+            ~surface() noexcept {
                 if (sur != nullptr)
                     SDL_FreeSurface(sur);
                 sur = nullptr;
@@ -223,7 +223,7 @@ namespace sdl {
             texture& operator=(texture&&)       = delete;
             texture& operator=(const texture&)  = delete;
 
-            ~texture() {
+            ~texture() noexcept {
                 if (txt != nullptr)
                     SDL_DestroyTexture(txt);
                 txt = nullptr;
@@ -298,7 +298,8 @@ namespace sdl {
                 MouseButtonDown = SDL_MOUSEBUTTONDOWN,
                 MouseButtonUp   = SDL_MOUSEBUTTONUP,
                 MouseWheel      = SDL_MOUSEWHEEL,
-                Quit            = SDL_QUIT
+                Quit            = SDL_QUIT,
+                Other           = SDL_FIRSTEVENT
             };
 
             event() {}
@@ -335,20 +336,42 @@ namespace sdl {
             }
 
             type get_type() const {
-                return static_cast<type>(e.type);
+                switch (e.type) {
+                    case SDL_KEYDOWN:
+                    case SDL_KEYUP:
+                    case SDL_MOUSEMOTION:
+                    case SDL_MOUSEBUTTONDOWN:
+                    case SDL_MOUSEBUTTONUP:
+                    case SDL_MOUSEWHEEL:
+                    case SDL_QUIT:
+                        return static_cast<type>(e.type);
+                    default:
+                        return type::Other;
+                }
             }
 
-            enum class key {
+            enum class key : int {
                 Escape          = SDL_SCANCODE_ESCAPE,
                 Space           = SDL_SCANCODE_SPACE,
                 Return          = SDL_SCANCODE_RETURN,
                 KeyPad_Enter    = SDL_SCANCODE_KP_ENTER,
                 B               = SDL_SCANCODE_B,
-                R               = SDL_SCANCODE_R
+                R               = SDL_SCANCODE_R,
+                Other           = SDL_SCANCODE_UNKNOWN
             };
 
-            key get_key() const {
-                return static_cast<key>(e.key.keysym.scancode);
+            key get_key() const noexcept {
+                switch (const SDL_Scancode code = e.key.keysym.scancode) {
+                    case SDL_SCANCODE_ESCAPE:
+                    case SDL_SCANCODE_SPACE:
+                    case SDL_SCANCODE_RETURN:
+                    case SDL_SCANCODE_KP_ENTER:
+                    case SDL_SCANCODE_B:
+                    case SDL_SCANCODE_R:
+                        return static_cast<key>(code);
+                    default:
+                        return key::Other;
+                }
             }
     };
 }

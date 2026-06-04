@@ -30,14 +30,14 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
         See the file structure below.    
     */
 
-    double r = 255.0f, g = 255.0f, b = 255.0f;
-    double smooth = 0.0f;
-    double em_int = 0.0f;
-    double refl = 0.0f;
-    double transp = 0.0f;
-    double scattering = 0.0f;
-    double refr_i = 1.0f;
-    bool refl_color = false;
+    double r = 255.0_r, g = 255.0_r, b = 255.0_r;
+    double smooth       = 0.0_r;
+    double em_int       = 0.0_r;
+    double refl         = 0.0_r;
+    double transp       = 0.0_r;
+    double scattering   = 0.0_r;
+    double refr_i       = 1.0_r;
+    bool refl_color     = false;
 
     /*
     const int ret = fscanf(file, "color:(%lf,%lf,%lf) smoothness:%lf emission:%lf reflectivity:%lf reflects_color:%5s transparency:%lf scattering:%lf refraction_index:%lf)", 
@@ -99,8 +99,8 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
                 printf("Parsing error in parse_material: no parameter should be set in addition to mirror\n");
                 return std::nullopt;
             }
-            smooth = 1.0f;
-            refl = 1.0f;
+            smooth = 1.0_r;
+            refl = 1.0_r;
             break;
         }
         else if (word.starts_with("glass")) {
@@ -108,8 +108,8 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
                 printf("Parsing error in parse_material: no parameter should be set in addition to glass\n");
                 return std::nullopt;
             }
-            smooth = 1.0f;
-            refl = 1.0f;
+            smooth = 1.0_r;
+            refl = 1.0_r;
             transp = 0.95f;
             refr_i = 1.52f;
             break;
@@ -119,9 +119,9 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
                 printf("Parsing error in parse_material: no parameter should be set in addition to water\n");
                 return std::nullopt;
             }
-            smooth = 1.0f;
-            refl = 1.0f;
-            transp = 1.0f;
+            smooth = 1.0_r;
+            refl = 1.0_r;
+            transp = 1.0_r;
             refr_i = 1.33f;
             break;
         }
@@ -289,15 +289,15 @@ std::optional<material> parse_material(FILE* file, const real gamma) {
 
     rt::color mat_color;
     // rt::color em_color;
-    if (gamma != 1.0f) {
-        const real gr = pow(r / 255.0f, gamma) * 255.0f;
-        const real gg = pow(g / 255.0f, gamma) * 255.0f;
-        const real gb = pow(b / 255.0f, gamma) * 255.0f;
+    if (gamma != 1.0_r) {
+        const real gr = pow(r / 255.0_r, gamma) * 255.0_r;
+        const real gg = pow(g / 255.0_r, gamma) * 255.0_r;
+        const real gb = pow(b / 255.0_r, gamma) * 255.0_r;
         mat_color = rt::color(gr, gg, gb);
 
-        // const real ger = pow(er / 255.0f, gamma) * 255.0f;
-        // const real geg = pow(eg / 255.0f, gamma) * 255.0f;
-        // const real geb = pow(eb / 255.0f, gamma) * 255.0f;
+        // const real ger = pow(er / 255.0_r, gamma) * 255.0_r;
+        // const real geg = pow(eg / 255.0_r, gamma) * 255.0_r;
+        // const real geb = pow(eb / 255.0_r, gamma) * 255.0_r;
         // em_color = rt::color(ger, geg, geb);
     }
     else {
@@ -573,7 +573,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
         // Setting up the background texture (also optional)
         char bg_tfile_name[513];
         double rx, ry, rz, inverse_gamma;
-        inverse_gamma = 1.0f;
+        inverse_gamma = 1.0_r;
         ret = fscanf(file, "background_texture %512s rotate_x:%lf rotate_y:%lf rotate_z:%lf gamma:%lf\n", bg_tfile_name, &rx, &ry, &rz, &inverse_gamma);
 
         // Neither background color nor texture
@@ -582,15 +582,15 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 throw std::runtime_error("Parsing error in scene constructor (background)");
             }
         }
-        else if (abs(rx) > 2.0f * PI || abs(ry) > 2.0f * PI || abs(rz) > 2.0f * PI) {
+        else if (abs(rx) > 2.0_r * PI || abs(ry) > 2.0_r * PI || abs(rz) > 2.0_r * PI) {
             throw std::runtime_error("Incorrect background texture angles");
         }
         else {
             std::string bg_tfile_name_short = std::filesystem::path(bg_tfile_name).filename().generic_string();
 
-            if (rx < 0) rx += 2.0f * PI;
-            if (ry < 0) ry += 2.0f * PI;
-            if (rz < 0) rz += 2.0f * PI;
+            if (rx < 0) rx += 2.0_r * PI;
+            if (ry < 0) ry += 2.0_r * PI;
+            if (rz < 0) rz += 2.0_r * PI;
 
             printf("Parsing %s...", bg_tfile_name_short.c_str());
             fflush(stdout);
@@ -1056,7 +1056,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
             std::move(cam),
             width, height,
             polygons_per_bounding,
-            1.0f / inverse_gamma
+            1.0_r / inverse_gamma
         );
     }
     catch (const std::exception& e) {

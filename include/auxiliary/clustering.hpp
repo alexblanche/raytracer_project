@@ -54,6 +54,24 @@ struct element {
          }
       }
    }
+
+   template<ElementContent T>
+   static std::vector<element> get_element(const std::vector<T>& v) {
+      std::vector<element> elts;
+      elts.reserve(v.size());
+      for (T x : v)
+         elts.emplace_back(x);
+      return elts;
+   }
+
+   template<ElementContent T>
+   static std::vector<T> get_content(const std::vector<element>& elts) {
+      std::vector<T> v;
+      v.reserve(elts.size());
+      for (element const& elt : elts)
+         v.push_back(elt.get_content<T>());
+      return v;
+}
 };
 
 /* Auxiliary function to create_bounding_hierarchy

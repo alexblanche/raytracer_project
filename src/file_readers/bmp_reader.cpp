@@ -193,8 +193,8 @@ exit_status write_bmp(const std::string& file_name, const image& image) {
         /** Color data **/
         /* Each pixel is represented as 3 bytes BGR, each line (sequence of 3*width bytes) is followed by p bytes '0' of padding */
         const bool gamma_enabled = image.gamma != 1.0f;
-        const real invN = 1.0f / image.number_of_samples;
-        constexpr real inv255 = 1.0 / 255.0;
+        const real invN = 1.0_r / image.number_of_samples;
+        constexpr real inv255 = 1.0_r / 255.0_r;
     
         for (int j = 0; j < height; j++) {
             const int indexj = height - j - 1;

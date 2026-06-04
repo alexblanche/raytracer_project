@@ -1,7 +1,8 @@
 #include "scene/light_sources/infinite_area.hpp"
 
+#include "auxiliary/custom_stack.hpp"
+
 #include <cmath>
-#include <stack>
 #include <span>
 
 /* Infinite area light sample */
@@ -80,13 +81,13 @@ alias_table::alias_table(const std::vector<real>& prob_table,
     bins.resize(n);
     const real invn = 1.0_r / nb_bins;
     
-    std::stack<alias_bin> under;
-    std::stack<alias_bin> over;
+    custom_stack<alias_bin> under;
+    custom_stack<alias_bin> over;
     
     // Partition the bins into the under and over 1/n
     
     for (int i = 0; real p : prob_table) {
-        std::stack<alias_bin>& stack = (p < invn) ? under : over;
+        auto& stack = (p < invn) ? under : over;
         stack.emplace(p, i);
         i++;
     }
@@ -103,7 +104,7 @@ alias_table::alias_table(const std::vector<real>& prob_table,
         under.pop();
 
         // Substracting the excess probability of o
-        ob.p -= invn * (1.0f - p);
+        ob.p -= invn * (1.0_r - p);
         if (ob.p < invn) {
             // No longer belongs to over
             under.emplace(ob);
@@ -112,15 +113,15 @@ alias_table::alias_table(const std::vector<real>& prob_table,
     }
 
     // Remaining bins should be set to probability 1
-    auto handle_remaining = [] (std::vector<alias_bin>& bins, std::stack<alias_bin>& stack) {
-        while (not stack.empty()) {
-            const unsigned int alias = stack.top().alias;
-            bins[alias] = { 1.0_r, alias };
-            stack.pop();
-        }
+    auto& b = bins;
+    auto handle_remaining = [&b] (custom_stack<alias_bin>& stack) {
+        const auto content = stack.get_content();
+        for (const auto& [ _ , alias] : content)
+            b[alias] = { 1.0_r, alias };
+        stack.set_empty();
     };
-    handle_remaining(bins, under);
-    handle_remaining(bins, over);
+    handle_remaining(under);
+    handle_remaining(over);
 }
 
 /*
@@ -155,10 +156,10 @@ light_map_sample alias_table::get_sample_for_light_map(const randomgen& rg) cons
     const real lr_y = static_cast<real>(s / pt_width);
 
     const unsigned int min_x = static_cast<unsigned int>(ratio_x *  lr_x);
-    const unsigned int max_x = static_cast<unsigned int>(ratio_x * (lr_x + 1.0f));
+    const unsigned int max_x = static_cast<unsigned int>(ratio_x * (lr_x + 1.0_r));
     
     const unsigned int min_y = static_cast<unsigned int>(ratio_y *  lr_y);
-    const unsigned int max_y = static_cast<unsigned int>(ratio_y * (lr_y + 1.0f));
+    const unsigned int max_y = static_cast<unsigned int>(ratio_y * (lr_y + 1.0_r));
 
     const unsigned int x = min_x + rg.random_real(max_x - min_x);
     const unsigned int y = min_y + rg.random_real(max_y - min_y);

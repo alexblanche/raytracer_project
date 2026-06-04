@@ -1,17 +1,16 @@
 #include "auxiliary/clustering.hpp"
+
 #include "auxiliary/octree.hpp"
-
+#include "auxiliary/custom_stack.hpp"
 #include "parallel/parallel.hpp"
-#include <mutex>
 
-#include <vector>
-#include <stack>
+#include <mutex>
 #include <queue>
 
-static constexpr unsigned int MAX_NUMBER_OF_ITERATIONS = 10;
-static constexpr unsigned int MIN_FOR_TREE_SEARCH = 50;
+static constexpr unsigned int MAX_NUMBER_OF_ITERATIONS       = 10;
+static constexpr unsigned int MIN_FOR_TREE_SEARCH            = 50;
 static constexpr unsigned int MIN_NUMBER_OF_POLYGONS_FOR_BOX = 5;
-static constexpr unsigned int CARDINAL_OF_BOX_GROUP = 3;
+static constexpr unsigned int CARDINAL_OF_BOX_GROUP          = 3;
 
 static constexpr bool DISPLAY_KMEANS = false;
 
@@ -227,7 +226,7 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
 
 /* Auxiliary function that fills all empty_clusters */
 static void fill_empty_clusters(std::vector<std::vector<element>>& groups) {
-    std::stack<unsigned int> empty_groups;
+    custom_stack<unsigned int> empty_groups;
     std::queue<unsigned int> non_empty_groups;
     for (unsigned int n = 0; n < groups.size(); n++) {
         if (groups[n].empty()) {
@@ -239,12 +238,11 @@ static void fill_empty_clusters(std::vector<std::vector<element>>& groups) {
     }
 
     while (not empty_groups.empty()) {
-        const unsigned int empty = empty_groups.top();
+        const unsigned int empty     = empty_groups.pop();
         const unsigned int non_empty = non_empty_groups.front();
         
         groups[empty].push_back(groups[non_empty].back());
         groups[non_empty].pop_back();
-        empty_groups.pop();
 
         non_empty_groups.pop();
         if (not groups[non_empty].empty()) {
@@ -267,7 +265,7 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
     for (int i = 0; i < bound; i++) {
         means[i] = obj[static_cast<int>(i * step)].get_position();
     }
-        
+    
     std::vector<std::vector<element>> groups(k);
     assign_to_closest({ obj }, groups, means);
     fill_empty_clusters(groups);
@@ -287,9 +285,9 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
 
         /* Updating the means */
         means.clear();
-        for (std::vector<element> const& elts : groups) {
-            if (not elts.empty()) {
-                means.push_back(compute_centroid(elts));
+        for (std::vector<element> const& group : groups) {
+            if (not group.empty()) {
+                means.push_back(compute_centroid(group));
             }
         }
 
@@ -317,26 +315,6 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
     return groups;
 }
 
-/** Auxiliary conversion functions **/
-
-template<ElementContent T>
-static std::vector<element> get_element_vector(const std::vector<T>& v) {
-    std::vector<element> elts;
-    elts.reserve(v.size());
-    for (T x : v)
-        elts.emplace_back(x);
-    return elts;
-}
-
-template<ElementContent T>
-static std::vector<T> get_vector(const std::vector<element>& elts) {
-    std::vector<T> v;
-    v.reserve(elts.size());
-    for (element const& elt : elts)
-        v.push_back(elt.get_content<T>());
-    return v;
-}
-
 /* Auxiliary function to create_bounding_hierarchy
    Performs the second step of the algorithm: creates the hierarchy of the terminal boundings */
 const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& term_nodes) {
@@ -348,7 +326,7 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
         return containing_bounding_any(std::move(term_nodes));
     }
 
-    std::vector<element> nodes = get_element_vector(term_nodes);
+    std::vector<element> nodes = element::get_element(term_nodes);
 
     while (nodes.size() > CARDINAL_OF_BOX_GROUP) {
 
@@ -362,7 +340,7 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
         for (std::vector<element> const& elts : groups) {
             
             if (not elts.empty()) {
-                new_bd_nodes.push_back(containing_bounding_any(get_vector<const bounding*>(elts)));
+                new_bd_nodes.push_back(containing_bounding_any(element::get_content<const bounding*>(elts)));
                 cpt ++;
             }
         }
@@ -371,13 +349,13 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
         }
 
         nodes.clear();
-        nodes = get_element_vector(new_bd_nodes);
+        nodes = element::get_element(new_bd_nodes);
     }
 
     if (nodes.size() == 1)
         return nodes[0].get_bounding();
     else
-        return containing_bounding_any(get_vector<const bounding*>(nodes));
+        return containing_bounding_any(element::get_content<const bounding*>(nodes));
 }
 
 
@@ -415,7 +393,7 @@ const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
 
     /* Splitting the objects into groups of polygons_per_bounding polygons (on average) */
     const unsigned int k = 1 + content.size() / polygons_per_bounding;
-    const std::vector<std::vector<element>> groups = k_means(get_element_vector(content), k);
+    const std::vector<std::vector<element>> groups = k_means(element::get_element(content), k);
 
     /** Creating the hierarchy **/
 
@@ -423,10 +401,11 @@ const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
 
     /* Creating terminal nodes */
     std::vector<const bounding*> term_nodes;
-    for (unsigned int i = 0; i < k; i++) {
-        if (not groups[i].empty()) {
-            term_nodes.push_back(containing_objects(get_vector<const object*>(groups[i])));
-            cpt ++;
+    for (const std::vector<element>& group : groups) {
+        if (not group.empty()) {
+            const bounding* bd = containing_objects(element::get_content<const object*>(group));
+            term_nodes.push_back(bd);
+            cpt++;
         }
     }
     if constexpr (DISPLAY_KMEANS) {
@@ -445,7 +424,7 @@ void display_hierarchy_properties(const bounding* bd0) {
     printf("============================= HIERARCHY STATISTICS =============================\n");
 
     unsigned int level = 0;
-    std::stack<const bounding*> bds;
+    custom_stack<const bounding*> bds;
     bds.push(bd0);
 
     while (not bds.empty()) {
@@ -457,24 +436,26 @@ void display_hierarchy_properties(const bounding* bd0) {
         unsigned int min = -1;
         unsigned int max = 0;
         unsigned int total = 0;
-        const unsigned int number_of_nodes = bds.size();
-        std::stack<const bounding*> next_bds;
-        while(not bds.empty()) {
-            const bounding* bd = bds.top();
-            bds.pop();
+        const unsigned int number_of_nodes = bds.get_size();
+        
+        static custom_stack<const bounding*> next_bds;
+        next_bds.set_empty();
+
+        while (not bds.empty()) {
+            const bounding* bd = bds.pop();
             unsigned int arity;
             if (bd->is_terminal_bd()) {
                 terminal_nodes ++;
                 arity = bd->get_content().size();
             }
             else {
-                const std::vector<const bounding*>& bds = bd->get_children();
-                arity = bds.size();
-                for (const bounding* b : bds)
+                const std::vector<const bounding*>& children = bd->get_children();
+                arity = children.size();
+                for (const bounding* b : children)
                     next_bds.push(b);
             }
-            if (arity > max) { max = arity; }
-            if (arity < min) { min = arity; }
+            if      (arity > max) { max = arity; }
+            else if (arity < min) { min = arity; }
             total += arity;
         }
 
@@ -501,12 +482,9 @@ void display_hierarchy_properties(const bounding* bd0) {
             }
         }
         
-        // bds = next_bds;
-        while (not next_bds.empty()) {
-            bds.push(next_bds.top());
-            next_bds.pop();
-        }
-
+        bds.push(next_bds.get_content());
+        next_bds.set_empty();
+        
         level++;
     }
     printf("===============================================================================\n");

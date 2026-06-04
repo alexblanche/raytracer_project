@@ -24,7 +24,7 @@ namespace rt {
 	screen::screen(image& image, tone_mapping_parameters::mode mode)
 		: screen(image.data, mode, image.gamma) {}
 
-	screen::~screen() {
+	screen::~screen() noexcept {
 		sdl::quit();
 	}
 
@@ -185,7 +185,7 @@ namespace rt {
 	/* Copy matrix to the screen with gamma correction */
 	void screen::fast_copy_gamma(const unsigned int number_of_rays) const {
 
-		const real invN = 1.0 / number_of_rays;
+		const real invN = 1.0_r / static_cast<real>(number_of_rays);
 		constexpr real inv255 = 1.0_r / 255.0_r;
 		const real inv = inv255 * invN;
 
@@ -215,7 +215,7 @@ namespace rt {
 	/* Copy matrix to the screen with gamma correction and extended Reinhardt local tone mapping */
 	void screen::fast_copy_reinhardt(const unsigned int number_of_rays) const {
 
-		const real invN = 1.0 / number_of_rays;
+		const real invN = 1.0_r / static_cast<real>(number_of_rays);
 
 		// Computation of the maximum luminance
 		real max_luminance = 0.0_r;

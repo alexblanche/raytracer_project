@@ -44,12 +44,12 @@ int main() {
     // }
 
     const rt::screen test_scr(lrdata);
-    constexpr rt::color color_one(1.0f, 1.0f, 1.0f);
+    constexpr rt::color color_one(1, 1, 1);
 
     while (true) {
         for (int i = 0; i < 1000000; i++) {
             const unsigned int s = alt.sample(rand);
-            rt::color& px = lrdata[s % dwidth][s / dheight];
+            rt::color& px = lrdata.data[s % dwidth][s / dheight];
             px += color_one;
         }
         test_scr.fast_copy(1);
