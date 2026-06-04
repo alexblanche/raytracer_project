@@ -2,6 +2,8 @@
 #include "scene/light_sources/infinite_area.hpp"
 #include "screen/screen.hpp"
 
+#include <cassert>
+
 // printf("real : %llu, color : %llu, vector : %llu\n", sizeof(real), sizeof(rt::color), sizeof(rt::vector));
 // printf("real : %llu\n", sizeof(real));
 // printf("size_t : %llu ; unsigned int : %llu\n", sizeof(size_t), sizeof(unsigned int));
@@ -18,8 +20,9 @@
 ///// Testing low res infinite area
 int main() {
 
-    const char* file_name = //"../../../raytracer_project/sky/dome/garden_8k.hdr";
-        "../../../assets/sundowner_overlook.hdr";
+    const std::string file_name =
+        //  "../../../raytracer_project/sky/dome/garden_8k.hdr";
+            "../../../assets/sundowner_overlook.hdr";
 
     const std::optional<matrix> mat_opt = read_hdr(file_name);
     if (not mat_opt.has_value())
@@ -47,9 +50,9 @@ int main() {
     constexpr rt::color color_one(1, 1, 1);
 
     while (true) {
-        for (int i = 0; i < 1000000; i++) {
+        for (int i = 0; i < 100000; i++) {
             const unsigned int s = alt.sample(rand);
-            rt::color& px = lrdata.data[s % dwidth][s / dheight];
+            rt::color& px = lrdata.data[s % dwidth][s / dwidth];
             px += color_one;
         }
         test_scr.fast_copy(1);

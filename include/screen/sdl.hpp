@@ -34,7 +34,7 @@ namespace sdl {
         SDL_Quit();
     }
 
-    enum class cursor_option {
+    enum class cursor_option : int {
         Disable = SDL_DISABLE,
         Enable  = SDL_ENABLE
     };

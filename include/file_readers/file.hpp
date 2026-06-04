@@ -286,9 +286,9 @@ class file {
             return exit_status_of(fprintf(f, "%s", s.c_str()));
         }
 
-        template<typename T, Convertible<T>... Args>
-        exit_status write(const Args... x) const {
-            constexpr size_t extent = sizeof...(Args);
+        template<typename T, Convertible<T>... Ti>
+        exit_status write(const Ti... x) const {
+            constexpr size_t extent = sizeof...(Ti);
             const std::array<T, extent> t = { static_cast<T>(x)... };
             return write(std::span<const T, extent>(t));
         }

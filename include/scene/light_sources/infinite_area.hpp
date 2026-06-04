@@ -41,7 +41,7 @@ struct alias_table {
 
     inline unsigned int sample(const randomgen& rg) const {
         const unsigned int i = rg.random_real(nb_bins);
-        const auto [ p, alias ] = bins[i];
+        const auto& [ p, alias ] = bins[i];
         return (rg.random_ratio() < p) ? i : alias;
     }
 
