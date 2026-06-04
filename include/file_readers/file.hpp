@@ -100,16 +100,17 @@ class file {
             }
         }
 
-        void close() {
-            fclose(f);
+        void close() noexcept {
+            if (f != nullptr)
+                fclose(f);
             f = nullptr;
         }
 
-        ~file() {
+        ~file() noexcept {
             close();
         }
 
-        size_t position() const {
+        [[nodiscard]] size_t position() const {
             return ftell(f);
         }
 
@@ -121,7 +122,7 @@ class file {
             seek(0);
         }
 
-        size_t length() const {
+        [[nodiscard]] size_t length() const {
             const size_t pos = position();
             fseek(f, 0, SEEK_END); // go to end of file
             const size_t length = position();
@@ -129,7 +130,7 @@ class file {
             return length;
         }
 
-        bool eof() const {
+        [[nodiscard]] bool eof() const {
             return feof(f);
         }
 
@@ -153,7 +154,7 @@ class file {
 
 
         // Returns a string of length at most max_length (plus the '\0' terminating-character)
-        std::string read_string(unsigned int max_length = MAX_STRING_LENGTH) const {
+        [[nodiscard]] std::string read_string(unsigned int max_length = MAX_STRING_LENGTH) const {
             if (max_length > MAX_STRING_LENGTH) {
                 std::printf("Error: read_string can read a string of length at most %d\n", MAX_STRING_LENGTH);
                 throw std::runtime_error("");
@@ -230,27 +231,28 @@ class file {
             return optional_of<T>(status, std::move(x));
         }
 
-        std::string extract_from() const {
+        [[nodiscard]] std::vector<unsigned char> extract_from() const {
             const size_t pos = position();
             const size_t len = length() - pos;
-            std::string s(len + 1, '\0');
-            read<char>(s);
-            return s;
+            std::vector<unsigned char> content(len + 1);
+            read<unsigned char>(content);
+            content[len] = '\0';
+            return content;
         }
 
-        std::string extract() const {
+        [[nodiscard]] std::vector<unsigned char> extract() const {
             rewind();
             return extract_from();
         }
 
         void cat() const {
-            const std::string content = extract();
-            std::printf("%s", content.c_str());
+            const std::vector<unsigned char> content = extract();
+            std::printf("%s", content.data());
         }
 
         void cat_from() const {
-            const std::string content = extract_from();
-            std::printf("%s", content.c_str());
+            const std::vector<unsigned char> content = extract_from();
+            std::printf("%s", content.data());
         }
 
         template<class T>

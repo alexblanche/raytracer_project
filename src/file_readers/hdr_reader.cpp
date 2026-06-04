@@ -46,19 +46,28 @@ std::optional<matrix> read_hdr(const std::string& file_name) {
         std::array<std::vector<unsigned char>, 4> data_buffer;
         for (std::vector<unsigned char>& v : data_buffer)
             v.resize(width * height);
+
+        const std::vector<unsigned char> content = f.extract_from();
+        const size_t length = f.length();
+        if (length > INT32_MAX) {
+            throw std::runtime_error("read_hdr: file too large");
+        }
+        f.close();
+        int pos = 0;
             
         // https://www.flipcode.com/archives/HDR_Image_Reader.shtml
+
+        // 4 chars: 2, 2, (width & 0xFF00), (width & 0x00FF) in order
+        const uint32_t expected_row_header = ((width & 0x00FF) << 24) | (((width & 0xFF00) | 2) << 8) | 2;
 
         for (unsigned int j = 0; j < height; j++) {
             const unsigned int indexj = j * width;
 
-            const auto [ b1, b2, width1, width2 ] = f.scan<unsigned char, 4>();
-
-            if (b1 != 2 || b2 != 2)
-                throw std::runtime_error("Reading error in read_hdr: bytes '2' at beginning of row");
-
-            if (static_cast<unsigned int>((width1 << 8) | width2) != width)
-                throw std::runtime_error("Reading error in read_hdr: width at beginning of row");
+            const uint32_t header = *reinterpret_cast<const uint32_t*>(content.data() + pos);
+            if (header != expected_row_header) [[unlikely]] {
+                throw std::runtime_error("Reading error in read_hdr: bytes '2' or width at beginning of row");
+            }
+            pos++;
             
             for (int component = 0; component < 4; component++) {
 
@@ -67,24 +76,23 @@ std::optional<matrix> read_hdr(const std::string& file_name) {
                 
                 for (unsigned int i = 0; i < width; ) {
                     
-                    const unsigned char byte = f.getc();
+                    const unsigned char byte = content[pos++];
                     unsigned int count;
                     if (byte > 0x80) {
                         // Run
                         count = byte & 0x7F;
-                        std::memset(buffer_j + i, f.getc(), count);
+                        std::memset(buffer_j + i, content[pos++], count);
                     }
                     else  {
                         // Consecutive distinct bytes
                         count = byte;
-                        f.read<unsigned char>({ buffer_j + i, count });
+                        std::memcpy(buffer_j + i, content.data() + pos, count);
+                        pos += count;
                     }
                     i += count;
                 }
             }
         }
-
-        f.close();
 
         matrix data(width, height);
 
