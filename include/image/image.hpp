@@ -24,6 +24,14 @@ class image {
             return data.height;
         }
 
+        const rt::color& operator[](int col, int row) const {
+            return data[col, row];
+        }
+
+        rt::color& operator[](int col, int row) {
+            return data[col, row];
+        }
+
         void increase_sample_count(int nb_samples = 1) {
             number_of_samples += nb_samples;
         }

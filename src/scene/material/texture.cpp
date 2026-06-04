@@ -1,4 +1,5 @@
 #include "scene/material/texture.hpp"
+
 #include "file_readers/bmp_reader.hpp"
 #include "file_readers/hdr_reader.hpp"
 
@@ -46,7 +47,10 @@ const rt::color& texture::get_color(const real u, const real v) const {
     // Due to floating-point imprecision, some "unit" vector have a norm slightly larger than 1,
     // producing out of range coordinates
     return (x < 0 || x >= data.width || y < 0 || y >= data.height) ?
-        data.data[std::min(data.width - 1, std::max(0, x))][std::min(data.height - 1, std::max(0, y))]
+        data[
+            std::min(data.width - 1,  std::max(0, x)),
+            std::min(data.height - 1, std::max(0, y))
+        ]
         :
-        data.data[x][y];
+        data[x, y];
 }

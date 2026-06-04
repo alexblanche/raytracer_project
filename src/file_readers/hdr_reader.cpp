@@ -89,7 +89,7 @@ std::optional<matrix> read_hdr(const std::string& file_name) {
         matrix data(width, height);
 
         parallel_for(width, [&] (int i) {
-            std::vector<rt::color>& data_line = data.data[i];
+            const std::span data_line = data[i];
             for (unsigned int index = i; rt::color& color : data_line) {
                 color = rt::color(
                     data_buffer[0][index],

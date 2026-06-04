@@ -7,13 +7,13 @@
 
 /* Infinite area light sample */
 
-std::vector<real> alias_table::compute_low_res_table(const std::vector<std::vector<rt::color>>& matrix) {
+std::vector<real> alias_table::compute_low_res_table(const matrix& matrix) {
 
-    const int width  = std::min(LOWRES_DEFAULT_WIDTH,  static_cast<unsigned int>(matrix.size()));
-    const int height = std::min(LOWRES_DEFAULT_HEIGHT, static_cast<unsigned int>(matrix[0].size()));
+    const int width  = std::min(LOWRES_DEFAULT_WIDTH,  static_cast<unsigned int>(matrix.width));
+    const int height = std::min(LOWRES_DEFAULT_HEIGHT, static_cast<unsigned int>(matrix.height));
 
-    const real ratio_x = static_cast<real>(matrix.size())    / LOWRES_DEFAULT_WIDTH;
-    const real ratio_y = static_cast<real>(matrix[0].size()) / LOWRES_DEFAULT_HEIGHT;
+    const real ratio_x = static_cast<real>(matrix.width)  / LOWRES_DEFAULT_WIDTH;
+    const real ratio_y = static_cast<real>(matrix.height) / LOWRES_DEFAULT_HEIGHT;
     const real r = PI / static_cast<real>(height);
 
     const int table_size = width * height;
@@ -123,6 +123,12 @@ alias_table::alias_table(const std::vector<real>& prob_table,
     handle_remaining(under);
     handle_remaining(over);
 }
+
+alias_table::alias_table(const matrix& matrix,
+    const unsigned int pt_width,
+    const unsigned int pt_height)
+
+    : alias_table(alias_table::compute_low_res_table(matrix), matrix.width, matrix.height, pt_width, pt_height) {}
 
 /*
     Examples

@@ -3,9 +3,7 @@
 #include "light/vector.hpp"
 #include "image/matrix.hpp"
 
-#include <iostream>
 #include <string>
-#include <vector>
 
 
 /* Class representing texture data

@@ -33,7 +33,7 @@ exit_status export_raw(const std::string& file_name, const image& image) {
 
         for (int j = 0; j < height; j++) {
             for (int i = 0; i < width; i++) {
-                const rt::color& c = image.data.data[i][j];
+                const rt::color& c = image[i, j];
                 f.printf("%lf %lf %lf\n", c.get_red(), c.get_green(), c.get_blue());
             }
         }
@@ -66,7 +66,7 @@ std::optional<image> read_raw(const std::string& file_name) {
         for (unsigned int j = 0; j < height; j++) {
             for (unsigned int i = 0; i < width; i++) {
                 const auto [ r, g, b ] = f.scan<real, 3>();
-                image.data.data[i][j] = rt::color(r, g, b);
+                image[i, j] = rt::color(r, g, b);
             }
         }
 
@@ -124,7 +124,7 @@ exit_status combine_raw(const std::string& dest_bmp_name, const std::string& des
         for (unsigned int j = 0; j < height; j++) {
             for (unsigned int i = 0; i < width; i++) {
                 const auto [ r, g, b ] = f.scan<real, 3>();
-                image.data.data[i][j] += rt::color(r, g, b);
+                image[i, j] += rt::color(r, g, b);
             }
         }
     }

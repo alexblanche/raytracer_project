@@ -57,7 +57,7 @@ std::optional<matrix> read_bmp(const std::string& file_name) {
                 const real b = buffer[index];
                 const real g = buffer[index + 1];
                 const real r = buffer[index + 2];
-                matrix.data[i][indexj] = rt::color(r, g, b);
+                matrix[i, indexj] = rt::color(r, g, b);
                 index += 3;
             }
             index += p;
@@ -199,7 +199,7 @@ exit_status write_bmp(const std::string& file_name, const image& image) {
         for (int j = 0; j < height; j++) {
             const int indexj = height - j - 1;
             for (int i = 0; i < width; i++) {
-                const rt::color& c = image.data.data[i][indexj];
+                const rt::color& c = image[i, indexj];
                 
                 rt::color col = c * invN;
                 col.in_place_max_out();

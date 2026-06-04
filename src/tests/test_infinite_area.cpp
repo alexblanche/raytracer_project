@@ -28,13 +28,13 @@ int main() {
     if (not mat_opt.has_value())
         return EXIT_FAILURE;
 
-    const matrix& mat = mat_opt.value();
-    const std::vector<real> lrt = alias_table::compute_low_res_table(mat.data);
     const unsigned int dwidth  = LOWRES_DEFAULT_WIDTH;
     const unsigned int dheight = LOWRES_DEFAULT_HEIGHT;
     matrix lrdata(dwidth, dheight);
 
-    alias_table alt(lrt, mat.width, mat.height, dwidth, dheight);
+    const matrix& mat = mat_opt.value();
+    const alias_table alt(mat, dwidth, dheight);
+
     const randomgen rand;
     // std::vector<unsigned int> samples(1000);
     // for (unsigned int i = 0; i < samples.size(); i++) {
@@ -52,7 +52,7 @@ int main() {
     while (true) {
         for (int i = 0; i < 100000; i++) {
             const unsigned int s = alt.sample(rand);
-            rt::color& px = lrdata.data[s % dwidth][s / dwidth];
+            rt::color& px = lrdata[s % dwidth, s / dwidth];
             px += color_one;
         }
         test_scr.fast_copy(1);

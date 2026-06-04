@@ -9,6 +9,7 @@
 #include "legacy/raytracing/tracing.hpp"
 
 #include "parallel/parallel.hpp"
+#include "image/matrix.hpp"
 
 #include <iostream>
 #include <vector>
@@ -27,27 +28,27 @@ long int get_time () {
 
 /* Sequential version */
 
-void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
-    const int width, const int height, const real dist,
+void render_loop_seq(matrix& matrix, const real dist,
     const rt::vector& screen_center, const std::vector<const object*>& obj_set, const std::vector<source>& light_set,
     long int& time) {
 
     const long int init_time = get_time();
     constexpr rt::vector zero;
     
-    for (int i = 0; i < width; i++) {
+    for (int i = 0; i < matrix.width; i++) {
         
-        std::vector<rt::color>& output = matrix[i];
+        const std::span output = matrix[i];
         const real direct_x = i - screen_center.x;
         rt::vector direct(direct_x, 0, dist);
         const real norm_xz_sq = direct.normsq();
 
-        for (int j = 0; j < height; j++) {
+        for (int j = 0; rt::color& col : output) {
 
             direct.y = j - screen_center.y;
             const real norm = std::sqrt(std::fma(direct.y, direct.y, norm_xz_sq));
             ray r(zero, direct / norm);
-            output[j] = raytrace(r, obj_set, light_set);
+            col = raytrace(r, obj_set, light_set);
+            j++;
         }
     }
 
@@ -55,33 +56,32 @@ void render_loop_seq(std::vector<std::vector<rt::color>>& matrix,
     const long int time_elapsed = curr_time - init_time;
     time += time_elapsed;
     // printf("Seq: %ld ms\n", time_elapsed);
-    // fflush(stdout);
 }
 
 
 /* Parallel version */
 
-void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
-    const int width, const int height, const real dist,
+void render_loop_parallel(matrix& matrix, const real dist,
     const rt::vector& screen_center, const std::vector<const object*>& obj_set, const std::vector<source>& light_set,
     long int& time) {
     
     const long int init_time = get_time();
     constexpr rt::vector zero;
 
-    parallel_for(width, [&] (int i) {
+    parallel_for(matrix.width, [&] (int i) {
 
-        std::vector<rt::color>& output = matrix[i];
+        const std::span output = matrix[i];
         const real direct_x = i - screen_center.x;
         rt::vector direct(direct_x, 0, dist);
         const real norm_xz_sq = direct.normsq();
 
-        for (int j = 0; j < height; j++) {
+        for (int j = 0; rt::color& col : output) {
 
             direct.y = j - screen_center.y;
-            const real norm = std::sqrt(std::fma(direct.y, direct.y, norm_xz_sq));
+            const real norm = sqrt(std::fma(direct.y, direct.y, norm_xz_sq));
             ray r(zero, direct / norm);
-            output[j] = raytrace(r, obj_set, light_set);
+            col = raytrace(r, obj_set, light_set);
+            j++;
         }
 
     });
@@ -90,7 +90,6 @@ void render_loop_parallel(std::vector<std::vector<rt::color>>& matrix,
     const long int time_elapsed = curr_time - init_time;
     time += time_elapsed;
     // printf("Parallel: %ld ms\n", time_elapsed);
-    // fflush(stdout);
 }
 
 
@@ -151,7 +150,7 @@ int main(int, char **) {
     // Screen
     constexpr int width  = 1920;
     constexpr int height = 1080;
-    constexpr real dist  = 400; // Distance between the camera and the image
+    constexpr real dist  = 400_r; // Distance between the camera and the image
 
     // The camera is supposed to be on the origin of the space: (0,0,0)
     
@@ -170,34 +169,34 @@ int main(int, char **) {
     long int total_time = 0;
 
     /* Sequential */
-    render_loop_seq(matrix.data, width, height, dist, screen_center, obj_set, light_set, total_time);
+    render_loop_seq(matrix, dist, screen_center, obj_set, light_set, total_time);
     scr.fast_copy(1);
     scr.update_from_texture();
     total_time = 0;
     const long int seq_time_init = get_time();
     for (size_t i = 0; i < number_of_renders; i++) {
-        render_loop_seq(matrix.data, width, height, dist, screen_center, obj_set, light_set, total_time);
+        render_loop_seq(matrix, dist, screen_center, obj_set, light_set, total_time);
         scr.fast_copy(1);
         scr.update_from_texture();
     }
     const long int seq_curr_time = get_time();
     printf("Total Seq time: %ld ms\n", seq_curr_time - seq_time_init);
-    printf("Average time: %d ms\n", (int) ((double) total_time / number_of_renders));
+    printf("Average time: %d ms\n", static_cast<int>(static_cast<double>(total_time) / number_of_renders));
 
     /* Parallel */
     const long int par_time_init = get_time();
-    render_loop_parallel(matrix.data, width, height, dist, screen_center, obj_set, light_set, total_time);
+    render_loop_parallel(matrix, dist, screen_center, obj_set, light_set, total_time);
     scr.fast_copy(1);
     scr.update_from_texture();
     total_time = 0;
     for (size_t i = 0; i < number_of_renders; i++) {
-        render_loop_parallel(matrix.data, width, height, dist, screen_center, obj_set, light_set, total_time);
+        render_loop_parallel(matrix, dist, screen_center, obj_set, light_set, total_time);
         scr.fast_copy(1);
         scr.update_from_texture();
     }
     const long int par_curr_time = get_time();
     printf("Total Parallel time: %ld ms\n", par_curr_time - par_time_init);
-    printf("Average time: %d ms\n", (int) ((double) total_time / number_of_renders));
+    printf("Average time: %d ms\n", static_cast<int>(static_cast<double>(total_time) / number_of_renders));
     
     scr.fast_copy(1);
     scr.update_from_texture();

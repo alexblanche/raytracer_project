@@ -2,6 +2,7 @@
 
 #include "screen/color.hpp"
 #include "auxiliary/randomgen.hpp"
+#include "image/matrix.hpp"
 
 #include <vector>
 
@@ -28,7 +29,7 @@ struct alias_table {
     real ratio_x;
     real ratio_y;
     
-    static std::vector<real> compute_low_res_table(const std::vector<std::vector<rt::color>>& matrix);
+    static std::vector<real> compute_low_res_table(const matrix& matrix);
 
     // Constructs an alias table from a probability table
     // The width and height of the original light map and of the low res image are stored inside the alias table
@@ -38,6 +39,10 @@ struct alias_table {
         const unsigned int pt_width,
         const unsigned int pt_height
     );
+
+    alias_table(const matrix& matrix,
+        const unsigned int pt_width,
+        const unsigned int pt_height);
 
     inline unsigned int sample(const randomgen& rg) const {
         const unsigned int i = rg.random_real(nb_bins);

@@ -11,6 +11,7 @@ struct dimensions {
 };
 
 class matrix {
+
     public:
         std::vector<std::vector<rt::color>> data;
         int width;
@@ -45,6 +46,22 @@ class matrix {
 
         std::span<const rt::color> operator[](int i) const {
             return column(i);
+        }
+
+        const rt::color& get(int col, int row) const {
+            return data[col][row];
+        }
+
+        rt::color& get(int col, int row) {
+            return data[col][row];
+        }
+
+        const rt::color& operator[](int col, int row) const {
+            return get(col, row);
+        }
+
+        rt::color& operator[](int col, int row) {
+            return get(col, row);
         }
 
         void apply_gamma(real gamma);
