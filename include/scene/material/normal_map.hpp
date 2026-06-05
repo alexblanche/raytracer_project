@@ -39,8 +39,8 @@ class normal_map {
             // Due to floating-point imprecision, some "unit" vector have a norm slightly larger than 1,
             // producing out of range coordinates
             return (x < 0 || x >= width || y < 0 || y >= height) ?
-                data[std::min(width - 1, std::max(0, x))][std::min(height - 1, std::max(0, y))]
+                data[std::min(height - 1, std::max(0, y))][std::min(width - 1, std::max(0, x))]
                 :
-                data[x][y];
+                data[y][x];
         }
 };

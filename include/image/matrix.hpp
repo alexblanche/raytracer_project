@@ -18,14 +18,14 @@ class matrix {
         using row = std::span<rt::color>;
         using const_row = std::span<const rt::color>;
 
-        std::vector<std::vector<rt::color>> data;
+        std::vector<rt::color> data;
         int width;
         int height;
 
         matrix() {}
 
         matrix(int width, int height) 
-            : data(height, std::vector<rt::color>(width)),
+            : data(height * width),
               width(width), height(height) {}
 
         matrix(matrix&&)                 = default;
@@ -38,11 +38,11 @@ class matrix {
         }
 
         matrix::row get_row(int j) {
-            return data[j];
+            return std::span<rt::color>(&data[j * width], width);
         }
 
         matrix::const_row get_row(int j) const {
-            return data[j];
+            return std::span<const rt::color>(&data[j * width], width);
         }
 
         matrix::row operator[](int j) {
@@ -54,11 +54,11 @@ class matrix {
         }
 
         const rt::color& get(int row, int col) const {
-            return data[row][col];
+            return data[row * width + col];
         }
 
         rt::color& get(int row, int col) {
-            return data[row][col];
+            return data[row * width + col];
         }
 
         const rt::color& operator[](int row, int col) const {

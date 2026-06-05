@@ -197,7 +197,7 @@ namespace rt {
 		const unsigned int shift = 2 * row_size + padding;
 		
 		int index = (height - 1) * (row_size + padding);
-		for (const matrix::const_row row : mat.data) {
+		for (const matrix::const_row row : mat) {
             for (const color& pixel_col : row) {
 
 				color corrected = pixel_col * inv;
@@ -220,8 +220,8 @@ namespace rt {
 
 		// Computation of the maximum luminance
 		real max_luminance = 0.0_r;
-		for (const std::vector<color>& line : mat.data) {
-			for (const rt::color& col : line) {
+		for (const matrix::const_row row : mat) {
+			for (const rt::color& col : row) {
 				const real luminance = (0.2126_r * col.get_red() + 0.7152_r * col.get_green() + 0.0722_r * col.get_blue()) * invN;
 				if (luminance > max_luminance)
 					max_luminance = luminance;
@@ -243,7 +243,7 @@ namespace rt {
 		
 		int index = (height - 1) * (row_size + padding);
 
-		for (const matrix::row row : mat.data) {
+		for (const matrix::row row : mat) {
             for (const color& col : row) {
 
 				const real lr = col.get_red();
