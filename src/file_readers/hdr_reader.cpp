@@ -96,9 +96,10 @@ std::optional<matrix> read_hdr(const std::string& file_name) {
 
         matrix data(width, height);
 
-        parallel_for(width, [&] (int i) {
-            const std::span data_line = data[i];
-            for (unsigned int index = i; rt::color& color : data_line) {
+        parallel_for(height, [&] (int j) {
+            int index = (height - 1 - j) * width;
+            const matrix::row row = data[j];
+            for (rt::color& color : row) {
                 color = rt::color(
                     data_buffer[0][index],
                     data_buffer[1][index],
@@ -107,7 +108,7 @@ std::optional<matrix> read_hdr(const std::string& file_name) {
                 const int e =  data_buffer[3][index];
                 const real radiance_val = pow(2.0_r, e - 128);
                 color *= radiance_val;
-                index += width;
+                index ++;
             }
         });
 

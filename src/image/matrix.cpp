@@ -4,12 +4,12 @@
 
 void matrix::apply_gamma(real gamma) {
 
-    parallel_for(width, [&] (int i) {
+    parallel_for(height, [&] (int j) {
 
-        for (rt::color& col : data[i]) {
-            col *= static_cast<real>(1.0f / 255.0f);
-            col ^= gamma;
-            col *= static_cast<real>(255.0f);
+        for (rt::color& color : data[j]) {
+            color *= 1.0_r / 255.0_r;
+            color ^= gamma;
+            color *= 255.0_r;
         }
     });
 }

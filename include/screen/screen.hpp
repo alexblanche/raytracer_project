@@ -19,7 +19,7 @@ namespace rt {
 			sdl::texture	texture;
 		
 			matrix& mat;
-			int width;
+			[[maybe_unused]] int width;
 			[[maybe_unused]] int height;
 			tone_mapping_parameters::mode tone_mapping_mode;
 			float gamma;

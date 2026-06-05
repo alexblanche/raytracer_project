@@ -31,9 +31,8 @@ exit_status export_raw(const std::string& file_name, const image& image) {
             throw std::runtime_error("");
         }
 
-        for (int j = 0; j < height; j++) {
-            for (int i = 0; i < width; i++) {
-                const rt::color& c = image[i, j];
+        for (const matrix::const_row row : image.data) {
+            for (const rt::color& c : row) {
                 f.printf("%lf %lf %lf\n", c.get_red(), c.get_green(), c.get_blue());
             }
         }
@@ -63,10 +62,10 @@ std::optional<image> read_raw(const std::string& file_name) {
 
         image image(width, height);
         
-        for (unsigned int j = 0; j < height; j++) {
-            for (unsigned int i = 0; i < width; i++) {
+        for (const matrix::row row : image.data) {
+            for (rt::color& c : row) {
                 const auto [ r, g, b ] = f.scan<real, 3>();
-                image[i, j] = rt::color(r, g, b);
+                c = rt::color(r, g, b);
             }
         }
 
@@ -121,10 +120,10 @@ exit_status combine_raw(const std::string& dest_bmp_name, const std::string& des
 
         image.increase_sample_count(number_of_rays_k);
 
-        for (unsigned int j = 0; j < height; j++) {
-            for (unsigned int i = 0; i < width; i++) {
+        for (const matrix::row row : image.data) {
+            for (rt::color& color : row) {
                 const auto [ r, g, b ] = f.scan<real, 3>();
-                image[i, j] += rt::color(r, g, b);
+                color += rt::color(r, g, b);
             }
         }
     }

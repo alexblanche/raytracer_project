@@ -52,7 +52,7 @@ int main() {
     while (true) {
         for (int i = 0; i < 100000; i++) {
             const unsigned int s = alt.sample(rand);
-            rt::color& px = lrdata[s % dwidth, s / dwidth];
+            rt::color& px = lrdata[s / dwidth, s % dwidth];
             px += color_one;
         }
         test_scr.fast_copy(1);

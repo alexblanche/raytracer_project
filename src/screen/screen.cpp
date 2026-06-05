@@ -165,20 +165,20 @@ namespace rt {
 		const auto [ texture_pixels, texture_pitch ] = lock.info;
 		
 		const unsigned int padding = texture_pitch % 3;
-		const unsigned int shift = 3 * width + padding;
-
-		for (int i = 0; std::vector<color>& line : mat.data) {
-
-            for (int index = 3 * i; const color& pixel_col : line) {
-
+		const unsigned int row_size = 3 * width;
+		const unsigned int shift = 2 * row_size + padding;
+		
+		int index = (height - 1) * (row_size + padding);
+		for (const matrix::const_row row : mat) {
+            for (const color& pixel_col : row) {
 				color avg = pixel_col * invN;
 				avg.in_place_max_out();
 				texture_pixels[index] 	  = static_cast<Uint8>(avg.get_red());
 				texture_pixels[index + 1] = static_cast<Uint8>(avg.get_green());
 				texture_pixels[index + 2] = static_cast<Uint8>(avg.get_blue());
-				index += shift;
+				index += 3;
             }
-			i++;
+			index -= shift;
         }
 	}
 
@@ -193,11 +193,12 @@ namespace rt {
 		const auto [ texture_pixels, texture_pitch ] = lock.info;
 
 		const unsigned int padding = texture_pitch % 3;
-		const unsigned int shift = 3 * width + padding;
+		const unsigned int row_size = 3 * width;
+		const unsigned int shift = 2 * row_size + padding;
 		
-		for (int i = 0; const std::vector<color>& line : mat.data) {
-
-            for (int index = 3 * i; const color& pixel_col : line) {
+		int index = (height - 1) * (row_size + padding);
+		for (const matrix::const_row row : mat.data) {
+            for (const color& pixel_col : row) {
 
 				color corrected = pixel_col * inv;
 				corrected ^= gamma;
@@ -206,9 +207,9 @@ namespace rt {
 				texture_pixels[index] 	  = static_cast<Uint8>(corrected.get_red());
 				texture_pixels[index + 1] = static_cast<Uint8>(corrected.get_green());
 				texture_pixels[index + 2] = static_cast<Uint8>(corrected.get_blue());
-				index += shift;
+				index += 3;
             }
-			i++;
+			index -= shift;
         }
 	}
 
@@ -237,10 +238,13 @@ namespace rt {
 		constexpr real inv255 = 1.0_r / 255.0_r;
 		const real inv = inv255 * invN;
 
-		const unsigned int shift = 3 * width + padding;
-		for (int i = 0; const std::vector<color>& line : mat.data) {
-			
-            for (int index = 3 * i; const color& col : line) {
+		const unsigned int row_size = 3 * width;
+		const unsigned int shift = 2 * row_size + padding;
+		
+		int index = (height - 1) * (row_size + padding);
+
+		for (const matrix::row row : mat.data) {
+            for (const color& col : row) {
 
 				const real lr = col.get_red();
 				const real lg = col.get_green();
@@ -258,9 +262,9 @@ namespace rt {
 				texture_pixels[index] 	  = static_cast<Uint8>(corrected.get_red());
 				texture_pixels[index + 1] = static_cast<Uint8>(corrected.get_green());
 				texture_pixels[index + 2] = static_cast<Uint8>(corrected.get_blue());
-				index += shift;
+				index += 3;
             }
-			i++;
+			index -= shift;
         }
 	}
 }

@@ -51,13 +51,12 @@ std::optional<matrix> read_bmp(const std::string& file_name) {
         matrix matrix(bmpwidth, bmpheight);
 
         unsigned int index = 0;
-        for (unsigned int j = 0; j < bmpheight; j++) {
-            const unsigned int indexj = bmpheight - j - 1;
-            for (unsigned int i = 0; i < bmpwidth; i++) {
+        for (const matrix::row row : matrix) {
+            for (rt::color& color : row) {
                 const real b = buffer[index];
                 const real g = buffer[index + 1];
                 const real r = buffer[index + 2];
-                matrix[i, indexj] = rt::color(r, g, b);
+                color = rt::color(r, g, b);
                 index += 3;
             }
             index += p;
@@ -196,10 +195,8 @@ exit_status write_bmp(const std::string& file_name, const image& image) {
         const real invN = 1.0_r / image.number_of_samples;
         constexpr real inv255 = 1.0_r / 255.0_r;
     
-        for (int j = 0; j < height; j++) {
-            const int indexj = height - j - 1;
-            for (int i = 0; i < width; i++) {
-                const rt::color& c = image[i, indexj];
+        for (const matrix::const_row row : image.data) {
+            for (const rt::color& c : row) {
                 
                 rt::color col = c * invN;
                 col.in_place_max_out();
@@ -213,8 +210,6 @@ exit_status write_bmp(const std::string& file_name, const image& image) {
                 const unsigned char r = col.get_red();
                 const unsigned char g = col.get_green();
                 const unsigned char b = col.get_blue();
-                // const rt::color::uint8_color color_data = corrected.to_uint8_bgr();
-                // std::memcpy(buffer + index, &color_data, 3);
                 f.write<char>(b, g, r);
             }
             /* Writing p bytes '0' of padding */

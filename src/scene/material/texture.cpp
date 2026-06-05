@@ -48,9 +48,9 @@ const rt::color& texture::get_color(const real u, const real v) const {
     // producing out of range coordinates
     return (x < 0 || x >= data.width || y < 0 || y >= data.height) ?
         data[
-            std::min(data.width - 1,  std::max(0, x)),
-            std::min(data.height - 1, std::max(0, y))
+            std::min(data.height - 1, std::max(0, y)),
+            std::min(data.width  - 1, std::max(0, x))
         ]
         :
-        data[x, y];
+        data[y, x];
 }

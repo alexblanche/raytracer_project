@@ -44,7 +44,7 @@ std::vector<real> alias_table::compute_low_res_table(const matrix& matrix) {
         rt::color sum;
         for (int x = init_x; x < bound_x; x++) {
             for (int y = init_y; y < bound_y; y++) {
-                sum += matrix[x][y];
+                sum += matrix[y, x];
             }
         }
         sum /= (bound_x - init_x) * (bound_y - init_y);
