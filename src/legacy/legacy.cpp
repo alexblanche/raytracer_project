@@ -33,23 +33,24 @@ void render_loop_seq(matrix& matrix, const real dist,
     long int& time) {
 
     const long int init_time = get_time();
-    constexpr rt::vector zero;
+    constexpr rt::vector origin(0, 0, 0);
     
-    for (int i = 0; i < matrix.width; i++) {
+    for (int j = matrix.height - 1; const matrix::row row : matrix) {
         
-        const std::span output = matrix[i];
-        const real direct_x = i - screen_center.x;
-        rt::vector direct(direct_x, 0, dist);
-        const real norm_xz_sq = direct.normsq();
+        const real direct_y = j - screen_center.y;
+        
+        rt::vector direct(0, direct_y, dist);
+        const real norm_yz_sq = direct.normsq();
 
-        for (int j = 0; rt::color& col : output) {
+        for (int i = 0; rt::color& color : row) {
 
-            direct.y = j - screen_center.y;
-            const real norm = std::sqrt(std::fma(direct.y, direct.y, norm_xz_sq));
-            ray r(zero, direct / norm);
-            col = raytrace(r, obj_set, light_set);
-            j++;
+            direct.x = i - screen_center.x;
+            const real norm = std::sqrt(std::fma(direct.x, direct.x, norm_yz_sq));
+            ray r(origin, direct / norm);
+            color = raytrace(r, obj_set, light_set);
+            i++;
         }
+        j--;
     }
 
     const long int curr_time = get_time();
@@ -66,22 +67,23 @@ void render_loop_parallel(matrix& matrix, const real dist,
     long int& time) {
     
     const long int init_time = get_time();
-    constexpr rt::vector zero;
+    constexpr rt::vector origin(0, 0, 0);
 
-    parallel_for(matrix.width, [&] (int i) {
+    parallel_for(matrix.height, [&] (int j) {
 
-        const std::span output = matrix[i];
-        const real direct_x = i - screen_center.x;
-        rt::vector direct(direct_x, 0, dist);
-        const real norm_xz_sq = direct.normsq();
+        const matrix::row row = matrix[matrix.height - j - 1];
 
-        for (int j = 0; rt::color& col : output) {
+        const real direct_y = j - screen_center.y;
+        rt::vector direct(0, direct_y, dist);
+        const real norm_yz_sq = direct.normsq();
 
-            direct.y = j - screen_center.y;
-            const real norm = sqrt(std::fma(direct.y, direct.y, norm_xz_sq));
-            ray r(zero, direct / norm);
-            col = raytrace(r, obj_set, light_set);
-            j++;
+        for (int i = 0; rt::color& color : row) {
+
+            direct.x = i - screen_center.x;
+            const real norm = sqrt(std::fma(direct.x, direct.x, norm_yz_sq));
+            ray r(origin, direct / norm);
+            color = raytrace(r, obj_set, light_set);
+            i++;
         }
 
     });
@@ -131,7 +133,7 @@ int main(int, char **) {
     /* Object set */
     /* Storing pointers allow the overridden methods send and intersect (from sphere, plane)
        to be executed instead of the base (object) one */
-    const std::vector<const object*> obj_set {&sph0, &sph1, &pln0, &pln1};
+    const std::vector<const object*> obj_set = { &sph0, &sph1, &pln0, &pln1 };
 
 
     /* *************************** */
@@ -143,7 +145,7 @@ int main(int, char **) {
     const source light2(rt::vector(750, 0, 900),  my_blue);
 
     // Array of the lights in the scene
-    const std::vector<source> light_set {light0, light1, light2};
+    const std::vector<source> light_set = { light0, light1, light2 };
 
     /* *************************** */
 
@@ -181,7 +183,8 @@ int main(int, char **) {
     }
     const long int seq_curr_time = get_time();
     printf("Total Seq time: %ld ms\n", seq_curr_time - seq_time_init);
-    printf("Average time: %d ms\n", static_cast<int>(static_cast<double>(total_time) / number_of_renders));
+    const double seq_time = static_cast<double>(total_time) / number_of_renders;
+    printf("Average time: %d ms\n", static_cast<int>(seq_time));
 
     /* Parallel */
     const long int par_time_init = get_time();
@@ -196,10 +199,13 @@ int main(int, char **) {
     }
     const long int par_curr_time = get_time();
     printf("Total Parallel time: %ld ms\n", par_curr_time - par_time_init);
-    printf("Average time: %d ms\n", static_cast<int>(static_cast<double>(total_time) / number_of_renders));
+    const double par_time = static_cast<double>(total_time) / number_of_renders;
+    printf("Average time: %d ms\n", static_cast<int>(par_time));
     
     scr.fast_copy(1);
     scr.update_from_texture();
+
+    printf("Parallel is %.1f times faster\n", seq_time / par_time);
 
     scr.wait_quit_event();
 

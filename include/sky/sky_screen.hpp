@@ -1,9 +1,6 @@
 #pragma once
 
-#include <string>
-#include <SDL2/SDL.h>
-
-#include "sky/image.hpp"
+#include "sky/sky_image.hpp"
 
 namespace sky {
 

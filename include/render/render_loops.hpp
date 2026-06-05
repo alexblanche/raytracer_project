@@ -15,3 +15,8 @@ void render_loop_parallel_time(image& image, const scene& scene, unsigned int nu
 
 
 void render_loop_parallel_multisample(image& image, const scene& scene, unsigned int number_of_bounces, unsigned int number_of_samples);
+
+
+// Experiment
+void render_loop_parallel_all_at_once(image& image, const scene& scene, const unsigned int number_of_bounces,
+    const russian_roulette_mode russian_roulette, const unsigned int target);

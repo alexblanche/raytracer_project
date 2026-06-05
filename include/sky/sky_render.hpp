@@ -1,7 +1,7 @@
 #pragma once
 
-#include "sky/screen.hpp"
-#include "sky/vector.hpp"
+#include "sky/sky_screen.hpp"
+#include "sky/sky_vector.hpp"
 
 struct render_parameters {
     sky::screen scr;

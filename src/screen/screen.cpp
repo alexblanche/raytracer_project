@@ -11,7 +11,7 @@ namespace rt {
 	using enum sdl::window::flag;
 	
 	screen::screen(matrix& matrix, tone_mapping_parameters::mode mode, float gamma)
-		: 	window(DEFAULT_TITLE, { 10, 10, matrix.width, matrix.height }, { AllowHighDPI, Resizable }),
+		: 	window(DEFAULT_TITLE, { 10, 10, static_cast<int>(matrix.width), static_cast<int>(matrix.height) }, { AllowHighDPI, Resizable }),
 			renderer(window, matrix.width, matrix.height, { sdl::renderer::flag::Accelerated }, sdl::renderer::vsync_option::Disabled),
 			srcrect(0, 0, matrix.width, matrix.height),
 			dstrect(0, 0, matrix.width, matrix.height),

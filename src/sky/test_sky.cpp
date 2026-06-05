@@ -1,11 +1,8 @@
-#include "sky/bmp_reader.hpp"
-#include "sky/screen.hpp"
-#include "sky/vector.hpp"
+#include "sky/sky_bmp_reader.hpp"
 #include "sky/sky_render.hpp"
 
 #include <iostream>
 #include <chrono>
-#include <cmath>
 
 /* Prototype: real-time skydome, to be cleaned-up */
 

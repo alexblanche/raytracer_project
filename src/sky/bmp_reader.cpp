@@ -1,4 +1,4 @@
-#include "sky/bmp_reader.hpp"
+#include "sky/sky_bmp_reader.hpp"
 
 #include <cstdio>
 #include <stdexcept>

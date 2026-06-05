@@ -8,13 +8,6 @@
 
 /* Constructors */
 
-// /* Default constructor */
-// texture::texture(const int width, const int height, std::vector<std::vector<rt::color>>&& data)
-//     : data(std::move(data)),
-//         width_minus_one(static_cast<real>(width  - 1)),
-//         height_minus_one(static_cast<real>(height - 1)),
-//         width(width), height(height) {}
-
 /* Constructor from a .bmp or .hdr file
    Writes true in parsing_successful if the operation was successful */
 texture::texture(const std::string& file_name, bool& parsing_successful, const real gamma) {
@@ -35,8 +28,11 @@ texture::texture(const std::string& file_name, bool& parsing_successful, const r
     data = std::move(mat_opt.value());
     if (gamma != 1.0_r)
         data.apply_gamma(gamma);
-    width_minus_one  = static_cast<real>(data.width  - 1);
-    height_minus_one = static_cast<real>(data.height - 1);
+
+    width  = data.width;
+    height = data.height;
+    width_minus_one  = static_cast<real>(width  - 1);
+    height_minus_one = static_cast<real>(height - 1);
 }
 
 
@@ -46,11 +42,8 @@ const rt::color& texture::get_color(const real u, const real v) const {
     const int y = v * height_minus_one;
     // Due to floating-point imprecision, some "unit" vector have a norm slightly larger than 1,
     // producing out of range coordinates
-    return (x < 0 || x >= data.width || y < 0 || y >= data.height) ?
-        data[
-            std::min(data.height - 1, std::max(0, y)),
-            std::min(data.width  - 1, std::max(0, x))
-        ]
+    return (x < 0 || x >= width || y < 0 || y >= height) ?
+        data[std::min(height - 1, std::max(0, y)), std::min(width  - 1, std::max(0, x))]
         :
         data[y, x];
 }

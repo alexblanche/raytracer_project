@@ -1,4 +1,4 @@
-#include "sky/image.hpp"
+#include "sky/sky_image.hpp"
 
 #include <iostream>
 

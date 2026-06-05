@@ -1,10 +1,8 @@
-#include <string>
-#include <iostream>
-#include <signal.h>
-#include <SDL2/SDL.h>
-#include <cmath>
+#include "sky/sky_screen.hpp"
 
-#include "sky/screen.hpp"
+#include <iostream>
+#include <csignal>
+#include <cmath>
 
 namespace sky {
 

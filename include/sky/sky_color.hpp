@@ -1,8 +1,8 @@
 #pragma once
 
-#include "sky/parameters.hpp"
-#include <vector>
+#include "sky/sky_parameters.hpp"
 
+#include <vector>
 #include <cmath>
 
 namespace sky  {

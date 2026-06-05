@@ -1,6 +1,7 @@
 #pragma once
 
-#include "sky/color.hpp"
+#include "sky/sky_color.hpp"
+
 #include <cmath>
 
 namespace sky {

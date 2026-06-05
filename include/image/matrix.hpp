@@ -9,7 +9,7 @@
 
 // Replaces the one from bmp_reader.hpp
 struct dimensions {
-    int width, height;
+    size_t width, height;
 };
 
 class matrix {
@@ -19,8 +19,8 @@ class matrix {
         using const_row = std::span<const rt::color>;
 
         std::vector<rt::color> data;
-        int width;
-        int height;
+        size_t width;
+        size_t height;
 
         matrix() {}
 
@@ -38,11 +38,11 @@ class matrix {
         }
 
         matrix::row get_row(int j) {
-            return std::span<rt::color>(&data[j * width], width);
+            return { &data[j * width], width };
         }
 
         matrix::const_row get_row(int j) const {
-            return std::span<const rt::color>(&data[j * width], width);
+            return { &data[j * width], width };
         }
 
         matrix::row operator[](int j) {
@@ -75,7 +75,7 @@ class matrix {
     // Random-access iterator
     struct iterator {
         private:
-            int j;              // row index
+            size_t j;              // row index
             matrix* mat;
 
         public:
@@ -181,7 +181,7 @@ class matrix {
     
     class input_iterator {
         private:
-            int j;
+            size_t j;
             inline static const matrix* mat;
 
         public:

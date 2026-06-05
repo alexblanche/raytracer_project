@@ -268,6 +268,18 @@ static exit_status run_offline(const runtime_parameters& runtime_parameters, ima
     timer timer(runtime_parameters.time);
     timer.start();
 
+    ///////
+    constexpr bool ALL_AT_ONCE_EXPERIMENT = false;
+    if constexpr (ALL_AT_ONCE_EXPERIMENT) {
+        render_loop_parallel_all_at_once(image, scene, runtime_parameters.number_of_bounces,
+            runtime_parameters.russian_roulette, runtime_parameters.program.target_number_of_rays);
+        timer.stop();
+        printf("\n");
+        timer.print();
+        return file_handler.export_bmp(bmp(DEFAULT_OUTPUT_FILE_NAME), image);
+    }
+    ///////
+    
     for (unsigned int i = 0; i < target; i++) {
 
         render_simple(image, scene, runtime_parameters);
@@ -287,6 +299,7 @@ static exit_status run_offline(const runtime_parameters& runtime_parameters, ima
             timer.resume();
         }
     }
+    
 
     timer.stop();
     printf("\n");

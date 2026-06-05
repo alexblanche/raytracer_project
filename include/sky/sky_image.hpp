@@ -1,6 +1,8 @@
 #pragma once
+
+#include "sky/sky_color.hpp"
+
 #include <SDL2/SDL.h>
-#include "sky/color.hpp"
 
 namespace sky {
 

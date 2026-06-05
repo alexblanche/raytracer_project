@@ -6,6 +6,9 @@
 
 #include <atomic>
 
+#include <iostream>
+#include <thread>
+
 /* ********** Render loops ********** */
 
 /* Sequential version */
@@ -32,7 +35,7 @@ void render_loop_seq(image& image, const scene& scene, const unsigned int number
 /* Main render loop */
 void render_loop_parallel(image& image, const scene& scene, const unsigned int number_of_bounces, const russian_roulette_mode russian_roulette) {
 
-    parallel_for(scene.height, [&] (int j) {
+    parallel_for(scene.height, [&, number_of_bounces, russian_roulette] (int j) {
         
         static thread_local const randomgen rg;
 
@@ -62,7 +65,7 @@ void render_loop_parallel_time(image& image, const scene& scene, const unsigned 
     timer_ms timer;
     timer.start();
     
-    parallel_for(scene.height, [&] (int j) {
+    parallel_for(scene.height, [&, number_of_bounces] (int j) {
 
         static thread_local const randomgen rg;
 
@@ -72,12 +75,12 @@ void render_loop_parallel_time(image& image, const scene& scene, const unsigned 
             ray r = scene.cam.gen_ray(i, j, rg, 0);
             const rt::color pixel_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette_mode::Disabled);
             col += pixel_col;
-            cpt++;
             i++;
         }
 
         if (time_all) {
             timer.step();
+            cpt += image.width();
             const uint64_t elapsed = timer.elapsed();
             const float progress = cpt * x;
             const float estimated_time = static_cast<float>(elapsed) / (progress * 10.0f);
@@ -123,7 +126,7 @@ void render_loop_parallel_time(image& image, const scene& scene, const unsigned 
 /* After the first hit, several bouncing rays are cast */
 void render_loop_parallel_multisample(image& image, const scene& scene, const unsigned int number_of_bounces, const unsigned int number_of_samples) {
 
-    parallel_for(scene.height, [&] (int j) {
+    parallel_for(scene.height, [&, number_of_bounces, number_of_samples] (int j) {
 
         static thread_local const randomgen rg;
 
@@ -138,3 +141,65 @@ void render_loop_parallel_multisample(image& image, const scene& scene, const un
         
     });
 }
+
+
+
+
+/// Experiment
+
+
+void render_loop_parallel_all_at_once(image& image, const scene& scene, const unsigned int number_of_bounces,
+    const russian_roulette_mode russian_roulette, const unsigned int target) {
+
+    parallel_for(scene.height, [&, number_of_bounces, russian_roulette, target] (int jstart, int jend) {
+
+        timer_ms timer;
+        timer.start();
+        
+        static thread_local const randomgen rg;
+
+        for (int j = jstart; j < jend; j++) {
+            const matrix::row row = image.data[image.height() - 1 - j];
+
+            for (int i = 0; rt::color& color : row) {
+
+                for (unsigned int k = 0; k < target; k++) {
+                    ray r = scene.cam.gen_ray(i, j, rg, image.number_of_samples + k);
+                    const rt::color new_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette);
+                    color += new_col;
+                }
+                i++;
+            }
+        }
+    
+        timer.stop();
+        std::cout << "Thread " << std::this_thread::get_id() << ": ";
+        timer.print();
+    });
+
+    image.increase_sample_count(target);
+}
+
+/*
+All at once:
+not much improvement, but large disparity between threads:
+Thread 0x1fa171e80: Time: 0ms (final: 0 rows)
+Thread 0x16b587000: Time: 12965ms
+Thread 0x16b613000: Time: 13153ms
+Thread 0x16b69f000: Time: 16168ms
+Thread 0x16b72b000: Time: 25077ms
+Thread 0x16b7b7000: Time: 31219ms
+Thread 0x16ba73000: Time: 34838ms
+Thread 0x16b843000: Time: 35104ms
+Thread 0x16b8cf000: Time: 35434ms
+Thread 0x16b95b000: Time: 37609ms
+Thread 0x16b9e7000: Time: 38658ms
+
+Room for improvement, by splitting rows by time taken
+
+Total work time:
+12965 + 13153 + 16168 + 25077 + 31219 + 34838 + 35104 + 35434 + 37609 + 38658 = 280225 = 280s
+Split among 10 threads: 28s
+38 / 28 = 1,357
+100 * (38-28)/38 = 26,316 -> 26% less time, 1.3x faster at best (on this particular scene: scene_sunny.txt)
+*/

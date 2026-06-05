@@ -17,6 +17,7 @@ class texture {
 
     private:
         matrix data;
+        int width, height;
         real width_minus_one, height_minus_one;
 
     public:      
@@ -25,8 +26,9 @@ class texture {
         /* Default constructor */
         texture(matrix&& matrix) :
             data(std::move(matrix)),
-            width_minus_one(static_cast<real>(matrix.width - 1)),
-            height_minus_one(static_cast<real>(matrix.height - 1)) {}
+            width(data.width), height(data.height),
+            width_minus_one(data.width - 1),
+            height_minus_one(data.height - 1) {}
 
         /* Constructor from a .bmp or .hdr file
            Writes true in parsing_successful if the operation was successful */
