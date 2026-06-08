@@ -16,8 +16,6 @@ class box : public object {
 
     public:
 
-        /* Constructors */
-
         box();
         
         /* Main constructor */
@@ -28,17 +26,7 @@ class box : public object {
         box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
             real l1, real l2, real l3);
         
-        /* Accessors */
-
-        inline real get_l1() const {
-            return l1;
-        }
-        inline real get_l2() const {
-            return l2;
-        }
-        inline real get_l3() const {
-            return l3;
-        }
+        
         inline rt::vector get_l() const {
             return rt::vector(l1, l2, l3);
         }

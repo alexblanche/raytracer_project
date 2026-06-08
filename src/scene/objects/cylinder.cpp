@@ -1,6 +1,8 @@
 #include "scene/objects/cylinder.hpp"
 #include "light/vector.hpp"
 #include "scene/material/material.hpp"
+#include "auxiliary/utils.hpp"
+
 #include <cmath>
 #include <stdexcept>
 #include <optional>
@@ -68,7 +70,7 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
     /* delta is actually the discriminant / 4 */
     const real delta = ab * ab - bb * (a.normsq() - rr);
 
-    if (delta < 0) {
+    if (is_negative(delta)) {
         // The ray does not intersect the infinite cylinder
         return std::nullopt;
     }
@@ -78,9 +80,9 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
     const real t1 = (- ab - sqrtdelta) / bb;
     bool outside = true;
     
-    if (t1 >= 0.0_r) {
+    if (is_positive(t1)) {
         const real s1 = umpdirec + t1 * dirdirec;
-        if (s1 >= 0.0_r) {
+        if (is_positive(s1)) {
             if (s1 <= length) {
                 return t1;
             }
@@ -94,13 +96,13 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
         else {
             const real t2 = (- ab + sqrtdelta) / bb;
             const real s2 = umpdirec + t2 * dirdirec;
-            if (s2 < 0.0_r) { return std::nullopt; }
+            if (is_negative_not_zero(s2)) { return std::nullopt; }
             // else: the ray goes through one or both edge disks
         }
     }
     else {
         const real t2 = (- ab + sqrtdelta) / bb;
-        if (t2 >= 0.0_r) {
+        if (is_positive(t2)) {
             /* Case analysis:
                We compute s1 (associated with t1), s2 and whether we are outside the cylinder.
                "s ok" means that 0 <= s <= length, i.e. the projection on the line is within the cylinder.
@@ -121,7 +123,7 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
             const real s2 = umpdirec + t2 * dirdirec;
             const bool s1ok = s1 >= 0.0_r && s1 <= length;
             const bool s2ok = s2 >= 0.0_r && s2 <= length;
-            outside = umpdirec < 0.0_r || umpdirec > length;
+            outside = is_negative_not_zero(umpdirec) || umpdirec > length;
             if (s2ok) {
                 if (s1ok || (not outside)) { return t2; }
                 // else: the edge disk is between u and the intersection at t2
@@ -130,8 +132,8 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
                 // if ((s1ok && outside) || (s1 < 0 && s2 < 0) || (s1 > length && s2 > length)) {
                 //     return infinity;
                 // }
-                if (s1 < 0.0_r) {
-                    if (s2 < 0.0_r) { return std::nullopt; }
+                if (is_negative_not_zero(s1)) {
+                    if (is_negative_not_zero(s2)) { return std::nullopt; }
                 }
                 else {
                     if (s1 <= length) {

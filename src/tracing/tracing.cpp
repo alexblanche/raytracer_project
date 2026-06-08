@@ -1,6 +1,7 @@
 #include "tracing/tracing.hpp"
 #include "tracing/directions.hpp"
 #include "auxiliary/custom_stack.hpp"
+#include "auxiliary/utils.hpp"
 
 #include <cmath>
 
@@ -52,7 +53,7 @@ struct accumulators {
 
 /** Auxiliary functions **/
 
-constexpr real BIAS_NORM = 1.0E-3f;
+constexpr real BIAS_NORM = 1.0E-3_r;
 
 // Direct bias when the orientations of the ray and the bias are opposite (bias along the normal)
 // Inverted otherwise
@@ -78,7 +79,7 @@ inline void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& no
 template <orientation_type ray_orientation, orientation_type bias_orientation>
 inline void apply_bias(ray& r, const rt::vector& hit_point, const rt::vector& normal) {
 
-    constexpr real right_bias = (ray_orientation != bias_orientation ? 1.0 : -1.0) * BIAS_NORM;
+    constexpr real right_bias = (ray_orientation != bias_orientation ? 1.0_r : -1.0_r) * BIAS_NORM;
     r.set_origin(fma(normal, right_bias, hit_point));
 }
 
@@ -92,9 +93,8 @@ void specular_reflective_case(ray& r, const hit& h, const randomgen& rg, const r
                     
     /* Direction according to Lambert's cosine law */
     const rt::vector dir = (smoothness >= 1.0_r) ?
-        central_dir
-        :
-        (fma(random_direction<angle::Pi>(rg, central_dir), 1.0_r - smoothness, central_dir)).unit();
+          central_dir
+        : (fma(random_direction<angle::Pi>(rg, central_dir), 1.0_r - smoothness, central_dir)).unit();
     r.set_direction(dir);
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
@@ -166,7 +166,7 @@ void refractive_case(ray& r, const hit& h, const randomgen& rg, const real scatt
 
     /* Setting the refracted direction */
     r.set_direction(
-        scattering != 0.0_r ?
+        is_not_zero(scattering) ?
             get_random_refracted_direction(
                 rg,
                 scattering,
@@ -238,8 +238,8 @@ rt::color pathtrace(ray& r, const scene& scene, const randomgen& rg, const unsig
             if (avg < 1.0_r) {
                 if (rg.random_ratio() <= 1.0_r - avg)
                     return acc.emitted_colors;
-                else
-                    acc.color_materials /= avg;
+                
+                acc.color_materials /= avg;
             }
         }
 
@@ -344,7 +344,6 @@ rt::color pathtrace(ray& r, const scene& scene, const randomgen& rg, const unsig
             }
 
             /* Computation of the Fresnel coefficient */
-            // const real kr = inward ? h.get_fresnel(sin_theta_2_sq, refr_index, next_refr_i) : 0.0_r;
 
             if ((ray_orientation == Inward)
                 &&

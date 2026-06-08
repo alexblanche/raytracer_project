@@ -2,8 +2,9 @@
 #include "light/vector.hpp"
 #include "scene/material/material.hpp"
 #include "tracing/directions.hpp"
-#include <cmath>
+#include "auxiliary/utils.hpp"
 
+#include <cmath>
 #include <optional>
 
 
@@ -57,7 +58,7 @@ std::optional<real> sphere::measure_distance(const ray& r) const {
     const real delta = dv * dv + radius * radius - nv2;
     // delta is actually the discriminant divided by 4
 
-    if (delta < 0.0_r)
+    if (is_negative(delta))
         return std::nullopt;
 
     
@@ -71,7 +72,7 @@ std::optional<real> sphere::measure_distance(const ray& r) const {
     const real sqrtdelta = sqrt(delta);
     const real t1 = dv - sqrtdelta;
     
-    return (t1 >= 0.0_r)              ? std::optional(t1)
+    return (is_positive(t1))          ? std::optional(t1)
         :  (t1 >= -2.0_r * sqrtdelta) ? std::optional(dv + sqrtdelta)
         :                               std::nullopt;
 }
@@ -115,7 +116,7 @@ barycentric_info sphere::get_barycentric(const rt::vector& p) const {
 
     const real theta = asin(up_component);
     const real x = acos(forward_component / cos(theta));
-    const real phi = (right_component < 0.0_r) ? -x + 2.0_r * PI : x;
+    const real phi = is_negative_not_zero(right_component) ? (-x + 2.0_r * PI) : x;
 
     return barycentric_info(
         phi   * ((1.0_r / PI) * 0.5_r),

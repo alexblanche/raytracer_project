@@ -2,6 +2,9 @@
 
 #include "scene/material/texture.hpp"
 
+#include <cmath>
+#include <iostream>
+
 /* Struct containing the background color, the background texture and its orientation */
 struct background_container {
 
@@ -12,16 +15,38 @@ struct background_container {
     type type;
     rt::color bg_color;
     texture bg_texture;
-    real rotate_x = 0.0_r;
-    real rotate_y = 0.0_r;
-    real rotate_z = 0.0_r;
+    rt::vector rx, ry, rz;
 
     /* Struct containing the background color, the background texture and its orientation */
     background_container(const rt::color& col)
         : type(type::Untextured), bg_color(col) {}
 
-    background_container(texture&& txt, const real rx, const real ry, const real rz)
-        : type(type::Textured), bg_texture(std::move(txt)), rotate_x(rx), rotate_y(ry), rotate_z(rz) {}
+    background_container(texture&& txt, const real theta_x, const real theta_y, const real theta_z)
+        : type(type::Textured), bg_texture(std::move(txt)) {
+
+        // Matrix product of rotation matrices of angles theta_x, theta_y, theta_z around axes x, y, z respectively
+        const real cos_x = cos(theta_x);
+        const real sin_x = sin(theta_x);
+        
+        const real cos_y = cos(theta_y);
+        const real sin_y = sin(theta_y);
+        
+        const real cos_z = cos(theta_z);
+        const real sin_z = sin(theta_z);
+
+        rx = rt::vector(
+            cos_y * cos_z,
+            cos_x * sin_z + cos_z * sin_x * sin_y,
+            sin_x * sin_z - cos_x * cos_z * sin_y);
+        ry = rt::vector(
+            - cos_y * sin_z,
+            cos_x * cos_z - sin_x * sin_y * sin_z,
+            cos_x * sin_y * sin_z + cos_z * sin_x);
+        rx = rt::vector(
+            sin_y,
+            - cos_y * sin_x,
+            cos_x * cos_y);
+    }
     
     inline bool has_texture() const {
         return type == type::Textured;

@@ -1,11 +1,12 @@
 #include "scene/objects/box.hpp"
 
-#include <optional>
-#include <stdexcept>
-
 #include "light/vector.hpp"
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
+#include "auxiliary/utils.hpp"
+
+#include <optional>
+#include <stdexcept>
 
 
 box::box() : object(), n1(rt::vector(1,0,0)), n2(rt::vector(0,1,0)), n3(rt::vector(0,0,1)), l1(100), l2(100), l3(100) {}
@@ -72,32 +73,29 @@ std::optional<real> box::measure_distance(const ray& r) const {
     const real pdt2 = (dir | n2);
     const real pdt3 = (dir | n3);
 
-    const real abspdt1 = abs(pdt1);
-    if (abspdt1 > 0.0_r) {
+    if (is_not_zero(pdt1)) {
         // Determination of t1
-        const real t1 = pmun1 / pdt1 + a * l1 / abspdt1;
+        const real t1 = pmun1 / pdt1 + a * l1 / abs(pdt1);
         // Check that t1 gives a point inside the face
         if (abs(pmun2 - t1 * pdt2) <= l2 && abs(pmun3 - t1 * pdt3) <= l3) {
-            return (t1 >= 0.0_r) ?
+            return (is_positive(t1)) ?
                   std::optional(t1)
                 : std::nullopt;
         }
     }
 
-    const real abspdt2 = abs(pdt2);
-    if (abspdt2 > 0.0_r) {
-        const real t2 = pmun2 / pdt2 + a * l2 / abspdt2;
+    if (is_not_zero(pdt2)) {
+        const real t2 = pmun2 / pdt2 + a * l2 / abs(pdt2);
         if (abs(pmun1 - t2 * pdt1) <= l1 && abs(pmun3 - t2 * pdt3) <= l3) {
-            return (t2 >= 0.0_r) ?
+            return (is_positive(t2)) ?
                   std::optional(t2)
                 : std::nullopt;
         }
     }
 
-    const real abspdt3 = abs(pdt3);
-    if (abspdt3 > 0.0_r) {
-        const real t3 = pmun3 / pdt3 + a * l3 / abspdt3;
-        return (t3 >= 0.0_r && abs(pmun1 - t3 * pdt1) <= l1 && abs(pmun2 - t3 * pdt2) <= l2) ?
+    if (is_not_zero(pdt3)) {
+        const real t3 = pmun3 / pdt3 + a * l3 / abs(pdt3);
+        return (is_positive(t3) && abs(pmun1 - t3 * pdt1) <= l1 && abs(pmun2 - t3 * pdt2) <= l2) ?
               std::optional(t3)
             : std::nullopt;
     }
@@ -187,7 +185,7 @@ hit box::compute_intersection(ray& r, const real t) const {
         return hit(pt_ray, p, n1, pt_obj);
     }
     else if (abs(pdt1 + l1) < 0.0000001_r) {
-        return hit(pt_ray, p, (-1.0_r)*n1, pt_obj);
+        return hit(pt_ray, p, (-1.0_r) * n1, pt_obj);
     }
     else {
         const real pdt2 = (v | n2);
@@ -195,7 +193,7 @@ hit box::compute_intersection(ray& r, const real t) const {
             return hit(pt_ray, p, n2, pt_obj);
         }
         else if (abs(pdt2 + l2) < 0.0000001_r) {
-            return hit(pt_ray, p, (-1.0_r)*n2, pt_obj);
+            return hit(pt_ray, p, (-1.0_r) * n2, pt_obj);
         }
         else {
             const real pdt3 = (v | n3);
@@ -203,7 +201,7 @@ hit box::compute_intersection(ray& r, const real t) const {
                 return hit(pt_ray, p, n3, pt_obj);
             }
             else {
-                return hit(pt_ray, p, (-1.0_r)*n3, pt_obj);
+                return hit(pt_ray, p, (-1.0_r) * n3, pt_obj);
             } 
         }   
     }
@@ -256,25 +254,25 @@ bool box::is_hit_by(const ray& r) const {
         return true;
     }
 
-    if (dir.x != 0.0_r) {
+    if (is_not_zero(dir.x)) {
         // Determination of t1
         const real t1 = pmu.x * inv_dir.x - l1 * abs_inv_dir.x;
         // Check that t1 gives a point inside the face
         if (abs(pmu.y - t1 * dir.y) <= l2 && abs(pmu.z - t1 * dir.z) <= l3) {
-            return (t1 >= 0.0_r);
+            return is_positive(t1);
         }
     }
 
-    if (dir.y != 0.0_r) {
+    if (is_not_zero(dir.y)) {
         const real t2 = pmu.y * inv_dir.y - l2 * abs_inv_dir.y;
         if (abs(pmu.x - t2 * dir.x) <= l1 && abs(pmu.z - t2 * dir.z) <= l3) {
-            return (t2 >= 0.0_r);
+            return is_positive(t2);
         }
     }
 
-    if (dir.z != 0.0_r) {
+    if (is_not_zero(dir.z)) {
         const real t3 = pmu.z * inv_dir.z - l3 * abs_inv_dir.z;
-        return (t3 >= 0.0_r && abs(pmu.x - t3 * dir.x) <= l1 && abs(pmu.y - t3 * dir.y) <= l2);
+        return (is_positive(t3) && abs(pmu.x - t3 * dir.x) <= l1 && abs(pmu.y - t3 * dir.y) <= l2);
     }
 
     return false;

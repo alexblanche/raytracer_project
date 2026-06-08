@@ -3,6 +3,7 @@
 #include "light/vector.hpp"
 #include "light/hit.hpp"
 #include "scene/material/material.hpp"
+#include "auxiliary/utils.hpp"
 
 #include <optional>
 
@@ -15,20 +16,20 @@ std::pair<real, det_case> set_up_det(const rt::vector& v1, const rt::vector& v2)
     // printf("c = (%lf, %lf, %lf), detxy = %lf, abs(detxy) = %lf, cond = %d\n", c.x, c.y, c.z, detxy, abs(detxy), abs(detxy) > 0.00000001);
     
     const real detxy = v1.x * v2.y - v1.y * v2.x;
-    if (abs(detxy) > 0.0_r)
+    if (is_not_zero(detxy))
         return { detxy, det_case::Default };
 
     // The vectors v1, v2 are colinear when projected on the plane z = 0
     // Another attempt with rows x, z
     const real detxz = v1.x * v2.z - v1.z * v2.x;
-    if (abs(detxz) > 0.0_r)
+    if (is_not_zero(detxz))
         return { detxz, det_case::XZ };
     
     // The vectors v1, v2 are colinear when projected on the planes y = 0 and z = 0
     // (e.g. the triangle lies in the plane x = constant)
     // Last attempt with rows y, z
     const real detyz = v1.y * v2.z - v1.z * v2.y;
-    if (abs(detyz) > 0.0_r)
+    if (is_not_zero(detyz))
         return { detyz, det_case::YZ };
 
     return { 0.0_r, det_case::Error };
@@ -48,8 +49,8 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     vn0 = normal;
     // vn1 = normal;
     // vn2 = normal;
-    vn1mvn0 = rt::vector();
-    vn2mvn0 = rt::vector();
+    // vn1mvn0 = rt::vector();
+    // vn2mvn0 = rt::vector();
     d = - (normal | p0);
 
     std::pair<real, det_case> p = set_up_det(v1, v2);
@@ -94,8 +95,8 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     vn0 = normal;
     // vn1 = normal;
     // vn2 = normal;
-    vn1mvn0 = rt::vector();
-    vn2mvn0 = rt::vector();
+    // vn1mvn0 = rt::vector();
+    // vn2mvn0 = rt::vector();
 
     d = - (normal | p0);
 
@@ -279,14 +280,14 @@ std::optional<real> triangle::measure_distance(const ray& r) const {
     const rt::vector& dir = r.get_direction();
 
     // Intersection between the ray and the triangle plane
-    const real pdt = (normal | dir); // ax + by + cz
+    const real pdt  = (normal | dir); // ax + by + cz
     const real upln = (normal | u) + d; // aX + bY + cZ + d
 
     // printf("u = (%lf, %lf, %lf), dir = (%lf, %lf, %lf), pdt = %lf, upln = %lf\n",
     //     u.x, u.y, u.z, dir.x, dir.y, dir.z, pdt, upln);
     
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
-    if (pdt * upln >= 0.0_r)
+    if (is_positive(pdt * upln))
         return std::nullopt;
 
     const real t = - upln / pdt;
@@ -318,7 +319,7 @@ std::optional<real> triangle::measure_distance(const ray& r) const {
         default:      l1 = 0.0_r;
     }
 
-    if (l1 < 0.0_r || l1 > 1.0_r)
+    if (is_negative_not_zero(l1) || l1 > 1.0_r)
         return std::nullopt;
 
     real l2;
@@ -329,7 +330,7 @@ std::optional<real> triangle::measure_distance(const ray& r) const {
         default:      l2 = 0.0_r;
     }
 
-    return (l2 >= 0.0_r && l1 + l2 <= 1.0_r) ?
+    return (is_positive(l2) && l1 + l2 <= 1.0_r) ?
           std::optional(t)
         : std::nullopt;
 }
@@ -414,7 +415,7 @@ hit triangle::compute_intersection(ray& r, const real t) const {
         // Computation of the interpolated normal vector
         const barycentric_info bary = get_barycentric(p);
         // inward uses the face normal to avoid artefacts at the edge of the mesh
-        const orientation_type ray_orientation = ((r.get_direction() | normal) <= 0.0_r) ?
+        const orientation_type ray_orientation = is_negative(r.get_direction() | normal) ?
               orientation_type::Inward
             : orientation_type::Outward;
 
