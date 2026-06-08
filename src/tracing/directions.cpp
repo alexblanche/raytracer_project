@@ -46,7 +46,7 @@ rt::vector get_central_reflected_direction(const hit& h, const rt::vector& norma
 */
 
 /*
-std::vector<ray> random_reflect(const size_t n, randomgen& rg,
+std::vector<ray> random_reflect(const std::size_t n, randomgen& rg,
     const rt::vector& central_dir, const real theta_max) {
 
     // n random reals between 0 and 1, and n between 0 and 2*pi
@@ -78,7 +78,7 @@ std::vector<ray> random_reflect(const size_t n, randomgen& rg,
     // vector of random rays in the cone of angle theta_max to central_dir
     std::vector<ray> rays;
     rays.reserve(n);
-    for (size_t i = 0; i < n; i++) {
+    for (std::size_t i = 0; i < n; i++) {
         const real p = rands01[i];
         const real phi = rands0twopi[i];
 

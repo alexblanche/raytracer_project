@@ -84,15 +84,14 @@ std::optional<real> plane::measure_distance(const ray& r) const {
     */
 
     const rt::vector& n = get_normal();
-    const real pdt = (n | r.get_direction()); // ax + by + cz
+    const real pdt  = (n | r.get_direction()); // ax + by + cz
     const real upln = (n | r.get_origin()) + d; // aX + bY + cZ + d
     
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
     
     return (pdt * upln < 0.0_r) ?
-        std::optional<real>(- upln / pdt)
-        :
-        std::nullopt;
+          std::optional(- upln / pdt)
+        : std::nullopt;
 }
 
 hit plane::compute_intersection(ray& r, const real t) const {

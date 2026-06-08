@@ -288,13 +288,12 @@ std::optional<real> quad::measure_distance(const ray& r) const {
     // printf("(%lf,%lf,%lf) (%lf,%lf,%lf)\n", n12.x, n12.y, n12.z, n23.x, n23.y, n23.z);
 
     // Intersection between the ray and the triangle plane
-    const real pdt = (normal | dir); // ax + by + cz
+    const real pdt  = (normal | dir); // ax + by + cz
     const real upln = (normal | u) + d; // aX + bY + cZ + d
     
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
-    if (pdt * upln >= 0.0_r) {
+    if (pdt * upln >= 0.0_r)
         return std::nullopt;
-    }
 
     const real t = - upln / pdt;
 
@@ -324,15 +323,14 @@ std::optional<real> quad::measure_distance(const ray& r) const {
             break;
         
         default:
-            detv2 = 0;
-            l2 = 0;
+            detv2 = 0.0_r;
+            l2 = 0.0_r;
             break;
     }
     const real l1 = detv2 / det12;
 
-    if (l1 >= 0.0_r && l2 >= 0.0_r && l1 <= 1.0_r && l1 + l2 <= 1.0_r) {
-        return t;
-    }
+    if (l1 >= 0.0_r && l2 >= 0.0_r && l1 <= 1.0_r && l1 + l2 <= 1.0_r)
+        return std::optional(t);
 
     const real l1a = detv2 / det23;
     if (l1a < 0.0_r || l1a > 1.0_r)
@@ -343,11 +341,12 @@ std::optional<real> quad::measure_distance(const ray& r) const {
         case Default: l2a = (v3.x * c.y - v3.y * c.x) / det23; break;
         case XZ:      l2a = (v3.x * c.z - v3.z * c.x) / det23; break;
         case YZ:      l2a = (v3.y * c.z - v3.z * c.y) / det23; break;
-        default:      l2a = 0;
+        default:      l2a = 0.0_r;
     }
 
     return (l2a >= 0.0_r && l1a + l2a <= 1.0_r) ?
-        std::optional(t) : std::nullopt;
+          std::optional(t)
+        : std::nullopt;
 }
 
 /* Returns the barycentric info (l1, l2, lower_triangle):
@@ -431,8 +430,8 @@ barycentric_info quad::get_barycentric(const rt::vector& p) const {
             break;
         
         default:
-            detv2 = 0;
-            l2 = 0;
+            detv2 = 0.0_r;
+            l2 = 0.0_r;
             break;
     }
     const real l1 = detv2 / det12;
@@ -445,7 +444,7 @@ barycentric_info quad::get_barycentric(const rt::vector& p) const {
         case Default: l2 = (v3.x * c.y - v3.y * c.x) / det23; break;
         case XZ:      l2 = (v3.x * c.z - v3.z * c.x) / det23; break;
         case YZ:      l2 = (v3.y * c.z - v3.z * c.y) / det23; break;
-        default:      l2 = 0;
+        default:      l2 = 0.0_r;
     }
     const real l11 = detv2 / det23;
 

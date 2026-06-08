@@ -35,9 +35,8 @@ namespace rt {
 	}
 
 	void screen::set_pixel(int x, int y, const color& c) const {
-		Uint8 r = c.get_red();
-		Uint8 g = c.get_green();
-		Uint8 b = c.get_blue();
+
+		const auto [ r, g, b ] = c.to_uint8();
 		set_pixel(x, y, r, g, b);
 	}
 
@@ -173,9 +172,10 @@ namespace rt {
             for (const color& pixel_col : row) {
 				color avg = pixel_col * invN;
 				avg.in_place_max_out();
-				texture_pixels[index] 	  = static_cast<Uint8>(avg.get_red());
-				texture_pixels[index + 1] = static_cast<Uint8>(avg.get_green());
-				texture_pixels[index + 2] = static_cast<Uint8>(avg.get_blue());
+				const auto [ r, g, b ] = avg.to_uint8();
+				texture_pixels[index] 	  = r;
+				texture_pixels[index + 1] = g;
+				texture_pixels[index + 2] = b;
 				index += 3;
             }
 			index -= shift;
@@ -204,9 +204,10 @@ namespace rt {
 				corrected ^= gamma;
 				corrected *= 255.0_r;
 				corrected.in_place_max_out();
-				texture_pixels[index] 	  = static_cast<Uint8>(corrected.get_red());
-				texture_pixels[index + 1] = static_cast<Uint8>(corrected.get_green());
-				texture_pixels[index + 2] = static_cast<Uint8>(corrected.get_blue());
+				const auto [ cr, cg, cb ] = corrected.to_uint8();
+				texture_pixels[index] 	  = cr;
+				texture_pixels[index + 1] = cg;
+				texture_pixels[index + 2] = cb;
 				index += 3;
             }
 			index -= shift;
@@ -222,7 +223,8 @@ namespace rt {
 		real max_luminance = 0.0_r;
 		for (const matrix::const_row row : mat) {
 			for (const rt::color& col : row) {
-				const real luminance = (0.2126_r * col.get_red() + 0.7152_r * col.get_green() + 0.0722_r * col.get_blue()) * invN;
+				const auto [ r, g, b ] = col;
+				const real luminance = (0.2126_r * r + 0.7152_r * g + 0.0722_r * b) * invN;
 				if (luminance > max_luminance)
 					max_luminance = luminance;
 			}
@@ -246,9 +248,7 @@ namespace rt {
 		for (const matrix::row row : mat) {
             for (const color& col : row) {
 
-				const real lr = col.get_red();
-				const real lg = col.get_green();
-				const real lb = col.get_blue();
+				const auto [ lr, lg, lb ] = col;
 				
 				const real lin = (0.2126_r * lr + 0.7152_r * lg + 0.0722_r * lb) * inv;
 				// const real lin = (lr + lg + lb) * inv * 0.333;
@@ -259,9 +259,10 @@ namespace rt {
 				corrected *= 255.0_r;
 				corrected.in_place_max_out();
 
-				texture_pixels[index] 	  = static_cast<Uint8>(corrected.get_red());
-				texture_pixels[index + 1] = static_cast<Uint8>(corrected.get_green());
-				texture_pixels[index + 2] = static_cast<Uint8>(corrected.get_blue());
+				const auto [ cr, cg, cb ] = col.to_uint8();
+				texture_pixels[index] 	  = cr;
+				texture_pixels[index + 1] = cg;
+				texture_pixels[index + 2] = cb;
 				index += 3;
             }
 			index -= shift;

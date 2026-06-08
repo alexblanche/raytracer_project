@@ -10,11 +10,6 @@
 /* inward = ((direction | normal) <= 0) */
 rt::vector get_central_reflected_direction(const hit& h, const rt::vector& normal, real reflectivity, orientation_type ray_orientation);
 
-/* Returns a vector of n random reflected ray in the cone of center hit::reflect_ray(),
-    within solid angle theta_max */
-// std::vector<ray> random_reflect(const size_t n, randomgen& rg,
-//     const rt::vector& central_dir, const real theta_max) const;
-
 enum class angle {
     Pi
 };
@@ -25,7 +20,10 @@ enum class angle {
 template <angle theta_max>
 rt::vector random_direction(const randomgen& rg, const rt::vector& central_dir) {
 
-    constexpr real cos_theta_max = (theta_max == angle::Pi) ? -1.0_r : /* placeholder */ 0.0_r;
+    constexpr real cos_theta_max =
+          (theta_max == angle::Pi) ? -1.0_r
+        : /* placeholder */           0.0_r;
+        
     constexpr real one_m_costhetamax = 1.0_r - cos_theta_max;
 
     // random ray in the cone of angle theta_max to central_dir

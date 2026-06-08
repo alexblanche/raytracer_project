@@ -207,9 +207,7 @@ exit_status write_bmp(const std::string& file_name, const image& image) {
                     col *= 255.0_r;
                 }
 
-                const unsigned char r = col.get_red();
-                const unsigned char g = col.get_green();
-                const unsigned char b = col.get_blue();
+                const auto [ b, g, r ] = col.to_uint8_bgr();
                 f.write<char>(b, g, r);
             }
             /* Writing p bytes '0' of padding */

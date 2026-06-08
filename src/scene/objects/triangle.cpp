@@ -286,9 +286,8 @@ std::optional<real> triangle::measure_distance(const ray& r) const {
     //     u.x, u.y, u.z, dir.x, dir.y, dir.z, pdt, upln);
     
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
-    if (pdt * upln >= 0.0_r) {
+    if (pdt * upln >= 0.0_r)
         return std::nullopt;
-    }
 
     const real t = - upln / pdt;
 
@@ -331,7 +330,8 @@ std::optional<real> triangle::measure_distance(const ray& r) const {
     }
 
     return (l2 >= 0.0_r && l1 + l2 <= 1.0_r) ?
-        std::optional<real>(t) : std::nullopt;
+          std::optional(t)
+        : std::nullopt;
 }
 
 /* Returns the barycentric info (l1, l2):

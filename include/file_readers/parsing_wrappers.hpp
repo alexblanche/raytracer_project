@@ -25,9 +25,9 @@ class wrapper {
     public:
         T content;
         std::optional<std::string> name;
-        size_t index;
+        std::size_t index;
 
-        static inline size_t counter = 0;
+        static inline std::size_t counter = 0;
 
         wrapper()
             : index(counter) {

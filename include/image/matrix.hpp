@@ -9,7 +9,7 @@
 
 // Replaces the one from bmp_reader.hpp
 struct dimensions {
-    size_t width, height;
+    std::size_t width, height;
 };
 
 class matrix {
@@ -19,8 +19,8 @@ class matrix {
         using const_row = std::span<const rt::color>;
 
         std::vector<rt::color> data;
-        size_t width;
-        size_t height;
+        std::size_t width;
+        std::size_t height;
 
         matrix() {}
 
@@ -75,7 +75,7 @@ class matrix {
     // Random-access iterator
     struct iterator {
         private:
-            size_t j;              // row index
+            std::size_t j;              // row index
             matrix* mat;
 
         public:
@@ -181,7 +181,7 @@ class matrix {
     
     class input_iterator {
         private:
-            size_t j;
+            std::size_t j;
             inline static const matrix* mat;
 
         public:

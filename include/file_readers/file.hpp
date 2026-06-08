@@ -12,28 +12,28 @@
 
 // Used to ignore unused indices from std::index_sequence
 template<typename T>
-static consteval T id(size_t, T value) {
+static consteval T id(std::size_t, T value) {
     return value;
 }
 
-template<typename T, size_t... i>
+template<typename T, std::size_t... i>
 static consteval inline std::array<T, sizeof...(i)> make_array_aux_(T value, std::index_sequence<i...>) {
     return { id(i, value)... };
 }
 
 // Returns an array with all the elements initialized to value
-template<typename T, size_t count>
+template<typename T, std::size_t count>
 static consteval inline std::array<T, count> make_array(T value) {
     return make_array_aux_<T>(value, std::make_index_sequence<count>());
 }
 
-template<size_t count, size_t... i>
+template<std::size_t count, std::size_t... i>
 static consteval inline std::string string_concat_aux_(const std::string& value, std::index_sequence<i...>) {
     return (id(i, value) + ...);
 }
 
 // Returns a string made up of the string value repeated count times
-template<size_t count>
+template<std::size_t count>
 static consteval inline std::string string_concat(const std::string& value) {
     return string_concat_aux_<count>(value, std::make_index_sequence<count>());
 }
@@ -83,7 +83,7 @@ class file {
 
     private:
         // Helper function to scan
-        template<Arithm T, size_t count, size_t... i>
+        template<Arithm T, std::size_t count, std::size_t... i>
         exit_status scanf_array_(const std::string& format, std::array<T, count>& t, std::index_sequence<i...>) const {
             return scanf(format, t[i]...);
         }
@@ -110,11 +110,11 @@ class file {
             close();
         }
 
-        [[nodiscard]] size_t position() const {
+        [[nodiscard]] std::size_t position() const {
             return ftell(f);
         }
 
-        void seek(size_t pos) const {
+        void seek(std::size_t pos) const {
             fseek(f, pos, SEEK_SET);
         }
 
@@ -122,10 +122,10 @@ class file {
             seek(0);
         }
 
-        [[nodiscard]] size_t length() const {
-            const size_t pos = position();
+        [[nodiscard]] std::size_t length() const {
+            const std::size_t pos = position();
             fseek(f, 0, SEEK_END); // go to end of file
-            const size_t length = position();
+            const std::size_t length = position();
             seek(pos);
             return length;
         }
@@ -136,14 +136,14 @@ class file {
 
         template<class T>
         exit_status read(std::span<T> buffer) const {
-            const int ret = fread(static_cast<void*>(buffer.data()), sizeof(T), buffer.size(), f);
-            return exit_status_of(ret == static_cast<int>(buffer.size()));
+            const std::size_t ret = fread(static_cast<void*>(buffer.data()), sizeof(T), buffer.size(), f);
+            return exit_status_of(ret == buffer.size());
         }
 
-        template<class T, size_t extent>
+        template<class T, std::size_t extent>
         requires (extent != std::dynamic_extent)
         exit_status read(std::span<T, extent> buffer) const {
-            const int ret = fread(static_cast<void*>(buffer.data()), sizeof(T), extent, f);
+            const std::size_t ret = fread(static_cast<void*>(buffer.data()), sizeof(T), extent, f);
             return exit_status_of(ret == extent);
         }
 
@@ -159,7 +159,7 @@ class file {
                 std::printf("Error: read_string can read a string of length at most %d\n", MAX_STRING_LENGTH);
                 throw std::runtime_error("");
             }
-            constexpr size_t LENGTH = MAX_STRING_LENGTH + 1;
+            constexpr std::size_t LENGTH = MAX_STRING_LENGTH + 1;
             std::array<char, LENGTH> t = make_array<char, LENGTH>('\0');
             fgets(t.data(), max_length + 1, f);
             return std::string(t.data());
@@ -191,7 +191,7 @@ class file {
 
         template<typename... Args>
         exit_status scanf(const std::string& format, Args&... x) const {
-            const int ret = scanf_count(format, x...);
+            const std::size_t ret = scanf_count(format, x...);
             return exit_status_of(ret == sizeof...(Args));
         }
 
@@ -213,7 +213,7 @@ class file {
             return optional_of<T>(status, std::move(x));
         }
 
-        template<Arithm T, size_t count>
+        template<Arithm T, std::size_t count>
         std::array<T, count> scan() const {
             constexpr std::string df = data_format<T>();
             constexpr std::string format = string_concat<count>(df);
@@ -232,8 +232,8 @@ class file {
         }
 
         [[nodiscard]] std::vector<unsigned char> extract_from() const {
-            const size_t pos = position();
-            const size_t len = length() - pos;
+            const std::size_t pos = position();
+            const std::size_t len = length() - pos;
             std::vector<unsigned char> content(len + 1);
             read<unsigned char>(content);
             content[len] = '\0';
@@ -257,13 +257,13 @@ class file {
 
         template<class T>
         exit_status write(std::span<const T> buffer) const {
-            const int ret = fwrite(static_cast<const void*>(buffer.data()), sizeof(T), buffer.size(), f);
+            const std::size_t ret = fwrite(static_cast<const void*>(buffer.data()), sizeof(T), buffer.size(), f);
             return exit_status_of(ret == buffer.size());
         }
 
-        template<class T, size_t extent>
+        template<class T, std::size_t extent>
         exit_status write(std::span<const T, extent> buffer) const {
-            const int ret = fwrite(static_cast<const void*>(buffer.data()), sizeof(T), extent, f);
+            const std::size_t ret = fwrite(static_cast<const void*>(buffer.data()), sizeof(T), extent, f);
             return exit_status_of(ret == extent);
         }
 
@@ -272,7 +272,7 @@ class file {
             return write(buffer);
         }
 
-        template<typename T, T value, size_t count>
+        template<typename T, T value, std::size_t count>
         exit_status write() const {
             constexpr std::array<T, count> t = make_array<T, count>(value);
             return write<T, count>(t);
@@ -290,7 +290,7 @@ class file {
 
         template<typename T, Convertible<T>... Ti>
         exit_status write(const Ti... x) const {
-            constexpr size_t extent = sizeof...(Ti);
+            constexpr std::size_t extent = sizeof...(Ti);
             const std::array<T, extent> t = { static_cast<T>(x)... };
             return write(std::span<const T, extent>(t));
         }

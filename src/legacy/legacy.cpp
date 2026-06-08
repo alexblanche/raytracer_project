@@ -166,7 +166,7 @@ int main(int, char **) {
 
     /* Benchmark */
 
-    constexpr size_t number_of_renders = 10;
+    constexpr int number_of_renders = 10;
 
     long int total_time = 0;
 
@@ -176,7 +176,7 @@ int main(int, char **) {
     scr.update_from_texture();
     total_time = 0;
     const long int seq_time_init = get_time();
-    for (size_t i = 0; i < number_of_renders; i++) {
+    for (int i = 0; i < number_of_renders; i++) {
         render_loop_seq(matrix, dist, screen_center, obj_set, light_set, total_time);
         scr.fast_copy(1);
         scr.update_from_texture();
@@ -192,7 +192,7 @@ int main(int, char **) {
     scr.fast_copy(1);
     scr.update_from_texture();
     total_time = 0;
-    for (size_t i = 0; i < number_of_renders; i++) {
+    for (int i = 0; i < number_of_renders; i++) {
         render_loop_parallel(matrix, dist, screen_center, obj_set, light_set, total_time);
         scr.fast_copy(1);
         scr.update_from_texture();

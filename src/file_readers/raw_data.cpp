@@ -33,7 +33,8 @@ exit_status export_raw(const std::string& file_name, const image& image) {
 
         for (const matrix::const_row row : image.data) {
             for (const rt::color& c : row) {
-                f.printf("%lf %lf %lf\n", c.get_red(), c.get_green(), c.get_blue());
+                const auto [ r, g, b ] = c;
+                f.printf("%lf %lf %lf\n", r, g, b);
             }
         }
 

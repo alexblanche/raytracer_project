@@ -13,9 +13,9 @@ static normal_map::vector_matrix convert_bmp_to_normal_field(const matrix& col_d
         for (int i = 0; const rt::color& color : row) {
             // Conversion from [0..255] to [-1;1]
             norm_data_line[i] = rt::vector (
-                color.get_red()   * s - 1.0_r,
-                color.get_green() * s - 1.0_r,
-                color.get_blue()  * s - 1.0_r
+                color.red   * s - 1.0_r,
+                color.green * s - 1.0_r,
+                color.blue  * s - 1.0_r
             ).unit();
             i++;
         }

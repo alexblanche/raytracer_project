@@ -3,17 +3,20 @@
 #include <cstring>
 #include <span>
 
+constexpr std::size_t DEFAULT_INIT_SIZE = 10;
+constexpr std::size_t MAX_STACK_SIZE = 16;
+
 template <typename T>
-requires (sizeof(T) <= 16) && std::is_trivially_destructible_v<T>
+requires (sizeof(T) <= MAX_STACK_SIZE) && std::is_trivially_destructible_v<T>
 class custom_stack {
 
     T*  data     = nullptr;
-    int size     = 0;
-    int capacity = 0;
+    std::size_t size     = 0;
+    std::size_t capacity = 0;
 
     private:
         
-        inline void increase_capacity(int target) {
+        inline void increase_capacity(const std::size_t target) {
             T* new_data = new T[target];
             std::memcpy(new_data, data, size * sizeof(T));
             data = new_data;
@@ -25,14 +28,14 @@ class custom_stack {
                 increase_capacity(2 * capacity);
         }
 
-        inline void reserve(int target) {
+        inline void reserve(const std::size_t target) {
             if (capacity < target)
                 increase_capacity(std::max(target, 2 * capacity));
         }
 
     public:
 
-        inline custom_stack(unsigned int init_size = 10) {
+        inline custom_stack(const std::size_t init_size = DEFAULT_INIT_SIZE) {
             size = 0;
             capacity = init_size;
             data = new T[capacity];
@@ -44,16 +47,12 @@ class custom_stack {
             capacity = 0;
         }
 
-        int get_size() const {
+        std::size_t get_size() const {
             return size;
         }
 
-        // int get_capacity() const {
-        //     return capacity;
-        // }
-
         std::span<const T> get_content() const {
-            return { data, static_cast<size_t>(size) };
+            return { data, size };
         }
 
         [[nodiscard]] inline bool empty() const noexcept {
@@ -86,7 +85,7 @@ class custom_stack {
         }
 
         inline void push(const std::span<const T> ts) {
-            const int new_size = size + ts.size();
+            const std::size_t new_size = size + ts.size();
             reserve(new_size);
             std::memcpy(data + size, ts.data(), ts.size() * sizeof(T));
             size = new_size;

@@ -1,9 +1,10 @@
 #pragma once
 
-#include <vector>
-#include "screen/color.hpp"
+#include "image/image.hpp"
+
+/// EXPERIMENTAL, TO BE DELETED
 
 /* Glow rendering for bright lights */
 
-std::vector<std::vector<rt::color>> apply_glow(const std::vector<std::vector<rt::color>>& image,
+void apply_glow(image& image,
     unsigned int number_of_rays, double threshold, double glow_intensity);

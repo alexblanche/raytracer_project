@@ -57,33 +57,23 @@ std::optional<real> sphere::measure_distance(const ray& r) const {
     const real delta = dv * dv + radius * radius - nv2;
     // delta is actually the discriminant divided by 4
 
-    if (delta >= 0.0_r) {
-        /* Two solutions: t1 = dv - sqrt(delta) and t2 = dv + sqrt(delta),
-           If t1 >= 0, this means the ray originates from outside the sphere
-           and the sphere is in front of the origin, and thus t1 is returned,
-           If t1 < 0 and t2 >= 0, this means the ray originates from inside the sphere,
-           and t2 is returned.
-           Otherwise, t1 < 0 and t2 < 0 means the sphere is behind the ray and is not hit. */
-        
-        const real sqrtdelta = sqrt(delta);
-        const real t1 = dv - sqrtdelta;
-        // if (t1 >= 0.0_r) {
-        //     return t1;
-        // }
-        // else {
-        //     const real t2 = dv + sqrtdelta;
-        //     if (t2 >= 0.0_r) {
-        //         return t2;
-        //     }
-        // }
-        return (t1 >= 0.0_r) ? std::optional<real>(t1)
-            :
-            (t1 >= -2.0_r * sqrtdelta) ? std::optional<real>(dv + sqrtdelta)
-            :
-            std::nullopt;
-    }
+    if (delta < 0.0_r)
+        return std::nullopt;
+
     
-    return std::nullopt;
+    /* Two solutions: t1 = dv - sqrt(delta) and t2 = dv + sqrt(delta),
+        If t1 >= 0, this means the ray originates from outside the sphere
+        and the sphere is in front of the origin, and thus t1 is returned,
+        If t1 < 0 and t2 >= 0, this means the ray originates from inside the sphere,
+        and t2 is returned.
+        Otherwise, t1 < 0 and t2 < 0 means the sphere is behind the ray and is not hit. */
+    
+    const real sqrtdelta = sqrt(delta);
+    const real t1 = dv - sqrtdelta;
+    
+    return (t1 >= 0.0_r)              ? std::optional(t1)
+        :  (t1 >= -2.0_r * sqrtdelta) ? std::optional(dv + sqrtdelta)
+        :                               std::nullopt;
 }
 
 /* Returns the hit corresponding with the given intersection value t */

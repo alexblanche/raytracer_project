@@ -28,7 +28,7 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
     /* We denote the origin, direction and radius of the cylinder o, d and r,
        and the origin and direction of the ray u and dir. */
 
-    const rt::vector& u = r.get_origin();
+    const rt::vector& u   = r.get_origin();
     const rt::vector& dir = r.get_direction();
 
     /* Step 1: check if the ray intersects the side of the cylinder
@@ -66,7 +66,7 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
     const real bb = b.normsq();
     const real rr = radius * radius;
     /* delta is actually the discriminant / 4 */
-    const real delta = ab*ab - bb*(a.normsq() - rr);
+    const real delta = ab * ab - bb * (a.normsq() - rr);
 
     if (delta < 0) {
         // The ray does not intersect the infinite cylinder

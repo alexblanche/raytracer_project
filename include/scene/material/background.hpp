@@ -2,23 +2,29 @@
 
 #include "scene/material/texture.hpp"
 
-#include <optional>
-#include <cmath>
-
 /* Struct containing the background color, the background texture and its orientation */
 struct background_container {
+
+    enum class type {
+        Untextured, Textured
+    };
+
+    type type;
     rt::color bg_color;
-    std::optional<texture> bg_texture;
-    real rotate_x;
-    real rotate_y;
-    real rotate_z;
+    texture bg_texture;
+    real rotate_x = 0.0_r;
+    real rotate_y = 0.0_r;
+    real rotate_z = 0.0_r;
 
-    background_container(const rt::color& col);
+    /* Struct containing the background color, the background texture and its orientation */
+    background_container(const rt::color& col)
+        : type(type::Untextured), bg_color(col) {}
 
-    background_container(texture&& txt, real rx, real ry, real rz);
+    background_container(texture&& txt, const real rx, const real ry, const real rz)
+        : type(type::Textured), bg_texture(std::move(txt)), rotate_x(rx), rotate_y(ry), rotate_z(rz) {}
     
     inline bool has_texture() const {
-        return bg_texture.has_value();
+        return type == type::Textured;
     }
 
     /* Returns the background color when it is a color */

@@ -3,8 +3,6 @@
 
 #include <optional>
 
-/* Constructors */
-
 object::object() {}
 
 object::object(const rt::vector& position, const unsigned int material_index)

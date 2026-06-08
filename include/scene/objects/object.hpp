@@ -62,27 +62,27 @@ class object {
         }
 
         /* Intersection determination */
-        virtual std::optional<real> measure_distance(const ray& r) const = 0;
+        virtual std::optional<real> measure_distance(const ray& r) const                = 0;
 
-        virtual hit compute_intersection(ray& r, real t) const = 0;
+        virtual hit compute_intersection(ray& r, real t) const                          = 0;
 
         /* Returns the minimum and maximum coordinates of the object along the three axes */
-        virtual min_max_coord get_min_max_coord() const = 0;
+        virtual min_max_coord get_min_max_coord() const                                 = 0;
 
         /* Returns the barycentric info for the object (depends on the object type) */
-        virtual barycentric_info get_barycentric(const rt::vector& p) const = 0;
+        virtual barycentric_info get_barycentric(const rt::vector& p) const             = 0;
 
         virtual rt::vector compute_normal_from_map(
             const rt::vector& tangent_space_normal,
             const rt::vector& local_normal,
             const texture_info& info
-        ) const = 0;
+        ) const                                                                         = 0;
 
         /* Sampling */
 
         /* Uniformly samples a point on the object */
-        virtual rt::vector sample(randomgen& rg) const = 0;
+        virtual rt::vector sample(randomgen& rg) const                                  = 0;
 
         /* Uniformly samples a point on the object that is visible from pt */
-        virtual rt::vector sample_visible(randomgen& rg, const rt::vector& pt) const = 0;
+        virtual rt::vector sample_visible(randomgen& rg, const rt::vector& pt) const    = 0;
 };

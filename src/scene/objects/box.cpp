@@ -20,7 +20,7 @@ box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
 box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
             const real l1, const real l2, const real l3)
     
-    : object(center, (unsigned int) (-1)), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1/2), l2(l2/2), l3(l3/2) {}
+    : object(center, EMPTY_INDEX), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1/2), l2(l2/2), l3(l3/2) {}
 
 
 
@@ -65,44 +65,41 @@ std::optional<real> box::measure_distance(const ray& r) const {
 
     // Factor that depends on whether u is outside or inside the box
     const real a = (abs(pmun1) <= l1 && abs(pmun2) <= l2 && abs(pmun3) <= l3) ?
-        /* inside */ 1.0_r :
-        /* outside */ -1.0_r;
+          /* inside */   1.0_r
+        : /* outside */ -1.0_r;
 
     const real pdt1 = (dir | n1);
     const real pdt2 = (dir | n2);
     const real pdt3 = (dir | n3);
 
     const real abspdt1 = abs(pdt1);
-    if (abspdt1 > 0.0000001f) {
+    if (abspdt1 > 0.0_r) {
         // Determination of t1
         const real t1 = pmun1 / pdt1 + a * l1 / abspdt1;
         // Check that t1 gives a point inside the face
         if (abs(pmun2 - t1 * pdt2) <= l2 && abs(pmun3 - t1 * pdt3) <= l3) {
             return (t1 >= 0.0_r) ?
-                std::optional<real>(t1)
-                :
-                std::nullopt;
+                  std::optional(t1)
+                : std::nullopt;
         }
     }
 
     const real abspdt2 = abs(pdt2);
-    if (abspdt2 > 0.0000001f) {
+    if (abspdt2 > 0.0_r) {
         const real t2 = pmun2 / pdt2 + a * l2 / abspdt2;
         if (abs(pmun1 - t2 * pdt1) <= l1 && abs(pmun3 - t2 * pdt3) <= l3) {
             return (t2 >= 0.0_r) ?
-                std::optional<real>(t2)
-                :
-                std::nullopt;
+                  std::optional(t2)
+                : std::nullopt;
         }
     }
 
     const real abspdt3 = abs(pdt3);
-    if (abspdt3 > 0.0000001f) {
+    if (abspdt3 > 0.0_r) {
         const real t3 = pmun3 / pdt3 + a * l3 / abspdt3;
         return (t3 >= 0.0_r && abs(pmun1 - t3 * pdt1) <= l1 && abs(pmun2 - t3 * pdt2) <= l2) ?
-            std::optional<real>(t3)
-            :
-            std::nullopt;
+              std::optional(t3)
+            : std::nullopt;
     }
 
     return std::nullopt;
@@ -186,27 +183,27 @@ hit box::compute_intersection(ray& r, const real t) const {
     ray* pt_ray = &r;
 
     const real pdt1 = (v | n1);
-    if (abs(pdt1 - l1) < 0.0000001f) {
+    if (abs(pdt1 - l1) < 0.0000001_r) {
         return hit(pt_ray, p, n1, pt_obj);
     }
-    else if (abs(pdt1 + l1) < 0.0000001f) {
-        return hit(pt_ray, p, (-1)*n1, pt_obj);
+    else if (abs(pdt1 + l1) < 0.0000001_r) {
+        return hit(pt_ray, p, (-1.0_r)*n1, pt_obj);
     }
     else {
         const real pdt2 = (v | n2);
-        if (abs(pdt2 - l2) < 0.0000001f) {
+        if (abs(pdt2 - l2) < 0.0000001_r) {
             return hit(pt_ray, p, n2, pt_obj);
         }
-        else if (abs(pdt2 + l2) < 0.0000001f) {
-            return hit(pt_ray, p, (-1)*n2, pt_obj);
+        else if (abs(pdt2 + l2) < 0.0000001_r) {
+            return hit(pt_ray, p, (-1.0_r)*n2, pt_obj);
         }
         else {
             const real pdt3 = (v | n3);
-            if (abs(pdt3 - l3) < 0.0000001f) {
+            if (abs(pdt3 - l3) < 0.0000001_r) {
                 return hit(pt_ray, p, n3, pt_obj);
             }
             else {
-                return hit(pt_ray, p, (-1)*n3, pt_obj);
+                return hit(pt_ray, p, (-1.0_r)*n3, pt_obj);
             } 
         }   
     }
@@ -252,34 +249,32 @@ bool box::is_hit_by(const ray& r) const {
     // See measure_distance
 
     const rt::vector& u = r.get_origin();
-    const real pmux = position.x - u.x;
-    const real pmuy = position.y - u.y;
-    const real pmuz = position.z - u.z;
+    const rt::vector pmu = position - u;
     
-    if (abs(pmux) <= l1 && abs(pmuy) <= l2 && abs(pmuz) <= l3) {
+    if (abs(pmu.x) <= l1 && abs(pmu.y) <= l2 && abs(pmu.z) <= l3) {
         // u is inside the box
         return true;
     }
 
     if (dir.x != 0.0_r) {
         // Determination of t1
-        const real t1 = pmux * inv_dir.x - l1 * abs_inv_dir.x;
+        const real t1 = pmu.x * inv_dir.x - l1 * abs_inv_dir.x;
         // Check that t1 gives a point inside the face
-        if (abs(pmuy - t1 * dir.y) <= l2 && abs(pmuz - t1 * dir.z) <= l3) {
+        if (abs(pmu.y - t1 * dir.y) <= l2 && abs(pmu.z - t1 * dir.z) <= l3) {
             return (t1 >= 0.0_r);
         }
     }
 
     if (dir.y != 0.0_r) {
-        const real t2 = pmuy * inv_dir.y - l2 * abs_inv_dir.y;
-        if (abs(pmux - t2 * dir.x) <= l1 && abs(pmuz - t2 * dir.z) <= l3) {
+        const real t2 = pmu.y * inv_dir.y - l2 * abs_inv_dir.y;
+        if (abs(pmu.x - t2 * dir.x) <= l1 && abs(pmu.z - t2 * dir.z) <= l3) {
             return (t2 >= 0.0_r);
         }
     }
 
     if (dir.z != 0.0_r) {
-        const real t3 = pmuz * inv_dir.z - l3 * abs_inv_dir.z;
-        return (t3 >= 0.0_r && abs(pmux - t3 * dir.x) <= l1 && abs(pmuy - t3 * dir.y) <= l2);
+        const real t3 = pmu.z * inv_dir.z - l3 * abs_inv_dir.z;
+        return (t3 >= 0.0_r && abs(pmu.x - t3 * dir.x) <= l1 && abs(pmu.y - t3 * dir.y) <= l2);
     }
 
     return false;
