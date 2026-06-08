@@ -1,5 +1,6 @@
 #include "light/ray.hpp"
 #include "screen/color.hpp"
+
 #include <cmath>
 
 /** 
@@ -7,17 +8,9 @@
  * the point of origin, the direction vector and the color.
 */
 
-/* Constructors */
-
 ray::ray() {}
 
-ray::ray(const rt::vector& o, const rt::vector& d)
-    : origin(o), direction(d),
-      inv_dir(1.0f / d.x, 1.0f / d.y, 1.0f / d.z),
-      abs_inv_dir(std::abs(inv_dir.x), std::abs(inv_dir.y), std::abs(inv_dir.z)) {}
-
-void ray::set_direction(const rt::vector& d) {
-    direction = d;
-    inv_dir = rt::vector(1.0f / d.x, 1.0f / d.y, 1.0f / d.z);
-    abs_inv_dir = rt::vector(std::abs(inv_dir.x), std::abs(inv_dir.y), std::abs(inv_dir.z));
-}
+ray::ray(const rt::vector& origin, const rt::vector& dir)
+    : origin(origin), direction(dir),
+      inv_dir(1.0_r / direction.x, 1.0_r / direction.y, 1.0_r / direction.z),
+      abs_inv_dir(abs(inv_dir.x), abs(inv_dir.y), abs(inv_dir.z)) {}

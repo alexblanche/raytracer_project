@@ -64,7 +64,7 @@ class object {
         /* Intersection determination */
         virtual std::optional<real> measure_distance(const ray& r) const                = 0;
 
-        virtual hit compute_intersection(ray& r, real t) const                          = 0;
+        virtual hit compute_intersection(const ray& r, real t) const                    = 0;
 
         /* Returns the minimum and maximum coordinates of the object along the three axes */
         virtual min_max_coord get_min_max_coord() const                                 = 0;

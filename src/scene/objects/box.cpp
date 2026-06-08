@@ -166,7 +166,7 @@ std::optional<real> box::measure_distance(const ray& r) const {
     return std::min(t1, std::min(t2, t3));
     */
         
-hit box::compute_intersection(ray& r, const real t) const {
+hit box::compute_intersection(const ray& r, const real t) const {
     // Intersection point
     const rt::vector& u = r.get_origin();
     //const rt::vector p = u + t * r.get_direction();
@@ -178,7 +178,7 @@ hit box::compute_intersection(ray& r, const real t) const {
     // Shifting the position a little bit, to avoid the ray hitting the object itself again
     const rt::vector v = p - position;
     const object* pt_obj = this;
-    ray* pt_ray = &r;
+    const ray* pt_ray = &r;
 
     const real pdt1 = (v | n1);
     if (abs(pdt1 - l1) < 0.0000001_r) {

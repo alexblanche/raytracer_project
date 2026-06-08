@@ -189,7 +189,7 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
 }
 
 /* Returns the hit corresponding with the given intersection value t */
-hit cylinder::compute_intersection(ray& r, const real t) const {
+hit cylinder::compute_intersection(const ray& r, const real t) const {
 
     // Intersection point
     const rt::vector& u = r.get_origin();
@@ -204,7 +204,7 @@ hit cylinder::compute_intersection(ray& r, const real t) const {
         ((pmpos - (length * direction)).normsq() >= rr);
     
     const object* pt_obj = this;
-    ray* pt_ray = &r;
+    const ray* pt_ray = &r;
 
     if (hits_side) {
         // We compute the s value (such that (p - (o + s.d) | d) = 0)

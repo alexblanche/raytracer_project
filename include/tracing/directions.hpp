@@ -2,9 +2,23 @@
 
 #include "light/hit.hpp"
 #include "auxiliary/randomgen.hpp"
+#include "auxiliary/utils.hpp"
 
 /* Returns the reflected ray at the point of contact */
 // ray get_reflected_ray() const;
+
+template<orientation_type ray_orientation>
+/* Returns the interpolated direction between the normal and the reflected direction */
+/* inward = ((direction | normal) <= 0) */
+rt::vector get_central_reflected_direction(const hit& h, const rt::vector& normal, const real smoothness) {
+    constexpr real correcting_factor = (ray_orientation == orientation_type::Inward) ? 1.0_r : -1.0_r;
+    constexpr real two_corr_f = -2.0_r * correcting_factor;
+
+    const rt::vector& u = h.get_generator_ray()->get_direction();
+    const real two_cos = two_corr_f * (u | normal);
+    //return (smoothness * (2.0_r * cos - 1.0_r) + 1.0_r) * right_normal + smoothness * u;
+    return fma(u, smoothness, ((smoothness * (two_cos - 1.0_r) + 1.0_r) * correcting_factor) * normal);
+}
 
 /* Returns the interpolated direction between the normal and the reflected direction */
 /* inward = ((direction | normal) <= 0) */
@@ -23,7 +37,7 @@ rt::vector random_direction(const randomgen& rg, const rt::vector& central_dir) 
     constexpr real cos_theta_max =
           (theta_max == angle::Pi) ? -1.0_r
         : /* placeholder */           0.0_r;
-        
+
     constexpr real one_m_costhetamax = 1.0_r - cos_theta_max;
 
     // random ray in the cone of angle theta_max to central_dir
@@ -43,15 +57,18 @@ rt::vector random_direction(const randomgen& rg, const rt::vector& central_dir) 
 
         // Orthonormal base of the plane orthogonal to central_dir
         rt::vector X, Y;
-        if (a != 0.0_r) {
+        if (is_not_zero(a)) {
             const real nX = a * a + b * b;
-            X = rt::vector(- b, a, 0.0_r) / sqrt(nX);
+            const real sqrtnX = sqrt(nX);
+            X = rt::vector(- b / sqrtnX, a / sqrtnX, 0.0_r);
             Y = rt::vector(a * c, b * c, -nX).unit();
-        } else if (b != 0.0_r) {
+        }
+        else if (is_not_zero(b)) {
             // central_dir = (0,b,c)
             X = rt::vector(0.0_r, - c, b).unit();
             Y = rt::vector(1, 0, 0);
-        } else {
+        }
+        else {
             // central_dir = (0,0,1)
             X = rt::vector(1, 0, 0);
             Y = rt::vector(0, 1, 0);

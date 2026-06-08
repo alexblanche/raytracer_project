@@ -470,7 +470,7 @@ inline rt::vector quad::get_interpolated_normal(const barycentric_info& bary) co
     );
 }
 
-hit quad::compute_intersection(ray& r, const real t) const {
+hit quad::compute_intersection(const ray& r, const real t) const {
 
     // const rt::vector p1 = position + v1;
     // const rt::vector p2 = position + v2;
@@ -481,7 +481,7 @@ hit quad::compute_intersection(ray& r, const real t) const {
     //const rt::vector p = r.get_origin() + t * r.get_direction();
     const rt::vector p = fma(r.get_direction(), t, r.get_origin());
     const object* pt_obj = this;
-    ray* pt_ray = &r;
+    const ray* pt_ray = &r;
 
     if constexpr (SHADING == shading::SmoothShading) {
         

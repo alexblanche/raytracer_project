@@ -1,5 +1,7 @@
 #include "tracing/directions.hpp"
 
+#include "auxiliary/utils.hpp"
+
 /* Returns the reflected ray at the point of contact */
 /* Unused */
 /*
@@ -34,105 +36,41 @@ rt::vector get_central_reflected_direction(const hit& h, const rt::vector& norma
 }
 
 
-
-/* Returns a vector of n random reflected ray in the cone of center hit::reflect_ray(),
-   within solid angle theta_max */
-
-/* To obtain two vectors X, Y orthogonal to central_dir:
-   central_dir = (a,b,c). One of a,b,c is different from 0, let us say a.
-   X = (-b/a, 1, 0) is a solution.
-   We now look for a Y that satisfies ((a,b,c) | X) = 0 and (X | Y) = 0.
-   Y = (ac, bc, -(a*a + b*b)) is a solution.
-*/
-
-/*
-std::vector<ray> random_reflect(const std::size_t n, randomgen& rg,
-    const rt::vector& central_dir, const real theta_max) {
-
-    // n random reals between 0 and 1, and n between 0 and 2*pi
-    const std::vector<real> rands01 = rg.random_real_array(n, 1.0_r);
-    const std::vector<real> rands0twopi = rg.random_real_array(n, 2.0 * PI);
-
-    // Central direction of the rays
-    const real a = central_dir.x;
-    const real b = central_dir.y;
-    const real c = central_dir.z;
-
-    // Orthonormal base of the plane orthogonal to central_dir
-    rt::vector X, Y;
-    if (a != 0.0_r) {
-        X = rt::vector(-b, a, 0.0_r).unit();
-        Y = rt::vector(a * c, b * c, -a*a -b*b).unit();
-    } else if (b != 0.0_r) {
-        // central_dir = (0,b,c)
-        X = rt::vector(0.0_r, -c, b).unit();
-        Y = rt::vector(1.0_r, 0.0_r, 0.0_r);
-    } else {
-        // central_dir = (0,0,1)
-        X = rt::vector(1.0_r, 0.0_r, 0.0_r);
-        Y = rt::vector(0.0_r, 1.0_r, 0.0_r);
-    }
-
-    const real cos_theta_max = cos(theta_max);
-
-    // vector of random rays in the cone of angle theta_max to central_dir
-    std::vector<ray> rays;
-    rays.reserve(n);
-    for (std::size_t i = 0; i < n; i++) {
-        const real p = rands01[i];
-        const real phi = rands0twopi[i];
-
-        // theta = acos(1 - p(1 - cos(theta_max)))
-        // x = cos(phi) sin(theta) = cos(phi) * sqrt(1 - (1 - p(1-cos(theta_max))^2))
-        // y = sin(phi) sin(theta) = sin(phi) * sqrt(1 - (1 - p(1-cos(theta_max))^2))
-        // z = cos(theta)          = 1 - p(1-cos(theta_max))
-        
-        const real cos_theta = 1.0_r - p * (1.0_r - cos_theta_max);
-        rays.emplace_back(point,
-              (cos(phi) * sqrt(1.0_r - cos_theta * cos_theta)) * X
-            + (sin(phi) * sqrt(1.0_r - cos_theta * cos_theta)) * Y
-            + cos_theta * central_dir);
-    }
-
-    return rays;
-}
-*/
-
 // Run-time version (compile-time in hpp)
 rt::vector random_direction(const randomgen& rg, const rt::vector& central_dir, const real theta_max) {
 
-    const real p = rg.random_ratio();
+    const real p   = rg.random_ratio();
     const real phi = rg.random_angle();
 
     // Central direction of the rays
-    const real a = central_dir.x;
-    const real b = central_dir.y;
-    const real c = central_dir.z;
+    const auto [ a, b, c ] = central_dir;
 
     // Orthonormal base of the plane orthogonal to central_dir
     rt::vector X, Y;
-    if (a != 0.0_r) {
+    if (is_not_zero(a)) {
         const real nX = a * a + b * b;
         X = rt::vector(- b, a, 0.0_r) / sqrt(nX);
         Y = rt::vector(a * c, b * c, -nX).unit();
-    } else if (b != 0.0_r) {
+    }
+    else if (is_not_zero(b)) {
         // central_dir = (0,b,c)
         X = rt::vector(0.0_r, - c, b).unit();
-        Y = rt::vector(1.0_r, 0.0_r, 0.0_r);
-    } else {
+        Y = rt::vector(1, 0, 0);
+    }
+    else {
         // central_dir = (0,0,1)
-        X = rt::vector(1.0_r, 0.0_r, 0.0_r);
-        Y = rt::vector(0.0_r, 1.0_r, 0.0_r);
+        X = rt::vector(1, 0, 0);
+        Y = rt::vector(0, 1, 0);
     }
 
-    const real cos_theta_max = std::cos(theta_max);
+    const real cos_theta_max = cos(theta_max);
     const real cos_theta = 1.0_r - p * (1.0_r - cos_theta_max);
-    const real sin_theta = std::sqrt(1.0_r - cos_theta * cos_theta);
+    const real sin_theta = sqrt(1.0_r - cos_theta * cos_theta);
     
     return
         matprod(
-            X,           std::cos(phi) * sin_theta,
-            Y,           std::sin(phi) * sin_theta,
+            X,           cos(phi) * sin_theta,
+            Y,           sin(phi) * sin_theta,
             central_dir, cos_theta
         );
 }
@@ -183,7 +121,7 @@ rt::vector get_refracted_direction(const rt::vector& normal, const rt::vector& v
     //return vx + sqrt(1.0_r - sin_theta_2_sq) * (inward ? (-1.0_r) * normal : normal);
     return fma(
         normal,
-        (ray_orientation == orientation_type::Inward ? (-1.0_r) : 1.0_r) * std::sqrt(1.0_r - sin_theta_2_sq),
+        (ray_orientation == orientation_type::Inward ? (-1.0_r) : 1.0_r) * sqrt(1.0_r - sin_theta_2_sq),
         vx
     );
 }
@@ -203,8 +141,8 @@ real get_fresnel(const hit& h, const rt::vector& normal,
     const real sin_theta_2_sq, const real refr_1, const real refr_2) {
 
     const real pdt = (h.get_generator_ray()->get_direction() | normal);
-    const real cos_theta_1 = std::abs(pdt);
-    const real cos_theta_2 = std::sqrt(1.0_r - sin_theta_2_sq);
+    const real cos_theta_1 = abs(pdt);
+    const real cos_theta_2 = sqrt(1.0_r - sin_theta_2_sq);
 
     const real refr1costheta1 = refr_1 * cos_theta_1;
     const real refr1costheta2 = refr_1 * cos_theta_2;

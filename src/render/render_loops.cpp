@@ -5,7 +5,6 @@
 #include "auxiliary/timer.hpp"
 
 #include <atomic>
-
 #include <iostream>
 #include <thread>
 
@@ -20,7 +19,7 @@ void render_loop_seq(image& image, const scene& scene, const unsigned int number
 
         for (int i = 0; rt::color& col : row) {
 
-            ray r = scene.cam.gen_ray(i, j, rg, 0);
+            const ray r = scene.cam.gen_ray(i, j, rg, 0);
             const rt::color pixel_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette);
             col += pixel_col;
             i++;
@@ -42,7 +41,7 @@ void render_loop_parallel(image& image, const scene& scene, const unsigned int n
         const matrix::row row = image.data[image.height() - 1 - j];
         for (int i = 0; rt::color& color : row) {
 
-            ray r = scene.cam.gen_ray(i, j, rg, image.number_of_samples);
+            const ray r = scene.cam.gen_ray(i, j, rg, image.number_of_samples);
             const rt::color new_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette);
             color += new_col;
             i++;
@@ -72,7 +71,7 @@ void render_loop_parallel_time(image& image, const scene& scene, const unsigned 
         const matrix::row row = image.data[image.height() - 1 - j];
         for (int i = 0; rt::color& col : row) {
 
-            ray r = scene.cam.gen_ray(i, j, rg, 0);
+            const ray r = scene.cam.gen_ray(i, j, rg, 0);
             const rt::color pixel_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette_mode::Disabled);
             col += pixel_col;
             i++;
@@ -123,23 +122,29 @@ void render_loop_parallel_time(image& image, const scene& scene, const unsigned 
 }
 
 
-/* After the first hit, several bouncing rays are cast */
-void render_loop_parallel_multisample(image& image, const scene& scene, const unsigned int number_of_bounces, const unsigned int number_of_samples) {
+// /* After the first hit, several bouncing rays are cast */
+// void render_loop_parallel_multisample(image& image, const scene& scene, const unsigned int number_of_bounces, const unsigned int number_of_samples) {
 
-    parallel_for(scene.height, [&, number_of_bounces, number_of_samples] (int j) {
+//     parallel_for(scene.height, [&, number_of_bounces, number_of_samples] (int j) {
 
-        static thread_local const randomgen rg;
+//         static thread_local const randomgen rg;
 
-        const matrix::row row = image.data[image.height() - 1 - j];
-        for (int i = 0; rt::color& col : row) {
+//         const matrix::row row = image.data[image.height() - 1 - j];
+//         for (int i = 0; rt::color& col : row) {
 
-            ray r = scene.cam.gen_ray(i, j, rg, 0);
-            const rt::color new_col = pathtrace_multisample(r, scene, rg, number_of_bounces, number_of_samples);
-            col += new_col;
-            i++;
-        }
+//             const ray r = scene.cam.gen_ray(i, j, rg, 0);
+//             const rt::color new_col = pathtrace_multisample(r, scene, rg, number_of_bounces, number_of_samples);
+//             col += new_col;
+//             i++;
+//         }
         
-    });
+//     });
+// }
+// Temporary
+void render_loop_parallel_multisample(image& image, const scene& scene, const unsigned int number_of_bounces, const unsigned int number_of_samples) {
+    if (number_of_samples != 1)
+        return;
+    return render_loop_parallel(image, scene, number_of_bounces, russian_roulette_mode::Disabled);
 }
 
 

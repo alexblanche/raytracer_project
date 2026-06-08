@@ -94,12 +94,12 @@ class scene {
 
         /* Ray-scene intersection */
         /* Linear search through the objects of the scene */
-        std::optional<hit> find_closest_object(ray& r) const;
+        std::optional<hit> find_closest_object(const ray& r) const;
 
         /* Tree-search through the bounding boxes */
-        std::optional<hit> find_closest_object_bounding(ray& r) const;
+        std::optional<hit> find_closest_object_bounding(const ray& r) const;
 
-        inline std::optional<hit> find_closest(ray& r, const bvh_option bvh) const {
+        inline std::optional<hit> find_closest(const ray& r, const bvh_option bvh) const {
             using enum bvh_option;
             switch (bvh) {
                 case Enabled:

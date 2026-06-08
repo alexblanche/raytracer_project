@@ -403,12 +403,12 @@ inline rt::vector triangle::get_interpolated_normal(const barycentric_info& bary
     return fma(vn2mvn0, bary.l2, fma(vn1mvn0, bary.l1, vn0));
 }
 
-hit triangle::compute_intersection(ray& r, const real t) const {
+hit triangle::compute_intersection(const ray& r, const real t) const {
     
     //const rt::vector p = r.get_origin() + t * r.get_direction();
     const rt::vector p = fma(r.get_direction(), t, r.get_origin());
     const object* pt_obj = this;
-    ray* pt_ray = &r;
+    const ray* pt_ray = &r;
     
     if constexpr (SHADING == shading::SmoothShading) {
     

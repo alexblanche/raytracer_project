@@ -1,10 +1,9 @@
 #include "scene/scene.hpp"
 
 #include "file_readers/scene_parser.hpp"
+#include "auxiliary/custom_stack.hpp"
 
 #include <optional>
-
-#include "auxiliary/custom_stack.hpp"
 
 scene::scene(
     std::vector<const object*>&& object_set,
@@ -55,7 +54,7 @@ scene::~scene() {
 /*** Ray-scene intersection ***/
 
 /* Linear search through the objects of the scene */
-std::optional<hit> scene::find_closest_object(ray& r) const {
+std::optional<hit> scene::find_closest_object(const ray& r) const {
     
     real distance_to_closest = infinity;
     std::optional<unsigned int> closest_obj_index = std::nullopt;
@@ -84,7 +83,7 @@ std::optional<hit> scene::find_closest_object(ray& r) const {
 }
 
 /* Tree-search through the bounding boxes */
-std::optional<hit> scene::find_closest_object_bounding(ray& r) const {
+std::optional<hit> scene::find_closest_object_bounding(const ray& r) const {
     /* For all the bounding boxes in bounding::set, we do the following:
        If the bounding box is terminal, look for the object of minimum distance.
        If it is internal, if the ray intersects the box, add its children to the bounding stack.

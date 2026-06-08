@@ -44,21 +44,21 @@ class plane : public object {
 
         /* Intersection determination */
 
-        std::optional<real> measure_distance(const ray& r) const override;
+        std::optional<real> measure_distance(const ray& r) const override final;
         
-        hit compute_intersection(ray& r, real t) const override;
+        hit compute_intersection(const ray& r, real t) const override final;
 
         /* Returns the barycentric info (tiles according to texture_scale) */
-        barycentric_info get_barycentric(const rt::vector& p) const override;
+        barycentric_info get_barycentric(const rt::vector& p) const override final;
 
         /* Normal map vector computation at render time */
-        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const override;
+        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const override final;
 
         /* Minimum and maximum coordinates (undefined for planes )*/
-        min_max_coord get_min_max_coord() const override;
+        min_max_coord get_min_max_coord() const override final;
 
-        rt::vector sample(randomgen& rg) const override;
+        rt::vector sample(randomgen& rg) const override final;
         
-        rt::vector sample_visible(randomgen& rg, const rt::vector& pt) const override;
+        rt::vector sample_visible(randomgen& rg, const rt::vector& pt) const override final;
 
 };

@@ -88,7 +88,7 @@ std::optional<real> plane::measure_distance(const ray& r) const {
         : std::nullopt;
 }
 
-hit plane::compute_intersection(ray& r, const real t) const {
+hit plane::compute_intersection(const ray& r, const real t) const {
 
     // Intersection point
     //const rt::vector p = r.get_origin() + t * r.get_direction();
@@ -97,7 +97,7 @@ hit plane::compute_intersection(ray& r, const real t) const {
     // The normal vector (a, b, c) is assumed to be a unit vector
 
     const object* pt_obj = this;
-    ray* pt_ray = &r;
+    const ray* pt_ray = &r;
     return hit(pt_ray, p, get_normal(), pt_obj);
 }
 

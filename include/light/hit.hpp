@@ -20,7 +20,7 @@ enum class orientation_type {
 
 class hit {
     private:
-        ray* generator;
+        const ray* generator;
         rt::vector point;
         rt::vector normal;
         const object* hit_object;
@@ -28,9 +28,9 @@ class hit {
 
     public:
         /* Main constructor */
-        hit(ray* generator, const rt::vector& point, const rt::vector& normal, const object* hit_object);
+        hit(const ray* generator, const rt::vector& point, const rt::vector& normal, const object* hit_object);
 
-        hit(ray* generator, const rt::vector& point, const rt::vector& normal, const object* hit_object, const orientation_type orientation);
+        hit(const ray* generator, const rt::vector& point, const rt::vector& normal, const object* hit_object, const orientation_type orientation);
 
         hit();
 
@@ -51,7 +51,7 @@ class hit {
             return orientation;
         }
 
-        inline ray* get_generator_ray() const {
+        inline const ray* get_generator_ray() const {
             return generator;
         }
 };
