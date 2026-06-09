@@ -149,7 +149,7 @@ class file {
 
         template<class T>
         exit_status read(std::vector<T>& buffer) const {
-            return read<T>(std::span<T>(buffer));
+            return read(std::span(buffer));
         }
 
         enum class string_reading_type {
@@ -297,7 +297,7 @@ class file {
 
         template<class T>
         exit_status write(const std::vector<T>& buffer) const {
-            return write(buffer);
+            return write(std::span(buffer));
         }
 
         template<typename T, T value, std::size_t count>

@@ -18,24 +18,51 @@
    pixel (i,j) at line j*width + i
    line k representing pixel (k % width, k / width)
 */
-exit_status export_raw(const std::string& file_name, const image& image) {
+// format = 0: decimal representations written in sequence, one by line
+// format = 1: binary values written in sequence
+exit_status export_raw(const std::string& file_name, const image& image, const unsigned int format) {
 
     file f(file_name, "w");
 
     try {
         const auto [ width, height ] = image.data.get_dimensions();
+        
+        const exit_status status = f.printf("width:%u height:%u number_of_rays:%u format:%u pixel_size:%zu\n",
+            width, height, image.number_of_samples, format, sizeof(rt::color));
 
-        const exit_status status = f.printf("width:%u height:%u number_of_rays:%u\n", width, height, image.number_of_samples);
         if (status == exit_status::Failure) {
             printf("Writing error at first line of %s\n", file_name.c_str());
             throw std::runtime_error("");
         }
 
-        for (const matrix::const_row row : image.data) {
-            for (const rt::color& c : row) {
-                const auto [ r, g, b ] = c;
-                f.printf("%lf %lf %lf\n", r, g, b);
+        switch (format) {
+            case 0:
+                for (int j = height - 1; j >= 0; j--) {
+                    const matrix::const_row row = image.data[j];
+                    for (const rt::color& c : row) {
+                        const auto [ r, g, b ] = c;
+                        f.printf("%lf %lf %lf\n", r, g, b);
+                    }
+                }
+                break;
+            case 1: {
+                const std::size_t buffer_size = image.width() * image.height() * sizeof(rt::color);
+                std::vector<unsigned char> buffer_binary(buffer_size);
+                rt::color* const buffer = reinterpret_cast<rt::color*>(buffer_binary.data());
+
+                std::size_t index = 0;
+                const std::size_t row_length_bin = width * sizeof(rt::color);
+                for (const matrix::const_row row : image.data) {
+                    std::memcpy(buffer + index, row.data(), row_length_bin);
+                    index += width;
+                }
+
+                const exit_status status = f.write(buffer_binary);
+                throw_if_failure(status, "Could not write in file");
+                break;
             }
+            default:
+                throw std::runtime_error("Incorrect format");
         }
 
         return exit_status::Success;
@@ -54,20 +81,50 @@ std::optional<image> read_raw(const std::string& file_name) {
 
     try {
         unsigned int width, height, number_of_rays;
-        const exit_status status = f.scanf("width:%u height:%u number_of_rays:%u\n", width, height, number_of_rays);
+        unsigned int format = 0;
+        std::size_t pixel_size = sizeof(rt::color);
+        const int ret = f.scanf_count("width:%u height:%u number_of_rays:%u format:%u pixel_size:%zu\n",
+            width, height, number_of_rays, format, pixel_size);
 
-        if (status == exit_status::Failure) {
+        if (ret < 3 || (format != 0 && format != 1)) {
             printf("Reading error at first line of file %s\n", file_name.c_str());
             throw std::runtime_error("");
         }
 
         image image(width, height);
         
-        for (const matrix::row row : image.data) {
-            for (rt::color& c : row) {
-                const auto [ r, g, b ] = f.scan<real, 3>();
-                c = rt::color(r, g, b);
+        switch (format) {
+            case 0: {
+                for (int j = height - 1; j >= 0; j--) {
+                    const matrix::row row = image.data[j];
+                    for (rt::color& c : row) {
+                        const auto [ r, g, b ] = f.scan<real, 3>();
+                        c = rt::color(r, g, b);
+                    }
+                }
+                break;
             }
+            case 1: {
+                const std::size_t buffer_size = width * height * pixel_size;
+                if (f.length() < buffer_size)
+                    throw std::runtime_error("Incorrect file size");
+                
+                std::vector<unsigned char> buffer_binary(buffer_size);
+                rt::color * const buffer = reinterpret_cast<rt::color*>(buffer_binary.data());
+                const exit_status status = f.read(buffer_binary);
+                throw_if_failure(status, "Error reading color data");
+                f.close();
+
+                std::size_t index = 0;
+                const std::size_t row_length_binary = width * pixel_size;
+                for (const matrix::row row : image.data) {
+                    std::memcpy(row.data(), buffer + index, row_length_binary);
+                    index += width;
+                }
+                break;
+            }
+            default:
+                break;
         }
 
         return image;
@@ -107,9 +164,12 @@ exit_status combine_raw(const std::string& dest_bmp_name, const std::string& des
         file f(name);
 
         unsigned int width_k, height_k, number_of_rays_k;
-        const exit_status status = f.scanf("width:%u height:%u number_of_rays:%u\n", width_k, height_k, number_of_rays_k);
+        unsigned int format = 0;
+        std::size_t pixel_size = sizeof(rt::color);
+        const int ret = f.scanf_count("width:%u height:%u number_of_rays:%u format:%u pixel_size:%zu\n",
+            width_k, height_k, number_of_rays_k, format, pixel_size);
 
-        if (status == exit_status::Failure) {
+        if (ret < 3 || (format != 0 && format != 1)) {
             printf("Reading error at first line of file %s\n", name.c_str());
             return exit_status::Failure;
         }
@@ -121,17 +181,43 @@ exit_status combine_raw(const std::string& dest_bmp_name, const std::string& des
 
         image.increase_sample_count(number_of_rays_k);
 
-        for (const matrix::row row : image.data) {
-            for (rt::color& color : row) {
-                const auto [ r, g, b ] = f.scan<real, 3>();
-                color += rt::color(r, g, b);
+        switch (format) {
+            case 0: {
+                for (int j = height - 1; j >= 0; j--) {
+                    const matrix::row row = image.data[j];
+                    for (rt::color& color : row) {
+                        const auto [ r, g, b ] = f.scan<real, 3>();
+                        color += rt::color(r, g, b);
+                    }
+                }
+                break;
             }
+            case 1: {
+                const std::size_t buffer_size = width * height * pixel_size;
+                std::vector<unsigned char> buffer_binary(buffer_size);
+                rt::color * const buffer = reinterpret_cast<rt::color*>(buffer_binary.data());
+
+                const exit_status status = f.read(buffer_binary);
+                throw_if_failure(status, "Error reading color data");
+                f.close();
+                
+                for (int index = 0; const matrix::row row : image.data) {
+                    for (rt::color& color : row) {
+                        color += buffer[index];
+                        index++;
+                    }
+                }
+                break;
+            }
+            default:
+                break;
         }
     }
 
     /* Exporting the matrix as a bmp file */
     const exit_status success_bmp = write_bmp (dest_bmp_name, image);
-    const exit_status success_raw = export_raw(dest_raw_name, image);
+    constexpr int DEFAULT_FORMAT = 1;
+    const exit_status success_raw = export_raw(dest_raw_name, image, DEFAULT_FORMAT);
 
     if ((success_bmp && success_raw) == exit_status::Success)
         return exit_status::Success;
