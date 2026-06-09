@@ -7,13 +7,9 @@
 
 #include <optional>
 
-/* Constructors */
-
-triangle::triangle() {}
-
 std::pair<real, det_case> set_up_det(const rt::vector& v1, const rt::vector& v2) {
 
-    // printf("c = (%lf, %lf, %lf), detxy = %lf, abs(detxy) = %lf, cond = %d\n", c.x, c.y, c.z, detxy, abs(detxy), abs(detxy) > 0.00000001);
+    // printf("c = (%lf, %lf, %lf), detxy = %lf, abs(detxy) = %lf, cond = %d\n", c.x, c.y, c.z, detxy, std::abs(detxy), std::abs(detxy) > 0.00000001);
     
     const real detxy = v1.x * v2.y - v1.y * v2.x;
     if (is_not_zero(detxy))
@@ -200,8 +196,8 @@ inline rt::vector triangle::get_barycenter() const {
 
 #if 0
 std::optional<real> triangle::measure_distance_orig(const ray& r) const {
-    const rt::vector& u = r.get_origin();
-    const rt::vector& dir = r.get_direction();
+    const rt::vector& u   = r.origin;
+    const rt::vector& dir = r.direction;
 
     // Intersection between the ray and the triangle plane
     const real pdt = (normal | dir); // ax + by + cz
@@ -233,9 +229,9 @@ std::optional<real> triangle::measure_distance_orig(const ray& r) const {
     const rt::vector c = u + (t * dir) - position;
     const real detxy = v1.x * v2.y - v1.y * v2.x;
 
-    // printf("c = (%lf, %lf, %lf), detxy = %lf, abs(detxy) = %lf, cond = %d\n", c.x, c.y, c.z, detxy, abs(detxy), abs(detxy) > 0.00000001);
+    // printf("c = (%lf, %lf, %lf), detxy = %lf, abs(detxy) = %lf, cond = %d\n", c.x, c.y, c.z, detxy, std::abs(detxy), std::abs(detxy) > 0.00000001);
 
-    if (abs(detxy) > 0.00000001f) {
+    if (std::abs(detxy) > 0.00000001f) {
         const real l1 = (c.x * v2.y - c.y * v2.x) / detxy;
         if (l1 >= 0.0_r && l1 <= 1.0_r) {
             const real l2 = (v1.x * c.y - v1.y * c.x) / detxy;
@@ -247,7 +243,7 @@ std::optional<real> triangle::measure_distance_orig(const ray& r) const {
         // The vectors v1, v2 are colinear when projected on the plane z = 0
         // Another attempt with rows x, z
         const real detxz = v1.x * v2.z - v1.z * v2.x;
-        if (abs(detxz) > 0.00000001f) {
+        if (std::abs(detxz) > 0.00000001f) {
             const real l1xz = (c.x * v2.z - c.z * v2.x) / detxz;
             if (l1xz >= 0.0_r && l1xz <= 1.0_r) {
                 const real l2xz = (v1.x * c.z - v1.z * c.x) / detxz;
@@ -260,7 +256,7 @@ std::optional<real> triangle::measure_distance_orig(const ray& r) const {
             // (e.g. the triangle lies in the plane x = constant)
             // Last attempt with rows y, z
             const real detyz = v1.y * v2.z - v1.z * v2.y;
-            if (abs(detyz) > 0.00000001f) {
+            if (std::abs(detyz) > 0.00000001f) {
                 const real l1yz = (c.y * v2.z - c.z * v2.y) / detyz;
                 if (l1yz >= 0.0_r && l1yz <= 1.0_r) {
                     const real l2yz = (v1.y * c.z - v1.z * c.y) / detyz;
@@ -276,8 +272,8 @@ std::optional<real> triangle::measure_distance_orig(const ray& r) const {
 #endif
 
 std::optional<real> triangle::measure_distance(const ray& r) const {
-    const rt::vector& u = r.get_origin();
-    const rt::vector& dir = r.get_direction();
+    const rt::vector& u = r.origin;
+    const rt::vector& dir = r.direction;
 
     // Intersection between the ray and the triangle plane
     const real pdt  = (normal | dir); // ax + by + cz
@@ -308,7 +304,7 @@ std::optional<real> triangle::measure_distance(const ray& r) const {
     //const rt::vector c = u + (t * dir) - position;
     const rt::vector c = fma(dir, t, u) - position;
 
-    // printf("c = (%lf, %lf, %lf), detxy = %lf, abs(detxy) = %lf, cond = %d\n", c.x, c.y, c.z, detxy, abs(detxy), abs(detxy) > 0.00000001);
+    // printf("c = (%lf, %lf, %lf), detxy = %lf, abs(detxy) = %lf, cond = %d\n", c.x, c.y, c.z, detxy, std::abs(detxy), std::abs(detxy) > 0.00000001);
 
     real l1;
     using enum det_case;
@@ -344,14 +340,14 @@ barycentric_info triangle::get_barycentric_orig(const rt::vector& p) const {
 
     const rt::vector c = p - position;
     const real detxy = v1.x * v2.y - v1.y * v2.x;
-    if (abs(detxy) > 0.00000001) {
+    if (std::abs(detxy) > 0.00000001) {
         const real l1 = (c.x * v2.y - c.y * v2.x) / detxy;
         const real l2 = (v1.x * c.y - v1.y * c.x) / detxy;
         return barycentric_info(l1, l2);
     }
     else {
         const real detxz = v1.x * v2.z - v1.z * v2.x;
-        if (abs(detxz) > 0.00000001) {
+        if (std::abs(detxz) > 0.00000001) {
             const real l1 = (c.x * v2.z - c.z * v2.x) / detxz;
             const real l2 = (v1.x * c.z - v1.z * c.x) / detxz;
             return barycentric_info(l1, l2);
@@ -405,8 +401,8 @@ inline rt::vector triangle::get_interpolated_normal(const barycentric_info& bary
 
 hit triangle::compute_intersection(const ray& r, const real t) const {
     
-    //const rt::vector p = r.get_origin() + t * r.get_direction();
-    const rt::vector p = fma(r.get_direction(), t, r.get_origin());
+    //const rt::vector p = r.origin + t * r.direction;
+    const rt::vector p = fma(r.direction, t, r.origin);
     const object* pt_obj = this;
     const ray* pt_ray = &r;
     
@@ -415,7 +411,7 @@ hit triangle::compute_intersection(const ray& r, const real t) const {
         // Computation of the interpolated normal vector
         const barycentric_info bary = get_barycentric(p);
         // inward uses the face normal to avoid artefacts at the edge of the mesh
-        const orientation_type ray_orientation = is_negative(r.get_direction() | normal) ?
+        const orientation_type ray_orientation = is_negative(r.direction | normal) ?
               orientation_type::Inward
             : orientation_type::Outward;
 

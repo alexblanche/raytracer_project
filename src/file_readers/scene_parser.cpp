@@ -582,7 +582,7 @@ std::optional<scene> parse_scene_descriptor(const char* file_name) {
                 throw std::runtime_error("Parsing error in scene constructor (background)");
             }
         }
-        else if (abs(rx) > 2.0_r * PI || abs(ry) > 2.0_r * PI || abs(rz) > 2.0_r * PI) {
+        else if (std::abs(rx) > 2.0_r * PI || std::abs(ry) > 2.0_r * PI || std::abs(rz) > 2.0_r * PI) {
             throw std::runtime_error("Incorrect background texture angles");
         }
         else {

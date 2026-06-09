@@ -1,9 +1,7 @@
 #include "legacy/objects/object.hpp"
 
-/* Constructors */
-
 object::object()
-    : position(rt::vector()), color(rt::color(255, 255, 255)) {}
+    : position(), color(255, 255, 255) {}
 
 object::object(const rt::vector& position, const rt::color& col)
     : position(position), color(col) {}

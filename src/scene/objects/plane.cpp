@@ -9,11 +9,6 @@
 #include <stdexcept>
 #include <optional>
 
-/* Constructors */
-
-/* Default constructor */
-plane::plane() {}
-
 /* Main constructor */
 /* A plane (P) of equation (P): ax + by + cz + d = 0
  defined by 4 reals a,b,c,d */
@@ -77,9 +72,8 @@ std::optional<real> plane::measure_distance(const ray& r) const {
        => t = -(aX + bY + cZ + d) / (ax + by + cz)
     */
 
-    const rt::vector& n = get_normal();
-    const real pdt  = (n | r.get_direction()); // ax + by + cz
-    const real upln = (n | r.get_origin()) + d; // aX + bY + cZ + d
+    const real pdt  = (normal | r.direction);  // ax + by + cz
+    const real upln = (normal | r.origin) + d; // aX + bY + cZ + d
     
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
     
@@ -91,14 +85,14 @@ std::optional<real> plane::measure_distance(const ray& r) const {
 hit plane::compute_intersection(const ray& r, const real t) const {
 
     // Intersection point
-    //const rt::vector p = r.get_origin() + t * r.get_direction();
-    const rt::vector p = fma(r.get_direction(), t, r.get_origin());
+    //const rt::vector p = r.origin + t * r.direction;
+    const rt::vector p = fma(r.direction, t, r.origin);
 
     // The normal vector (a, b, c) is assumed to be a unit vector
 
     const object* pt_obj = this;
     const ray* pt_ray = &r;
-    return hit(pt_ray, p, get_normal(), pt_obj);
+    return hit(pt_ray, p, normal, pt_obj);
 }
 
 /* Returns the barycentric info (tiles according to texture_scale) */

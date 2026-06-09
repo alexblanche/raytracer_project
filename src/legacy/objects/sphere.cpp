@@ -29,11 +29,10 @@ std::optional<real> sphere::measure_distance(const ray& r) const {
 
     */
 
-    const rt::vector v = position - r.get_origin();
-    const rt::vector dir = r.get_direction(); // the direction is assumed to be a unit vector
+    const rt::vector v = position - r.origin;
 
     const real nv2 = v.normsq();
-    const real dv = (dir | v);
+    const real dv = (r.direction | v); // the direction is assumed to be a unit vector
 
     const real delta = dv * dv + radius * radius - nv2;
     // delta is actually the discriminant divided by 4
@@ -57,7 +56,7 @@ std::optional<real> sphere::measure_distance(const ray& r) const {
 hit sphere::compute_intersection(ray& r, const real t) const {
 
     // Intersection point
-    const rt::vector p = r.get_origin() + t * r.get_direction();
+    const rt::vector p = r.origin + t * r.direction;
     
     const rt::vector n = (p - position) / radius;
     

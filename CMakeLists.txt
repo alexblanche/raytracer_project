@@ -75,7 +75,6 @@ set(SCENE_SOURCES
 
 set(TRACING_SOURCES
 	src/light/hit.cpp
-	src/light/ray.cpp
 	src/tracing/directions.cpp
 	src/tracing/tracing.cpp
 	src/tracing/multisample.cpp
@@ -146,7 +145,6 @@ add_executable(${merger_name}
 set(legacy legacy_raytracer)
 add_executable(${legacy}
 	${IMAGE_SOURCES}
-	src/light/ray.cpp
 	src/legacy/light/hit.cpp
 	src/legacy/objects/object.cpp
 	src/legacy/objects/plane.cpp

@@ -9,14 +9,13 @@ class plane : public object {
     
     private:
 
-        real a, b, c, d;
+        rt::vector normal;
+        real d;
 
         /* A plane (P) of equation (P): ax + by + cz + d = 0
          defined by 4 reals a,b,c,d */
 
     public:
-
-        /* Constructors */
 
         plane();
         
@@ -25,12 +24,6 @@ class plane : public object {
         
         plane(real pa, real pb, real pc, const rt::vector& position,
             const rt::color& col);
-
-        /* Accessors */
-
-        inline rt::vector get_normal() const {
-            return rt::vector(a, b, c);
-        }
 
 
         /* Intersection determination */

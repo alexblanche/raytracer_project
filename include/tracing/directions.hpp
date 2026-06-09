@@ -14,7 +14,7 @@ rt::vector get_central_reflected_direction(const hit& h, const rt::vector& norma
     constexpr real correcting_factor = (ray_orientation == orientation_type::Inward) ? 1.0_r : -1.0_r;
     constexpr real two_corr_f = -2.0_r * correcting_factor;
 
-    const rt::vector& u = h.get_generator_ray()->get_direction();
+    const rt::vector& u = h.get_generator_ray()->direction;
     const real two_cos = two_corr_f * (u | normal);
     //return (smoothness * (2.0_r * cos - 1.0_r) + 1.0_r) * right_normal + smoothness * u;
     return fma(u, smoothness, ((smoothness * (two_cos - 1.0_r) + 1.0_r) * correcting_factor) * normal);

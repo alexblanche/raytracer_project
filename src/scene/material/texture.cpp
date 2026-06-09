@@ -6,8 +6,6 @@
 #include <iostream>
 #include <filesystem>
 
-/* Constructors */
-
 /* Constructor from a .bmp or .hdr file
    Writes true in parsing_successful if the operation was successful */
 texture::texture(const std::string& file_name, bool& parsing_successful, const real gamma) {

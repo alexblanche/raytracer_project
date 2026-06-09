@@ -7,14 +7,6 @@
 #include <cmath>
 #include <optional>
 
-
-
-/* Constructors */
-
-sphere::sphere() {
-    radius = 0.0_r;
-}
-
 sphere::sphere(const rt::vector& center, const real radius, const unsigned int material_index)
 
     : object(center, material_index), radius(radius) {}
@@ -46,14 +38,11 @@ std::optional<real> sphere::measure_distance(const ray& r) const {
       The system is equivalent to:
       t^2*|dir|^2 - 2(dir|v)t + |v|^2 - radius^2 = 0
       Delta = 4 * ((dir|v)^2 - 4 * |dir|^2 * (|v|^2 - radius^2))
-
     */
 
-    const rt::vector v = position - r.get_origin();
-    const rt::vector& dir = r.get_direction(); // the direction is assumed to be a unit vector
-
+    const rt::vector v = position - r.origin;
     const real nv2 = v.normsq();
-    const real dv = (dir | v);
+    const real dv = (r.direction | v); // the direction is assumed to be a unit vector
 
     const real delta = dv * dv + radius * radius - nv2;
     // delta is actually the discriminant divided by 4
@@ -81,14 +70,10 @@ std::optional<real> sphere::measure_distance(const ray& r) const {
 hit sphere::compute_intersection(const ray& r, const real t) const {
 
     // Intersection point
-    const rt::vector& u = r.get_origin();
-    const rt::vector p = fma(r.get_direction(), t, u); // u + t * r.get_direction();
-
+    const rt::vector p = fma(r.direction, t, r.origin);
+    // Normal at intersection point
     const rt::vector n = (p - position) / radius;
-    
-    const object* pt_obj = this;
-    const ray* pt_ray = &r;
-    return hit(pt_ray, p, n, pt_obj);
+    return hit(&r, p, n, this);
 }
 
 

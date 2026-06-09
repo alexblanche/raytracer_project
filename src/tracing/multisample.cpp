@@ -241,7 +241,7 @@ rt::color pathtrace_multisample(ray& r, const scene& scene, const randomgen& rg,
     else {
         return
             (scene.background.has_texture()) ?
-                scene.background.get_color(r.get_direction())
+                scene.background.get_color(r.direction)
                 :
                 scene.background.get_color();
     }

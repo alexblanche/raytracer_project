@@ -2,16 +2,9 @@
 
 #include "light/vector.hpp"
 
-/** 
- * The ray class contains the information of a ray of light:
- * the point of origin, the direction vector,
- * as well as two pre-computed vectors inv_dir = (1/d.x, 1/d.y, 1/d.z)
- * and abs_inv_dir = (abs(inv_d.x), abs(inv_d.y), abs(inv_z.z))
-*/
-
 struct ray {
     
-    protected:
+    public:
         rt::vector origin;
 
         rt::vector direction;
@@ -24,37 +17,26 @@ struct ray {
         // Absolute values of each component
         rt::vector abs_inv_dir;
 
-
-    public :
-
-        /* Constructors */
+        ray() = delete;
         
-        ray (const rt::vector& o, const rt::vector& d);
-        
-        ray ();
-        
-        /* Accessors */
-        inline const rt::vector& get_origin() const {
-            return origin;
-        }
-        
-        inline const rt::vector& get_direction() const {
-            return direction;
-        }
+        ray(const rt::vector& origin, const rt::vector& dir)
+            :
+            origin(origin),
+            direction(dir),
+            inv_dir(
+                1.0_r / direction.x,
+                1.0_r / direction.y,
+                1.0_r / direction.z
+            ),
+            abs_inv_dir(
+                std::abs(inv_dir.x),
+                std::abs(inv_dir.y),
+                std::abs(inv_dir.z)
+            ) {}
 
-        inline const rt::vector& get_inv_dir() const {
-            return inv_dir;
-        }
-
-        inline const rt::vector& get_abs_inv_dir() const {
-            return abs_inv_dir;
-        }
-
-        /* Mutators */
-        inline void set_origin(const rt::vector& o) {
-            origin = o;
-        }
-
-        void set_direction(const rt::vector& direction);
+        ray& operator=(ray&&)      = default;
+        ray(ray&&)                 = default;
+        ray(const ray&)            = default;
+        ray& operator=(const ray&) = delete;
 };
 

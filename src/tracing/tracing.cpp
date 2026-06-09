@@ -21,7 +21,7 @@ struct accumulators {
         emitted_colors(rt::BLACK) {}
 
 
-    inline rt::color combine(const rt::color& color) const {
+    [[nodiscard]] inline rt::color combine(const rt::color& color) const {
         return fma(
             color_materials,
             color,
@@ -64,7 +64,7 @@ enum class bias_type {
 /* Auxiliary function that applies a bias of 1.0E-3 times the normal to the ray position,
    outward the surface contact point if outward_bias is true (so in the direction of the normal),
    inward otherwise (in the opposite direction to the normal) */
-inline rt::vector get_bias(const rt::vector& hit_point, const rt::vector& normal,
+[[nodiscard]] inline rt::vector get_bias(const rt::vector& hit_point, const rt::vector& normal,
     const orientation_type ray_orientation, const orientation_type bias_orientation) {
 
     return
@@ -76,7 +76,7 @@ inline rt::vector get_bias(const rt::vector& hit_point, const rt::vector& normal
 }
 
 template <orientation_type ray_orientation, orientation_type bias_orientation>
-inline rt::vector get_bias(const rt::vector& hit_point, const rt::vector& normal) {
+[[nodiscard]] inline rt::vector get_bias(const rt::vector& hit_point, const rt::vector& normal) {
 
     constexpr real right_bias = (ray_orientation != bias_orientation ? 1.0_r : -1.0_r) * BIAS_NORM;
     return fma(normal, right_bias, hit_point);
@@ -85,7 +85,7 @@ inline rt::vector get_bias(const rt::vector& hit_point, const rt::vector& normal
 
 /* Auxiliary function that handles the specular reflective case */
 // Run-time
-static ray specular_reflective_case(const hit& h, const randomgen& rg, const real smoothness,
+[[nodiscard]] static ray specular_reflective_case(const hit& h, const randomgen& rg, const real smoothness,
     const rt::vector& local_normal, const orientation_type ray_orientation) {
 
     const rt::vector central_dir = get_central_reflected_direction(h, local_normal, smoothness, ray_orientation);
@@ -105,7 +105,7 @@ static ray specular_reflective_case(const hit& h, const randomgen& rg, const rea
 
 // Compile-time
 template<orientation_type ray_orientation>
-static ray specular_reflective_case(const hit& h, const randomgen& rg, const real smoothness,
+[[nodiscard]] static ray specular_reflective_case(const hit& h, const randomgen& rg, const real smoothness,
     const rt::vector& local_normal) {
 
     const rt::vector central_dir = get_central_reflected_direction<ray_orientation>(h, local_normal, smoothness);
@@ -126,7 +126,7 @@ static ray specular_reflective_case(const hit& h, const randomgen& rg, const rea
 
 /* Auxiliary function that handles the diffuse reflective case */
 // Run-time
-ray diffuse_case(const hit& h, const rt::vector& local_normal, const randomgen& rg, const orientation_type ray_orientation) {
+[[nodiscard]] ray diffuse_case(const hit& h, const rt::vector& local_normal, const randomgen& rg, const orientation_type ray_orientation) {
 
     using enum orientation_type;
     const rt::vector dir(
@@ -144,7 +144,7 @@ ray diffuse_case(const hit& h, const rt::vector& local_normal, const randomgen& 
 
 
 /* Auxiliary function that handles the refractive case */
-ray refractive_case(const hit& h, const randomgen& rg, const real scattering,
+[[nodiscard]] ray refractive_case(const hit& h, const randomgen& rg, const real scattering,
     const rt::vector& local_normal,
     const rt::vector& vx, const real sin_theta_2_sq, const orientation_type ray_orientation,
     real& refr_index, const real next_refr_i) {
@@ -170,7 +170,7 @@ ray refractive_case(const hit& h, const randomgen& rg, const real scattering,
     return ray(origin, dir);
 }
 
-inline rt::color background_case(const scene& scene, const ray& r,
+[[nodiscard]] inline rt::color background_case(const scene& scene, const ray& r,
     const accumulators& acc) {
 
     /* Determining the pixel of the background texture to display */
@@ -179,7 +179,7 @@ inline rt::color background_case(const scene& scene, const ray& r,
 
     return acc.combine(
         scene.background.has_texture() ?
-            scene.background.get_color(r.get_direction())
+            scene.background.get_color(r.direction)
             :
             scene.background.get_color()
     );
@@ -211,7 +211,7 @@ rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg
 
     const bool russian_roulette = russian_roulette_mode == russian_roulette_mode::Enabled;
 
-    ray r = init_ray;
+    ray r(init_ray);
 
     for (unsigned int i = 0; i < bounce; i++) {
 

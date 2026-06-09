@@ -23,7 +23,6 @@ class texture {
     public:      
         texture() {}
 
-        /* Default constructor */
         texture(matrix&& matrix) :
             data(std::move(matrix)),
             width(data.width), height(data.height),

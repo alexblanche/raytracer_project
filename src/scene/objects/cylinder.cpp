@@ -8,11 +8,6 @@
 #include <optional>
 
 
-/* Constructors */
-
-cylinder::cylinder()
-    : radius(0), length(0) {}
-
 cylinder::cylinder(const rt::vector& origin, const rt::vector& direction,
     const real radius, const real length, const unsigned int material_index)
 
@@ -28,10 +23,7 @@ cylinder::cylinder(const rt::vector& origin, const rt::vector& direction,
 std::optional<real> cylinder::measure_distance(const ray& r) const {
 
     /* We denote the origin, direction and radius of the cylinder o, d and r,
-       and the origin and direction of the ray u and dir. */
-
-    const rt::vector& u   = r.get_origin();
-    const rt::vector& dir = r.get_direction();
+       and the origin and direction of the ray. */
 
     /* Step 1: check if the ray intersects the side of the cylinder
 
@@ -58,11 +50,11 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
        The case analysis is detailed below.
     */
 
-    const rt::vector ump = u - position;
+    const rt::vector ump = r.origin - position;
     const real umpdirec = (ump | direction);
-    const real dirdirec = (dir | direction);
+    const real dirdirec = (r.direction | direction);
     const rt::vector a = ump - (umpdirec * direction);
-    const rt::vector b = dir - (dirdirec * direction);
+    const rt::vector b = r.direction - (dirdirec * direction);
 
     const real ab = (a | b);
     const real bb = b.normsq();
@@ -192,9 +184,7 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
 hit cylinder::compute_intersection(const ray& r, const real t) const {
 
     // Intersection point
-    const rt::vector& u = r.get_origin();
-    const rt::vector& dir = r.get_direction();
-    const rt::vector p = fma(dir, t, u); //u + t * dir;
+    const rt::vector p = fma(r.direction, t, r.origin);
     const real rr = radius * radius;
     const rt::vector pmpos = p - position;
 

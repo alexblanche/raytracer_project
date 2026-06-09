@@ -20,7 +20,7 @@ ray get_reflected_ray() {
 /* Returns the interpolated direction between the normal and the reflected direction */
 /* inward = ((direction | normal) <= 0) */
 rt::vector get_central_reflected_direction(const hit& h, const rt::vector& normal, const real smoothness, const orientation_type ray_orientation) {
-    const rt::vector& u = h.get_generator_ray()->get_direction();
+    const rt::vector& u = h.get_generator_ray()->direction;
     /*
     inward = (u | normal) <= 0;
     right_normal = inward ? normal : (-1)*normal;
@@ -49,7 +49,8 @@ rt::vector random_direction(const randomgen& rg, const rt::vector& central_dir, 
     rt::vector X, Y;
     if (is_not_zero(a)) {
         const real nX = a * a + b * b;
-        X = rt::vector(- b, a, 0.0_r) / sqrt(nX);
+        const real sqrtnX = sqrt(nX);
+        X = rt::vector(- b / sqrtnX, a / sqrtnX, 0.0_r);
         Y = rt::vector(a * c, b * c, -nX).unit();
     }
     else if (is_not_zero(b)) {
@@ -85,7 +86,7 @@ rt::vector get_sin_refracted(const hit& h, const rt::vector& normal,
     real& sin_theta_2_sq) {
 
     /* See get_refracted_direction below */
-    const rt::vector& dir = h.get_generator_ray()->get_direction();
+    const rt::vector& dir = h.get_generator_ray()->direction;
     /* It should be (current_refr_i / surface_refr_i) * ((((-1)*(dir | right_normal)) * right_normal) + dir)
        where right_normal = inward ? normal : (-1) * normal,
        but the next line is equivalent */
@@ -140,8 +141,8 @@ rt::vector get_random_refracted_direction(const randomgen& rg, const real refrac
 real get_fresnel(const hit& h, const rt::vector& normal,
     const real sin_theta_2_sq, const real refr_1, const real refr_2) {
 
-    const real pdt = (h.get_generator_ray()->get_direction() | normal);
-    const real cos_theta_1 = abs(pdt);
+    const real pdt = (h.get_generator_ray()->direction | normal);
+    const real cos_theta_1 = std::abs(pdt);
     const real cos_theta_2 = sqrt(1.0_r - sin_theta_2_sq);
 
     const real refr1costheta1 = refr_1 * cos_theta_1;
@@ -156,7 +157,7 @@ real get_fresnel(const hit& h, const rt::vector& normal,
 
 /* Compute Schlick's approximation of Fresnel coefficient Kr */
 real get_schlick(const hit& h, const rt::vector& normal, const real refr_1, const real refr_2) {
-    const real pdt = (h.get_generator_ray()->get_direction() | normal);
+    const real pdt = (h.get_generator_ray()->direction | normal);
     const real cos_theta_1 = std::abs(pdt);
 
     const real ratio = (refr_1 - refr_2) / (refr_1 + refr_2);
