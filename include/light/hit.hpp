@@ -27,12 +27,12 @@ class hit {
         orientation_type orientation;
 
     public:
-        /* Main constructor */
-        hit(const ray* generator, const rt::vector& point, const rt::vector& normal, const object* hit_object);
+        hit(const ray* generator, const rt::vector& point, const rt::vector& normal, const object* hit_object)
+            : generator(generator), point(point), normal(normal), hit_object(hit_object),
+            orientation (((generator->direction | normal) <= 0.0f) ? orientation_type::Inward : orientation_type::Outward) {}
 
-        hit(const ray* generator, const rt::vector& point, const rt::vector& normal, const object* hit_object, const orientation_type orientation);
-
-        hit();
+        hit(const ray* generator, const rt::vector& point, const rt::vector& normal, const object* hit_object, const orientation_type orientation)
+            : generator(generator), point(point), normal(normal), hit_object(hit_object), orientation(orientation) {}
 
         /* Accessors */
         inline const rt::vector& get_point() const {

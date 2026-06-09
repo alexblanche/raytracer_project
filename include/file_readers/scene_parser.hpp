@@ -4,4 +4,4 @@
 
 #include <optional>
 
-std::optional<scene> parse_scene_descriptor(const char* file_name);
+std::optional<scene> parse_scene_descriptor(const std::string& file_name);

@@ -145,9 +145,8 @@ exit_status menu::parse_aux(const std::span<const std::string> args) {
     return exit_status::Success;
 }
 
-exit_status menu::parse_arguments(int argc, char **argv) {
-
-    const std::vector<std::string> args(argv + 1, argv + argc);
+exit_status menu::parse_arguments(const std::span<const std::string> args) {
+    
     unsigned int index = 0;
 
     // Scene descriptor

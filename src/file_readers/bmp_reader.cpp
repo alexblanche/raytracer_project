@@ -22,14 +22,12 @@ std::optional<matrix> read_bmp(const std::string& file_name) {
         /* Width: 4 bytes */
         unsigned int bmpwidth;
         const exit_status status_w = f.read<unsigned int>({ &bmpwidth, 1 });
-        if (status_w == exit_status::Failure)
-            throw std::runtime_error("Reading error in read_bmp_size (width)");
+        throw_if_failure(status_w, "Reading error in read_bmp_size (width)");
 
         /* Height: 4 bytes */
         unsigned int bmpheight;
         const exit_status status_h = f.read<unsigned int>({ &bmpheight, 1 });
-        if (status_h == exit_status::Failure)
-            throw std::runtime_error("Reading error in read_bmp_size (height)");
+        throw_if_failure(status_h, "Reading error in read_bmp_size (height)");
 
         /* 28 bytes ignored:
            Number of color planes (2), Number of bits per pixel (2), Compression method used (4),
@@ -45,8 +43,7 @@ std::optional<matrix> read_bmp(const std::string& file_name) {
         const unsigned int nb_bytes = ((BYTES_PER_COLOR * bmpwidth) + p) * bmpheight;
         std::vector<unsigned char> buffer(nb_bytes);
         const exit_status status = f.read(buffer);
-        if (status == exit_status::Failure)
-            throw std::runtime_error("Reading error in read_bmp (pixel data)");
+        throw_if_failure(status, "Reading error in read_bmp (pixel data)");
 
         matrix matrix(bmpwidth, bmpheight);
 
@@ -93,8 +90,7 @@ exit_status print_bmp_info(const std::string& file_name) {
 
 
 static inline void check(exit_status status) {
-    if (status == exit_status::Failure)
-        throw std::runtime_error("");
+    throw_if_failure(status, "");
 }
 
 /* Writes the data into a .bmp file with the given name
@@ -191,9 +187,8 @@ exit_status write_bmp(const std::string& file_name, const image& image) {
 
         /** Color data **/
         /* Each pixel is represented as 3 bytes BGR, each line (sequence of 3*width bytes) is followed by p bytes '0' of padding */
-        const bool gamma_enabled = image.gamma != 1.0f;
+        const bool gamma_enabled = image.gamma != 1.0_r;
         const real invN = 1.0_r / image.number_of_samples;
-        constexpr real inv255 = 1.0_r / 255.0_r;
     
         for (const matrix::const_row row : image.data) {
             for (const rt::color& c : row) {
@@ -201,11 +196,8 @@ exit_status write_bmp(const std::string& file_name, const image& image) {
                 rt::color col = c * invN;
                 col.in_place_max_out();
 
-                if (gamma_enabled) {
-                    col *= inv255;
-                    col ^= image.gamma;
-                    col *= 255.0_r;
-                }
+                if (gamma_enabled)
+                    col.apply_gamma(image.gamma);
 
                 const auto [ b, g, r ] = col.to_uint8_bgr();
                 f.write<char>(b, g, r);

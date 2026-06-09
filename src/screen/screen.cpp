@@ -163,8 +163,10 @@ namespace rt {
 		const texture::lock lock = texture.get_lock();
 		const auto [ texture_pixels, texture_pitch ] = lock.info;
 		
-		const unsigned int padding = texture_pitch % 3;
-		const unsigned int row_size = 3 * width;
+		const unsigned int bytes_per_pixel = texture.bytes_per_pixel();
+
+		const unsigned int padding = texture_pitch % bytes_per_pixel;
+		const unsigned int row_size = bytes_per_pixel * width;
 		const unsigned int shift = 2 * row_size + padding;
 		
 		int index = (height - 1) * (row_size + padding);
@@ -176,7 +178,7 @@ namespace rt {
 				texture_pixels[index] 	  = r;
 				texture_pixels[index + 1] = g;
 				texture_pixels[index + 2] = b;
-				index += 3;
+				index += bytes_per_pixel;
             }
 			index -= shift;
         }
@@ -191,9 +193,10 @@ namespace rt {
 
 		const texture::lock lock = texture.get_lock();
 		const auto [ texture_pixels, texture_pitch ] = lock.info;
-
-		const unsigned int padding = texture_pitch % 3;
-		const unsigned int row_size = 3 * width;
+		
+		const unsigned int bytes_per_pixel = texture.bytes_per_pixel();
+		const unsigned int padding = texture_pitch % bytes_per_pixel;
+		const unsigned int row_size = bytes_per_pixel * width;
 		const unsigned int shift = 2 * row_size + padding;
 		
 		int index = (height - 1) * (row_size + padding);
@@ -208,7 +211,7 @@ namespace rt {
 				texture_pixels[index] 	  = cr;
 				texture_pixels[index + 1] = cg;
 				texture_pixels[index + 2] = cb;
-				index += 3;
+				index += bytes_per_pixel;
             }
 			index -= shift;
         }
@@ -234,13 +237,14 @@ namespace rt {
 		const texture::lock lock = texture.get_lock();
 		const auto [ texture_pixels, texture_pitch ] = lock.info;
 
-		const unsigned int padding = texture_pitch % 3;
+		const unsigned int bytes_per_pixel = texture.bytes_per_pixel();
+		const unsigned int padding = texture_pitch % bytes_per_pixel;
         
 		//unsigned int index = 0;
 		constexpr real inv255 = 1.0_r / 255.0_r;
 		const real inv = inv255 * invN;
 
-		const unsigned int row_size = 3 * width;
+		const unsigned int row_size = bytes_per_pixel * width;
 		const unsigned int shift = 2 * row_size + padding;
 		
 		int index = (height - 1) * (row_size + padding);
@@ -263,7 +267,7 @@ namespace rt {
 				texture_pixels[index] 	  = cr;
 				texture_pixels[index + 1] = cg;
 				texture_pixels[index + 2] = cb;
-				index += 3;
+				index += bytes_per_pixel;
             }
 			index -= shift;
         }

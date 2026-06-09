@@ -112,6 +112,12 @@ namespace rt  {
 			blue  = pow(blue,  a);
 		}
 
+		inline void apply_gamma(const real gamma) {
+			(*this) /= 255.0_r;
+			(*this) ^= gamma;
+			(*this) *= 255.0_r;
+		}
+
 		/* Maxing out color components at 255. */
 		color max_out() const;
 

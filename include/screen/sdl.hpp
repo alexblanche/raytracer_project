@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 #include <span>
+#include <utility>
 
 // Function that applies bitwise OR to a list of flags
 template<class T, typename UInt = uint32_t>
@@ -201,22 +202,52 @@ namespace sdl {
 
     class texture {
 
+        public:
+            enum class PixelFormat : uint32_t {
+                RGB24  = SDL_PIXELFORMAT_RGB24,
+                BGR24  = SDL_PIXELFORMAT_BGR24,
+                RGBA32 = SDL_PIXELFORMAT_RGBA32,
+                ARGB32 = SDL_PIXELFORMAT_ARGB32,
+                BGRA32 = SDL_PIXELFORMAT_BGRA32,
+                ABGR32 = SDL_PIXELFORMAT_ABGR32
+            };
+            static_assert(std::is_convertible_v<SDL_PixelFormatEnum, uint32_t>);
+
+            enum class Access : int {
+                Static    = SDL_TEXTUREACCESS_STATIC,
+                Streaming = SDL_TEXTUREACCESS_STREAMING,
+                Target    = SDL_TEXTUREACCESS_TARGET
+            };
+            static_assert(std::is_convertible_v<SDL_TextureAccess, int>);
+
         private:
             SDL_Texture *txt = nullptr;
+            PixelFormat format;
+
+            static uint32_t format_code(PixelFormat f) {
+                using enum PixelFormat;
+                switch (f) {
+                    case RGB24:
+                    case BGR24:
+                    case RGBA32:
+                    case ARGB32:
+                    case BGRA32:
+                    case ABGR32:
+                        return std::to_underlying(f);
+                    default:
+                        return static_cast<uint32_t>(SDL_PIXELFORMAT_UNKNOWN);
+                }
+            }
+
+            static int access_code(Access a) {
+                return std::to_underlying(a);
+            }
 
         public:
-            enum class PixelFormat {
-                RGB24 = SDL_PIXELFORMAT_RGB24,
-                BGR24 = SDL_PIXELFORMAT_BGR24
-            };
 
-            enum class Access {
-                Streaming = SDL_TEXTUREACCESS_STREAMING
-            };
-
-            texture(const renderer& ren, PixelFormat format, Access access, int width, int height) {
-                txt = SDL_CreateTexture(ren.ren, static_cast<uint32_t>(format), static_cast<int>(access), width, height);
-            }
+            texture(const renderer& ren, PixelFormat format, Access access, int width, int height) :
+                txt(SDL_CreateTexture(ren.ren, format_code(format), access_code(access), width, height)),
+                format(format) {}
 
             texture(texture&&)                  = delete;
             texture(const texture&)             = delete;
@@ -227,6 +258,21 @@ namespace sdl {
                 if (txt != nullptr)
                     SDL_DestroyTexture(txt);
                 txt = nullptr;
+            }
+
+            PixelFormat get_format() const {
+                return format;
+            }
+
+            unsigned int bytes_per_pixel() const {
+                using enum PixelFormat;
+                switch (format) {
+                    case RGB24:
+                    case BGR24:
+                        return 3;
+                    default:
+                        return 4;
+                }
             }
 
             struct locked_info {

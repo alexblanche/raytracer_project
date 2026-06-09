@@ -74,7 +74,6 @@ set(SCENE_SOURCES
 )
 
 set(TRACING_SOURCES
-	src/light/hit.cpp
 	src/tracing/directions.cpp
 	src/tracing/tracing.cpp
 	src/tracing/multisample.cpp

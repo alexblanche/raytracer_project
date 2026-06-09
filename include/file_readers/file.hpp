@@ -152,17 +152,45 @@ class file {
             return read<T>(std::span<T>(buffer));
         }
 
+        enum class string_reading_type {
+            ReadAll, StopAtSpace, RemoveTrailingCRLF
+        };
 
         // Returns a string of length at most max_length (plus the '\0' terminating-character)
-        [[nodiscard]] std::string read_string(unsigned int max_length = MAX_STRING_LENGTH) const {
+        [[nodiscard]] std::string read_string(unsigned int max_length = MAX_STRING_LENGTH, string_reading_type type = string_reading_type::StopAtSpace) const {
             if (max_length > MAX_STRING_LENGTH) {
                 std::printf("Error: read_string can read a string of length at most %d\n", MAX_STRING_LENGTH);
                 throw std::runtime_error("");
             }
             constexpr std::size_t LENGTH = MAX_STRING_LENGTH + 1;
             std::array<char, LENGTH> t = make_array<char, LENGTH>('\0');
+
+            const std::size_t pos = position();
+
             fgets(t.data(), max_length + 1, f);
-            return std::string(t.data());
+            std::string out(t.data());
+
+            // Postprocessing
+            using enum string_reading_type;
+            switch (type) {
+                case StopAtSpace: {
+                    const std::size_t n = std::min(std::min(out.find_first_of(' '), out.find_first_of('\r')), out.find_first_of('\n'));
+                    if (n != std::string::npos) {
+                        out.resize(n);
+                        seek(pos + n + 1);
+                    }
+                    break;
+                }
+                case RemoveTrailingCRLF: {
+                    if (out.ends_with("\r\n")) return out.substr(0, out.length() - 2);
+                    if (out.ends_with("\n"))   return out.substr(0, out.length() - 1);
+                    break;
+                }
+                default:
+                    break;
+            }
+
+            return out;
         }
 
         int getc() const {
