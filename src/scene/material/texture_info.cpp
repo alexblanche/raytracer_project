@@ -2,6 +2,8 @@
 
 /** Texture infos **/
 
+#include <iostream>
+
 texture_info::texture_info()
     : uv_coordinates({}), texture_index(NONE) {}
 
@@ -10,10 +12,17 @@ texture_info::texture_info(
     std::optional<int> n_index,
 //  std::optional<int> roughness_map_index,
 //  std::optional<int> displacement_map_index,
-    std::vector<real>&& uv_coordinates)
-    :   uv_coordinates(std::move(uv_coordinates)),
+    // std::vector<real>&& uv_coordinates)
+    std::initializer_list<double>&& uv_coordinates)
+    :   uv_coordinates(uv_coordinates.begin(), uv_coordinates.end()),
         texture_index(t_index.value_or(NONE)),
-        normal_map_index(n_index.value_or(NONE)) {}
+        normal_map_index(n_index.value_or(NONE)) {
+
+
+            for (real x : uv_coordinates)
+                std::cout << x << " ";
+            std::cout << std::endl;
+        }
 
 /* Texturing */
 

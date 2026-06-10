@@ -26,17 +26,17 @@ class object {
         /* Position of the object (depends on the type of object) */
         rt::vector position;
 
-        /* Contains a texture_info if the object is textured */
-        const unsigned int texture_information_index = EMPTY_INDEX;
-
         /* Index of the material in the material_set vector of the scene */
         const unsigned int material_index = EMPTY_INDEX;
 
+        /* Contains a texture_info if the object is textured */
+        const unsigned int texture_information_index = EMPTY_INDEX;
+
     public:
 
-        object();
-        object(const rt::vector& pos, unsigned int material_index);
-        object(const rt::vector& pos, unsigned int material_index, unsigned int texture_info_index);
+        constexpr object() {}
+        constexpr object(const rt::vector& position, unsigned int material_index, unsigned int texture_info_index = EMPTY_INDEX)
+            : position(position), material_index(material_index), texture_information_index(texture_info_index) {}
 
         object(const object&)            = delete;
         object(object&&)                 = delete;
@@ -61,6 +61,8 @@ class object {
             return texture_information_index;
         }
 
+        /* Interface */
+
         /* Intersection determination */
         virtual std::optional<real> measure_distance(const ray& r) const                = 0;
 
@@ -77,8 +79,6 @@ class object {
             const rt::vector& local_normal,
             const texture_info& info
         ) const                                                                         = 0;
-
-        /* Sampling */
 
         /* Uniformly samples a point on the object */
         virtual rt::vector sample(randomgen& rg) const                                  = 0;

@@ -11,6 +11,7 @@
 enum class update_option {
     UpdateColorMaterials, DoNotUpdateColorMaterials
 };
+using enum update_option;
 
 struct accumulators {
     rt::color color_materials;
@@ -33,14 +34,12 @@ struct accumulators {
 
         emitted_colors =
             m.is_emissive() ?
-                combine(m.get_color() * m.get_emission_intensity())
-                :
-                emitted_colors;
+                  combine(m.get_color() * m.get_emission_intensity())
+                : emitted_colors;
         color_materials =
-            (update_option == update_option::UpdateColorMaterials) ?
-                color_materials * local_color
-                :
-                color_materials;
+            (update_option == UpdateColorMaterials) ?
+                  color_materials * local_color
+                : color_materials;
     }
 
     inline void update_emitted_col(const material& m) {
@@ -179,9 +178,8 @@ template<orientation_type ray_orientation>
 
     return acc.combine(
         scene.background.has_texture() ?
-            scene.background.get_color(r.direction)
-            :
-            scene.background.get_color()
+              scene.background.get_color(r.direction)
+            : scene.background.get_color()
     );
 }
 
@@ -206,8 +204,7 @@ rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg
     static thread_local custom_stack<real> refr_stack(20);
     refr_stack.set_empty();
 
-    using enum bvh_option;
-    const bvh_option bvh = (scene.polygons_per_bounding != 0) ? Enabled : Disabled;
+    const bvh_option bvh = (scene.polygons_per_bounding != 0) ? bvh_option::Enabled : bvh_option::Disabled;
 
     const bool russian_roulette = russian_roulette_mode == russian_roulette_mode::Enabled;
 
@@ -288,9 +285,8 @@ rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg
                 otherwise the reflection has the original color (like a tomato) */
                 const update_option update_option =
                     (!is_specular_bounce || m.does_reflect_color()) ?
-                    update_option::UpdateColorMaterials
-                    :
-                    update_option::DoNotUpdateColorMaterials;
+                      UpdateColorMaterials
+                    : DoNotUpdateColorMaterials;
                 acc.update(m, color, update_option);
             }
             else {

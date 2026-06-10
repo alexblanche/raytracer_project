@@ -47,7 +47,6 @@ set(PARSERS_SOURCES
 )
 
 set(OBJECTS_SOURCES
-	src/scene/objects/object.cpp
 	src/scene/objects/plane.cpp
 	src/scene/objects/sphere.cpp
 	src/scene/objects/triangle.cpp
@@ -76,7 +75,7 @@ set(SCENE_SOURCES
 set(TRACING_SOURCES
 	src/tracing/directions.cpp
 	src/tracing/tracing.cpp
-	src/tracing/multisample.cpp
+	#src/tracing/multisample.cpp
 	src/render/render_loops.cpp
 )
 

@@ -42,7 +42,8 @@ class texture_info {
 
         texture_info(std::optional<int> t_index,
             std::optional<int> n_index,
-            std::vector<real>&& uv_coordinates);
+            //std::vector<real>&& uv_coordinates);
+            std::initializer_list<double>&& uv_coordinates);
 
         /* Sets the tangent and bitangent vectors */
         void set_tangent_space(const rt::vector& t, const rt::vector& b);

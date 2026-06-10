@@ -345,7 +345,7 @@ std::optional<texture_info> parse_texture_info(const file& f,
 
     if (keyword_t != "texture") {
         // No texture info, setting the position back before the keyword
-        f.seek(position);
+        f.rewind(position);
         return std::nullopt;
     }
     
@@ -366,7 +366,7 @@ std::optional<texture_info> parse_texture_info(const file& f,
     const std::string keyword_n = f.read_string(7);
     if (keyword_n != "normal:") {
         // No normal map info, setting the position back before the keyword
-        f.seek(pos2);
+        f.rewind(pos2);
     }
     else {
         char n_name[65];
@@ -385,7 +385,7 @@ std::optional<texture_info> parse_texture_info(const file& f,
     const std::string keyword_r = f.read_string(6);
     if (keyword_r != "rough:") {
         // No roughness info, setting the position back before the keyword
-        f.seek(pos3);
+        f.rewind(pos3);
     }
     else {
         char r_name[65];
@@ -410,9 +410,9 @@ std::optional<texture_info> parse_texture_info(const file& f,
         printf("Roughness map : %s, index %lld\n", r_name, rindex.value());
     }
     */
-
+    using enum object_type;
     switch (object_type) {
-        case object_type::Triangle: {
+        case Triangle: {
 
             const exit_status status = f.scanf(" (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
                 u0, v0, u1, v1, u2, v2);
@@ -421,10 +421,10 @@ std::optional<texture_info> parse_texture_info(const file& f,
                 return std::nullopt;
             }
 
-            return texture_info(vindex, nindex, std::vector<real>{ u0, v0, u1, v1, u2, v2 });
+            return texture_info(vindex, nindex, { u0, v0, u1, v1, u2, v2 });
         }
                     
-        case object_type::Quad: {
+        case Quad: {
 
             const exit_status status = f.scanf(" (%lf,%lf) (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
                 u0, v0, u1, v1, u2, v2, u3, v3);
@@ -433,10 +433,10 @@ std::optional<texture_info> parse_texture_info(const file& f,
                 return std::nullopt;
             }
 
-            return texture_info(vindex, nindex, std::vector<real>{ u0, v0, u1, v1, u2, v2, u3, v3 });
+            return texture_info(vindex, nindex, { u0, v0, u1, v1, u2, v2, u3, v3 });
         }
 
-        case object_type::Sphere: {
+        case Sphere: {
 
             const exit_status status = f.scanf(" forward:(%lf,%lf,%lf) right:(%lf,%lf,%lf))\n",
                 x0, y0, z0, x1, y1, z1);
@@ -446,10 +446,10 @@ std::optional<texture_info> parse_texture_info(const file& f,
             }
 
             // texture_info is used to pass the coordinates for forward_dir and right_dir
-            return texture_info(vindex, nindex, std::vector<real>{x0, y0, z0, x1, y1, z1});
+            return texture_info(vindex, nindex, { x0, y0, z0, x1, y1, z1 });
         }
 
-        case object_type::Plane: {
+        case Plane: {
 
             const exit_status status = f.scanf(" right:(%lf,%lf,%lf) scale:%lf)\n",
                 x0, y0, z0, u0);
@@ -459,13 +459,13 @@ std::optional<texture_info> parse_texture_info(const file& f,
             }
 
             // texture_info is used to pass the coordinates for forward_dir and right_dir
-            return texture_info(vindex, nindex, std::vector<real>{x0, y0, z0, u0});
+            return texture_info(vindex, nindex, { x0, y0, z0, u0 });
         }
 
-        case object_type::Box:
+        case Box:
             throw std::runtime_error("Box texturing not handled yet");
 
-        case object_type::Cylinder:
+        case Cylinder:
             throw std::runtime_error("Cylinder texturing not handled yet");
 
         default:
@@ -510,6 +510,9 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         
         const int ret = f.scanf_count("camera position:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) rightdir:(%lf,%lf,%lf) fov_width:%lf distance:%lf focal_distance:%lf aperture:%lf\n",
             posx, posy, posz, dx, dy, dz, rdx, rdy, rdz, fovw, dist, focl, apr);
+        rt::vector cam_pos(posx, posy, posz);
+        rt::vector cam_dir(dx, dy, dz);
+        rt::vector cam_right_dir(rdx, rdy, rdz);
 
         if (ret < 11) {
             throw std::runtime_error("Parsing error in scene constructor (camera)");
@@ -522,10 +525,10 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         const real fovh = fovw * static_cast<real>(height) / static_cast<real>(width);
 
         camera cam = (depth_of_field_enabled) ?
-            camera(rt::vector(posx, posy, posz), rt::vector(dx, dy, dz), rt::vector(rdx, rdy, rdz),
+            camera(cam_pos, cam_dir, cam_right_dir,
                 fovw, fovh, dist, width, height, focl, apr)
             :
-            camera(rt::vector(posx, posy, posz), rt::vector(dx, dy, dz), rt::vector(rdx, rdy, rdz),
+            camera(cam_pos, cam_dir, cam_right_dir,
                 fovw, fovh, dist, width, height);
 
         bool background_color_is_set = false;
@@ -538,7 +541,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         double r, g, b;
         const exit_status status_background = f.scanf("background_color %lf %lf %lf\n", r, g, b);
         if (status_background == exit_status::Failure) {
-            f.seek(position_bg);
+            f.rewind(position_bg);
         }
         else {
             background_color = rt::color(r, g, b);
@@ -554,9 +557,8 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
         // Neither background color nor texture
         if (status_background2 == exit_status::Failure){
-            if (not background_color_is_set) {
+            if (not background_color_is_set)
                 throw std::runtime_error("Parsing error in scene constructor (background)");
-            }
         }
         else if (std::abs(rx) > 2.0_r * PI || std::abs(ry) > 2.0_r * PI || std::abs(rz) > 2.0_r * PI) {
             throw std::runtime_error("Incorrect background texture angles");
@@ -583,8 +585,17 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         
         unsigned int polygons_per_bounding = 0;
 
-        const exit_status status_poly = f.scanf("polygons_per_bounding %u\n", polygons_per_bounding);
-        throw_if_failure(status_poly, "Parsing error in scene constructor (polygons per bounding)");
+        // Optional
+        {
+            using enum exit_status;
+            f.scanf("bvh: ");
+            const std::size_t pos = f.position();
+            if (Failure == f.scanf("polygons_per_bounding %u\n", polygons_per_bounding)) {
+                f.rewind(pos);
+                throw_if_failure(f.scanf("disabled\n"),
+                    "Parsing error in scene constructor (BVH parameters)");
+            }
+        }
         
         /* Object definition */
         /*
@@ -735,18 +746,21 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
             /* Objects declaration */
             
+            using enum object_type;
+
             if (arg == "sphere") {
                 /* center:(-500, 0, 600) radius:120 [material] */
-                rt::vector position;
-                double r;
-                const exit_status status = f.scanf("center:(%lf,%lf,%lf) radius:%lf material:", position.x, position.y, position.z, r);
+                double posx, posy, posz, r;
+                const exit_status status = f.scanf("center:(%lf,%lf,%lf) radius:%lf material:", posx, posy, posz, r);
                 throw_if_failure(status, "Parsing error in scene constructor (sphere declaration)");
+
+                const rt::vector position(posx, posy, posz);
 
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
 
                 if (m_index.has_value()) {
 
-                    std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, object_type::Sphere);
+                    std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Sphere);
                     if (info.has_value()) {
 
                         std::vector<real>& info_vect = info.value().uv_coordinates;
@@ -775,14 +789,16 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             }
             if (arg == "plane") {
                 /* normal:(0, -1, 0) position:(0, 160, 0) [material] */
-                rt::vector n, p;
+                double nx, ny, nz, px, py, pz;
                 const exit_status status = f.scanf("normal:(%lf,%lf,%lf) position:(%lf,%lf,%lf) material:",
-                    n.x, n.y, n.z, p.x, p.y, p.z);
+                    nx, ny, nz, px, py, pz);
                 throw_if_failure(status, "Parsing error in scene constructor (plane declaration)");
+                rt::vector n(nx, ny, nz);
+                rt::vector p(px, py, pz);
 
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
                 if (m_index.has_value()) {
-                    std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, object_type::Plane);
+                    std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Plane);
                     if (info.has_value()) {
 
                         std::vector<real>& info_vect = info.value().uv_coordinates;
@@ -811,14 +827,17 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             }
             if (arg == "box") {
                 /* center:(166, -200, 600) x_axis:(100, 100, -100) y_axis:(-200, 100, -100) 300 200 300 */
-                rt::vector c, n1, n2, l;
+                double cx, cy, cz, n1x, n1y, n1z, n2x, n2y, n2z, lx, ly, lz;
                 const exit_status status = f.scanf("center:(%lf,%lf,%lf) x_axis:(%lf,%lf,%lf) y_axis:(%lf,%lf,%lf) %lf %lf %lf material:",
-                    c.x, c.y, c.z, n1.x, n1.y, n1.z, n2.x, n2.y, n2.z, l.x, l.y, l.z);
+                    cx, cy, cz, n1x, n1y, n1z, n2x, n2y, n2z, lx, ly, lz);
                 throw_if_failure(status, "Parsing error in scene constructor (box declaration)");
-                
+                rt::vector c(cx, cy, cz);
+                rt::vector n1(n1x, n1y, n1z);
+                rt::vector n2(n2x, n2y, n2z);
+
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
                 if (m_index.has_value()) {
-                    const box* bx = new box(c, n1.unit(), n2.unit(), l.x, l.y, l.z, m_index.value());
+                    const box* bx = new box(c, n1.unit(), n2.unit(), lx, ly, lz, m_index.value());
                     object_set.push_back(bx);
                         
                     if (bounding_enabled) {
@@ -830,15 +849,18 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             }
             if (arg == "triangle") {
                 /* (-620, -100, 600) (-520, 100, 500) (-540, -200, 700) [material] */
-                rt::vector v0, v1, v2;
+                double v0x, v0y, v0z, v1x, v1y, v1z, v2x, v2y, v2z;
                 const exit_status status = f.scanf("(%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) material:",
-                    v0.x, v0.y, v0.z,
-                    v1.x, v1.y, v1.z,
-                    v2.x, v2.y, v2.z);
+                    v0x, v0y, v0z,
+                    v1x, v1y, v1z,
+                    v2x, v2y, v2z);
                 throw_if_failure(status, "Parsing error in scene constructor (triangle declaration)");
-                
+                rt::vector v0(v0x, v0y, v0z);
+                rt::vector v1(v1x, v1y, v1z);
+                rt::vector v2(v2x, v2y, v2z);
+
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
-                std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, object_type::Triangle);
+                std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Triangle);
                 const bool normal_mapping = info.has_value() && info.value().has_normal_information();
                 if (m_index.has_value()) {
                 
@@ -858,19 +880,23 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             }
             if (arg == "quad") {
                 /* (-620, -100, 600) (-520, 100, 600) (-540, -200, 600) (-500, -250, 600) [material] */
-                rt::vector v0, v1, v2, v3;
+                double v0x, v0y, v0z, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z;
                 const exit_status status = f.scanf("(%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) material:",
-                    v0.x, v0.y, v0.z,
-                    v1.x, v1.y, v1.z,
-                    v2.x, v2.y, v2.z,
-                    v3.x, v3.y, v3.z);
+                    v0x, v0y, v0z,
+                    v1x, v1y, v1z,
+                    v2x, v2y, v2z,
+                    v3x, v3y, v3z);
                 throw_if_failure(status, "Parsing error in scene constructor (quad declaration)");
-                
+                rt::vector v0(v0x, v0y, v0z);
+                rt::vector v1(v1x, v1y, v1z);
+                rt::vector v2(v2x, v2y, v2z);
+                rt::vector v3(v3x, v3y, v3z);
+
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
 
                 if (m_index.has_value()) {
                 
-                    std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, object_type::Quad);
+                    std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Quad);
                     const bool normal_mapping = info.has_value() && info.value().has_normal_information();
                     const quad* q = normal_mapping ?
                           new quad(v0, v1, v2, v3, m_index.value(), texture_info_set.size(), normal_mapping, info.value())
@@ -889,12 +915,14 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             }
             if (arg == "cylinder") {
                 /* origin:(0, 0, 0) direction:(1, -1, 1) radius:100 length:300 [material] */
-                rt::vector p, d;
+                double px, py, pz, d_x, d_y, d_z;
                 double r, l;
                 const exit_status status = f.scanf("origin:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) radius:%lf length:%lf material:",
-                    p.x, p.y, p.z, d.x, d.y, d.z, r, l);
+                    px, py, pz, d_x, d_y, d_z, r, l);
                 throw_if_failure(status, "Parsing error in scene constructor (cylinder declaration)");
-                
+                rt::vector p(px, py, pz);
+                rt::vector d(d_x, d_y, d_z);
+
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
 
                 if (m_index.has_value()) {
@@ -987,5 +1015,6 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         printf("%s\n", e.what());
         printf("Scene creation failed\n");
     }
+
     return scene_opt;
 }

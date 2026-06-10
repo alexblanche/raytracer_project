@@ -118,8 +118,10 @@ class file {
             fseek(f, pos, SEEK_SET);
         }
 
-        void rewind() const {
-            seek(0);
+        void rewind(std::size_t pos = 0) const {
+            if (pos > position())
+                throw std::runtime_error("Error file::rewind: rewind to position set ahead of current position");
+            seek(pos);
         }
 
         [[nodiscard]] std::size_t length() const {
@@ -174,7 +176,11 @@ class file {
             using enum string_reading_type;
             switch (type) {
                 case StopAtSpace: {
-                    const std::size_t n = std::min(std::min(out.find_first_of(' '), out.find_first_of('\r')), out.find_first_of('\n'));
+                    const std::size_t n = std::min(std::min(
+                        out.find_first_of(' '),
+                        out.find_first_of('\r')),
+                        out.find_first_of('\n')
+                    );
                     if (n != std::string::npos) {
                         out.resize(n);
                         seek(pos + n + 1);
@@ -217,9 +223,24 @@ class file {
             return fscanf(f, format.c_str(), &x...);
         }
 
+        exit_status scanf(const std::string& string) const {
+            const std::size_t pos = position();
+            const std::string read = read_string(string.length(), string_reading_type::ReadAll);
+            // std::cout << "read: " << read << std::endl;
+            if (read == string)
+                return exit_status::Success;
+            
+            // Rewind to last character successfully matched
+            std::size_t index = 0;
+            while (read[index] == string[index])
+                index++;
+            seek(pos + index);
+            return exit_status::Failure;
+        }
+
         template<typename... Args>
         exit_status scanf(const std::string& format, Args&... x) const {
-            const std::size_t ret = scanf_count(format, x...);
+            const int ret = scanf_count(format, x...);
             return exit_status_of(ret == sizeof...(Args));
         }
 

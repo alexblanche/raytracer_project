@@ -14,7 +14,8 @@ class randomgen {
 
     public:
 
-        randomgen(const real std_dev_anti_aliasing = ANTI_ALIASING) 
+        // Factor 4.0_r to improve camera ray generation computation speed
+        randomgen(const real std_dev_anti_aliasing = 4.0_r * ANTI_ALIASING)
             :   engine(timer_ms::get_time()),
                 unif_ratio(0.0_r, 1.0_r),
                 unif_angle(0.0_r, 2.0_r * PI),

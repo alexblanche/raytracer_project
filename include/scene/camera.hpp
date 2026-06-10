@@ -47,7 +47,8 @@ class camera {
            to_the_bottom is the y-axis, it is calculated automatically,
            to_the_bottom = direction ^ to_the_right
         */
-        rt::vector direction;
+        //rt::vector direction;
+        rt::vector direction_scaled;
         rt::vector to_the_right;
         rt::vector to_the_bottom;
 
@@ -57,7 +58,7 @@ class camera {
         real fov_h; */
         
         /* World space distance to the screen */
-        real distance;
+        //real distance;
 
         /* Pre-computation: step for i and j in world space */
         real di;
@@ -70,17 +71,18 @@ class camera {
         real aperture;
 
 
+        std::pair<int, int> stratified_shift(int iteration) const;
+        std::pair<real, real> shift_classic(int i, int j, int iteration) const;
+        std::pair<real, real> shift_normal(int i, int j, int iteration, const real shift_horiz, const real shift_vert) const;
+        rt::vector direction(real ishift, real jshift) const;
+
     public:
         camera_mode mode;
 
         camera(const rt::vector& origin, const rt::vector& direction, const rt::vector& to_the_right,
             real fov_w, real fov_h, real dist,
-            int width, int height);
-
-        camera(const rt::vector& origin, const rt::vector& direction, const rt::vector& to_the_right,
-            real fov_w, real fov_h, real dist,
             int width, int height,
-            real focal_length, real aperture);
+            real focal_length = -1.0_r, real aperture = -1.0_r);
 
         camera(camera&&)                    = default;
 
@@ -89,16 +91,16 @@ class camera {
         camera& operator=(camera&&)         = delete;
 
         /* Returns the ray that goes toward the pixel i,j of the screen */
-        ray gen_ray_classic(int i, int j, unsigned int iteration) const;
+        ray gen_ray_classic(int i, int j, int iteration) const;
 
         /* Returns the ray that goes toward the pixel i,j of the screen in average,
            following a normal distribution around to center of the pixel, with given stardard deviation */
-        ray gen_ray_normal(int i, int j, const randomgen& rg, unsigned int iteration) const;
+        ray gen_ray_normal(int i, int j, const randomgen& rg, int iteration) const;
 
         /* Returns the ray that goes toward the pixel i,j of the screen, with depth of field */
-        ray gen_ray_dof(int i, int j, const randomgen& rg, unsigned int iteration) const;
+        ray gen_ray_dof(int i, int j, const randomgen& rg, int iteration) const;
 
-        ray gen_ray(const int i, const int j, const randomgen& rg, const unsigned int iteration) const {
+        ray gen_ray(int i, int j, const randomgen& rg, int iteration) const {
             return
                 mode.uses_dof() ?
                       gen_ray_dof(i, j, rg, iteration)
