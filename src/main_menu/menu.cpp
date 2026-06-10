@@ -12,14 +12,6 @@ constexpr unsigned int EXPORT_INTERVAL = 1000;
 constexpr std::string DEFAULT_OUTPUT_FILE_NAME       = "image";
 constexpr std::string DEFAULT_OUTPUT_FINAL_FILE_NAME = "image_final";
 
-
-static constexpr std::string bmp(const std::string& file_name) {
-    return file_name + ".bmp";
-}
-static constexpr std::string raw(const std::string& file_name) {
-    return file_name + ".rtdata";
-}
-
 static bool is_number(const std::string& s) {
     try {
         std::ignore = std::stoul(s);
@@ -53,14 +45,15 @@ struct arg_pair {
 };
 
 static cli_argument match(const std::string& input) {
-    static const std::vector<arg_pair> keywords = {
-        { "-time",        cli_argument::Time            },
-        { "all",          cli_argument::TimeAll         },
-        { "-rays",        cli_argument::Rays            },
-        { "-multisample", cli_argument::Multisample     },
-        { "-gamma",       cli_argument::Gamma           },
-        { "-reinhardt",   cli_argument::Reinhardt       },
-        { "-rr",          cli_argument::RussianRoulette }
+    using enum cli_argument;
+    static constexpr std::array<arg_pair, 7> keywords = {
+        arg_pair { "-time",        Time            },
+        arg_pair { "all",          TimeAll         },
+        arg_pair { "-rays",        Rays            },
+        arg_pair { "-multisample", Multisample     },
+        arg_pair { "-gamma",       Gamma           },
+        arg_pair { "-reinhardt",   Reinhardt       },
+        arg_pair { "-rr",          RussianRoulette }
     };
     for (const auto& [ keyword, value ] : keywords) {
         if (input == keyword)
@@ -75,20 +68,21 @@ exit_status menu::parse_aux(const std::span<const std::string> args) {
 
     for (unsigned int i = 0; i < size; i++) {
 
+        using enum cli_argument;
         const std::string& arg = args[i];
         switch (match(arg)) {
 
-            case cli_argument::Time: {
+            case Time: {
                 runtime_parameters.time = time_mode::Simple;
                 if (i + 1 >= size)
                     break;
                 const std::string& next = args[++i];
-                if (match(next) == cli_argument::TimeAll)
+                if (match(next) == TimeAll)
                     runtime_parameters.time = time_mode::Full;
                 break;
             }
 
-            case cli_argument::Rays: {
+            case Rays: {
                 runtime_parameters.program.mode = program_parameters::mode::Offline;
 
                 if (i + 1 >= size || not is_number(args[i + 1])) {
@@ -100,7 +94,7 @@ exit_status menu::parse_aux(const std::span<const std::string> args) {
                 break;
             }
 
-            case cli_argument::Multisample: {
+            case Multisample: {
                 runtime_parameters.sampling.mode = sampling_parameters::mode::MultiSample;
 
                 if (i + 1 >= size || not is_number(args[i + 1])) {
@@ -112,7 +106,7 @@ exit_status menu::parse_aux(const std::span<const std::string> args) {
                 break;
             }
 
-            case cli_argument::Gamma: {
+            case Gamma: {
                 if (runtime_parameters.tone_mapping.tm_mode != tone_mapping_parameters::mode::Reinhardt)
                     runtime_parameters.tone_mapping.tm_mode = tone_mapping_parameters::mode::Gamma;
 
@@ -125,12 +119,12 @@ exit_status menu::parse_aux(const std::span<const std::string> args) {
                 break;
             }
 
-            case cli_argument::Reinhardt: {
+            case Reinhardt: {
                 runtime_parameters.tone_mapping.tm_mode = tone_mapping_parameters::mode::Reinhardt;
                 break;
             }
 
-            case cli_argument::RussianRoulette: {
+            case RussianRoulette: {
                 runtime_parameters.russian_roulette = russian_roulette_mode::Enabled;
                 break;
             }
@@ -205,7 +199,7 @@ void menu::update_gamma(const float new_gamma) {
     if (new_gamma != 1.0f) {
         if ((not gamma_disabled) && new_gamma != gamma)
             printf("Warning: gamma correction value passed by command-line argument (%.1f) was overwritten by scene description (%.1f)\n",
-                gamma, (1.0f / new_gamma));
+                (1.0f / gamma), (1.0f / new_gamma));
 
         if (gamma_disabled)
             runtime_parameters.tone_mapping.tm_mode = Gamma;
@@ -275,7 +269,7 @@ static exit_status run_offline(const runtime_parameters& runtime_parameters, ima
         timer.stop();
         printf("\n");
         timer.print();
-        return file_handler.export_bmp(bmp(DEFAULT_OUTPUT_FILE_NAME), image);
+        return file_handler.export_as(bmp(DEFAULT_OUTPUT_FILE_NAME), image);
     }
     ///////
     
@@ -291,7 +285,7 @@ static exit_status run_offline(const runtime_parameters& runtime_parameters, ima
             timer.interrupt();
 
             printf(" ");
-            const exit_status status = file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FILE_NAME), image);
+            const exit_status status = file_handler.export_as(raw(DEFAULT_OUTPUT_FILE_NAME), image);
             if (status == exit_status::Failure)
                 return exit_status::Failure;
             
@@ -304,7 +298,8 @@ static exit_status run_offline(const runtime_parameters& runtime_parameters, ima
     printf("\n");
     timer.print();
 
-    return file_handler.export_bmp(bmp(DEFAULT_OUTPUT_FILE_NAME), image);
+    return file_handler.export_as(raw(DEFAULT_OUTPUT_FILE_NAME), image)
+        && file_handler.export_as(bmp(DEFAULT_OUTPUT_FILE_NAME), image);
 }
 
 // Returns an exit_status if the program has to stop, either because of a failure or because a quit event happened
@@ -320,14 +315,14 @@ static std::optional<exit_status> process_events(const rt::screen& scr, const fi
 
         case B: {
             printf(" ");
-            const exit_status status = file_handler.export_bmp(bmp(DEFAULT_OUTPUT_FILE_NAME), image);
+            const exit_status status = file_handler.export_as(bmp(DEFAULT_OUTPUT_FILE_NAME), image);
             if (status == exit_status::Failure)
                 return exit_status::Failure;
             break;
         }
         case R: {
             printf(" ");
-            const exit_status status = file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FILE_NAME), image);
+            const exit_status status = file_handler.export_as(raw(DEFAULT_OUTPUT_FILE_NAME), image);
             if (status == exit_status::Failure)
                 return exit_status::Failure;
             break;
@@ -350,8 +345,7 @@ static exit_status run_interactive(const runtime_parameters& runtime_parameters,
 
     const rt::screen scr(image, runtime_parameters.tone_mapping.tm_mode);
 
-    scr.copy_to_texture(1);
-    scr.update_from_texture();
+    scr.refresh();
 
     printf("\r                                                   ");
     printf("\rNumber of samples per pixel: 1");
@@ -364,16 +358,15 @@ static exit_status run_interactive(const runtime_parameters& runtime_parameters,
         printf("\rNumber of samples per pixel: %u", number_of_rays);
         fflush(stdout);
 
-        scr.copy_to_texture(number_of_rays);
-        scr.update_from_texture();
+        scr.refresh();
 
         const std::optional<exit_status> status = process_events(scr, file_handler, image);
         if (status.has_value())
             return status.value();
     }
 
-    return file_handler.export_bmp(     bmp(DEFAULT_OUTPUT_FINAL_FILE_NAME), image)
-        && file_handler.export_raw_data(raw(DEFAULT_OUTPUT_FINAL_FILE_NAME), image);
+    return file_handler.export_as(bmp(DEFAULT_OUTPUT_FINAL_FILE_NAME), image)
+        && file_handler.export_as(raw(DEFAULT_OUTPUT_FINAL_FILE_NAME), image);
 }
 
 exit_status menu::run(const scene& scene) const {

@@ -10,19 +10,19 @@ namespace rt {
 
 	using enum sdl::window::flag;
 	
-	screen::screen(matrix& matrix, tone_mapping_parameters::mode mode, float gamma)
-		: 	window(DEFAULT_TITLE, { 10, 10, static_cast<int>(matrix.width), static_cast<int>(matrix.height) }, { AllowHighDPI, Resizable }),
-			renderer(window, matrix.width, matrix.height, { sdl::renderer::flag::Accelerated }, sdl::renderer::vsync_option::Disabled),
-			srcrect(0, 0, matrix.width, matrix.height),
-			dstrect(0, 0, matrix.width, matrix.height),
-			texture(renderer, sdl::texture::PixelFormat::RGB24, sdl::texture::Access::Streaming, matrix.width, matrix.height),
-			mat(matrix), width(matrix.width), height(matrix.height), tone_mapping_mode(mode), gamma(gamma) {
+	screen::screen(image& image, tone_mapping_parameters::mode mode)
+		: 	window(DEFAULT_TITLE, { 10, 10, image.width(), image.height() }, { AllowHighDPI, Resizable }),
+			renderer(window, image.width(), image.height(), { sdl::renderer::flag::Accelerated }, sdl::renderer::vsync_option::Disabled),
+			srcrect(0, 0, image.width(), image.height()),
+			dstrect(0, 0, image.width(), image.height()),
+			texture(renderer, sdl::texture::PixelFormat::RGB24, sdl::texture::Access::Streaming, image.width(), image.height()),
+			img(image), tone_mapping_mode(mode) {
 
 		sdl::init({ sdl::Init::Video });
 	}
 
-	screen::screen(image& image, tone_mapping_parameters::mode mode)
-		: screen(image.data, mode, image.gamma) {}
+	// screen::screen(image& image, tone_mapping_parameters::mode mode)
+	// 	: screen(image.data, mode, image.gamma) {}
 
 	screen::~screen() noexcept {
 		sdl::quit();
@@ -166,11 +166,11 @@ namespace rt {
 		const unsigned int bytes_per_pixel = texture.bytes_per_pixel();
 
 		const unsigned int padding = texture_pitch % bytes_per_pixel;
-		const unsigned int row_size = bytes_per_pixel * width;
+		const unsigned int row_size = bytes_per_pixel * img.width();
 		const unsigned int shift = 2 * row_size + padding;
 		
-		int index = (height - 1) * (row_size + padding);
-		for (const matrix::const_row row : mat) {
+		int index = (img.height() - 1) * (row_size + padding);
+		for (const matrix::const_row row : img.data) {
             for (const color& pixel_col : row) {
 				color avg = pixel_col * invN;
 				avg.in_place_max_out();
@@ -196,15 +196,15 @@ namespace rt {
 		
 		const unsigned int bytes_per_pixel = texture.bytes_per_pixel();
 		const unsigned int padding = texture_pitch % bytes_per_pixel;
-		const unsigned int row_size = bytes_per_pixel * width;
+		const unsigned int row_size = bytes_per_pixel * img.width();
 		const unsigned int shift = 2 * row_size + padding;
 		
-		int index = (height - 1) * (row_size + padding);
-		for (const matrix::const_row row : mat) {
+		int index = (img.height() - 1) * (row_size + padding);
+		for (const matrix::const_row row : img.data) {
             for (const color& pixel_col : row) {
 
 				color corrected = pixel_col * inv;
-				corrected ^= gamma;
+				corrected ^= img.gamma;
 				corrected *= 255.0_r;
 				corrected.in_place_max_out();
 				const auto [ cr, cg, cb ] = corrected.to_uint8();
@@ -224,7 +224,7 @@ namespace rt {
 
 		// Computation of the maximum luminance
 		real max_luminance = 0.0_r;
-		for (const matrix::const_row row : mat) {
+		for (const matrix::const_row row : img.data) {
 			for (const rt::color& col : row) {
 				const auto [ r, g, b ] = col;
 				const real luminance = (0.2126_r * r + 0.7152_r * g + 0.0722_r * b) * invN;
@@ -244,12 +244,12 @@ namespace rt {
 		constexpr real inv255 = 1.0_r / 255.0_r;
 		const real inv = inv255 * invN;
 
-		const unsigned int row_size = bytes_per_pixel * width;
+		const unsigned int row_size = bytes_per_pixel * img.width();
 		const unsigned int shift = 2 * row_size + padding;
 		
-		int index = (height - 1) * (row_size + padding);
+		int index = (img.height() - 1) * (row_size + padding);
 
-		for (const matrix::row row : mat) {
+		for (const matrix::row row : img.data) {
             for (const color& col : row) {
 
 				const auto [ lr, lg, lb ] = col;
@@ -259,11 +259,11 @@ namespace rt {
 				const real lcorr = (1.0_r + lin * lwhitecorr) / (1.0_r + lin);
 
 				color corrected = col * (lcorr * inv);
-				corrected ^= gamma;
+				corrected ^= img.gamma;
 				corrected *= 255.0_r;
 				corrected.in_place_max_out();
 
-				const auto [ cr, cg, cb ] = col.to_uint8();
+				const auto [ cr, cg, cb ] = corrected.to_uint8();
 				texture_pixels[index] 	  = cr;
 				texture_pixels[index + 1] = cg;
 				texture_pixels[index + 2] = cb;

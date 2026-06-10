@@ -142,7 +142,8 @@ std::optional<image> read_raw(const std::string& file_name) {
 exit_status combine_raw(const std::string& dest_bmp_name, const std::string& dest_raw_name,
     const std::span<const std::string> source_file_names, const float gamma) {
 
-    printf("Merging %lu files...\n", source_file_names.size());
+    const std::size_t nb_files = source_file_names.size();
+    printf("Merging %zu file%s...\n", nb_files, (nb_files > 1) ? "s" : "");
 
     /* Determination of the size of the matrix */
     unsigned int width, height;
@@ -198,8 +199,8 @@ exit_status combine_raw(const std::string& dest_bmp_name, const std::string& des
                 rt::color * const buffer = reinterpret_cast<rt::color*>(buffer_binary.data());
 
                 const exit_status status = f.read(buffer_binary);
-                throw_if_failure(status, "Error reading color data");
                 f.close();
+                throw_if_failure(status, "Error reading color data");
                 
                 for (int index = 0; const matrix::row row : image.data) {
                     for (rt::color& color : row) {
@@ -215,8 +216,8 @@ exit_status combine_raw(const std::string& dest_bmp_name, const std::string& des
     }
 
     /* Exporting the matrix as a bmp file */
-    const exit_status success_bmp = write_bmp (dest_bmp_name, image);
-    constexpr int DEFAULT_FORMAT = 1;
+    const exit_status success_bmp = write_bmp(dest_bmp_name, image);
+    constexpr unsigned int DEFAULT_FORMAT = 1;
     const exit_status success_raw = export_raw(dest_raw_name, image, DEFAULT_FORMAT);
 
     if ((success_bmp && success_raw) == exit_status::Success)

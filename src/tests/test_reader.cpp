@@ -27,7 +27,8 @@ static void test_bmp() {
     printf("BMP ");
     timer.print();
 
-    rt::screen scr(mat_opt.value());
+    image img(std::move(mat_opt.value()));
+    rt::screen scr(img);
     scr.fast_copy(1);
     scr.update_from_texture();
     scr.wait_quit_event();
@@ -49,7 +50,8 @@ static void test_hdr() {
     printf("HDR ");
     timer.print();
 
-    rt::screen scr(mat_opt.value());
+    image img(std::move(mat_opt.value()));
+    rt::screen scr(img);
     scr.fast_copy(1);
     scr.update_from_texture();
     scr.wait_quit_event();
@@ -61,9 +63,9 @@ static void test_fastcopy() {
     std::optional<matrix> mat_opt = read_bmp(filename_bmp);
     if (not mat_opt.has_value())
         return;
-    matrix& matrix = mat_opt.value();
     
-    rt::screen scr(matrix);
+    image img(std::move(mat_opt.value()));
+    rt::screen scr(img);
     timer_ms timer;
     timer.start();
     constexpr int NB_ITERATIONS = 20;

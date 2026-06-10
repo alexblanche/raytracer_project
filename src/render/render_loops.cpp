@@ -140,11 +140,9 @@ void render_loop_parallel_time(image& image, const scene& scene, const unsigned 
         
 //     });
 // }
-// Temporary
-void render_loop_parallel_multisample(image& image, const scene& scene, const unsigned int number_of_bounces, const unsigned int number_of_samples) {
-    if (number_of_samples != 1)
-        return;
-    return render_loop_parallel(image, scene, number_of_bounces, russian_roulette_mode::Disabled);
+void render_loop_parallel_multisample(image&, const scene&, const unsigned int, const unsigned int) {
+    printf("Multisample has been temporarily disabled\n");
+    exit(EXIT_FAILURE);
 }
 
 

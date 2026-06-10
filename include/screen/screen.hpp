@@ -7,9 +7,9 @@
 
 namespace rt {
 
-	using enum tone_mapping_parameters::mode;
-
 	class screen {
+
+		using enum tone_mapping_parameters::mode;
 
 		private:
 			sdl::window 	window;
@@ -18,15 +18,11 @@ namespace rt {
 			sdl::rect 		dstrect;
 			sdl::texture	texture;
 		
-			matrix& mat;
-			[[maybe_unused]] int width;
-			[[maybe_unused]] int height;
+			image& img;
 			tone_mapping_parameters::mode tone_mapping_mode;
-			float gamma;
 			
 		public:
-			screen(matrix& matrix, tone_mapping_parameters::mode mode = Disabled, float gamma = 1.0f);
-			screen(image& image,   tone_mapping_parameters::mode mode = Disabled);
+			screen(image& image, tone_mapping_parameters::mode mode = Disabled);
 			~screen() noexcept;
 
 			void set_pixel(int x, int y, const color& c) const;
@@ -67,7 +63,9 @@ namespace rt {
 
 			void fast_copy_reinhardt(unsigned int number_of_rays) const;
 
-			inline void copy_to_texture(const unsigned int number_of_rays) const {
+			inline void copy_to_texture(unsigned int number_of_rays = 0) const {
+
+				number_of_rays = (number_of_rays == 0) ? img.number_of_samples : number_of_rays;
 
 				switch (tone_mapping_mode) {
 					case Disabled: 	fast_copy(number_of_rays); 			 break;
@@ -75,6 +73,11 @@ namespace rt {
 					case Reinhardt:	fast_copy_reinhardt(number_of_rays); break;
 				}
     		}
+
+			inline void refresh() const {
+				copy_to_texture(img.number_of_samples);
+        		update_from_texture();
+			}
 	};
 
 }

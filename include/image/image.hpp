@@ -11,6 +11,9 @@ class image {
         image(int width, int height, real gamma = 1.0f)
             : data(width, height), gamma(gamma) {}
 
+        image(matrix&& matrix, real gamma = 1.0f)
+            : data(std::move(matrix)), gamma(gamma) {}
+
         image(image&&)                 = default;
         image(const image&)            = delete;
         image& operator=(image&&)      = delete;

@@ -30,7 +30,7 @@ int main() {
 
     const unsigned int dwidth  = LOWRES_DEFAULT_WIDTH;
     const unsigned int dheight = LOWRES_DEFAULT_HEIGHT;
-    matrix lrdata(dwidth, dheight);
+    image lrdata(dwidth, dheight);
 
     const matrix& mat = mat_opt.value();
     const alias_table alt(mat, dwidth, dheight);

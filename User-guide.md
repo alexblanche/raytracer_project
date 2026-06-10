@@ -10,7 +10,7 @@ The scene to render is defined in the file ```scene.txt```, with the following s
 
 ### Initial parameters
 
-The parameters should be proved in order, without comments.  
+The parameters should be provided in order, without comments.  
 
 The resolution of the rendered image is defined by:  
 ``resolution width:1366 height:768``
@@ -43,16 +43,18 @@ Specifying 0 will disable the method, and a linear search will be performed inst
 Materials are defined by the following parameters:
 - ``color``: the base color of the material. (it will be covered by the texture in the case of a textured polygon)
 - ``emitted_color``: when the material emits some light, the color to be emitted
-- ``reflectivity``: the reflectivity of the material. 0 for purely diffuse (matte) materials, 1 for pure mirrors, and a value between 0 and 1 for glossy materials (with blurry reflections)
-- ``emission``: the brightness of the material. 0 for materials that do not emit light. The value can go above 1 and to an arbitrary value, but note that the material will appear closer to white (but will still cast a light of the given ``emitted_color``).
-- ``specular_p``: represents how reflective the material is. A value of 0 will have the reflections on the material be purely diffuse (for matte objects). With 1, the material will specularly reflect the entirety of the incoming light (with glossiness subject to the ``reflectivity`` parameter). A value between 0 and 1 will be a mix of ``color`` and the reflection of the incoming light.
+- ``smoothness``: 0 for purely diffuse (matte) materials, 1 for pure mirrors, and a value between 0 and 1 for glossy materials (with blurry reflections)
+- ``emission_intensity``: the brightness of the material. 0 for materials that do not emit light. The value can go above 1 and to an arbitrary value, but note that the material will appear closer to white (but will still cast a light of the given ``emitted_color``).
+- ``reflectivity``: represents the probability of a specular bounce on the surface. A value of 0 will have the reflections on the material be purely diffuse (for matte objects). With 1, the material will specularly reflect the entirety of the incoming light (with glossiness subject to the ``smoothness`` parameter). A value between 0 and 1 will be a mix of ``color`` and the reflection of the incoming light.
 - ``reflects_color``: when the parameter ``specular_p`` is different from 0, the specular reflections will keep the ``color`` of the material. Usually ``reflects_color`` is set at ``false``, except in the case of conductors and metals.
 - ``transparency``: the amount of light transmitted through the material when going at a normal angle, for transparent materials. The amount of light transmitted depends on the angle,, so even will a value of 1, some reflections will occur when the angle between the ray and the normal approaches $\pi$/2, according to Fresnel's formula.
-- ``scattering``: the scattering of the light when transmitted through the material, similarly to ``reflectivity`` for reflections. The value should be close to 0 for most transparent materials.
+- ``refraction_scattering``: the scattering of the light when transmitted through the material, similarly to ``reflectivity`` for reflections. The value should be close to 0 for most transparent materials.
 - ``refraction_index``: the refraction index of the material, used when the ray is be refracted according to Snell-Descartes' law. Air has 1, water 1.33, glass 1.52, and diamond 2.42.  
 
 Materials are thus defined with this syntax:  
-``material:(color:(120, 120, 120) emitted_color:(0, 0, 0) reflectivity:1 emission:0 specular_p:1.0 reflects_color:false transparency:0 scattering:0 refraction_index:1)``  
+``material:(color:(120, 120, 120) emitted_color:(0, 0, 0) smoothness:1 emission_intensity:0 reflectivity:1.0 reflects_color:false transparency:0 refraction_scattering:0 refraction_index:1)``  
+
+Some parameters can be omitted, and will be set to default values: ``smoothness:0 emission_intensity:0 reflectivity:0 reflects_color:false transparency:0 refraction_scattering:0 refraction_index:1``.
 
 A material can be given a name with this syntax:  
 ``material m1 (color:(...) ...)``
@@ -61,28 +63,28 @@ A material can be given a name with this syntax:
 
 Objects can be defined in any order, with the following syntax.
 
-- Sphere  
+- **Sphere**  
 A sphere is defined by its center and radius.  
 ``sphere center:(-500, 0, 600) radius:120 material:m1``
 
-- Plane  
+- **Plane**  
 A plane is defined by a normal vector and a point the plane goes through.  
 ``plane normal:(0, -1, 0) position:(0, 160, 0) material:m1``
 
-- Box  
+- **Box**  
 A box is defined by its center, two axes x and y (the z axis is the cross product of x and y), and three lengths: the "length" along the x axis, the "height" along the y axis, and the "depth" along the z axis. The axes do not need to be unit vectors.    
 ``box center:(166, -200, 600) x_axis:(100, 100, -100) y_axis:(-200, 100, -100) 300 200 300 material:m1``
 
-- Triangle  
+- **Triangle**  
 A triangle is defined by three points.  
 ``triangle (-620, -100, 600) (-520,100,500) (-540, -200, 700) material:m1``  
 
-- Quad  
+- **Quad**  
 A quad is defined by four points.  
 ``quad (-620, -100, 600) (-520, 100, 600) (-540, -200, 600) (-500, -250, 600) material:m1``  
 Triangles and quads are one-sided, and should be declared in counter-clockwise order. Behavior when looking through the back side is undefined.
 
-- Cylinder  
+- **Cylinder**  
 A cylinder is defined by its origin, direction vector, radius and length. The origin is the center of the bottom disk. The radius parameter designates the common radius of the bottom and top disks. The length is the length of the cylinder along the direction vector. The direction vector does not need to be a unit vector.    
 ``cylinder origin:(0, 0, 0) direction:(1, -1, 1) radius:100 length:300 material:m1``
 
@@ -133,7 +135,7 @@ load_obj wooden_table.obj (texture:wood shift:(1,0,0) scale:2)
 Polygon meshes do not support normal mapping yet.
 
 ### Comments
-A line can be commented by adding a ``#`` and a space at the beginning of the line:  
+A line can be commented by adding a ``#`` at the beginning of the line:  
 ``# sphere [...]``
 
 

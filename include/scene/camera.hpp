@@ -1,6 +1,7 @@
 #pragma once
 
 #include "light/ray.hpp"
+#include "auxiliary/randomgen.hpp"
 
 // Sampling modes
 enum class camera_mode_option {
@@ -81,7 +82,7 @@ class camera {
             int width, int height,
             real focal_length, real aperture);
 
-        camera(camera&&) = default;
+        camera(camera&&)                    = default;
 
         camera(const camera&)               = delete;
         camera& operator=(const camera&)    = delete;
@@ -100,8 +101,7 @@ class camera {
         ray gen_ray(const int i, const int j, const randomgen& rg, const unsigned int iteration) const {
             return
                 mode.uses_dof() ?
-                    gen_ray_dof(i, j, rg, iteration)
-                    :
-                    gen_ray_normal(i, j, rg, iteration);
+                      gen_ray_dof(i, j, rg, iteration)
+                    : gen_ray_normal(i, j, rg, iteration);
         }
 };
