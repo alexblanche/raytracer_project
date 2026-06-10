@@ -212,10 +212,14 @@ class file {
             return read<char>(buffer);
         }
 
-        void skip_line() const {
+        void skip_char(char ch) const {
             char c;
-            while (!eof() && (c = getc()) != '\n');
+            while (!eof() && (c = getc()) != ch);
             ungetc(c);
+        }
+        
+        void skip_line() const {
+            skip_char('\n');
         }
 
         template<typename... Args>

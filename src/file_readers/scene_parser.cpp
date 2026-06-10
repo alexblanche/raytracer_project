@@ -31,14 +31,26 @@ std::optional<material> parse_material(const file& f, const real gamma) {
         See the file structure below.    
     */
 
-    double r = 255.0_r, g = 255.0_r, b = 255.0_r;
-    double smooth       = 0.0_r;
-    double em_int       = 0.0_r;
-    double refl         = 0.0_r;
-    double transp       = 0.0_r;
-    double scattering   = 0.0_r;
-    double refr_i       = 1.0_r;
-    bool   refl_color   = false;
+    struct mat_properties {
+        double r, g, b, smooth, em_int, refl, transp, scattering, refr_i;
+        bool refl_color;
+    };
+
+    constexpr auto copy_material = [] (const material& mat) {
+        return mat_properties {
+            .r            = mat.get_color().red,
+            .g            = mat.get_color().green,
+            .b            = mat.get_color().blue,
+            .smooth       = mat.get_smoothness(),
+            .em_int       = mat.get_emission_intensity(),
+            .refl         = mat.get_reflectivity(),
+            .transp       = mat.get_transparency(),
+            .scattering   = mat.get_refraction_scattering(),
+            .refr_i       = mat.get_refraction_index(),
+            .refl_color   = mat.does_reflect_color()
+        };
+    };
+    mat_properties mp = copy_material(DIFFUSE);
 
     /*
     const int ret = fscanf(file, "color:(%lf,%lf,%lf) smoothness:%lf emission:%lf reflectivity:%lf reflects_color:%5s transparency:%lf scattering:%lf refraction_index:%lf)", 
@@ -62,37 +74,39 @@ std::optional<material> parse_material(const file& f, const real gamma) {
         else if (c == ')') {
             if (depth == 0)
                 break;
-            else
-                depth--;
+            depth--;
         }
         buffer[i] = c;
     }
-    // printf("Extracted s: %s\n", buffer);
+    
     if (i == BUFFER_MAX_SIZE) {
         printf("Parsing error in parse_material: material definition is too long\n");
         return std::nullopt;
     }
 
-    bool color_is_set       = false;
-    bool smooth_is_set      = false;
-    bool em_int_is_set      = false;
-    bool refl_is_set        = false;
-    bool transp_is_set      = false;
-    bool scattering_is_set  = false;
-    bool refr_i_is_set      = false;
-    bool refl_col_is_set    = false;
-    const int nb_param_set  = 0;
+    struct param_set {
+        bool color      = false;
+        bool smooth     = false;
+        bool em_int     = false;
+        bool refl       = false;
+        bool transp     = false;
+        bool scattering = false;
+        bool refr_i     = false;
+        bool refl_col   = false;
+        int  nb_param   = 0;
+    };
+    param_set is_set;
 
     std::istringstream stream(buffer); 
     std::string word;
     while (stream >> word) {
-        if (nb_param_set >= 9) {
+        if (is_set.nb_param >= 9) {
             printf("Parsing error in parse_material: too many parameters set\n");
             return std::nullopt;
         }
 
         if (word.starts_with("diffuse")) {
-            if (nb_param_set) {
+            if (is_set.nb_param) {
                 printf("Parsing error in parse_material: no parameter should be set in addition to diffuse\n");
                 return std::nullopt;
             }
@@ -100,206 +114,208 @@ std::optional<material> parse_material(const file& f, const real gamma) {
             break;
         }
         else if (word.starts_with("mirror")) {
-            if (nb_param_set) {
+            if (is_set.nb_param) {
                 printf("Parsing error in parse_material: no parameter should be set in addition to mirror\n");
                 return std::nullopt;
             }
-            smooth = 1.0_r;
-            refl = 1.0_r;
+            mp = copy_material(MIRROR);
             break;
         }
         else if (word.starts_with("glass")) {
-            if (nb_param_set) {
+            if (is_set.nb_param) {
                 printf("Parsing error in parse_material: no parameter should be set in addition to glass\n");
                 return std::nullopt;
             }
-            smooth = 1.0_r;
-            refl = 1.0_r;
-            transp = 0.95f;
-            refr_i = 1.52f;
+            mp = copy_material(GLASS);
             break;
         }
         else if (word.starts_with("water")) {
-            if (nb_param_set) {
+            if (is_set.nb_param) {
                 printf("Parsing error in parse_material: no parameter should be set in addition to water\n");
                 return std::nullopt;
             }
-            smooth = 1.0_r;
-            refl = 1.0_r;
-            transp = 1.0_r;
-            refr_i = 1.33f;
+            mp = copy_material(WATER);
             break;
         }
 
         if (word.starts_with("color:")) {
-            if (color_is_set) {
+            if (is_set.color) {
                 printf("Parsing error in parse_material: duplicate color definition\n");
                 return std::nullopt;
             }
-            const int ret1 = sscanf(word.data(), "color:(%lf,%lf,%lf)", &r, &g, &b);
+            const int ret1 = sscanf(word.data(), "color:(%lf,%lf,%lf)", &mp.r, &mp.g, &mp.b);
             int ret2 = 0, ret3 = 0;
             if (ret1 == 1) {
                 stream >> word;
-                ret2 = sscanf(word.data(), "%lf,%lf)", &g, &b);
+                ret2 = sscanf(word.data(), "%lf,%lf)", &mp.g, &mp.b);
                 if (ret2 == 1) {
                     stream >> word;
-                    ret3 = sscanf(word.data(), "%lf)", &b);
+                    ret3 = sscanf(word.data(), "%lf)", &mp.b);
                 }
             }
             else if (ret1 == 2) {
                 stream >> word;
-                ret3 = sscanf(word.data(), "%lf)", &b);
+                ret3 = sscanf(word.data(), "%lf)", &mp.b);
             }
             if (ret1 + ret2 + ret3 != 3) {
                 printf("Parsing error in parse_material: color\n");
                 return std::nullopt;
             }
-            color_is_set = true;
+            is_set.color = true;
+            is_set.nb_param++;
         }
 
         /*
         else if (word.starts_with("emitted_color:")) {
-            if (em_color_is_set) {
+            if (is_set.em_color) {
                 printf("Parsing error in parse_material: duplicate emitted color definition\n");
                 return std::nullopt;
             }
-            const int ret1 = sscanf(word.data(), "emitted_color:(%lf,%lf,%lf)", &er, &eg, &eb);
+            const int ret1 = sscanf(word.data(), "emitted_color:(%lf,%lf,%lf)", &mp.er, &mp.eg, &mp.eb);
             int ret2 = 0, ret3 = 0;
             if (ret1 == 1) {
                 stream >> word;
-                ret2 = sscanf(word.data(), "%lf,%lf)", &eg, &eb);
+                ret2 = sscanf(word.data(), "%lf,%lf)", &mp.eg, &mp.eb);
                 if (ret2 == 1) {
                     stream >> word;
-                    ret3 = sscanf(word.data(), "%lf)", &eb);
+                    ret3 = sscanf(word.data(), "%lf)", &mp.eb);
                 }
             }
             else if (ret1 == 2) {
                 stream >> word;
-                ret3 = sscanf(word.data(), "%lf)", &eb);
+                ret3 = sscanf(word.data(), "%lf)", &mp.eb);
             }
             if (ret1 + ret2 + ret3 != 3) {
                 // printf("Faulty word: %s\n", word.data());
                 printf("Parsing error in parse_material: emitted color\n");
                 return std::nullopt;
             }
-            em_color_is_set = true;
+            is_set.em_color = true;
+            is_set.nb_param++;
         }
         */
 
         else if (word.starts_with("smoothness:")) {
-            if (smooth_is_set) {
+            if (is_set.smooth) {
                 printf("Parsing error in parse_material: duplicate smoothness definition\n");
                 return std::nullopt;
             }
-            const int ret = sscanf(word.data(), "smoothness:%lf", &smooth);
+            const int ret = sscanf(word.data(), "smoothness:%lf", &mp.smooth);
             if (ret != 1) {
                 printf("Parsing error in parse_material: smoothness\n");
                 return std::nullopt;
             }
-            smooth_is_set = true;
+            is_set.smooth = true;
+            is_set.nb_param++;
         }
 
         else if (word.starts_with("emission:")) {
-            if (em_int_is_set) {
+            if (is_set.em_int) {
                 printf("Parsing error in parse_material: duplicate emission definition\n");
                 return std::nullopt;
             }
-            const int ret = sscanf(word.data(), "emission:%lf", &em_int);
+            const int ret = sscanf(word.data(), "emission:%lf", &mp.em_int);
             if (ret != 1) {
                 printf("Parsing error in parse_material: emission\n");
                 return std::nullopt;
             }
-            em_int_is_set = true;
+            is_set.em_int = true;
+            is_set.nb_param++;
         }
 
         else if (word.starts_with("reflectivity:")) {
-            if (refl_is_set) {
+            if (is_set.refl) {
                 printf("Parsing error in parse_material: duplicate reflectivity definition\n");
                 return std::nullopt;
             }
-            const int ret = sscanf(word.data(), "reflectivity:%lf", &refl);
+            const int ret = sscanf(word.data(), "reflectivity:%lf", &mp.refl);
             if (ret != 1) {
                 printf("Parsing error in parse_material: reflectivity\n");
                 return std::nullopt;
             }
-            refl_is_set = true;
+            is_set.refl = true;
+            is_set.nb_param++;
         }
 
         else if (word.starts_with("transparency:")) {
-            if (transp_is_set) {
+            if (is_set.transp) {
                 printf("Parsing error in parse_material: duplicate transparency definition\n");
                 return std::nullopt;
             }
-            const int ret = sscanf(word.data(), "transparency:%lf", &transp);
+            const int ret = sscanf(word.data(), "transparency:%lf", &mp.transp);
             if (ret != 1) {
                 printf("Parsing error in parse_material: transparency\n");
                 return std::nullopt;
             }
-            transp_is_set = true;
+            is_set.transp = true;
+            is_set.nb_param++;
         }
 
         else if (word.starts_with("scattering:")) {
-            if (scattering_is_set) {
+            if (is_set.scattering) {
                 printf("Parsing error in parse_material: duplicate scattering definition\n");
                 return std::nullopt;
             }
-            const int ret = sscanf(word.data(), "scattering:%lf", &scattering);
+            const int ret = sscanf(word.data(), "scattering:%lf", &mp.scattering);
             if (ret != 1) {
                 printf("Parsing error in parse_material: scattering\n");
                 return std::nullopt;
             }
-            scattering_is_set = true;
+            is_set.scattering = true;
+            is_set.nb_param++;
         }
 
         else if (word.starts_with("refraction_index:")) {
-            if (refr_i_is_set) {
+            if (is_set.refr_i) {
                 printf("Parsing error in parse_material: duplicate refraction_index definition\n");
                 return std::nullopt;
             }
-            const int ret = sscanf(word.data(), "refraction_index:%lf", &refr_i);
+            const int ret = sscanf(word.data(), "refraction_index:%lf", &mp.refr_i);
             if (ret != 1) {
                 printf("Parsing error in parse_material: refraction_index\n");
                 return std::nullopt;
             }
-            refr_i_is_set = true;
+            is_set.refr_i = true;
+            is_set.nb_param++;
         }
 
         else if (word.starts_with("reflects_color:")) {
-            if (refl_col_is_set) {
+            if (is_set.refl_col) {
                 printf("Parsing error in parse_material: duplicate reflects_color definition\n");
                 return std::nullopt;
             }
             if (word.starts_with("reflects_color:true")) {
-                refl_color = true;
+                mp.refl_color = true;
             }
             else if (word.starts_with("reflects_color:false")) {
-                refl_color = false;
+                mp.refl_color = false;
             }
             else {
                 printf("Parsing error in parse_material: reflects_color\n");
                 return std::nullopt;
             }
-            refl_col_is_set = true;
+            is_set.refl_col = true;
+            is_set.nb_param++;
         }
 
         else if (word.starts_with("texture:") || word.starts_with(")")) {
             break;
         }
-
+        
         else {
             printf("Parsing error in parse_material: %s\n", word.data());
             return std::nullopt;
         }
     }
 
-    rt::color mat_color(r, g, b);
+    rt::color mat_color(mp.r, mp.g, mp.b);
     // rt::color em_color(er, eg, eb);
     if (gamma != 1.0_r) {
         mat_color.apply_gamma(gamma);
         // em_color.apply_gamma(gamma);
     }
 
-    return material(mat_color, smooth, em_int, refl, refl_color, transp, scattering, refr_i);
+    return material(mat_color, mp.smooth, mp.em_int, mp.refl, mp.refl_color, mp.transp, mp.scattering, mp.refr_i);
 }
 
 
@@ -341,6 +357,7 @@ std::optional<texture_info> parse_texture_info(const file& f,
     const object_type object_type) {
 
     const size_t position = f.position();
+    f.skip_char(' ');
     const std::string keyword_t = f.read_string(7);
 
     if (keyword_t != "texture") {
@@ -531,7 +548,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             camera(cam_pos, cam_dir, cam_right_dir,
                 fovw, fovh, dist, width, height);
 
-        bool background_color_is_set = false;
+        bool background_color_is_set   = false;
         bool background_texture_is_set = false;
         const std::size_t position_bg = f.position();
         rt::color background_color;
@@ -564,7 +581,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             throw std::runtime_error("Incorrect background texture angles");
         }
         else {
-            std::string bg_tfile_name_short = std::filesystem::path(bg_tfile_name).filename().generic_string();
+            const std::string bg_tfile_name_short = std::filesystem::path(bg_tfile_name).filename().generic_string();
 
             if (rx < 0) rx += 2.0_r * PI;
             if (ry < 0) ry += 2.0_r * PI;
@@ -676,11 +693,10 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
             // longest item is load_normal_map
             char s[18];
-            if (f.scanf("%17s ", s) == exit_status::Failure) {
+            if (f.scanf("%17s ", s) == exit_status::Failure)
                 break;
-            }
 
-            const std::string arg = s;
+            const std::string arg(s);
 
             /* Commented line */
             if (arg.starts_with("#")) {
@@ -693,11 +709,11 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 const std::string m_name = f.read_string(64);
 
                 std::optional<material> m = parse_material(f, inverse_gamma);
-                if (m.has_value()) {
-                    material_wrapper_set.emplace_back(std::move(m.value()), m_name);
-                    continue;
-                }
-                throw std::runtime_error("Material parsing error");
+                if (not m.has_value())
+                    throw std::runtime_error("Material parsing error");
+                
+                material_wrapper_set.emplace_back(std::move(m.value()), m_name);
+                continue;
             }
             
             /* BMP file loading */
@@ -758,34 +774,30 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
 
-                if (m_index.has_value()) {
+                if (not m_index.has_value())
+                    throw std::runtime_error("Material definition error");
+                
+                const sphere* sph = nullptr;
 
-                    std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Sphere);
-                    if (info.has_value()) {
+                std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Sphere);
+                if (info.has_value()) {
+                    std::vector<real>& info_vect = info.value().uv_coordinates;
+                    const rt::vector forward(info_vect[0], info_vect[1], info_vect[2]);
+                    const rt::vector right  (info_vect[3], info_vect[4], info_vect[5]);
+                    info_vect.clear();
 
-                        std::vector<real>& info_vect = info.value().uv_coordinates;
-                        const rt::vector forward(info_vect[0], info_vect[1], info_vect[2]);
-                        const rt::vector right  (info_vect[3], info_vect[4], info_vect[5]);
-                        info_vect.clear();
-                        const sphere* sph = new sphere(position, r, m_index.value(), texture_info_set.size(), forward, right);
-                        object_set.push_back(sph);
-                        texture_info_set.push_back(info.value());
-                        
-                        if (bounding_enabled) {
-                            other_content.push_back(sph);
-                        }
-                    }
-                    else {
-                        const sphere* sph = new sphere(position, r, m_index.value());
-                        object_set.push_back(sph);
-                        
-                        if (bounding_enabled) {
-                            other_content.push_back(sph);
-                        }
-                    }
-                    continue;                 
+                    sph = new sphere(position, r, m_index.value(), texture_info_set.size(), forward, right);
+                    texture_info_set.push_back(info.value());
                 }
-                throw std::runtime_error("Material definition error");
+                else {
+                    sph = new sphere(position, r, m_index.value());
+                }
+
+                object_set.push_back(sph);
+                if (bounding_enabled)
+                    other_content.push_back(sph);
+
+                continue;                 
             }
             if (arg == "plane") {
                 /* normal:(0, -1, 0) position:(0, 160, 0) [material] */
@@ -797,33 +809,31 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 rt::vector p(px, py, pz);
 
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
-                if (m_index.has_value()) {
-                    std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Plane);
-                    if (info.has_value()) {
+                if (not m_index.has_value())
+                    throw std::runtime_error("Material definition error");
+                
+                const plane* pln = nullptr;
 
-                        std::vector<real>& info_vect = info.value().uv_coordinates;
-                        const rt::vector right(info_vect[0], info_vect[1], info_vect[2]);
-                        const real scale = info_vect[3];
-                        info_vect.clear();
-                        const plane* pln = new plane(n.x, n.y, n.z, p, m_index.value(), texture_info_set.size(), right, scale);
-                        object_set.push_back(pln);
-                        texture_info_set.push_back(info.value());
+                std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Plane);
+                if (info.has_value()) {
 
-                        if (bounding_enabled) {
-                            other_content.push_back(pln);
-                        }
-                    }
-                    else {
-                        const plane* pln = new plane(n.x, n.y, n.z, p, m_index.value());
-                        object_set.push_back(pln);
-                            
-                        if (bounding_enabled) {
-                            other_content.push_back(pln);
-                        }
-                    }
-                    continue;
+                    std::vector<real>& info_vect = info.value().uv_coordinates;
+                    const rt::vector right(info_vect[0], info_vect[1], info_vect[2]);
+                    const real scale = info_vect[3];
+                    info_vect.clear();
+
+                    pln = new plane(n.x, n.y, n.z, p, m_index.value(), texture_info_set.size(), right, scale);
+                    texture_info_set.push_back(info.value());
                 }
-                throw std::runtime_error("Material definition error");
+                else {
+                    pln = new plane(n.x, n.y, n.z, p, m_index.value());
+                }
+
+                object_set.push_back(pln);
+                if (bounding_enabled)
+                    other_content.push_back(pln);
+
+                continue;
             }
             if (arg == "box") {
                 /* center:(166, -200, 600) x_axis:(100, 100, -100) y_axis:(-200, 100, -100) 300 200 300 */
@@ -836,16 +846,16 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 rt::vector n2(n2x, n2y, n2z);
 
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
-                if (m_index.has_value()) {
-                    const box* bx = new box(c, n1.unit(), n2.unit(), lx, ly, lz, m_index.value());
-                    object_set.push_back(bx);
-                        
-                    if (bounding_enabled) {
-                        other_content.push_back(bx);
-                    }
-                    continue;
-                }
-                throw std::runtime_error("Material definition error");
+                if (not m_index.has_value())
+                    throw std::runtime_error("Material definition error");
+                
+                const box* bx = new box(c, n1.unit(), n2.unit(), lx, ly, lz, m_index.value());
+                object_set.push_back(bx);
+                    
+                if (bounding_enabled)
+                    other_content.push_back(bx);
+                
+                continue;
             }
             if (arg == "triangle") {
                 /* (-620, -100, 600) (-520, 100, 500) (-540, -200, 700) [material] */
@@ -860,23 +870,23 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 rt::vector v2(v2x, v2y, v2z);
 
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
+                if (not m_index.has_value())
+                    throw std::runtime_error("Material definition error");
+
                 std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Triangle);
                 const bool normal_mapping = info.has_value() && info.value().has_normal_information();
-                if (m_index.has_value()) {
                 
-                    const triangle* tr = normal_mapping ?
-                          new triangle(v0, v1, v2, m_index.value(), texture_info_set.size(), normal_mapping, info.value())
-                        : new triangle(v0, v1, v2, m_index.value(), (info.has_value() ? texture_info_set.size() : EMPTY_INDEX));
-                    object_set.push_back(tr);
-                    if (info.has_value())
-                        texture_info_set.push_back(info.value());
-                            
-                    if (bounding_enabled)
-                        other_content.push_back(tr);
-                    
-                    continue;
-                }
-                throw std::runtime_error("Material definition error");
+                const triangle* tr = normal_mapping ?
+                      new triangle(v0, v1, v2, m_index.value(), texture_info_set.size(), normal_mapping, info.value())
+                    : new triangle(v0, v1, v2, m_index.value(), (info.has_value() ? texture_info_set.size() : EMPTY_INDEX));
+                object_set.push_back(tr);
+                if (info.has_value())
+                    texture_info_set.push_back(info.value());
+                        
+                if (bounding_enabled)
+                    other_content.push_back(tr);
+                
+                continue;
             }
             if (arg == "quad") {
                 /* (-620, -100, 600) (-520, 100, 600) (-540, -200, 600) (-500, -250, 600) [material] */
@@ -894,24 +904,22 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
 
-                if (m_index.has_value()) {
+                if (not m_index.has_value())
+                    throw std::runtime_error("Material definition error");
                 
-                    std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Quad);
-                    const bool normal_mapping = info.has_value() && info.value().has_normal_information();
-                    const quad* q = normal_mapping ?
-                          new quad(v0, v1, v2, v3, m_index.value(), texture_info_set.size(), normal_mapping, info.value())
-                        : new quad(v0, v1, v2, v3, m_index.value(), (info.has_value() ? texture_info_set.size() : EMPTY_INDEX));
-                    object_set.push_back(q);
-                    if (info.has_value())
-                        texture_info_set.push_back(info.value());
-                            
-                    if (bounding_enabled)
-                        other_content.push_back(q);
+                std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Quad);
+                const bool normal_mapping = info.has_value() && info.value().has_normal_information();
+                const quad* q = normal_mapping ?
+                      new quad(v0, v1, v2, v3, m_index.value(), texture_info_set.size(), normal_mapping, info.value())
+                    : new quad(v0, v1, v2, v3, m_index.value(), (info.has_value() ? texture_info_set.size() : EMPTY_INDEX));
+                object_set.push_back(q);
+                if (info.has_value())
+                    texture_info_set.push_back(info.value());
+                        
+                if (bounding_enabled)
+                    other_content.push_back(q);
 
-                    continue;
-                }
-                throw std::runtime_error("Material definition error");
-
+                continue;
             }
             if (arg == "cylinder") {
                 /* origin:(0, 0, 0) direction:(1, -1, 1) radius:100 length:300 [material] */
@@ -925,17 +933,16 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
 
-                if (m_index.has_value()) {
-
-                    const cylinder* cyl = new cylinder(p, d.unit(), r, l, m_index.value());
-                    object_set.push_back(cyl);
-                        
-                    if (bounding_enabled)
-                        other_content.push_back(cyl);
+                if (not m_index.has_value())
+                    throw std::runtime_error("Material definition error");
+                
+                const cylinder* cyl = new cylinder(p, d.unit(), r, l, m_index.value());
+                object_set.push_back(cyl);
                     
-                    continue;
-                }
-                throw std::runtime_error("Material definition error");
+                if (bounding_enabled)
+                    other_content.push_back(cyl);
+                
+                continue;
             }
 
             /* Obj file parsing */
@@ -946,18 +953,18 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 const int ret = f.scanf_count(" %512s (texture:%64s shift:(%lf,%lf,%lf) scale:%lf)\n",
                     ofile_name, t_name, sx, sy, sz, scale);
 
-                if (ret != 1 && ret != 6) {
+                if (ret != 1 && ret != 6)
                     throw std::runtime_error("Parsing error in scene constructor (obj file loading)");
-                }
+
+                rt::vector shift(sx, sy, sz);
                 
                 std::optional<unsigned int> t_index;
 
-                if (ret == 6 && strcmp(t_name, "none") != 0) {
+                if (ret == 6 && std::string(t_name) == "none") {
 
                     t_index = wrapper<texture>::find_element(texture_wrapper_set, t_name);
-                    if (not t_index.has_value()) {
+                    if (not t_index.has_value())
                         throw std::runtime_error("Texture not found");
-                    }
                 }
 
                 const bounding* output_bd;
@@ -965,7 +972,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                     parse_obj_file(ofile_name, t_index, object_set,
                         material_wrapper_set, texture_wrapper_set,
                         texture_info_set,
-                        scale, rt::vector(sx, sy, sz),
+                        scale, shift,
                         bounding_enabled, polygons_per_bounding, output_bd, inverse_gamma);
 
                 if (status_obj == exit_status::Failure) {
@@ -973,9 +980,9 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                     throw std::runtime_error("Obj file parsing error");
                 }
 
-                if (bounding_enabled) {
+                if (bounding_enabled)
                     bounding_set.push_back(output_bd);
-                }
+
                 continue;
             }
 
@@ -985,9 +992,8 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
         f.close();
 
-        if (bounding_enabled) {
+        if (bounding_enabled)
             bounding_set.push_back(new bounding(std::move(other_content)));
-        }
 
         // Creation of the final structures
         auto [ material_set, texture_set, normal_map_set ] = build_sets(material_wrapper_set, texture_wrapper_set, normal_map_wrapper_set);

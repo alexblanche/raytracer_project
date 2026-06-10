@@ -16,13 +16,7 @@ texture_info::texture_info(
     std::initializer_list<double>&& uv_coordinates)
     :   uv_coordinates(uv_coordinates.begin(), uv_coordinates.end()),
         texture_index(t_index.value_or(NONE)),
-        normal_map_index(n_index.value_or(NONE)) {
-
-
-            for (real x : uv_coordinates)
-                std::cout << x << " ";
-            std::cout << std::endl;
-        }
+        normal_map_index(n_index.value_or(NONE)) {}
 
 /* Texturing */
 
@@ -31,7 +25,9 @@ texture_info::texture_info(
    consider are (u0, v0), (u1, v1), (u2, v2) or (u0, v0), (u3, v3), (u2, v2) (in this order) */
 uvcoord texture_info::get_barycenter(const barycentric_info& bary) const {
     
-    real u, v;
+    uvcoord uvc;
+    auto& [ u, v ] = uvc;
+    
     using enum object_type;
     switch (bary.type) {
         case Sphere:
@@ -60,7 +56,7 @@ uvcoord texture_info::get_barycenter(const barycentric_info& bary) const {
             v = 0.0_r;
             break;
     }
-    return { u, v };
+    return uvc;
 }
 
 /* Sets the tangent and bitangent vectors */

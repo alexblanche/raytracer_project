@@ -6,7 +6,7 @@ class image {
     public:
         matrix data;
         const real gamma = 1.0f;
-        unsigned int number_of_samples = 0;
+        int number_of_samples = 0;
 
         image(int width, int height, real gamma = 1.0f)
             : data(width, height), gamma(gamma) {}

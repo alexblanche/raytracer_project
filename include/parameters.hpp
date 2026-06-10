@@ -3,7 +3,7 @@
 #include <limits>
 
 // Type alias for floating-point numerical values
-using real = float;
+using real = double;
 
 constexpr real operator ""_r(unsigned long long int x) { return static_cast<real>(x); }
 constexpr real operator ""_r(long double x)            { return static_cast<real>(x); }

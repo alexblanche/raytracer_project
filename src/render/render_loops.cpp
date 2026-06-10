@@ -152,7 +152,7 @@ void render_loop_parallel_multisample(image&, const scene&, const unsigned int, 
 
 
 void render_loop_parallel_all_at_once(image& image, const scene& scene, const unsigned int number_of_bounces,
-    const russian_roulette_mode russian_roulette, const unsigned int target) {
+    const russian_roulette_mode russian_roulette, const int target) {
 
     parallel_for(scene.height, [&, number_of_bounces, russian_roulette, target] (int jstart, int jend) {
 
@@ -166,7 +166,7 @@ void render_loop_parallel_all_at_once(image& image, const scene& scene, const un
 
             for (int i = 0; rt::color& color : row) {
 
-                for (unsigned int k = 0; k < target; k++) {
+                for (int k = 0; k < target; k++) {
                     ray r = scene.cam.gen_ray(i, j, rg, image.number_of_samples + k);
                     const rt::color new_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette);
                     color += new_col;
