@@ -5,42 +5,64 @@ camera::camera(const rt::vector& origin, const rt::vector& direction, const rt::
     const int width, const int height,
     const real focal_length, const real aperture)
 
-    : origin(origin), direction_scaled(direction.unit() * dist), to_the_right(to_the_right.unit()),
-      to_the_bottom((direction ^ to_the_right).unit()), //distance(dist),
-      di(fov_w * 0.25_r / static_cast<real>(width)), dj(fov_h * 0.25_r / static_cast<real>(height)),
+    : origin(origin),
+      direction_scaled(direction.unit() * dist),
+      to_the_right(to_the_right.unit()),
+      to_the_bottom((direction ^ to_the_right).unit()),
+      di((STRATIFIED_ENABLED ? fov_w * 0.25_r : fov_w) / static_cast<real>(width)),
+      dj((STRATIFIED_ENABLED ? fov_h * 0.25_r : fov_h) / static_cast<real>(height)),
       mhalf_fovw(-fov_w / 2.0_r), mhalf_fovh(-fov_h / 2.0_r),
       focal_length(focal_length), aperture(aperture),
-      mode((aperture < 0.0_r) ?
-                  camera_mode_option::Cam_Normal_AA
-                : camera_mode_option::Cam_Depth_of_Field,
-        camera_mode_option::Cam_Stratified) {}
+      mode(
+        ((aperture < 0.0_r) ?
+              camera_mode_option::Cam_Normal_AA
+            : camera_mode_option::Cam_Depth_of_Field),
+        (STRATIFIED_ENABLED ?
+              camera_mode_option::Cam_Stratified
+            : camera_mode_option::Cam_Default)) {}
+            
 
 inline std::pair<int, int> camera::stratified_shift(const int iteration) const {
     return mode.uses_stratified() ?
-          std::pair {
-             (iteration & 0b0011),
-            ((iteration & 0b1100) >> 2) }
+            std::pair {
+                 (iteration & 0b0011),
+                ((iteration & 0b1100) >> 2)
+            }
         : std::pair { 0, 0 };
 }
 
-#include <iostream>
-
 inline std::pair<real, real> camera::shift_classic(const int i, const int j, const int iteration) const {
 
-    const auto [ strat_x, strat_y ] = stratified_shift(iteration);
-    return {
-        std::fma(di, static_cast<real>((i << 2) + strat_x), mhalf_fovw),
-        std::fma(dj, static_cast<real>((j << 2) + strat_y), mhalf_fovh)
-    };
+    if constexpr (STRATIFIED_ENABLED) {
+        const auto [ strat_x, strat_y ] = stratified_shift(iteration);
+        return {
+            std::fma(di, static_cast<real>((i << 2) + strat_x), mhalf_fovw),
+            std::fma(dj, static_cast<real>((j << 2) + strat_y), mhalf_fovh)
+        };
+    }
+    else {
+        return {
+            std::fma(di, static_cast<real>(i), mhalf_fovw),
+            std::fma(dj, static_cast<real>(j), mhalf_fovh)
+        };
+    }
 }
 
 inline std::pair<real, real> camera::shift_normal(const int i, const int j, const int iteration, const real shift_horiz, const real shift_vert) const {
     
-    const auto [ strat_x, strat_y ] = stratified_shift(iteration);
-    return {
-        std::fma(di, static_cast<real>((i << 2) + strat_x) + shift_horiz, mhalf_fovw),
-        std::fma(dj, static_cast<real>((j << 2) + strat_y) + shift_vert,  mhalf_fovh)
-    };
+    if constexpr (STRATIFIED_ENABLED) {
+        const auto [ strat_x, strat_y ] = stratified_shift(iteration);
+        return {
+            std::fma(di, static_cast<real>((i << 2) + strat_x) + shift_horiz, mhalf_fovw),
+            std::fma(dj, static_cast<real>((j << 2) + strat_y) + shift_vert,  mhalf_fovh)
+        };
+    }
+    else {
+        return {
+            std::fma(di, static_cast<real>(i) + shift_horiz, mhalf_fovw),
+            std::fma(dj, static_cast<real>(j) + shift_vert,  mhalf_fovh)
+        };
+    }
 }
 
 inline rt::vector camera::direction(const real ishift, const real jshift) const {

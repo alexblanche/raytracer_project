@@ -1,7 +1,7 @@
 #include "scene/objects/sphere.hpp"
 #include "light/vector.hpp"
 #include "scene/material/material.hpp"
-#include "tracing/directions.hpp"
+#include "tracing/direction.hpp"
 #include "auxiliary/utils.hpp"
 
 #include <cmath>
@@ -131,7 +131,7 @@ rt::vector sphere::compute_normal_from_map(const rt::vector& tangent_space_norma
 rt::vector sphere::sample(randomgen& rg) const {
     //return position + (radius * random_direction(rg, rt::vector(0, 1, 0), PI));
     return //fma(random_direction<PI>(rg, rt::vector(0, 1, 0)), radius, position);
-        fma(random_direction(rg, rt::vector(0, 1, 0), PI), radius, position);
+        fma(direction::random(rg, rt::vector(0, 1, 0), PI), radius, position);
 }
 
 /* Uniformly samples a point on the sphere that is visible from pt */
@@ -144,5 +144,5 @@ rt::vector sphere::sample_visible(randomgen& rg, const rt::vector& pt) const {
         return 2.0_r * position - v;
     */
     // Optimized
-    return random_direction(rg, (pt - position).unit(), PI / 2.0_r);
+    return direction::random(rg, (pt - position).unit(), PI / 2.0_r);
 }

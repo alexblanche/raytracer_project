@@ -4,7 +4,7 @@
 #include "auxiliary/randomgen.hpp"
 
 // Sampling modes
-enum class camera_mode_option {
+enum class camera_mode_option : unsigned int {
     Cam_Default         = 0,
     Cam_Depth_of_Field  = 1,
     Cam_Normal_AA       = 2,
@@ -19,17 +19,17 @@ class camera_mode {
 
     public:
         camera_mode(camera_mode_option m)
-            : mode(static_cast<unsigned int>(m)) {}
+            : mode(std::to_underlying(m)) {}
         
         camera_mode(camera_mode_option m1, camera_mode_option m2)
-            : mode(static_cast<unsigned int>(m1) | static_cast<unsigned int>(m2)) {}
+            : mode(std::to_underlying(m1) | std::to_underlying(m2)) {}
 
         inline bool uses_dof() const {
-            return mode & static_cast<unsigned int>(camera_mode_option::Cam_Depth_of_Field);
+            return mode & std::to_underlying(camera_mode_option::Cam_Depth_of_Field);
         }
 
         inline bool uses_stratified() const {
-            return mode & static_cast<unsigned int>(camera_mode_option::Cam_Stratified);
+            return mode & std::to_underlying(camera_mode_option::Cam_Stratified);
         }
 };
 

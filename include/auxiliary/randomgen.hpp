@@ -15,16 +15,15 @@ class randomgen {
     public:
 
         // Factor 4.0_r to improve camera ray generation computation speed
-        randomgen(const real std_dev_anti_aliasing = 4.0_r * ANTI_ALIASING)
+        randomgen(const real std_dev_anti_aliasing = ANTI_ALIASING)
             :   engine(timer_ms::get_time()),
                 unif_ratio(0.0_r, 1.0_r),
                 unif_angle(0.0_r, 2.0_r * PI),
-                normal_dist(0.0_r, std_dev_anti_aliasing) {}
+                normal_dist(0.0_r, (STRATIFIED_ENABLED ? 4.0_r * std_dev_anti_aliasing : std_dev_anti_aliasing)) {}
 
         /* Returns a random real between 0 and m */
         inline real random_real(real m) const {
-            std::uniform_real_distribution<real> unif(0_r, m);
-            return unif(engine);
+            return m * random_ratio();
         }
 
         /* Returns a random real between 0 and 1 */
@@ -32,7 +31,7 @@ class randomgen {
             return unif_ratio(engine);
         }
 
-        /* Returns a random real between 0 and 2 * pi */
+        /* Returns a random real between 0 and 2 * PI */
         inline real random_angle() const {
             return unif_angle(engine);
         }

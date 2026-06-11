@@ -212,23 +212,17 @@ void menu::update_gamma(const float new_gamma) {
 static inline void render_simple(image& image, const scene& scene,
     const runtime_parameters& runtime_parameters) {
 
+    const unsigned int depth = runtime_parameters.number_of_bounces;
+    const russian_roulette_mode rr = runtime_parameters.russian_roulette;
+    const unsigned int ms_samples = runtime_parameters.sampling.multisample_number_of_samples;
+
     using enum sampling_parameters::mode;
     switch (runtime_parameters.sampling.mode) {
         case MultiSample:
-            render_loop_parallel_multisample(
-                image,
-                scene,
-                runtime_parameters.number_of_bounces,
-                runtime_parameters.sampling.multisample_number_of_samples
-            );
+            render_loop_parallel_multisample(image, scene, depth, ms_samples);
             break;
         case UniSample:
-            render_loop_parallel(
-                image,
-                scene,
-                runtime_parameters.number_of_bounces,
-                runtime_parameters.russian_roulette
-            );
+            render_loop(image, scene, depth, rr);
             break;
     }
 }
@@ -236,13 +230,16 @@ static inline void render_simple(image& image, const scene& scene,
 static inline void render(image& image, const scene& scene,
     const runtime_parameters& runtime_parameters) {
     
+    const unsigned int depth = runtime_parameters.number_of_bounces;
+    const russian_roulette_mode rr = runtime_parameters.russian_roulette;
+
     using enum time_mode;
     switch (runtime_parameters.time) {
         case Simple:
         case Full:
-            render_loop_parallel_time(image, scene, runtime_parameters.number_of_bounces, runtime_parameters.time);
+            render_loop_time(image, scene, depth, rr, runtime_parameters.time);
             break;
-        
+
         case Disabled:
             render_simple(image, scene, runtime_parameters);
             break;

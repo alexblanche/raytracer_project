@@ -1,5 +1,5 @@
 #include "tracing/tracing.hpp"
-#include "tracing/directions.hpp"
+#include "tracing/direction.hpp"
 #include "auxiliary/custom_stack.hpp"
 #include "auxiliary/utils.hpp"
 
@@ -17,7 +17,7 @@ struct accumulators {
     rt::color color_materials;
     rt::color emitted_colors;
 
-    accumulators() :
+    constexpr accumulators() :
         color_materials(rt::WHITE),
         emitted_colors(rt::BLACK) {}
 
@@ -84,15 +84,16 @@ template <orientation_type ray_orientation, orientation_type bias_orientation>
 
 /* Auxiliary function that handles the specular reflective case */
 // Run-time
-[[nodiscard]] static ray specular_reflective_case(const hit& h, const randomgen& rg, const real smoothness,
+[[nodiscard]] static inline ray specular_reflective_case(const hit& h, const randomgen& rg, const real smoothness,
     const rt::vector& local_normal, const orientation_type ray_orientation) {
 
-    const rt::vector central_dir = get_central_reflected_direction(h, local_normal, smoothness, ray_orientation);
+    const rt::vector central_dir = direction::central_reflected(h, local_normal, smoothness, ray_orientation);
                     
     /* Direction according to Lambert's cosine law */
+    using enum direction::angle;
     const rt::vector dir = (smoothness >= 1.0_r) ?
           central_dir
-        : (fma(random_direction<angle::Pi>(rg, central_dir), 1.0_r - smoothness, central_dir)).unit();
+        : (fma(direction::random<Pi>(rg, central_dir), 1.0_r - smoothness, central_dir)).unit();
 
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
@@ -104,16 +105,16 @@ template <orientation_type ray_orientation, orientation_type bias_orientation>
 
 // Compile-time
 template<orientation_type ray_orientation>
-[[nodiscard]] static ray specular_reflective_case(const hit& h, const randomgen& rg, const real smoothness,
+[[nodiscard]] static inline ray specular_reflective_case(const hit& h, const randomgen& rg, const real smoothness,
     const rt::vector& local_normal) {
 
-    const rt::vector central_dir = get_central_reflected_direction<ray_orientation>(h, local_normal, smoothness);
+    const rt::vector central_dir = direction::central_reflected<ray_orientation>(h, local_normal, smoothness);
 
     /* Direction according to Lambert's cosine law */
+    using enum direction::angle;
     const rt::vector dir = (smoothness >= 1.0_r) ?
-        central_dir
-        :
-        (fma(random_direction<angle::Pi>(rg, central_dir), 1.0_r - smoothness, central_dir)).unit();
+          central_dir
+        : (fma(direction::random<Pi>(rg, central_dir), 1.0_r - smoothness, central_dir)).unit();
         
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
@@ -125,13 +126,14 @@ template<orientation_type ray_orientation>
 
 /* Auxiliary function that handles the diffuse reflective case */
 // Run-time
-[[nodiscard]] ray diffuse_case(const hit& h, const rt::vector& local_normal, const randomgen& rg, const orientation_type ray_orientation) {
+[[nodiscard]] inline ray diffuse_case(const hit& h, const rt::vector& local_normal, const randomgen& rg, const orientation_type ray_orientation) {
 
     using enum orientation_type;
+    using enum direction::angle;
     const rt::vector dir(
         ((ray_orientation == Inward ?
             local_normal : (-1.0_r) * local_normal)
-            + random_direction<angle::Pi>(rg, local_normal)
+            + direction::random<Pi>(rg, local_normal)
         ).unit()
     );
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
@@ -143,22 +145,16 @@ template<orientation_type ray_orientation>
 
 
 /* Auxiliary function that handles the refractive case */
-[[nodiscard]] ray refractive_case(const hit& h, const randomgen& rg, const real scattering,
+[[nodiscard]] inline ray refractive_case(const hit& h, const randomgen& rg, const real scattering,
     const rt::vector& local_normal,
-    const rt::vector& vx, const real sin_theta_2_sq, const orientation_type ray_orientation,
+    const direction::sin_refracted_output& sin_refr, const orientation_type ray_orientation,
     real& refr_index, const real next_refr_i) {
 
     /* Setting the refracted direction */
     const rt::vector dir(
         is_not_zero(scattering) ?
-            get_random_refracted_direction(
-                rg,
-                scattering,
-                local_normal,
-                vx, sin_theta_2_sq, ray_orientation
-            )
-            :
-            get_refracted_direction(local_normal, vx, sin_theta_2_sq, ray_orientation)
+              direction::random_refracted(rg, scattering, local_normal, sin_refr, ray_orientation)
+            : direction::refracted(local_normal, sin_refr, ray_orientation)
     );
 
     /* Updating the refraction index */
@@ -325,7 +321,7 @@ rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg
 
             if ((ray_orientation == Inward)
                 &&
-                rg.random_ratio() * m.get_transparency() <= get_schlick(h, normal, refr_index, next_refr_i)) {
+                rg.random_ratio() * m.get_transparency() <= direction::get_schlick(h, normal, refr_index, next_refr_i)) {
             
                 /* The ray is reflected */
                 
@@ -338,8 +334,8 @@ rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg
             else {
 
                 /* Pre-computation of the refracted direction */
-                real sin_theta_2_sq;
-                const rt::vector vx = get_sin_refracted(h, normal, refr_index, next_refr_i, sin_theta_2_sq);
+                const auto sin_refr = direction::get_sin_refracted(h, normal, refr_index, next_refr_i);
+                const auto& [ vx, sin_theta_2_sq ] = sin_refr;
                 
                 /* The ray is transmitted */
 
@@ -354,8 +350,7 @@ rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg
                 else {
                     /* Transmission */
 
-                    r = refractive_case(h, rg, m.get_refraction_scattering(), normal,
-                        vx, sin_theta_2_sq, ray_orientation, refr_index, next_refr_i);
+                    r = refractive_case(h, rg, m.get_refraction_scattering(), normal, sin_refr, ray_orientation, refr_index, next_refr_i);
                     // acc.update(m, color, true);
                     if (m.is_emissive()) acc.update_emitted_col(m);
                     acc.update_color_mat(color);

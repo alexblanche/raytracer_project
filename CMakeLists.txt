@@ -73,7 +73,7 @@ set(SCENE_SOURCES
 )
 
 set(TRACING_SOURCES
-	src/tracing/directions.cpp
+	src/tracing/direction.cpp
 	src/tracing/tracing.cpp
 	#src/tracing/multisample.cpp
 	src/render/render_loops.cpp

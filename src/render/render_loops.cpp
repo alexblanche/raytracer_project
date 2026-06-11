@@ -31,78 +31,23 @@ void render_loop_seq(image& image, const scene& scene, const unsigned int number
 }
 
 
-/* Main render loop */
-void render_loop_parallel(image& image, const scene& scene, const unsigned int number_of_bounces, const russian_roulette_mode russian_roulette) {
-
-    parallel_for(scene.height, [&, number_of_bounces, russian_roulette] (int j) {
-        
-        static thread_local const randomgen rg;
-
-        const matrix::row row = image.data[image.height() - 1 - j];
-        for (int i = 0; rt::color& color : row) {
-
-            const ray r = scene.cam.gen_ray(i, j, rg, image.number_of_samples);
-            const rt::color new_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette);
-            color += new_col;
-            i++;
-        }
-    });
-
-    image.increase_sample_count();
+static void print_estimated_time(uint64_t time_elapsed, float progress) {
+    const float estimated_time = static_cast<float>(time_elapsed) / (progress * 10.0f); // (elapsed / (progress / 100)) * 1000 (in ms)
+    printf("%.1f%%, ", progress);
+    if (time_elapsed < 1000)
+        printf("Time elapsed: %llums, estimated total time: %f seconds\n", time_elapsed, estimated_time);
+    else {
+        const int estimated_time_int = static_cast<int>(estimated_time);
+        printf("Time elapsed: %llu seconds, estimated total time: %d seconds = %d minutes %d seconds\n",
+            time_elapsed / 1000,
+            estimated_time_int,
+            estimated_time_int / 60,
+            estimated_time_int % 60
+        );
+    }
 }
 
-/* Render loop that handles time measurement
-   If time_mode == Full, all lines produce a time measurement and output the estimated total time.
-   Otherwise, only the total time is output at the end.
- */
-void render_loop_parallel_time(image& image, const scene& scene, const unsigned int number_of_bounces, const time_mode time_mode) {
-
-    const bool time_all = time_mode == time_mode::Full;
-    const float x = 100.0f / static_cast<float>(scene.width * scene.height);
-
-    std::atomic_int cpt = 0;
-    timer_ms timer;
-    timer.start();
-    
-    parallel_for(scene.height, [&, number_of_bounces] (int j) {
-
-        static thread_local const randomgen rg;
-
-        const matrix::row row = image.data[image.height() - 1 - j];
-        for (int i = 0; rt::color& col : row) {
-
-            const ray r = scene.cam.gen_ray(i, j, rg, 0);
-            const rt::color pixel_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette_mode::Disabled);
-            col += pixel_col;
-            i++;
-        }
-
-        if (time_all) {
-            timer.step();
-            cpt += image.width();
-            const uint64_t elapsed = timer.elapsed();
-            const float progress = cpt * x;
-            const float estimated_time = static_cast<float>(elapsed) / (progress * 10.0f);
-            const int estimated_time_int = static_cast<int>(estimated_time);
-            printf("%.1f%%, ", progress);
-            if (elapsed < 1000)
-                printf("Time elapsed: %llums, estimated total time: %f seconds\n", elapsed, estimated_time);
-            else
-                printf("Time elapsed: %llu seconds, estimated total time: %d seconds = %d minutes %d seconds\n",
-                    elapsed / 1000,
-                    estimated_time_int,
-                    estimated_time_int / 60,
-                    estimated_time_int % 60
-                );
-        }
-        
-    });
-
-    timer.stop();
-    const uint64_t elapsed = timer.elapsed();
-
-    image.increase_sample_count();
-
+static void print_render_time(uint64_t elapsed, bool time_all) {
     if (time_all)
         printf("\nTotal rendering time: ");
     else
@@ -114,13 +59,79 @@ void render_loop_parallel_time(image& image, const scene& scene, const unsigned 
     }
     
     const unsigned int elapsed_s = elapsed / 1000;
-    if (elapsed_s < 60)
-        printf("%u seconds\n", elapsed_s);
-    else
-        printf("%u seconds = %u minutes %u seconds\n",
-            elapsed_s, elapsed_s / 60, elapsed_s % 60);
+    printf("%u seconds", elapsed_s);
+    if (elapsed_s >= 60)
+        printf(" = %u minutes %u seconds\n", elapsed_s / 60, elapsed_s % 60);
+    printf("\n");
 }
 
+/* Main render loop
+   If time_mode == Full, all lines produce a time measurement and output the estimated total time.
+   If time_mode == Simple, only the total time is output at the end.
+ */
+template<time_mode time_mode>
+void render_loop_parallel(image& image, const scene& scene, const unsigned int number_of_bounces, const russian_roulette_mode russian_roulette) {
+
+    constexpr bool time_enabled = time_mode != time_mode::Disabled;
+    constexpr bool time_all = time_mode == time_mode::Full;
+    const float x = 100.0f / static_cast<float>(scene.height);
+
+    std::atomic_int cpt = 0;
+    timer_ms timer;
+    if constexpr (time_enabled) {
+        timer.start();
+    }
+    
+    parallel_for(scene.height, [&, number_of_bounces] (int j) {
+
+        static thread_local const randomgen rg;
+
+        const matrix::row row = image.data[image.height() - 1 - j];
+        for (int i = 0; rt::color& color : row) {
+
+            const ray init_ray = scene.cam.gen_ray(i, j, rg, image.number_of_samples);
+            const rt::color new_color = pathtrace(init_ray, scene, rg, number_of_bounces, russian_roulette);
+            color += new_color;
+            i++;
+        }
+
+        if constexpr (time_all) {
+            timer.step();
+            cpt += 1;
+            const uint64_t elapsed = timer.elapsed();
+            const float progress = cpt * x;
+            print_estimated_time(elapsed, progress);
+        }
+
+    });
+
+    if constexpr (time_enabled) {
+        timer.stop();
+        const uint64_t elapsed = timer.elapsed();
+        print_render_time(elapsed, time_all);
+    }
+
+    image.increase_sample_count();
+}
+
+void render_loop(image& image, const scene& scene, const unsigned int number_of_bounces, const russian_roulette_mode russian_roulette) {
+    render_loop_parallel<time_mode::Disabled>(image, scene, number_of_bounces, russian_roulette);
+}
+
+void render_loop_time(image& image, const scene& scene, const unsigned int number_of_bounces,
+    const russian_roulette_mode russian_roulette, const time_mode time_mode) {
+
+    switch (time_mode) {
+        case time_mode::Simple:
+            render_loop_parallel<time_mode::Simple>(image, scene, number_of_bounces, russian_roulette);
+            break;
+        case time_mode::Full:
+            render_loop_parallel<time_mode::Full>(image, scene, number_of_bounces, russian_roulette);
+            break;
+        default:
+            break;
+    }
+}
 
 // /* After the first hit, several bouncing rays are cast */
 // void render_loop_parallel_multisample(image& image, const scene& scene, const unsigned int number_of_bounces, const unsigned int number_of_samples) {
