@@ -1,11 +1,10 @@
-#include <vector>
 
-#include "legacy/source.hpp"
-#include "legacy/objects/sphere.hpp"
-#include "legacy/objects/plane.hpp"
+#include "legacy/legacy_source.hpp"
+#include "legacy/objects/legacy_sphere.hpp"
+#include "legacy/objects/legacy_plane.hpp"
 
 #include <iostream>
-
+#include <vector>
 #include <algorithm>
 #include <optional>
 

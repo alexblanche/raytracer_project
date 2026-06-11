@@ -1,10 +1,9 @@
 #pragma once
 
-#include "light/ray.hpp"
+#include "legacy/legacy_source.hpp"
+#include "legacy/objects/legacy_object.hpp"
+
 #include <vector>
-#include "screen/color.hpp"
-#include "legacy/source.hpp"
-#include "legacy/objects/object.hpp"
 
 /* Tracing the ray */
 

@@ -1,7 +1,6 @@
 #pragma once
 
-#include "light/vector.hpp"
-#include "legacy/light/hit.hpp"
+#include "legacy/light/legacy_hit.hpp"
 #include "screen/color.hpp"
 
 #include <optional>

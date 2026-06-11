@@ -1,4 +1,4 @@
-#include "legacy/objects/object.hpp"
+#include "legacy/objects/legacy_object.hpp"
 
 object::object()
     : position(), color(255, 255, 255) {}

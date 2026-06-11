@@ -143,13 +143,13 @@ add_executable(${merger_name}
 set(legacy legacy_raytracer)
 add_executable(${legacy}
 	${IMAGE_SOURCES}
-	src/legacy/light/hit.cpp
-	src/legacy/objects/object.cpp
-	src/legacy/objects/plane.cpp
-	src/legacy/objects/sphere.cpp
-	src/legacy/source.cpp
-	src/legacy/raytracing/application.cpp
-	src/legacy/raytracing/tracing.cpp
+	src/legacy/light/legacy_hit.cpp
+	src/legacy/objects/legacy_object.cpp
+	src/legacy/objects/legacy_plane.cpp
+	src/legacy/objects/legacy_sphere.cpp
+	src/legacy/legacy_source.cpp
+	src/legacy/raytracing/legacy_application.cpp
+	src/legacy/raytracing/legacy_tracing.cpp
 	src/legacy/legacy.cpp
 	src/parallel/parallel.cpp
 )

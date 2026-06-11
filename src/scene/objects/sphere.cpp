@@ -9,13 +9,13 @@
 
 sphere::sphere(const rt::vector& center, const real radius, const unsigned int material_index)
 
-    : object(center, material_index), radius(radius) {}
+    : object(center, material_index), radius(radius), radius_sq(radius * radius) {}
 
 // Constructor for textured spheres
 sphere::sphere(const rt::vector& center, const real radius, const unsigned int material_index,
     const unsigned int texture_info_index, const rt::vector& forward, const rt::vector& right)
 
-    : object(center, material_index, texture_info_index), radius(radius) {
+    : object(center, material_index, texture_info_index), radius(radius), radius_sq(radius * radius) {
         // forward_dir(forward.unit()), right_dir(right.unit())
         // up_dir = right_dir.value() ^ forward_dir.value();
 
@@ -44,7 +44,7 @@ real sphere::measure_distance(const ray& r) const {
     const real nv2 = v.normsq();
     const real dv = (r.direction | v); // the direction is assumed to be a unit vector
 
-    const real delta = dv * dv + radius * radius - nv2;
+    const real delta = dv * dv + radius_sq - nv2;
     // delta is actually the discriminant divided by 4
 
     if (is_negative(delta))

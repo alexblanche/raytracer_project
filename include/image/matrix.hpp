@@ -4,7 +4,6 @@
 
 #include <span>
 #include <vector>
-
 #include <iterator>
 
 // Replaces the one from bmp_reader.hpp

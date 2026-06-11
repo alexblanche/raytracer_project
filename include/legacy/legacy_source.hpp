@@ -1,9 +1,6 @@
 #pragma once
 
-#include "light/vector.hpp"
-#include "screen/color.hpp"
-#include "legacy/light/hit.hpp"
-#include "legacy/objects/object.hpp"
+#include "legacy/objects/legacy_object.hpp"
 
 class source {
     private:

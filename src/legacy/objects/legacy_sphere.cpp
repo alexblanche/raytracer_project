@@ -1,6 +1,5 @@
-#include "legacy/objects/sphere.hpp"
-#include <math.h>
-
+#include "legacy/objects/legacy_sphere.hpp"
+#include <cmath>
 
 /* Constructors */
 

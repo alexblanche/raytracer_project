@@ -1,11 +1,8 @@
-#include "light/ray.hpp"
+#include "legacy/legacy_source.hpp"
+#include "legacy/objects/legacy_object.hpp"
+#include "legacy/raytracing/legacy_application.hpp"
 
-#include "screen/color.hpp"
-#include "legacy/source.hpp"
-#include "legacy/objects/object.hpp"
-#include "legacy/raytracing/application.hpp"
 #include <cstddef>
-
 #include <algorithm>
 // #include <execution>
 

@@ -1,13 +1,11 @@
-/*** Legacy raytracer (2014) ***/
+/*** Legacy raytracer (started in 2014, reworked) ***/
+
+#include "legacy/objects/legacy_sphere.hpp"
+#include "legacy/objects/legacy_plane.hpp"
+
+#include "legacy/raytracing/legacy_tracing.hpp"
 
 #include "screen/screen.hpp"
-
-#include "legacy/source.hpp"
-#include "legacy/objects/sphere.hpp"
-#include "legacy/objects/plane.hpp"
-
-#include "legacy/raytracing/tracing.hpp"
-
 #include "parallel/parallel.hpp"
 #include "image/matrix.hpp"
 

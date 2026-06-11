@@ -13,6 +13,7 @@ class sphere : public object {
     private:
 
         real radius;
+        real radius_sq; // pre-computation
         // Direction vectors, used to orient the texture
         sphere_orientation orientation;
 

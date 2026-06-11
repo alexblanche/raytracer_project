@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 
 class normal_map {
 
@@ -11,13 +12,13 @@ class normal_map {
         using vector_matrix = std::vector<std::vector<rt::vector>>;
 
     private:
-        int width, height;
         vector_matrix data;
-        real width_minus_one, height_minus_one;
+        int width, height;
+        real width_real, height_real;
     
     public:
 
-        normal_map();
+        normal_map() {};
 
         normal_map(unsigned int width, unsigned int height, vector_matrix&& data);
 
@@ -34,13 +35,10 @@ class normal_map {
         /* Returns the normal in tangent space at the given UV-coordinates u, v (between 0 and 1) */
         /* Returns the local normal at the given UV-coordinates u, v (between 0 and 1) */
         inline const rt::vector& get_tangent_space_normal(const real u, const real v) const {
-            const int x = u * width_minus_one;
-            const int y = v * height_minus_one;
+            const int x = u * width_real;
+            const int y = v * height_real;
             // Due to floating-point imprecision, some "unit" vector have a norm slightly larger than 1,
             // producing out of range coordinates
-            return (x < 0 || x >= width || y < 0 || y >= height) ?
-                data[std::min(height - 1, std::max(0, y))][std::min(width - 1, std::max(0, x))]
-                :
-                data[y][x];
+            return data[ std::clamp(y, 0, height) ][ std::clamp(x, 0, width)]; 
         }
 };

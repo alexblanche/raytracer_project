@@ -1,4 +1,4 @@
-#include "legacy/objects/plane.hpp"
+#include "legacy/objects/legacy_plane.hpp"
 
 /* Constructors */
 

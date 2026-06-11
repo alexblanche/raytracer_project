@@ -1,7 +1,7 @@
-#include <vector>
 #include "screen/color.hpp"
-#include "legacy/source.hpp"
+#include "legacy/legacy_source.hpp"
 
+#include <vector>
 #include <algorithm>
 #include <numeric>
 

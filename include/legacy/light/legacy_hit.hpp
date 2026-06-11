@@ -1,9 +1,6 @@
 #pragma once
 
-#include "light/vector.hpp"
 #include "light/ray.hpp"
-
-#include <cmath>
 
 /** The hit class contains the information
  * of a ray hitting a surface: the ray in question,

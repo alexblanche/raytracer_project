@@ -1,9 +1,6 @@
 #pragma once
 
-#include "object.hpp"
-
-#include "light/vector.hpp"
-#include "legacy/light/hit.hpp"
+#include "legacy/objects/legacy_object.hpp"
 
 class sphere : public object {
     

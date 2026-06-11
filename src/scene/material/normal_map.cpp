@@ -2,13 +2,11 @@
 
 #include "file_readers/normal_map_reader.hpp"
 
-normal_map::normal_map() {}
-
-normal_map::normal_map(const unsigned int width, const unsigned int height, vector_matrix&& data)
-    : width(width), height(height),
-    data(std::move(data)),
-    width_minus_one(static_cast<real>(width - 1)),
-    height_minus_one(static_cast<real>(height - 1)) {}
+normal_map::normal_map(const unsigned int w, const unsigned int h, vector_matrix&& data)
+    : data(std::move(data)),
+      width(w - 1), height(h - 1),
+      width_real(width),
+      height_real(height) {}
 
 
 /* Constructor from a .bmp file
@@ -20,10 +18,10 @@ normal_map::normal_map(const std::string& file_name, bool& parsing_successful) {
 
     data = std::move(vm_opt.value());
     if (parsing_successful) {
-        width  = data.size();
-        height = data[0].size();
-        width_minus_one  = static_cast<real>(width  - 1);
-        height_minus_one = static_cast<real>(height - 1);
+        width  = data.size() - 1;
+        height = data[0].size() - 1;
+        width_real  = static_cast<real>(width);
+        height_real = static_cast<real>(height);
     }
 }
 

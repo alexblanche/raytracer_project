@@ -1,7 +1,6 @@
-#include "legacy/light/hit.hpp"
+#include "legacy/light/legacy_hit.hpp"
 #include "light/vector.hpp"
-#include "legacy/objects/object.hpp"
-#include <cmath>
+#include "legacy/objects/legacy_object.hpp"
 
 /** The hit class contains the information
  * of a ray hitting a surface: the ray in question,
