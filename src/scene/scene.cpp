@@ -57,29 +57,27 @@ scene::~scene() {
 std::optional<hit> scene::find_closest_object(const ray& r) const {
     
     real distance_to_closest = infinity;
-    std::optional<unsigned int> closest_obj_index = std::nullopt;
+    unsigned int closest_obj_index = EMPTY_INDEX;
 
     // Looking for the closest object
     for (unsigned int i = 0; const object* obj : object_set) {
         
-        // We do not test the intersection with the object the rays is cast from
-        const std::optional<real> d = obj->measure_distance(r);
+        const real d = obj->measure_distance(r);
         
         /* d is the distance between the origin of the ray and the
            intersection point with the object */
 
-        if (d.has_value() && d.value() < distance_to_closest) {
-            distance_to_closest = d.value();
+        if (d < distance_to_closest) {
+            distance_to_closest = d;
             closest_obj_index = i;
         }
 
         i++;
     }
     
-    return (closest_obj_index.has_value()) ?
-        std::optional<hit>(object_set[closest_obj_index.value()]->compute_intersection(r, distance_to_closest))
-        :
-        std::nullopt;
+    return (closest_obj_index != EMPTY_INDEX) ?
+          std::optional<hit>(object_set[closest_obj_index]->compute_intersection(r, distance_to_closest))
+        : std::nullopt;
 }
 
 /* Tree-search through the bounding boxes */
@@ -91,15 +89,15 @@ std::optional<hit> scene::find_closest_object_bounding(const ray& r) const {
        Finally, compute the hit associated with the object of minimum distance.
      */
 
-    real distance_to_closest = infinity;
-    std::optional<const object*> closest_obj;
+    real distance_to_closest  = infinity;
+    const object* closest_obj = nullptr;
     
     //std::stack<const bounding*> bounding_stack;
     static thread_local custom_stack<const bounding*> bounding_stack(50);
     bounding_stack.set_empty();
 
     /* Pass through the set of first-level bounding boxes */
-    for (const bounding* const& bd : bounding_set) {
+    for (const bounding* const bd : bounding_set) {
         bd->check_box(r, distance_to_closest, closest_obj, bounding_stack);
     }
 
@@ -108,7 +106,7 @@ std::optional<hit> scene::find_closest_object_bounding(const ray& r) const {
        The boolean bd_stored indicates whether we should pop an element, or if one is currently
        stored.
      */
-    const bounding* next_bounding;
+    const bounding* next_bounding = nullptr;
     bool bd_stored = false;
 
     /* Apply the same to the bounding box stack */
@@ -121,10 +119,9 @@ std::optional<hit> scene::find_closest_object_bounding(const ray& r) const {
     }
 
     /* Finally, return the hit corresponding to the closest object intersected by the ray */
-    return (closest_obj.has_value()) ?
-        std::optional<hit>(closest_obj.value()->compute_intersection(r, distance_to_closest))
-        :
-        std::nullopt;
+    return (closest_obj != nullptr) ?
+          std::optional<hit>(closest_obj->compute_intersection(r, distance_to_closest))
+        : std::nullopt;
 }
 
 /* Returns the color of the pixel associated with UV-coordinates u, v */
@@ -143,13 +140,11 @@ map_sample scene::sample_maps(const unsigned int texture_info_index, const baryc
     const texture_info& ti = texture_info_set[texture_info_index];
     const auto [ u, v ] = ti.get_barycenter(bary);
     const rt::color& t_col = (ti.has_texture_information()) ?
-        texture_set[ti.texture_index].get_color(u, v)
-        :
-        default_color;
+          texture_set[ti.texture_index].get_color(u, v)
+        : default_color;
     const rt::vector& n_vec = (ti.has_normal_information()) ?
-        normal_map_set[ti.normal_map_index].get_tangent_space_normal(u, v)
-        :
-        default_vector;
+          normal_map_set[ti.normal_map_index].get_tangent_space_normal(u, v)
+        : default_vector;
     // const real smoothness = (ti.roughness_map_index.has_value()) ?
     //     1.0f - roughness_map_set[ti.roughness_map_index.value()].get_roughness(uvc.u, uvc.v)
     //     :

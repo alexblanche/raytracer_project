@@ -27,8 +27,6 @@ class quad : public object {
     public:
 
         /* Constructors */
-
-        quad();
         
         // Constructor from four points
         quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
@@ -55,7 +53,7 @@ class quad : public object {
 
         /* Intersection determination */
 
-        std::optional<real> measure_distance(const ray& r) const override final;
+        real measure_distance(const ray& r) const override final;
 
         /* Returns the barycentric info (l1, l2, lower_triangle):
            (0 <= l1, l2 <= 1)

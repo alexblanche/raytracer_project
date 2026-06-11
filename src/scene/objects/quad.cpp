@@ -275,7 +275,7 @@ std::optional<real> quad::measure_distance(const ray& r) const {
 }
 #endif
 
-std::optional<real> quad::measure_distance(const ray& r) const {
+real quad::measure_distance(const ray& r) const {
     
     // const rt::vector n12 = (v1 ^ v2).unit();
     // const rt::vector n23 = (v2 ^ v3).unit();
@@ -287,7 +287,7 @@ std::optional<real> quad::measure_distance(const ray& r) const {
     
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
     if (is_positive(pdt * upln))
-        return std::nullopt;
+        return infinity;
 
     const real t = - upln / pdt;
 
@@ -324,11 +324,11 @@ std::optional<real> quad::measure_distance(const ray& r) const {
     const real l1 = detv2 / det12;
 
     if (is_positive(l1) && is_positive(l2) && l1 <= 1.0_r && l1 + l2 <= 1.0_r)
-        return std::optional(t);
+        return t;
 
     const real l1a = detv2 / det23;
     if (is_negative_not_zero(l1a) || l1a > 1.0_r)
-        return std::nullopt;
+        return infinity;
         
     real l2a;
     switch (case_det) {
@@ -338,9 +338,7 @@ std::optional<real> quad::measure_distance(const ray& r) const {
         default:      l2a = 0.0_r;
     }
 
-    return (is_positive(l2a) && l1a + l2a <= 1.0_r) ?
-          std::optional(t)
-        : std::nullopt;
+    return (is_positive(l2a) && l1a + l2a <= 1.0_r) ? t : infinity;
 }
 
 /* Returns the barycentric info (l1, l2, lower_triangle):

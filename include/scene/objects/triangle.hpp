@@ -59,7 +59,7 @@ class triangle : public object {
 
         /* Intersection determination */
 
-        std::optional<real> measure_distance(const ray& r) const override final;
+        real measure_distance(const ray& r) const override final;
 
         /* Returns the barycentric info (l1, l2):
            p = position + l1 * v1 + l2 * v2

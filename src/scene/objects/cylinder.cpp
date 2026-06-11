@@ -20,7 +20,7 @@ cylinder::cylinder(const rt::vector& origin, const rt::vector& direction,
 /* Intersection determination */
 
 /* Calculates and returns the intersection value t */
-std::optional<real> cylinder::measure_distance(const ray& r) const {
+real cylinder::measure_distance(const ray& r) const {
 
     /* We denote the origin, direction and radius of the cylinder o, d and r,
        and the origin and direction of the ray. */
@@ -64,7 +64,7 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
 
     if (is_negative(delta)) {
         // The ray does not intersect the infinite cylinder
-        return std::nullopt;
+        return infinity;
     }
 
     const real sqrtdelta = sqrt(delta);
@@ -81,14 +81,14 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
             else {
                 const real t2 = (- ab + sqrtdelta) / bb;
                 const real s2 = umpdirec + t2 * dirdirec;
-                if (s2 > length) { return std::nullopt; }
+                if (s2 > length) { return infinity; }
                 // else: the ray goes through one or both edge disks
             }
         }
         else {
             const real t2 = (- ab + sqrtdelta) / bb;
             const real s2 = umpdirec + t2 * dirdirec;
-            if (is_negative_not_zero(s2)) { return std::nullopt; }
+            if (is_negative_not_zero(s2)) { return infinity; }
             // else: the ray goes through one or both edge disks
         }
     }
@@ -125,21 +125,21 @@ std::optional<real> cylinder::measure_distance(const ray& r) const {
                 //     return infinity;
                 // }
                 if (is_negative_not_zero(s1)) {
-                    if (is_negative_not_zero(s2)) { return std::nullopt; }
+                    if (is_negative_not_zero(s2)) { return infinity; }
                 }
                 else {
                     if (s1 <= length) {
-                        if (outside) { return std::nullopt; }
+                        if (outside) { return infinity; }
                     }
                     else {
-                        if (s2 > length) { return std::nullopt; }
+                        if (s2 > length) { return infinity; }
                     }
                 }
             }
         }
         else {
             // The cylinder is behind the ray
-            return std::nullopt;
+            return infinity;
         }
     }
 

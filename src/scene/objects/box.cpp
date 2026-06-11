@@ -27,7 +27,7 @@ box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
 
 /* Intersection determination */
 
-std::optional<real> box::measure_distance(const ray& r) const {
+real box::measure_distance(const ray& r) const {
     /* For the face orthogonal to n1, we search for a t1 that satisfies:
        ((pos + a.l1.n1) - (u + t.dir) | n1) = 0 (if outside the box, a = -sign(dir|n1), if inside: a = sign(dir|n1))
        where u is the origin of the ray, and dir its direction,
@@ -78,29 +78,24 @@ std::optional<real> box::measure_distance(const ray& r) const {
         const real t1 = pmun1 / pdt1 + a * l1 / std::abs(pdt1);
         // Check that t1 gives a point inside the face
         if (std::abs(pmun2 - t1 * pdt2) <= l2 && std::abs(pmun3 - t1 * pdt3) <= l3) {
-            return (is_positive(t1)) ?
-                  std::optional(t1)
-                : std::nullopt;
+            return (is_positive(t1)) ? t1 : infinity;
         }
     }
 
     if (is_not_zero(pdt2)) {
         const real t2 = pmun2 / pdt2 + a * l2 / std::abs(pdt2);
         if (std::abs(pmun1 - t2 * pdt1) <= l1 && std::abs(pmun3 - t2 * pdt3) <= l3) {
-            return (is_positive(t2)) ?
-                  std::optional(t2)
-                : std::nullopt;
+            return (is_positive(t2)) ? t2 : infinity;
         }
     }
 
     if (is_not_zero(pdt3)) {
         const real t3 = pmun3 / pdt3 + a * l3 / std::abs(pdt3);
         return (is_positive(t3) && std::abs(pmun1 - t3 * pdt1) <= l1 && std::abs(pmun2 - t3 * pdt2) <= l2) ?
-              std::optional(t3)
-            : std::nullopt;
+              t3 : infinity;
     }
 
-    return std::nullopt;
+    return infinity;
 }
     /** Original version */
     /*

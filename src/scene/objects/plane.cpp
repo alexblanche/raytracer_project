@@ -60,7 +60,7 @@ plane::plane(const real pa, const real pb, const real pc, const rt::vector& posi
 
 /* Intersection determination */
 
-std::optional<real> plane::measure_distance(const ray& r) const {
+real plane::measure_distance(const ray& r) const {
 
     /* Origin of the ray:    u   = (X, Y, Z)
        Direction of the ray: dir = (x, y, z)
@@ -77,9 +77,7 @@ std::optional<real> plane::measure_distance(const ray& r) const {
     
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
     
-    return (is_negative_not_zero(pdt * upln)) ?
-          std::optional(- upln / pdt)
-        : std::nullopt;
+    return (is_negative_not_zero(pdt * upln)) ? (- upln / pdt) : infinity;
 }
 
 hit plane::compute_intersection(const ray& r, const real t) const {

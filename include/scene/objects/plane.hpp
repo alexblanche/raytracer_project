@@ -24,8 +24,6 @@ class plane : public object {
          defined by 4 reals a,b,c,d, where normal = (a, b, c) */
 
     public:
-
-        plane();
         
         plane(real sa, real sb, real sc, real sd,
             unsigned int material_index);
@@ -44,7 +42,7 @@ class plane : public object {
 
         /* Intersection determination */
 
-        std::optional<real> measure_distance(const ray& r) const override final;
+        real measure_distance(const ray& r) const override final;
         
         hit compute_intersection(const ray& r, real t) const override final;
 

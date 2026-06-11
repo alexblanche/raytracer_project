@@ -30,7 +30,7 @@ sphere::sphere(const rt::vector& center, const real radius, const unsigned int m
 /* Intersection determination */
 
 /* Calculates and returns the intersection value t */
-std::optional<real> sphere::measure_distance(const ray& r) const {
+real sphere::measure_distance(const ray& r) const {
     /*
       v is the vector from the origin of the ray to the center of the sphere.
       dir is the direction of the ray (|dir| = 1).
@@ -48,7 +48,7 @@ std::optional<real> sphere::measure_distance(const ray& r) const {
     // delta is actually the discriminant divided by 4
 
     if (is_negative(delta))
-        return std::nullopt;
+        return infinity;
 
     
     /* Two solutions: t1 = dv - sqrt(delta) and t2 = dv + sqrt(delta),
@@ -61,9 +61,9 @@ std::optional<real> sphere::measure_distance(const ray& r) const {
     const real sqrtdelta = sqrt(delta);
     const real t1 = dv - sqrtdelta;
     
-    return (is_positive(t1))          ? std::optional(t1)
-        :  (t1 >= -2.0_r * sqrtdelta) ? std::optional(dv + sqrtdelta)
-        :                               std::nullopt;
+    return (is_positive(t1))          ? t1
+        :  (t1 >= -2.0_r * sqrtdelta) ? dv + sqrtdelta
+        :                               infinity;
 }
 
 /* Returns the hit corresponding with the given intersection value t */
@@ -118,11 +118,7 @@ rt::vector sphere::compute_normal_from_map(const rt::vector& tangent_space_norma
     const rt::vector b = t ^ local_normal;
 
     // return tangent_space_normal.x * t + tangent_space_normal.y * b + tangent_space_normal.z * local_normal;
-    return matprod(
-        t,            tangent_space_normal.x,
-        b,            tangent_space_normal.y,
-        local_normal, tangent_space_normal.z
-    );
+    return matprod(t, b, local_normal, tangent_space_normal);
 }
 
 /* Sampling */

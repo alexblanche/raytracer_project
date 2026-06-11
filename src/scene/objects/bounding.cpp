@@ -38,8 +38,8 @@ bounding::bounding(const box* b, std::vector<const bounding*>&& children)
    in which case the two variables are overwritten)
 */
 void bounding::check_box(const ray& r,
-    real& distance_to_closest, std::optional<const object*>& closest_object,
-    //std::stack<const bounding*>& bounding_stack
+    // out parameters
+    real& distance_to_closest, const object*& closest_object,
     custom_stack<const bounding*>& bounding_stack
     ) const {
 
@@ -51,26 +51,26 @@ void bounding::check_box(const ray& r,
         return;
     }
         
-    real d_cl = distance_to_closest;
-    std::optional<const object*> cl_obj = closest_object;
+    real d_closest       = distance_to_closest;
+    const object* cl_obj = closest_object;
     
-    for (const object* obj : content) {
-        const std::optional<real> d = obj->measure_distance(r);
-        if (d.has_value() && d.value() < d_cl) {
-            d_cl = d.value();
+    for (const object* const obj : content) {
+        const real d = obj->measure_distance(r);
+        if (d < d_closest) {
+            d_closest = d;
             cl_obj = obj;
         }
     }
 
-    distance_to_closest = d_cl;
-    closest_object = cl_obj;
+    distance_to_closest = d_closest;
+    closest_object      = cl_obj;
 }
 
 /* Same as check_box, but the last child is stored in a pointer to avoid pushing and
    immediately popping on the stack */
 void bounding::check_box_next(const ray& r,
-    real& distance_to_closest, std::optional<const object*>& closest_object,
-    //std::stack<const bounding*>& bounding_stack,
+    // out parameters
+    real& distance_to_closest, const object*& closest_object,
     custom_stack<const bounding*>& bounding_stack,
     bool& bd_stored, const bounding*& next_bounding) const {
 
@@ -87,19 +87,19 @@ void bounding::check_box_next(const ray& r,
         return;
     }
 
-    real d_cl = distance_to_closest;
-    std::optional<const object*> cl_obj = closest_object;
+    real d_closest       = distance_to_closest;
+    const object* cl_obj = closest_object;
 
     for (const object* obj : content) {
-        const std::optional<real> d = obj->measure_distance(r);
-        if (d.has_value() && d.value() < d_cl) {
-            d_cl = d.value();
+        const real d = obj->measure_distance(r);
+        if (d < d_closest) {
+            d_closest = d;
             cl_obj = obj;
         }
     }
 
-    distance_to_closest = d_cl;
-    closest_object = cl_obj;
+    distance_to_closest = d_closest;
+    closest_object      = cl_obj;
 }
 
 

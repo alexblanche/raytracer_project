@@ -33,7 +33,7 @@ class box : public object {
 
         /* Intersection determination */
 
-        std::optional<real> measure_distance(const ray& r) const override final;
+        real measure_distance(const ray& r) const override final;
         
         hit compute_intersection(const ray& r, real t) const override final;
 

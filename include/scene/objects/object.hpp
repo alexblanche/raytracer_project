@@ -63,8 +63,8 @@ class object {
 
         /* Interface */
 
-        /* Intersection determination */
-        virtual std::optional<real> measure_distance(const ray& r) const                = 0;
+        /* Intersection determination: returns infinity if no object is hit */
+        virtual real measure_distance(const ray& r) const                               = 0;
 
         virtual hit compute_intersection(const ray& r, real t) const                    = 0;
 
