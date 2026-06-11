@@ -1,9 +1,6 @@
 #pragma once
 
 #include "light/ray.hpp"
-#include "auxiliary/randomgen.hpp"
-
-#include <vector>
 
 /** The hit class contains the information
  * of a ray hitting a surface: the ray in question,

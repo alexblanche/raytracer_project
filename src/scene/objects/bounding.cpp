@@ -10,22 +10,21 @@ bounding::bounding(const bool is_terminal, const box* b,
     std::vector<const object*>&& content,
     std::vector<const bounding*>&& children)
 
-    : is_terminal(is_terminal), b(b), content(std::move(content)), children(std::move(children)) {}
+    : is_terminal(is_terminal), b(b),
+      content(std::move(content)), children(std::move(children)) {}
 
-/* Container node constructor (only for first-level non-triangle objects) */
-bounding::bounding(std::vector<const object*>&& content)
-
-    : content(std::move(content)) {}
-
-/* Terminal node constructor (with a bounding box, containing triangles) */
+/* Constructor for terminal nodes: container node (for first-level non-triangle objects) if no box provided,
+   or terminal node with a bounding box, containing triangles */
 bounding::bounding(std::vector<const object*>&& content, const box* b)
 
-    : b(b), content(std::move(content)) {}
+    : is_terminal(true), b(b != nullptr ? std::optional(b) : std::nullopt),
+      content(std::move(content)) {}
 
 /* Internal node constructor */
-bounding::bounding(const box* b, std::vector<const bounding*>&& children)
+bounding::bounding(std::vector<const bounding*>&& children, const box* b)
 
-    : is_terminal(false), b(b), children(std::move(children)) {}
+    : is_terminal(false), b(b),
+      children(std::move(children)) {}
 
 
 
@@ -106,7 +105,7 @@ void bounding::check_box_next(const ray& r,
 
 /* Returns a non-terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the standard non-terminal bounding boxes bd0 and bd1 */
-const bounding* containing_bounding_two(const bounding* bd0, const bounding* bd1) {
+[[nodiscard]] const bounding* containing_bounding_two(const bounding* bd0, const bounding* bd1) {
     const box* const b0 = bd0->get_b().value();
     const box* const b1 = bd1->get_b().value();
     const rt::vector bd0l = b0->get_l();
@@ -121,12 +120,12 @@ const bounding* containing_bounding_two(const bounding* bd0, const bounding* bd1
     const rt::vector l = pb1 - pb0;
 
     const box* b = new box(position, rt::vector(1,0,0), rt::vector(0,1,0), l.x, l.y, l.z);
-    return new bounding(b, {bd0, bd1});
+    return new bounding({ bd0, bd1 }, b);
 }
 
 /* Returns a non-terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the standard non-terminal bounding boxes in the children vector */
-const bounding* containing_bounding_any(std::vector<const bounding*>&& children) {
+[[nodiscard]] const bounding* containing_bounding_any(std::vector<const bounding*>&& children) {
 
     if (children.size() == 0) {
         printf("Error, empty vector of children bounding boxes\n");
@@ -168,12 +167,12 @@ const bounding* containing_bounding_any(std::vector<const bounding*>&& children)
         diff.x, diff.y, diff.z
     );
     
-    return new bounding(b, std::move(children));
+    return new bounding(std::move(children), b);
 }
 
 /* Returns a terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the (finite) objects whose indices are in the obj vector */
-const bounding* containing_objects(std::vector<const object*>&& objs) {
+[[nodiscard]] const bounding* containing_objects(std::vector<const object*>&& objs) {
 
     real min_x =  infinity;
     real max_x = -infinity;

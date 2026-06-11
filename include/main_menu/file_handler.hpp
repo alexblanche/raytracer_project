@@ -27,7 +27,7 @@ class file_handler {
                 : filename((name.ends_with(extension) ? name : name + extension)) {}
         };
 
-        exit_status export_file(const type file_type, const std::string& filename, const image& image) const;
+        exit_status export_file(const type file_type, const std::string& filename, const image& image, bool display_sample_count = true) const;
 
     public:
         using bmp_filename = type_filename<Bmp>;
@@ -43,6 +43,16 @@ class file_handler {
         inline exit_status export_as(const bmp_filename& bmp, const image& image) const {
 
             return export_file(Bmp, bmp.filename, image);
+        }
+
+        inline exit_status export_as(const bmp_filename& bmp, const raw_filename& raw, const image& image) const {
+
+            constexpr bool display_sample_count = false;
+            const exit_status status_raw = export_file(Raw, raw.filename, image, display_sample_count);
+            printf("\n");
+            const exit_status status_bmp = export_file(Bmp, bmp.filename, image, display_sample_count);
+            printf("\n");
+            return status_raw && status_bmp;
         }
 };
 

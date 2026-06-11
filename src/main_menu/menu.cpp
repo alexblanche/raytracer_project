@@ -289,14 +289,13 @@ static exit_status run_offline(const runtime_parameters& runtime_parameters, ima
             timer.resume();
         }
     }
-    
 
     timer.stop();
-    printf("\n");
+    printf("\r                                                                              ");
+    printf("\rRender complete: %u / %u\n", target, target);
     timer.print();
 
-    return file_handler.export_as(raw(DEFAULT_OUTPUT_FILE_NAME), image)
-        && file_handler.export_as(bmp(DEFAULT_OUTPUT_FILE_NAME), image);
+    return file_handler.export_as(bmp(DEFAULT_OUTPUT_FILE_NAME), raw(DEFAULT_OUTPUT_FILE_NAME), image);;
 }
 
 // Returns an exit_status if the program has to stop, either because of a failure or because a quit event happened
@@ -345,16 +344,13 @@ static exit_status run_interactive(const runtime_parameters& runtime_parameters,
     scr.refresh();
 
     printf("\r                                                   ");
-    printf("\rNumber of samples per pixel: 1");
-    fflush(stdout);
 
-    for (unsigned int number_of_rays = 2; number_of_rays <= MAX_RAYS; number_of_rays++) {
+    for (unsigned int i = 1; i < MAX_RAYS; i++) {
 
-        render(image, scene, runtime_parameters);
-
-        printf("\rNumber of samples per pixel: %u", number_of_rays);
+        printf("\rSamples per pixel: %u", i);
         fflush(stdout);
 
+        render(image, scene, runtime_parameters);
         scr.refresh();
 
         const std::optional<exit_status> status = process_events(scr, file_handler, image);
@@ -362,8 +358,10 @@ static exit_status run_interactive(const runtime_parameters& runtime_parameters,
             return status.value();
     }
 
-    return file_handler.export_as(bmp(DEFAULT_OUTPUT_FINAL_FILE_NAME), image)
-        && file_handler.export_as(raw(DEFAULT_OUTPUT_FINAL_FILE_NAME), image);
+    printf("\rSamples per pixel: %u", MAX_RAYS);
+    printf("                                                   \n");
+
+    return file_handler.export_as(bmp(DEFAULT_OUTPUT_FINAL_FILE_NAME), raw(DEFAULT_OUTPUT_FINAL_FILE_NAME), image);
 }
 
 exit_status menu::run(const scene& scene) const {

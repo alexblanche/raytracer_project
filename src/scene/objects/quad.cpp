@@ -1,11 +1,6 @@
 #include "scene/objects/quad.hpp"
 
-#include "light/vector.hpp"
-#include "light/hit.hpp"
-#include "scene/material/material.hpp"
 #include "auxiliary/utils.hpp"
-
-#include <optional>
 
 void set_up_det(const rt::vector& v1, const rt::vector& v2, const rt::vector& v3,
     // output

@@ -3,7 +3,6 @@
 #include "scene/material/texture.hpp"
 
 #include <cmath>
-#include <iostream>
 
 constexpr bool ROTATION_MATRIX_COLUMNS = true; // true = columns, false = rows
 

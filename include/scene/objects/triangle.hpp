@@ -2,10 +2,6 @@
 
 #include "scene/objects/object.hpp"
 
-#include "light/vector.hpp"
-#include "light/hit.hpp"
-#include "scene/material/material.hpp"
-
 enum class det_case {
     Default, XZ, YZ, Error
 };
@@ -30,8 +26,6 @@ class triangle : public object {
 
 
     public:
-
-        triangle();
         
         // Constructor from three points
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, 

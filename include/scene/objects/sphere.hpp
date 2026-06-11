@@ -2,10 +2,6 @@
 
 #include "scene/objects/object.hpp"
 
-#include "light/hit.hpp"
-#include "scene/material/material.hpp"
-#include "auxiliary/randomgen.hpp"
-
 struct sphere_orientation {
     rt::vector forward_dir;
     rt::vector right_dir;
@@ -21,8 +17,6 @@ class sphere : public object {
         sphere_orientation orientation;
 
     public:
-
-        sphere();
 
         sphere(const rt::vector& center, const real radius, unsigned int material_index);
 

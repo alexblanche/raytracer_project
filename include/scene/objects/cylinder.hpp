@@ -1,8 +1,6 @@
 #pragma once
 
 #include "scene/objects/object.hpp"
-#include "light/hit.hpp"
-#include "scene/material/material.hpp"
 
 class cylinder : public object {
     
@@ -12,8 +10,6 @@ class cylinder : public object {
         real radius, length;
 
     public:
-        
-        cylinder();
 
         cylinder(const rt::vector& origin, const rt::vector& direction,
             real radius, real length,

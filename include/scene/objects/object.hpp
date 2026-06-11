@@ -1,11 +1,9 @@
 #pragma once
 
 #include "light/hit.hpp"
-
-#include "scene/material/material.hpp"
-#include "scene/material/texture.hpp"
 #include "scene/material/texture_info.hpp"
 #include "scene/material/barycentric.hpp"
+#include "auxiliary/randomgen.hpp"
 
 #include <limits>
 #include <optional>

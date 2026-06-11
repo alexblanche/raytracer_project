@@ -8,9 +8,6 @@
 #include <optional>
 #include <stdexcept>
 
-
-box::box() : object(), n1(rt::vector(1,0,0)), n2(rt::vector(0,1,0)), n3(rt::vector(0,0,1)), l1(100), l2(100), l3(100) {}
-        
 /* The vector n3 is taken as the cross product of n1 and n2 */
 box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
             const real l1, const real l2, const real l3, const unsigned int material_index)

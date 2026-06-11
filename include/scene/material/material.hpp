@@ -2,8 +2,6 @@
 
 #include "screen/color.hpp"
 
-#include <vector>
-
 class material {
     
     private:

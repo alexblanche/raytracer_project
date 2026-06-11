@@ -32,14 +32,12 @@ class bounding {
         bounding(bool is_terminal, const box* b, std::vector<const object*>&& content,
             std::vector<const bounding*>&& children);
 
-        /* Container node constructor (only for first-level non-triangle objects) */
-        bounding(std::vector<const object*>&& content);
-
-        /* Terminal node constructor (with a bounding box, containing triangles) */
-        bounding(std::vector<const object*>&& content, const box* b);
+        /* Constructor for terminal nodes: container node (for first-level non-triangle objects) if no box provided,
+           or terminal node with a bounding box, containing triangles */
+        bounding(std::vector<const object*>&& content, const box* b = nullptr);
 
         /* Internal node constructor */
-        bounding(const box* const b, std::vector<const bounding*>&& children);
+        bounding(std::vector<const bounding*>&& children, const box* b);
 
         bounding(const bounding&)            = delete;
         bounding(bounding&&)                 = delete;
@@ -83,14 +81,14 @@ class bounding {
 
 /* Returns a bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the bounding boxes bd0 and bd1 */
-const bounding* containing_bounding_two(const bounding* bd0, const bounding* bd1);
+[[nodiscard]] const bounding* containing_bounding_two(const bounding* bd0, const bounding* bd1);
 
 /* Returns a non-terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the standard non-terminal bounding boxes in the children vector */
-const bounding* containing_bounding_any(std::vector<const bounding*>&& children);
+[[nodiscard]] const bounding* containing_bounding_any(std::vector<const bounding*>&& children);
 
 /* Returns a bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the objects whose indices are in the obj vector */
-const bounding* containing_objects(std::vector<const object*>&& obj);
+[[nodiscard]] const bounding* containing_objects(std::vector<const object*>&& obj);
 
 

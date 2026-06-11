@@ -1,7 +1,5 @@
 #pragma once
 
-
-#include "light/vector.hpp"
 #include "scene/material/barycentric.hpp"
 
 #include "scene/material/texture.hpp"
@@ -10,7 +8,6 @@
 // #include "scene/material/roughness_map.hpp"
 // #include "scene/material/displacement_map.hpp"
 
-#include <vector>
 #include <optional>
 
 /* Struct representing UV-coordinates */

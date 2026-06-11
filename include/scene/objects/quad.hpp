@@ -1,10 +1,5 @@
 #pragma once
 
-#include "object.hpp"
-
-#include "light/vector.hpp"
-#include "light/hit.hpp"
-#include "scene/material/material.hpp"
 #include "scene/objects/triangle.hpp"
 
 class quad : public object {
@@ -25,8 +20,6 @@ class quad : public object {
         det_case case_det;
 
     public:
-
-        /* Constructors */
         
         // Constructor from four points
         quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,

@@ -16,14 +16,12 @@
 plane::plane(const real pa, const real pb, const real pc, const real pd,
     const unsigned int material_index)
     
-    : object(rt::vector(), material_index) {
+    : object(rt::vector(0, 0, 0), material_index) {
 
     /* Normalization of the normal vector */
     const rt::vector normal_vector(pa, pb, pc);
     normal = normal_vector.unit();
-    const real a = normal.x;
-    const real b = normal.y;
-    const real c = normal.z;
+    const auto [ a, b, c ] = normal;
     d = pd / normal_vector.norm();
     
     position =
@@ -37,25 +35,25 @@ plane::plane(const real pa, const real pb, const real pc, const real pd,
 plane::plane(const real pa, const real pb, const real pc, const rt::vector& position,
     const unsigned int material_index)
 
-    : object(position, material_index) {
-
-    normal = rt::vector(pa, pb, pc).unit();
-    d = -(normal | position); // = -aX-bY-cZ if position = (X,Y,Z)
-}
+    : object(position, material_index),
+      normal(rt::vector(pa, pb, pc).unit()),
+      d(-(normal | position)) {} // = -aX-bY-cZ if position = (X,Y,Z)
 
 // Constructor for textured planes
 plane::plane(const real pa, const real pb, const real pc, const rt::vector& position,
     const unsigned int material_index,
     const unsigned int texture_info_index, const rt::vector& right, const real scale)
 
-    : object(position, material_index, texture_info_index) {
+    : object(position, material_index, texture_info_index),
+      normal(rt::vector(pa, pb, pc).unit()),
+      d(-(normal | position)) {
 
-    normal = rt::vector(pa, pb, pc).unit();
-    d = -(normal | position); // = -aX-bY-cZ if position = (X,Y,Z)
-
-    orientation.right_dir = right.unit();
-    orientation.down_dir = orientation.right_dir ^ normal;
-    orientation.inv_texture_scale = 1.0_r / scale;
+    const rt::vector right_dir = right.unit();
+    orientation = {
+        .right_dir         = right_dir,
+        .down_dir          = right_dir ^ normal,
+        .inv_texture_scale = 1.0_r / scale
+    };
 }
 
 /* Intersection determination */
@@ -121,7 +119,7 @@ rt::vector plane::compute_normal_from_map(const rt::vector& tangent_space_normal
 /* Minimum and maximum coordinates */
 min_max_coord plane::get_min_max_coord() const {
 
-    throw std::runtime_error("Min/max coordinates ndefined for planes");
+    throw std::runtime_error("Min/max coordinates undefined for planes");
 }
 
 

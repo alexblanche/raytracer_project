@@ -1,12 +1,13 @@
 #pragma once
 
-#include "objects/object.hpp"
-#include "objects/bounding.hpp"
-#include "material/texture.hpp"
+#include "scene/objects/object.hpp"
+#include "scene/objects/bounding.hpp"
+#include "scene/material/texture.hpp"
 #include "auxiliary/randomgen.hpp"
 #include "scene/camera.hpp"
-#include "material/background.hpp"
-#include "material/normal_map.hpp"
+#include "scene/material/background.hpp"
+#include "scene/material/normal_map.hpp"
+#include "scene/material/material.hpp"
 
 /* Struct containing all info from a map sample */
 struct map_sample {

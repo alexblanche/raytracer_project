@@ -20,7 +20,8 @@ void file_handler::create_dir() const {
     output_dir_exists = create_directories(output_dir);
 }
 
-exit_status file_handler::export_file(const type file_type, const std::string& filename, const image& image) const {
+exit_status file_handler::export_file(const type file_type, const std::string& filename, const image& image,
+    const bool display_sample_count) const {
 
     create_dir();
     const std::string file_path = path(output_dir).append(filename).generic_string();
@@ -38,7 +39,9 @@ exit_status file_handler::export_file(const type file_type, const std::string& f
 
     switch (status) {
         case exit_status::Success:
-            printf("Saved as %s\n", output_dir.filename().append(filename).generic_string().c_str());
+            printf("Saved as %s", output_dir.filename().append(filename).generic_string().c_str());
+            if (display_sample_count)
+                printf(" (%d samples)", image.number_of_samples);
             break;
         
         case exit_status::Failure:

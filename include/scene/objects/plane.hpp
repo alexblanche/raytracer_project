@@ -2,12 +2,9 @@
 
 #include "scene/objects/object.hpp"
 
-#include "light/hit.hpp"
-#include "scene/material/material.hpp"
-
 struct plane_orientation {
-    rt::vector right_dir;
-    rt::vector down_dir;
+    rt::vector right_dir   = rt::vector(1, 0,  0);
+    rt::vector down_dir    = rt::vector(0, 0, -1);
     real inv_texture_scale = 1.0_r;
 };
 
@@ -25,13 +22,13 @@ class plane : public object {
 
     public:
         
-        plane(real sa, real sb, real sc, real sd,
+        plane(real pa, real pb, real pc, real pd,
             unsigned int material_index);
         
-        plane(real a, real b, real c, const rt::vector& position,
+        plane(real pa, real pb, real pc, const rt::vector& position,
             unsigned int material_index);
 
-        plane(real a, real b, real c, const rt::vector& position,
+        plane(real pa, real pb, real pc, const rt::vector& position,
             unsigned int material_index,
             unsigned int texture_info_index, const rt::vector& right, real scale);
 
