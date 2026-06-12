@@ -3,14 +3,16 @@
 #include <cstring>
 #include <span>
 
-constexpr std::size_t DEFAULT_INIT_SIZE = 10;
-constexpr std::size_t MAX_STACK_SIZE = 16;
+constexpr std::size_t DEFAULT_INIT_SIZE = 10; // Default initial reserve
+constexpr std::size_t MAX_ELEMENT_SIZE  = 16; // Maximum size of stored elements
 
 template <typename T>
-requires (sizeof(T) <= MAX_STACK_SIZE) && std::is_trivially_destructible_v<T>
+requires (sizeof(T) <= MAX_ELEMENT_SIZE) // Not so important, can be lifted if needed
+    && std::is_trivially_copy_constructible_v<T> // Because of std::memcpy for push of span
+    && std::is_trivially_destructible_v<T>
 class custom_stack {
 
-    T*  data     = nullptr;
+    T*  data             = nullptr;
     std::size_t size     = 0;
     std::size_t capacity = 0;
 
@@ -36,14 +38,14 @@ class custom_stack {
     public:
 
         inline custom_stack(const std::size_t init_size = DEFAULT_INIT_SIZE) {
-            size = 0;
+            size     = 0;
             capacity = init_size;
-            data = new T[capacity];
+            data     = new T[capacity];
         }
 
         inline ~custom_stack() noexcept {
             delete[] data;
-            size = 0;
+            size     = 0;
             capacity = 0;
         }
 
@@ -73,7 +75,7 @@ class custom_stack {
         }
 
         template<typename... Args>
-        requires (requires (Args... args) { T(args...); })
+        requires std::is_constructible_v<T, Args...>
         inline void emplace(Args&&... args) {
             check_capacity();
             data[size] = T(std::forward<Args>(args)...);

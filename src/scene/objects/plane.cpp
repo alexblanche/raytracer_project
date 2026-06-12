@@ -108,12 +108,9 @@ barycentric_info plane::get_barycentric(const rt::vector& p) const {
 /* Normal map vector computation at render time */
 rt::vector plane::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& /* info */) const {
 
-    //return tangent_space_normal.x * right_dir.value() + tangent_space_normal.y * down_dir.value() + tangent_space_normal.z * local_normal;
-    return matprod(
-        orientation.right_dir, tangent_space_normal.x,
-        orientation.down_dir,  tangent_space_normal.y,
-        local_normal,          tangent_space_normal.z
-    );
+    const auto& [ right, down, _ ] = orientation;
+    
+    return matprod(right, down, local_normal, tangent_space_normal);
 }
 
 /* Minimum and maximum coordinates */

@@ -28,7 +28,7 @@ class direction {
         static rt::vector central_reflected(const hit& h, const rt::vector& normal, real reflectivity, orientation_type ray_orientation);
 
         enum class angle {
-            Pi
+            Pi, Pi_over_2
         };
 
         /* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
@@ -37,9 +37,14 @@ class direction {
         template <angle theta_max>
         static rt::vector random(const randomgen& rg, const rt::vector& central_dir) {
 
-            constexpr real cos_theta_max =
-                (theta_max == angle::Pi) ? -1.0_r
-                : /* placeholder */         0.0_r;
+            constexpr real cos_theta_max = [] (angle theta) {
+                using enum angle;
+                switch (theta) {
+                    case Pi:        return -1.0_r;
+                    case Pi_over_2: return  0.0_r;
+                    default:        return  0.0_r;
+                }
+            } (theta_max);
 
             constexpr real one_m_costhetamax = 1.0_r - cos_theta_max;
 

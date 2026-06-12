@@ -16,9 +16,7 @@ sphere::sphere(const rt::vector& center, const real radius, const unsigned int m
     const unsigned int texture_info_index, const rt::vector& forward, const rt::vector& right)
 
     : object(center, material_index, texture_info_index), radius(radius), radius_sq(radius * radius) {
-        // forward_dir(forward.unit()), right_dir(right.unit())
-        // up_dir = right_dir.value() ^ forward_dir.value();
-
+        
         orientation.forward_dir = forward.unit();
         orientation.right_dir   = right.unit();
         orientation.up_dir = orientation.right_dir ^ orientation.forward_dir;
@@ -79,16 +77,20 @@ hit sphere::compute_intersection(const ray& r, const real t) const {
 
 /* Minimum and maximum coordinates */
 min_max_coord sphere::get_min_max_coord() const {
+
+    const rt::vector r(radius, radius, radius);
+    const rt::vector min_pos = position - r;
+    const rt::vector max_pos = position + r;
     
     return {
-        .min_x = position.x - radius,
-        .max_x = position.x + radius,
+        .min_x = min_pos.x,
+        .max_x = max_pos.x,
 
-        .min_y = position.y - radius,
-        .max_y = position.y + radius,
+        .min_y = min_pos.y,
+        .max_y = max_pos.y,
 
-        .min_z = position.z - radius,
-        .max_z = position.z + radius
+        .min_z = min_pos.z,
+        .max_z = max_pos.z
     };
 }
 
@@ -123,22 +125,15 @@ rt::vector sphere::compute_normal_from_map(const rt::vector& tangent_space_norma
 
 /* Sampling */
 
+using enum direction::angle;
+
 /* Uniformly samples a point on the sphere */
 rt::vector sphere::sample(randomgen& rg) const {
-    //return position + (radius * random_direction(rg, rt::vector(0, 1, 0), PI));
-    return //fma(random_direction<PI>(rg, rt::vector(0, 1, 0)), radius, position);
-        fma(direction::random(rg, rt::vector(0, 1, 0), PI), radius, position);
+    const rt::vector central_dir = direction::random<Pi>(rg, rt::vector(0, 1, 0));
+    return fma(central_dir, radius, position);
 }
 
 /* Uniformly samples a point on the sphere that is visible from pt */
 rt::vector sphere::sample_visible(randomgen& rg, const rt::vector& pt) const {
-    /*
-    const rt::vector v = sample(rg);
-    if (((v - position) | (pt - position)) >= 0.0_r)
-        return v;
-    else
-        return 2.0_r * position - v;
-    */
-    // Optimized
-    return direction::random(rg, (pt - position).unit(), PI / 2.0_r);
+    return direction::random<Pi_over_2>(rg, (pt - position).unit());
 }

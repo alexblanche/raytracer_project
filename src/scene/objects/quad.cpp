@@ -551,11 +551,7 @@ rt::vector quad::compute_normal_from_map(const rt::vector& tangent_space_normal,
         const rt::vector& b = info.bitangent;
 
         //return tangent_space_normal.x * t + tangent_space_normal.y * b + tangent_space_normal.z * local_normal;
-        return matprod(
-            t,            tangent_space_normal.x,
-            b,            tangent_space_normal.y,
-            local_normal, tangent_space_normal.z
-        );
+        return matprod(t, b, local_normal, tangent_space_normal);
     }
 
 }

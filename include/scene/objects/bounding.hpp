@@ -24,7 +24,6 @@ class bounding {
         /* If the node is internal: bounding boxes contained in the box */
         std::vector<const bounding*> children;
 
-
     public:
 
         bounding() {}
@@ -60,6 +59,12 @@ class bounding {
             return is_terminal;
         }
 
+        inline min_max_coord get_min_max_coord() const {
+            return (b.has_value()) ?
+                  b.value()->get_min_max_coord()
+                : empty_set_min_max_coords;
+        }
+
         /* Auxiliary function to scene::find_closest_object_bounding :
            Places the children of the bounding on the bounding_stack if the box is hit,
            or determines the closest to the objects from the content if the bounding is terminal
@@ -79,16 +84,52 @@ class bounding {
             bool& bd_stored, const bounding*& next_bounding) const;
 };
 
+template<typename T>
+// T should be object or bounding
+requires (requires (T x) { { x.get_min_max_coord() } -> std::same_as<min_max_coord>; })
+[[nodiscard]] static const bounding* containing_bounding_template(std::vector<const T*>&& set) {
+
+    if (set.size() == 0) {
+        printf("Error: creating bounding box of empty set\n");
+        return nullptr;
+    }
+    else if (set.size() == 1) {
+        if constexpr (std::is_same_v<T, bounding>)
+            return set[0];
+        else
+            return new bounding({ set[0] });
+    }
+
+    rt::vector max(-infinity, -infinity, -infinity);
+    rt::vector min( infinity,  infinity,  infinity);
+
+    /* Computation of the dimensions of the object set */
+    for(const T* p : set) {
+        p->get_min_max_coord().update_min_max_coord(min, max);
+    }
+
+    const rt::vector center = (max + min) / 2.0_r;
+    const auto [ l1, l2, l3 ] = max - min;
+
+    const box* b = new box(center, rt::vector(1, 0, 0), rt::vector(0, 1, 0), l1, l2, l3);
+    return new bounding(std::forward<std::vector<const T*>>(set), b);
+}
+
 /* Returns a bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the bounding boxes bd0 and bd1 */
-[[nodiscard]] const bounding* containing_bounding_two(const bounding* bd0, const bounding* bd1);
+[[nodiscard]] inline const bounding* containing_bounding_two(const bounding* bd0, const bounding* bd1) {
+    return containing_bounding_template<bounding>({ bd0, bd1 });
+}
 
 /* Returns a non-terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the standard non-terminal bounding boxes in the children vector */
-[[nodiscard]] const bounding* containing_bounding_any(std::vector<const bounding*>&& children);
+[[nodiscard]] inline const bounding* containing_bounding_any(std::vector<const bounding*>&& children) {
+    return containing_bounding_template(std::move(children));
+}
 
 /* Returns a bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
    containing the objects whose indices are in the obj vector */
-[[nodiscard]] const bounding* containing_objects(std::vector<const object*>&& obj);
-
+[[nodiscard]] inline const bounding* containing_objects(std::vector<const object*>&& obj) {
+    return containing_bounding_template(std::move(obj));
+}
 

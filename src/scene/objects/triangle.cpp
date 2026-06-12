@@ -49,9 +49,9 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     // vn2mvn0 = rt::vector();
     d = - (normal | p0);
 
-    std::pair<real, det_case> p = set_up_det(v1, v2);
-    det = p.first;
-    case_det = p.second;
+    const auto [ d, case_d ] = set_up_det(v1, v2);
+    det      = d;
+    case_det = case_d;
 }
 
 // Constructor from three points with vertex normals
@@ -72,9 +72,9 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     vn1mvn0 = (vn1.unit()) - vn0;
     vn2mvn0 = (vn2.unit()) - vn0;
 
-    std::pair<real, det_case> p = set_up_det(v1, v2);
-    det = p.first;
-    case_det = p.second;
+    const auto [ d, case_d ] = set_up_det(v1, v2);
+    det      = d;
+    case_det = case_d;
 }
 
 // Constructor from three points with normal mapping enabled
@@ -151,9 +151,9 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     vn1mvn0 = (vn1.unit()) - vn0;
     vn2mvn0 = (vn2.unit()) - vn0;
 
-    std::pair<real, det_case> p = set_up_det(v1, v2);
-    det = p.first;
-    case_det = p.second;
+    const auto [ d, case_d ] = set_up_det(v1, v2);
+    det      = d;
+    case_det = case_d;
 
     if (normal_mapping) {
         
@@ -483,11 +483,7 @@ rt::vector triangle::compute_normal_from_map(const rt::vector& tangent_space_nor
         const rt::vector& b = info.bitangent;
 
         //return tangent_space_normal.x * t + tangent_space_normal.y * b + tangent_space_normal.z * local_normal;
-        return matprod(
-            t,            tangent_space_normal.x,
-            b,            tangent_space_normal.y,
-            local_normal, tangent_space_normal.z
-        );
+        return matprod(t, b, local_normal, tangent_space_normal);
     }
 }
 

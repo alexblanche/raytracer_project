@@ -4,14 +4,10 @@
 #include "scene/material/texture_info.hpp"
 #include "scene/material/barycentric.hpp"
 #include "auxiliary/randomgen.hpp"
+#include "auxiliary/min_max_coord.hpp"
 
 #include <limits>
 #include <optional>
-
-/* Output struct from min_max_coord */
-struct min_max_coord {
-    real min_x, max_x, min_y, max_y, min_z, max_z;
-};
 
 constexpr unsigned int EMPTY_INDEX = std::numeric_limits<unsigned int>::max();
 
