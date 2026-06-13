@@ -44,7 +44,7 @@ std::optional<matrix> read_hdr(const std::string& file_name) {
 
         // Filling pixel data
         std::array<std::vector<unsigned char>, 4> data_buffer;
-        for (std::vector<unsigned char>& v : data_buffer)
+        for (auto& v : data_buffer)
             v.resize(width * height);
 
         const std::vector<unsigned char> content = f.extract_from();
@@ -105,10 +105,10 @@ std::optional<matrix> read_hdr(const std::string& file_name) {
                     data_buffer[1][index],
                     data_buffer[2][index]
                 );
-                const int e =  data_buffer[3][index];
+                const int e = data_buffer[3][index];
                 const real radiance_val = pow(2.0_r, e - 128);
                 color *= radiance_val;
-                index ++;
+                index++;
             }
         });
 

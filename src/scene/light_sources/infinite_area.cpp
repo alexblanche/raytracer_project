@@ -86,7 +86,7 @@ alias_table::alias_table(const std::vector<real>& prob_table,
     
     // Partition the bins into the under and over 1/n
     
-    for (int i = 0; real p : prob_table) {
+    for (int i = 0; const real p : prob_table) {
         auto& stack = (p < invn) ? under : over;
         stack.emplace(p, i);
         i++;
@@ -124,12 +124,6 @@ alias_table::alias_table(const std::vector<real>& prob_table,
     handle_remaining(over);
 }
 
-alias_table::alias_table(const matrix& matrix,
-    const unsigned int pt_width,
-    const unsigned int pt_height)
-
-    : alias_table(alias_table::compute_low_res_table(matrix), matrix.width, matrix.height, pt_width, pt_height) {}
-
 /*
     Examples
 
@@ -153,9 +147,9 @@ alias_table::alias_table(const matrix& matrix,
 */
 
 // Returns the coordinates of a pixel in the light map, chosen according to the probability from the table
-light_map_sample alias_table::get_sample_for_light_map(const randomgen& rg) const {
+light_map_sample alias_table::sample_light_map(const randomgen& rg) const {
 
-    const unsigned int s = sample(rg);
+    const unsigned int s = sample_table(rg);
     // s corresponds to a pixel in the low-res image
 
     const real lr_x = static_cast<real>(s % pt_width);

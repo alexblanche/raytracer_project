@@ -202,7 +202,9 @@ target_include_directories(${test_reader_name}
 
 set(test_infinite_name testinfinite)
 add_executable(${test_infinite_name}
-	${IMAGE_SOURCES}
+	src/file_readers/hdr_reader.cpp
+	src/parallel/parallel.cpp
+	src/screen/screen.cpp
 	src/scene/light_sources/infinite_area.cpp
 	src/tests/test_infinite_area.cpp
 )

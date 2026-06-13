@@ -23,7 +23,7 @@ class matrix {
 
         matrix() {}
 
-        matrix(int width, int height) 
+        matrix(int width, int height)
             : data(height * width),
               width(width), height(height) {}
 

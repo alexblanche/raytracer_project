@@ -47,6 +47,10 @@ exit_status export_raw(const std::string& file_name, const image& image, const u
                 break;
             case 1: {
                 const std::size_t buffer_size = image.width() * image.height() * sizeof(rt::color);
+                ////////////////////////////////////////////////////////////////
+                ////// DANGEROUS low-level manipulations
+                /// I should replace the std::vector by a unique_ptr<unsigned char> buffer_binary = alignas(rt::color) new unsigned char[buffer_size]
+                /// and std::launder(reinterpret_cast<rt::color*>)
                 std::vector<unsigned char> buffer_binary(buffer_size);
                 rt::color* const buffer = reinterpret_cast<rt::color*>(buffer_binary.data());
 
@@ -57,7 +61,7 @@ exit_status export_raw(const std::string& file_name, const image& image, const u
                     index += width;
                 }
 
-                const exit_status status = f.write(buffer_binary);
+                const exit_status status = f.write(buffer_binary); /// Replace with f.write(std::span<const unsigned char>(buffer_binary, buffer_size))
                 throw_if_failure(status, "Could not write in file");
                 break;
             }
