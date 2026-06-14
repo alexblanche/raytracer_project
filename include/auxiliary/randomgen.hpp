@@ -6,6 +6,7 @@
 #include <random>
 
 class randomgen {
+
     private:
         mutable std::default_random_engine engine;
         mutable std::uniform_real_distribution<real> unif_ratio;
@@ -13,13 +14,12 @@ class randomgen {
         mutable std::normal_distribution<real> normal_dist;
 
     public:
-
         // Factor 4.0_r to improve camera ray generation computation speed
         randomgen(const real std_dev_anti_aliasing = ANTI_ALIASING)
             :   engine(timer_ms::get_time()),
-                unif_ratio(0.0_r, 1.0_r),
-                unif_angle(0.0_r, 2.0_r * PI),
-                normal_dist(0.0_r, (STRATIFIED_ENABLED ? 4.0_r * std_dev_anti_aliasing : std_dev_anti_aliasing)) {}
+                unif_ratio(0, 1),
+                unif_angle(0, 2 * PI),
+                normal_dist(0, (STRATIFIED_ENABLED ? 4.0_r * std_dev_anti_aliasing : std_dev_anti_aliasing)) {}
 
         /* Returns a random real between 0 and m */
         inline real random_real(real m) const {
@@ -41,4 +41,30 @@ class randomgen {
         inline std::pair<real, real> random_pair_normal() const {
             return { normal_dist(engine), normal_dist(engine) };
         } 
+};
+
+
+// Simpler class for random ratio (in [0, 1)) generation
+
+template<typename Float>
+requires std::is_floating_point_v<Float>
+class random_ratio_gen {
+
+    private:
+        mutable std::default_random_engine engine;
+        mutable std::uniform_real_distribution<Float> unif_ratio;
+
+    public:
+
+        random_ratio_gen()
+            :   engine(timer_ms::get_time()),
+                unif_ratio(0, 1) {}
+
+        inline Float random() const {
+            return unif_ratio(engine);
+        }
+
+        inline Float random(Float m) const {
+            return m * random();
+        }
 };

@@ -5,18 +5,20 @@
 #include <cmath>
 #include <span>
 
+#include <iostream>
+
 /* Infinite area light sample */
 
 std::vector<real> alias_table::compute_low_res_table(const matrix& matrix) {
 
     const int width  = std::min(LOWRES_DEFAULT_WIDTH,  static_cast<unsigned int>(matrix.width));
     const int height = std::min(LOWRES_DEFAULT_HEIGHT, static_cast<unsigned int>(matrix.height));
-
+    
     const real ratio_x = static_cast<real>(matrix.width)  / LOWRES_DEFAULT_WIDTH;
     const real ratio_y = static_cast<real>(matrix.height) / LOWRES_DEFAULT_HEIGHT;
     const real r = PI / static_cast<real>(height);
 
-    const int table_size = width * height;
+    const int table_size = height * width;
     std::vector<real> table(table_size);
 
     real phi = 0.0_r;
@@ -24,10 +26,10 @@ std::vector<real> alias_table::compute_low_res_table(const matrix& matrix) {
 
         const real sinphi = sin(phi);
         const int l = ly * width;
-        const int bound = l + width;
 
-        for (int i = l; i < bound; i++)
+        for (int i = l; i < l + width; i++)
             table[i] = sinphi;
+
         phi += r;
     }
 
@@ -41,24 +43,24 @@ std::vector<real> alias_table::compute_low_res_table(const matrix& matrix) {
         const int bound_x = (lx + 1) * ratio_x;
         const int init_y  =  ly      * ratio_y;
         const int bound_y = (ly + 1) * ratio_y;
+
         rt::color sum;
-        for (int x = init_x; x < bound_x; x++) {
-            for (int y = init_y; y < bound_y; y++) {
+        for (int y = init_y; y < bound_y; y++) {
+            for (int x = init_x; x < bound_x; x++)
                 sum += matrix[y, x];
-            }
         }
         sum /= (bound_x - init_x) * (bound_y - init_y);
         table[i] *= sum.get_average();
     }
 
     // Normalize the table
-    real weight_sum = 0.0_r;
+    real weight_sum = 0.0;
     for (const real x : table)
         weight_sum += x;
 
-    for (real& x : table)
-        x /= weight_sum;
-    
+    for (real& p : table)
+        p /= weight_sum;
+
     return table;
 }
 
@@ -69,7 +71,7 @@ alias_table::alias_table(const std::vector<real>& prob_table,
     const unsigned int pt_height)
     
     :
-        nb_bins(static_cast<real>(prob_table.size())),
+        nb_bins(static_cast<double>(prob_table.size())),
         map_width(map_width),
         map_height(map_height),
         pt_width(pt_width),
@@ -79,7 +81,7 @@ alias_table::alias_table(const std::vector<real>& prob_table,
 
     const int n = prob_table.size();
     bins.resize(n);
-    const real invn = 1.0_r / nb_bins;
+    const real invn = 1.0 / nb_bins;
     
     custom_stack<alias_bin> under;
     custom_stack<alias_bin> over;
@@ -98,7 +100,7 @@ alias_table::alias_table(const std::vector<real>& prob_table,
 
         // Setting the final value of u
         auto& [ p, alias ] = bins[ub.alias];
-        p = nb_bins * ub.p;
+        p     = nb_bins * ub.p;
         alias = ob.alias;
 
         under.pop();
@@ -147,7 +149,7 @@ alias_table::alias_table(const std::vector<real>& prob_table,
 */
 
 // Returns the coordinates of a pixel in the light map, chosen according to the probability from the table
-light_map_sample alias_table::sample_light_map(const randomgen& rg) const {
+light_map_sample alias_table::sample_light_map(const random_ratio_gen<double>& rg) const {
 
     const unsigned int s = sample_table(rg);
     // s corresponds to a pixel in the low-res image
@@ -161,7 +163,7 @@ light_map_sample alias_table::sample_light_map(const randomgen& rg) const {
     const unsigned int min_y = static_cast<unsigned int>(ratio_y *  lr_y);
     const unsigned int max_y = static_cast<unsigned int>(ratio_y * (lr_y + 1.0_r));
 
-    const unsigned int x = min_x + rg.random_real(max_x - min_x);
-    const unsigned int y = min_y + rg.random_real(max_y - min_y);
+    const unsigned int x = min_x + rg.random(max_x - min_x);
+    const unsigned int y = min_y + rg.random(max_y - min_y);
     return { x, y };
 }

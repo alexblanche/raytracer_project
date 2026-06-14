@@ -14,7 +14,7 @@ struct dimensions {
 class matrix {
 
     public:
-        using row = std::span<rt::color>;
+        using row       = std::span<rt::color>;
         using const_row = std::span<const rt::color>;
 
         std::vector<rt::color> data;
@@ -96,7 +96,7 @@ class matrix {
                 return (*mat)[j];
             }
 
-            bool operator==(const std::default_sentinel_t) const {
+            bool operator==(std::default_sentinel_t) const {
                 return j == mat->height;
             }
 
@@ -208,7 +208,7 @@ class matrix {
                 ++*this;
             }
 
-            bool operator==(const std::default_sentinel_t) const {
+            bool operator==(std::default_sentinel_t) const {
                 return j == mat->height;
             }
 

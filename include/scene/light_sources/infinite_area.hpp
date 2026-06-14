@@ -7,6 +7,9 @@
 constexpr unsigned int LOWRES_DEFAULT_WIDTH  = 854;
 constexpr unsigned int LOWRES_DEFAULT_HEIGHT = 480;
 
+// alias_table needs to use double for random number generation
+// real is fine for other calculations
+
 struct alias_bin {
     real p = 0.0_r;
     unsigned int alias = 0;
@@ -18,7 +21,7 @@ struct light_map_sample {
 
 struct alias_table {
     std::vector<alias_bin> bins;
-    real nb_bins; // Pre-computed real cast for sampling
+    double nb_bins; // Pre-computed double cast for sampling
     unsigned int map_width;
     unsigned int map_height;
     unsigned int pt_width;
@@ -41,14 +44,19 @@ struct alias_table {
 
     : alias_table(compute_low_res_table(matrix), matrix.width, matrix.height, pt_width, pt_height) {}
 
-
-    inline unsigned int sample_table(const randomgen& rg) const {
-        const unsigned int i = static_cast<unsigned int>(rg.random_real(nb_bins));
-        const auto [ p, alias ] = bins[i];
-        return (rg.random_ratio() < p) ? i : alias;
+    // Should be called in each thread at initialization
+    static inline random_ratio_gen<double> get_random_generator() {
+        return random_ratio_gen<double>();
     }
 
-    light_map_sample sample_light_map(const randomgen& rg) const;
+    inline unsigned int sample_table(const random_ratio_gen<double>& rg) const {
+
+        const unsigned int i = static_cast<unsigned int>(rg.random(nb_bins));
+        const auto [ p, alias ] = bins[i];
+        return (rg.random() < p) ? i : alias;
+    }
+
+    light_map_sample sample_light_map(const random_ratio_gen<double>& rg) const;
 
     private:
         static std::vector<real> compute_low_res_table(const matrix& matrix);
