@@ -36,6 +36,12 @@ class randomgen {
             return unif_angle(engine);
         }
 
+        /* Returns one random real chosen according to a normal distribution
+           of mean m and standard deviation std_dev */
+        inline real random_normal() const {
+            return normal_dist(engine);
+        }
+
         /* Returns two random reals chosen according to a normal distribution
            of mean m and standard deviation std_dev */
         inline std::pair<real, real> random_pair_normal() const {

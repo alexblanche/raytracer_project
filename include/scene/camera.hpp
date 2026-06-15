@@ -36,6 +36,11 @@ class camera_mode {
 
 
 class camera {
+
+    public:
+        struct aa_shift {
+            real horiz, vert;
+        };
     
     private:
 
@@ -71,10 +76,38 @@ class camera {
         real aperture;
 
 
-        std::pair<int, int> stratified_shift(int iteration) const;
-        std::pair<real, real> shift_classic(int i, int j, int iteration) const;
-        std::pair<real, real> shift_normal(int i, int j, int iteration, const real shift_horiz, const real shift_vert) const;
-        rt::vector direction(real ishift, real jshift) const;
+        /// Helper functions
+
+        inline std::pair<int, int> stratified_shift(const int iteration) const {
+            return mode.uses_stratified() ?
+                  std::pair { iteration & 0b0011, (iteration & 0b1100) >> 2 }
+                : std::pair { 0, 0 };
+        }
+
+        inline std::pair<int, int> stratified_shift_pixel(const int i, const int j, const int iteration) const {
+            if constexpr (STRATIFIED_ENABLED) {
+                const auto [ strat_x, strat_y ] = stratified_shift(iteration);
+                return { (i << 2) + strat_x, (j << 2) + strat_y };
+            }
+            else
+                return { i, j };
+        }
+
+        inline std::pair<real, real> shift_classic(const int i, const int j, const int iteration) const {
+            const auto [ si, sj ] = stratified_shift_pixel(i, j, iteration);
+            return { std::fma(di, static_cast<real>(si), mhalf_fovw),
+                     std::fma(dj, static_cast<real>(sj), mhalf_fovh) };
+        }
+
+        inline std::pair<real, real> shift_normal(const int i, const int j, const int iteration, const aa_shift& shift) const {
+            const auto [ si, sj ] = stratified_shift_pixel(i, j, iteration);
+            return { std::fma(di, static_cast<real>(si) + shift.horiz, mhalf_fovw),
+                     std::fma(dj, static_cast<real>(sj) + shift.vert,  mhalf_fovh) };
+        }
+
+        inline rt::vector direction(real ishift, real jshift) const {
+            return fma(to_the_right, ishift, fma(to_the_bottom, jshift, direction_scaled)).unit();
+        }
 
     public:
         camera_mode mode;
@@ -91,19 +124,34 @@ class camera {
         camera& operator=(camera&&)         = delete;
 
         /* Returns the ray that goes toward the pixel i,j of the screen */
-        ray gen_ray_classic(int i, int j, int iteration) const;
+        ray gen_ray_classic(int i, int j, int iteration) const {
+            const auto [ ishift, jshift ] = shift_classic(i, j, iteration);
+            return ray(origin, direction(ishift, jshift));
+        }
+
+        static inline aa_shift generate_shift(const randomgen& rg) {
+            const real radius = rg.random_normal();
+            const real angle  = rg.random_angle();
+            return {
+                .horiz = radius * cos(angle),
+                .vert  = radius * sin(angle)
+            };
+        }
 
         /* Returns the ray that goes toward the pixel i,j of the screen in average,
            following a normal distribution around to center of the pixel, with given stardard deviation */
-        ray gen_ray_normal(int i, int j, const randomgen& rg, int iteration) const;
+        ray gen_ray_normal(int i, int j, int iteration, const aa_shift& shift) const {
+            const auto [ ishift, jshift ] = shift_normal(i, j, iteration, shift);
+            return ray(origin, direction(ishift, jshift));
+        }
 
         /* Returns the ray that goes toward the pixel i,j of the screen, with depth of field */
         ray gen_ray_dof(int i, int j, const randomgen& rg, int iteration) const;
 
-        ray gen_ray(int i, int j, const randomgen& rg, int iteration) const {
+        ray gen_ray(int i, int j, const randomgen& rg, int iteration, const aa_shift& shift) const {
             return
                 mode.uses_dof() ?
                       gen_ray_dof(i, j, rg, iteration)
-                    : gen_ray_normal(i, j, rg, iteration);
+                    : gen_ray_normal(i, j, iteration, shift);
         }
 };
