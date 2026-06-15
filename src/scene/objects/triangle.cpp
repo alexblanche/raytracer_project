@@ -303,12 +303,10 @@ real triangle::measure_distance(const ray& r) const {
     const rt::vector c = fma(dir, t, u) - position;
 
     const real l1 = compute_det_2d(c, v2, case_det) / det;
-    //if (is_negative_not_zero(l1) || l1 > 1.0_r)
     if (not is_between_zero_and_one(l1))
         return infinity;
 
     const real l2 = compute_det_2d(v1, c, case_det) / det;
-    //return (is_positive(l2) && l1 + l2 <= 1.0_r) ? t : infinity;
     return (is_positive(l2) && is_between_zero_and_one(l1 + l2)) ? t : infinity;
 }
 

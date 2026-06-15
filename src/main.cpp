@@ -11,20 +11,6 @@
 
 int main(int argc, char *argv[]) {
 
-
-    for (double x = 1.0e-10; x < 3; x += 0.05) {
-        printf("x = %lf: ", x);
-        uint64_t n = *reinterpret_cast<uint64_t*>(&x);
-        constexpr int N = 12;
-        n >>= (64 - N);
-        for (int i = 0; i < N; i++) {
-            printf("%llu", n & 1);
-            n >>= 1;
-        }
-        printf("\n");
-    }
-
-
     const std::vector<std::string> args(argv + 1, argv + argc);
 
     menu menu;

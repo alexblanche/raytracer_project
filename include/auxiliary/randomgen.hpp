@@ -65,6 +65,10 @@ class random_ratio_gen {
         random_ratio_gen()
             :   engine(timer_ms::get_time()),
                 unif_ratio(0, 1) {}
+                
+        random_ratio_gen(uint64_t seed)
+            :   engine(seed),
+                unif_ratio(0, 1) {}
 
         inline Float random() const {
             return unif_ratio(engine);

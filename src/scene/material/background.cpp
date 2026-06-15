@@ -16,7 +16,7 @@ const rt::color& background_container::get_color(const rt::vector& dir) const {
 
     /* Determining the pixel of the background texture to display */      
     // dir is a unit vector, but due to floating-point imprecision, dir.y can be greater than 1
-    const real phi = (std::abs(dir_rotated.y) >= 1.0_r) ?
+    const real phi = (not abs_less_than_one(dir_rotated.y)) ?
           (is_positive(dir_rotated.y) ? PI : 0.0_r)
         : asin(dir_rotated.y) + PI / 2.0_r;
 

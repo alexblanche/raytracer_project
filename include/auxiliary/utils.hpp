@@ -41,7 +41,13 @@ inline bool is_negative_not_zero(real x) {
     return x < 0.0_r; //is_not_zero(x) && is_negative(x);
 }
 
-inline bool is_between_zero_and_one(real x) {
+template<unsigned int UINT_SIZE>
+requires (UINT_SIZE >= 2 && UINT_SIZE <= sizeof(real))
+using UInt =
+    std::conditional_t<UINT_SIZE == 8, uint64_t,
+    std::conditional_t<UINT_SIZE == 4, uint32_t, uint16_t>>;
+
+inline bool is_between_zero_and_one(const real x) {
 
     constexpr bool IEEE754 = std::numeric_limits<real>::is_iec559;
     if constexpr (IEEE754) {
@@ -54,17 +60,14 @@ inline bool is_between_zero_and_one(real x) {
         // We check whether b11 = 0 && (b10 ... b0) < 1023.
         
         constexpr unsigned int UINT_SIZE = 4; // size of the chosen uint type in bytes
-        
-        constexpr unsigned int REAL_SIZE = sizeof(real);
-        static_assert(UINT_SIZE >= 2 && UINT_SIZE <= REAL_SIZE);
-        using UInt =
-            std::conditional_t<UINT_SIZE == 8, uint64_t,
-            std::conditional_t<UINT_SIZE == 4, uint32_t, uint16_t>>;
+
+        using UInt = UInt<UINT_SIZE>;
         static_assert(sizeof(UInt) == UINT_SIZE);
 
-        constexpr unsigned int NB_BLOCKS = REAL_SIZE / UINT_SIZE;
+        constexpr unsigned int NB_BLOCKS = sizeof(real) / UINT_SIZE;
         constexpr unsigned int UINT_BIT_SIZE = 8 * UINT_SIZE;
-        const UInt n = (reinterpret_cast<UInt*>(&x)[NB_BLOCKS - 1]) >> (UINT_BIT_SIZE - 16);
+
+        const UInt n = (reinterpret_cast<const UInt*>(&x)[NB_BLOCKS - 1]) >> (UINT_BIT_SIZE - 16);
         
         constexpr UInt max = 1023 << 4;
         return n < max;
@@ -74,15 +77,32 @@ inline bool is_between_zero_and_one(real x) {
     }
 }
 
-inline bool abs_greater_than_one(real x) {
+// About 1% faster than (std::abs(x) < 1.0_r). Unused
+inline bool abs_less_than_one(const real x) {
 
-    static_assert(std::numeric_limits<real>::is_iec559); // Checks IEEE754 standard
+    constexpr bool IEEE754 = std::numeric_limits<real>::is_iec559;
+    if constexpr (IEEE754) {
+        constexpr unsigned int UINT_SIZE = 2; // size of the chosen uint type in bytes
+        
+        using UInt = UInt<UINT_SIZE>;
+        static_assert(sizeof(UInt) == UINT_SIZE);
 
-    using UInt = std::conditional_t<sizeof(real) == 4, uint32_t, uint64_t>;
-    static_assert(sizeof(real) == sizeof(UInt));
-    constexpr unsigned int n = 8 * sizeof(UInt);
+        constexpr unsigned int NB_BLOCKS = sizeof(real) / UINT_SIZE;
+        constexpr unsigned int UINT_BIT_SIZE = 8 * UINT_SIZE;
+        
+        // << 1 to delete the MSB
+        const UInt n = ((reinterpret_cast<const UInt*>(&x)[NB_BLOCKS - 1]) << 1) >> (UINT_BIT_SIZE - 16);
+        constexpr UInt max = 1023 << (16 - 11);
+        return n < max;
 
-    return (((*reinterpret_cast<UInt*>(&x)) >> (n - 2)) & 1) == 0;
+        // Alternative: for UINT_SIZE = 8, no right shift
+        // const UInt n = (*(reinterpret_cast<const UInt*>(&x)) << 1);
+        // constexpr UInt max = 1023ull << (UINT_BIT_SIZE - 11);
+        // return n < max;
+    }
+    else {
+        return std::abs(x) < 1.0_r;
+    }
 }
 
 ///////////////////////////////////////////////////
