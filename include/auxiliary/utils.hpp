@@ -6,17 +6,16 @@
 
 #include <type_traits>
 #include <bit>
+#include <limits>
 
 // Experiments around basing float expressions
 
 inline bool is_zero(real x) {
-    // if constexpr (sizeof(real) > sizeof(unsigned long int)) {
-    //     return std::bit_cast<unsigned long long int, real>(x) == 0ull;
-    // }
-    // else {
-    //     return std::bit_cast<unsigned long int, real>(x) == 0ul;
-    // }
-    return x == 0.0_r; //std::fpclassify(x) == FP_ZERO;
+    
+    // using UInt = std::conditional_t<sizeof(real) == 4, uint32_t, uint64_t>;
+    // static_assert(sizeof(UInt) == sizeof(real));
+    // return *reinterpret_cast<UInt*>(&x) == static_cast<UInt>(0u);
+    return x == 0.0_r;
 }
 
 inline bool is_not_zero(real x) {
@@ -26,7 +25,7 @@ inline bool is_not_zero(real x) {
 
 inline bool is_positive(real x) {
     return x >= 0.0_r;
-    // return not std::signbit(x);
+    //return not std::signbit(x);
 }
 
 inline bool is_positive_not_zero(real x) {
@@ -35,13 +34,56 @@ inline bool is_positive_not_zero(real x) {
 
 inline bool is_negative(real x) {
     return x <= 0.0_r;
-    // return std::signbit(x);
+    //return std::signbit(x);
 }
 
 inline bool is_negative_not_zero(real x) {
     return x < 0.0_r; //is_not_zero(x) && is_negative(x);
 }
 
+inline bool is_between_zero_and_one(real x) {
+
+    constexpr bool IEEE754 = std::numeric_limits<real>::is_iec559;
+    if constexpr (IEEE754) {
+        
+        // Extraction of the 12 most significant bits b11 ... b0 (b11 = MSB) of the binary representation of x
+        // by splitting it into NB_BLOCKS unsigned integers of type UINT and accessing the last block.
+        // b11 is the sign bit of x
+        // b10 ... b0 is the exponent part of x
+        // In the IEEE754 standard, the actual exponent of x is (1023 - (b10 ... b0))
+        // We check whether b11 = 0 && (b10 ... b0) < 1023.
+        
+        constexpr unsigned int UINT_SIZE = 4; // size of the chosen uint type in bytes
+        
+        constexpr unsigned int REAL_SIZE = sizeof(real);
+        static_assert(UINT_SIZE >= 2 && UINT_SIZE <= REAL_SIZE);
+        using UInt =
+            std::conditional_t<UINT_SIZE == 8, uint64_t,
+            std::conditional_t<UINT_SIZE == 4, uint32_t, uint16_t>>;
+        static_assert(sizeof(UInt) == UINT_SIZE);
+
+        constexpr unsigned int NB_BLOCKS = REAL_SIZE / UINT_SIZE;
+        constexpr unsigned int UINT_BIT_SIZE = 8 * UINT_SIZE;
+        const UInt n = (reinterpret_cast<UInt*>(&x)[NB_BLOCKS - 1]) >> (UINT_BIT_SIZE - 16);
+        
+        constexpr UInt max = 1023 << 4;
+        return n < max;
+    }
+    else {
+        return x >= 0.0_r && x <= 1.0_r;
+    }
+}
+
+inline bool abs_greater_than_one(real x) {
+
+    static_assert(std::numeric_limits<real>::is_iec559); // Checks IEEE754 standard
+
+    using UInt = std::conditional_t<sizeof(real) == 4, uint32_t, uint64_t>;
+    static_assert(sizeof(real) == sizeof(UInt));
+    constexpr unsigned int n = 8 * sizeof(UInt);
+
+    return (((*reinterpret_cast<UInt*>(&x)) >> (n - 2)) & 1) == 0;
+}
 
 ///////////////////////////////////////////////////
 

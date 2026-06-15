@@ -303,11 +303,13 @@ real triangle::measure_distance(const ray& r) const {
     const rt::vector c = fma(dir, t, u) - position;
 
     const real l1 = compute_det_2d(c, v2, case_det) / det;
-    if (is_negative_not_zero(l1) || l1 > 1.0_r)
+    //if (is_negative_not_zero(l1) || l1 > 1.0_r)
+    if (not is_between_zero_and_one(l1))
         return infinity;
 
     const real l2 = compute_det_2d(v1, c, case_det) / det;
-    return (is_positive(l2) && l1 + l2 <= 1.0_r) ? t : infinity;
+    //return (is_positive(l2) && l1 + l2 <= 1.0_r) ? t : infinity;
+    return (is_positive(l2) && is_between_zero_and_one(l1 + l2)) ? t : infinity;
 }
 
 /* Returns the barycentric info (l1, l2):
@@ -352,14 +354,12 @@ barycentric_info triangle::get_barycentric(const rt::vector& p) const {
 }
 
 inline rt::vector triangle::get_interpolated_normal(const barycentric_info& bary) const {
-    // return (((1 - bary.l1 - bary.l2) * vn0) + (bary.l1 * vn1) + (bary.l2 * vn2));
-    //return vn0 + (bary.l1 * vn1mvn0) + (bary.l2 * vn2mvn0);
+    
     return fma(vn2mvn0, bary.l2, fma(vn1mvn0, bary.l1, vn0));
 }
 
 hit triangle::compute_intersection(const ray& r, const real t) const {
     
-    //const rt::vector p = r.origin + t * r.direction;
     const rt::vector p = fma(r.direction, t, r.origin);
     const object* pt_obj = this;
     const ray* pt_ray = &r;
@@ -368,10 +368,10 @@ hit triangle::compute_intersection(const ray& r, const real t) const {
     
         // Computation of the interpolated normal vector
         const barycentric_info bary = get_barycentric(p);
-        // inward uses the face normal to avoid artefacts at the edge of the mesh
-        const orientation_type ray_orientation = is_negative(r.direction | normal) ?
-              orientation_type::Inward
-            : orientation_type::Outward;
+
+        // ray_orientation uses the face normal to avoid artefacts at the edge of the mesh
+        using enum orientation_type;
+        const orientation_type ray_orientation = is_negative(r.direction | normal) ? Inward : Outward;
 
         return hit(pt_ray, p, get_interpolated_normal(bary), pt_obj, ray_orientation);
     }
