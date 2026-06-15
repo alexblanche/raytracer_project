@@ -1,0 +1,36 @@
+#pragma once
+
+#include "scene/objects/object.hpp"
+#include "scene/objects/bounding.hpp"
+#include "scene/material/texture.hpp"
+#include "file_readers/parsers/parsing_wrappers.hpp"
+#include "auxiliary/exit_status.hpp"
+
+#include <vector>
+#include <string>
+#include <optional>
+
+/* Wavefront .obj file parser */
+/* Only handles .obj files made up of triangles and quads, for now.
+   In the future, maybe split polygons with >= 5 sides into triangles */
+
+/* Parses .obj file file_name. Triangles and quads are added to obj_set,
+   with material indices (defined with the keyword usemtl) found in material_names
+   
+   - Only one texture is handled.
+   - Object names (o), polygon groups (g), smooth shading (s), lines (l) are ignored.
+   - The object is scaled with the factor scale, and shifted by the vector shift.
+   - If bounding_enabled, a bounding containing the whole object is placed in output_bd.
+     It contains a hierarchy of bounding boxes, such that the terminal ones contain at most
+     polygons_per_bounding polygons.
+   
+   Returns true if the operation was successful
+*/
+exit_status parse_obj_file(const std::string& file_name, const std::optional<unsigned int> default_texture_index,
+   std::vector<const object*>& obj_set,
+   std::vector<wrapper<material>>& material_wrapper_set,
+   std::vector<wrapper<texture>>& texture_wrapper_set,
+   std::vector<texture_info>& texture_info_set,
+   real scale, const rt::vector& shift,
+   bool bounding_enabled, unsigned int polygons_per_bounding,
+   const bounding*& output_bd, real gamma);

@@ -1,4 +1,4 @@
-#include "file_readers/raw_data.hpp"
+#include "file_readers/image_files/raw_data.hpp"
 
 #include <filesystem>
 

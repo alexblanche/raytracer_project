@@ -1,6 +1,6 @@
 #include "scene/scene.hpp"
 
-#include "file_readers/scene_parser.hpp"
+#include "file_readers/parsers/scene_parser.hpp"
 #include "auxiliary/custom_stack.hpp"
 
 #include <optional>

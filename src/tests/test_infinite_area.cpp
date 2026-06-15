@@ -1,4 +1,4 @@
-#include "file_readers/hdr_reader.hpp"
+#include "file_readers/image_files/hdr_reader.hpp"
 #include "scene/light_sources/infinite_area.hpp"
 #include "screen/screen.hpp"
 

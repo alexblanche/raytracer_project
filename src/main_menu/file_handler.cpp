@@ -1,7 +1,7 @@
 #include "main_menu/file_handler.hpp"
 
-#include "file_readers/bmp_reader.hpp"
-#include "file_readers/raw_data.hpp"
+#include "file_readers/image_files/bmp_reader.hpp"
+#include "file_readers/image_files/raw_data.hpp"
 
 #include <filesystem>
 #include <string>

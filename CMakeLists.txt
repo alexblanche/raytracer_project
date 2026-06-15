@@ -27,9 +27,9 @@ set(MATRIX_SOURCES
 )
 
 set(IMAGE_READERS_SOURCES
-	src/file_readers/bmp_reader.cpp
-	src/file_readers/hdr_reader.cpp
-	src/file_readers/raw_data.cpp
+	src/file_readers/image_files/bmp_reader.cpp
+	src/file_readers/image_files/hdr_reader.cpp
+	src/file_readers/image_files/raw_data.cpp
 )
 
 set(IMAGE_SOURCES
@@ -40,10 +40,10 @@ set(IMAGE_SOURCES
 )
 
 set(PARSERS_SOURCES
-	src/file_readers/scene_parser.cpp
-	src/file_readers/obj_parser.cpp
-	src/file_readers/mtl_parser.cpp
-	src/file_readers/normal_map_reader.cpp
+	src/file_readers/parsers/scene_parser.cpp
+	src/file_readers/parsers/obj_parser.cpp
+	src/file_readers/parsers/mtl_parser.cpp
+	src/file_readers/image_files/normal_map_reader.cpp
 )
 
 set(OBJECTS_SOURCES
@@ -80,8 +80,8 @@ set(TRACING_SOURCES
 )
 
 set(AUXILIARY_ALGORITHMS_SOURCES
-	src/auxiliary/octree.cpp
-	src/auxiliary/clustering.cpp
+	src/accelerating_structures/octree.cpp
+	src/accelerating_structures/clustering.cpp
 )
 
 set(MENU_SOURCES
@@ -143,14 +143,12 @@ add_executable(${merger_name}
 set(legacy legacy_raytracer)
 add_executable(${legacy}
 	${IMAGE_SOURCES}
-	src/legacy/light/legacy_hit.cpp
-	src/legacy/objects/legacy_object.cpp
-	src/legacy/objects/legacy_plane.cpp
-	src/legacy/objects/legacy_sphere.cpp
-	src/legacy/legacy_source.cpp
-	src/legacy/raytracing/legacy_application.cpp
-	src/legacy/raytracing/legacy_tracing.cpp
-	src/legacy/legacy.cpp
+	src/other/legacy/objects/legacy_object.cpp
+	src/other/legacy/objects/legacy_plane.cpp
+	src/other/legacy/objects/legacy_sphere.cpp
+	src/other/legacy/source/legacy_source.cpp
+	src/other/legacy/raytracing/legacy_tracing.cpp
+	src/other/legacy/legacy.cpp
 	src/parallel/parallel.cpp
 )
 
@@ -169,11 +167,11 @@ target_include_directories(${legacy}
 
 set(sky_name sky)
 add_executable(${sky_name}
-	src/sky/bmp_reader.cpp
-	src/sky/image.cpp
-	src/sky/screen.cpp
-	src/sky/sky_render.cpp
-	src/sky/test_sky.cpp
+	src/other/sky/bmp_reader.cpp
+	src/other/sky/image.cpp
+	src/other/sky/screen.cpp
+	src/other/sky/sky_render.cpp
+	src/other/sky/test_sky.cpp
 )
 target_link_libraries(${sky_name}
 	${SDL2_LIBRARIES}
@@ -202,7 +200,7 @@ target_include_directories(${test_reader_name}
 
 set(test_infinite_name testinfinite)
 add_executable(${test_infinite_name}
-	src/file_readers/hdr_reader.cpp
+	src/file_readers/image_files/hdr_reader.cpp
 	src/parallel/parallel.cpp
 	src/screen/screen.cpp
 	src/scene/light_sources/infinite_area.cpp

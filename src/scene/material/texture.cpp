@@ -1,7 +1,7 @@
 #include "scene/material/texture.hpp"
 
-#include "file_readers/bmp_reader.hpp"
-#include "file_readers/hdr_reader.hpp"
+#include "file_readers/image_files/bmp_reader.hpp"
+#include "file_readers/image_files/hdr_reader.hpp"
 
 #include <iostream>
 #include <filesystem>

@@ -2,7 +2,7 @@
 
 #include "main_menu/runtime_parameters.hpp"
 #include "auxiliary/exit_status.hpp"
-#include "file_readers/scene_parser.hpp"
+#include "file_readers/parsers/scene_parser.hpp"
 
 #include <string>
 #include <span>

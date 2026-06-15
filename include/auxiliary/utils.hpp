@@ -64,7 +64,7 @@ consteval unsigned int only_set_bit_position(UInt x) {
 }
 
 template<typename Float>
-requires (std::is_floating_point_v<Float> && sizeof(Float) <= 8)
+requires std::is_floating_point_v<Float> && (sizeof(Float) <= 8)
 consteval unsigned int sign_bit_position () {
     
     using UInt = std::conditional_t<sizeof(Float) == 4, uint32_t, uint64_t>;
@@ -73,6 +73,6 @@ consteval unsigned int sign_bit_position () {
     constexpr Float pos = 1.0;
     constexpr Float neg = -pos;
 
-    constexpr UInt x = std::bit_cast<UInt, Float>(pos) ^ std::bit_cast<UInt, Float>(neg);
-    return only_set_bit_position(x);
+    constexpr UInt diff = std::bit_cast<UInt, Float>(pos) ^ std::bit_cast<UInt, Float>(neg);
+    return only_set_bit_position(diff);
 }

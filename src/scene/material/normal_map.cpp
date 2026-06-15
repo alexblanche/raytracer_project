@@ -1,6 +1,6 @@
 #include "scene/material/normal_map.hpp"
 
-#include "file_readers/normal_map_reader.hpp"
+#include "file_readers/image_files/normal_map_reader.hpp"
 
 normal_map::normal_map(const unsigned int w, const unsigned int h, vector_matrix&& data)
     : data(std::move(data)),
