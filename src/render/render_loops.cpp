@@ -1,6 +1,5 @@
 #include "render/render_loops.hpp"
 #include "tracing/tracing.hpp"
-#include "tracing/multisample.hpp"
 #include "parallel/parallel.hpp"
 #include "auxiliary/timer.hpp"
 

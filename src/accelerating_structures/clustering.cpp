@@ -75,7 +75,7 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
 
         const std::vector<element>& old_group = old_groups[0];
 
-        unsigned int cpt = 0;
+        std::atomic<unsigned int> cpt = 0;
 
         parallel_for(old_group.size(), [&] (int i) {
 
@@ -133,9 +133,8 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
 
             mut.lock();
             new_groups[closest_index].push_back(elt);
-            cpt++;
             mut.unlock();
-
+            cpt++;
         });
         // }
 
