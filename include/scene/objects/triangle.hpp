@@ -3,7 +3,7 @@
 #include "scene/objects/object.hpp"
 
 enum class det_case {
-    Default, XZ, YZ, Error
+    XY, XZ, YZ, Error
 };
 
 class triangle : public object {

@@ -1,35 +1,35 @@
 #include "scene/objects/triangle.hpp"
 
-#include "light/vector.hpp"
-#include "light/hit.hpp"
 #include "scene/material/material.hpp"
 #include "auxiliary/utils.hpp"
 
 #include <optional>
 
+using enum det_case;
+
+static inline real compute_det_2d(const rt::vector& v1, const rt::vector& v2, det_case det_case) {
+
+    switch (det_case) {
+        case XY:    return v1.x * v2.y - v1.y * v2.x;
+        case XZ:    return v1.x * v2.z - v1.z * v2.x;
+        case YZ:    return v1.y * v2.z - v1.z * v2.y;
+        case Error: return 0.0_r;
+    }
+}
+
 std::pair<real, det_case> set_up_det(const rt::vector& v1, const rt::vector& v2) {
 
-    // printf("c = (%lf, %lf, %lf), detxy = %lf, abs(detxy) = %lf, cond = %d\n", c.x, c.y, c.z, detxy, std::abs(detxy), std::abs(detxy) > 0.00000001);
+    // det(XY) = 0 => v1, v2 are colinear when projected onto the plane z = 0
+    // det(XZ) = 0 => v1, v2 are colinear when projected onto the planes y = 0 and z = 0
+    //    (e.g. the triangle lies in the plane x = constant)
     
-    const real detxy = v1.x * v2.y - v1.y * v2.x;
-    if (is_not_zero(detxy))
-        return { detxy, det_case::Default };
+    for (det_case det_case : { XY, XZ, YZ }) {
+        const real det = compute_det_2d(v1, v2, det_case);
+        if (is_not_zero(det))
+            return { det, det_case };
+    }
 
-    // The vectors v1, v2 are colinear when projected on the plane z = 0
-    // Another attempt with rows x, z
-    const real detxz = v1.x * v2.z - v1.z * v2.x;
-    if (is_not_zero(detxz))
-        return { detxz, det_case::XZ };
-    
-    // The vectors v1, v2 are colinear when projected on the planes y = 0 and z = 0
-    // (e.g. the triangle lies in the plane x = constant)
-    // Last attempt with rows y, z
-    const real detyz = v1.y * v2.z - v1.z * v2.y;
-    if (is_not_zero(detyz))
-        return { detyz, det_case::YZ };
-
-    return { 0.0_r, det_case::Error };
-    
+    return { 0.0_r, Error };
 }
 
 // Constructor from three points without vertex normals
@@ -73,7 +73,7 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     vn2mvn0 = (vn2.unit()) - vn0;
 
     const auto [ d, case_d ] = set_up_det(v1, v2);
-    det      = d;
+    det      = d;//std::max(d, 1.0e-10_r);
     case_det = case_d;
 }
 
@@ -272,18 +272,17 @@ std::optional<real> triangle::measure_distance_orig(const ray& r) const {
 #endif
 
 real triangle::measure_distance(const ray& r) const {
-    const rt::vector& u = r.origin;
+
+    const rt::vector& u   = r.origin;
     const rt::vector& dir = r.direction;
 
     // Intersection between the ray and the triangle plane
-    const real pdt  = (normal | dir); // ax + by + cz
+    const real pdt  = (normal | dir);   // ax + by + cz
     const real upln = (normal | u) + d; // aX + bY + cZ + d
 
-    // printf("u = (%lf, %lf, %lf), dir = (%lf, %lf, %lf), pdt = %lf, upln = %lf\n",
-    //     u.x, u.y, u.z, dir.x, dir.y, dir.z, pdt, upln);
-    
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
-    if (is_positive(pdt * upln))
+    //if (is_positive(pdt * upln))
+    if (std::signbit(pdt) == std::signbit(upln))
         return infinity;
 
     const real t = - upln / pdt;
@@ -301,31 +300,13 @@ real triangle::measure_distance(const ray& r) const {
        In our case, when det = v1x * v2y - v1y * v2x,
        l1 = (cx * v2y - cy * v2x) / det and l2 = (v1x * cy - v1y * cx) / det */
 
-    //const rt::vector c = u + (t * dir) - position;
     const rt::vector c = fma(dir, t, u) - position;
 
-    // printf("c = (%lf, %lf, %lf), detxy = %lf, abs(detxy) = %lf, cond = %d\n", c.x, c.y, c.z, detxy, std::abs(detxy), std::abs(detxy) > 0.00000001);
-
-    real l1;
-    using enum det_case;
-    switch (case_det) {
-        case Default: l1 = (c.x * v2.y - c.y * v2.x) / det; break;
-        case XZ:      l1 = (c.x * v2.z - c.z * v2.x) / det; break;
-        case YZ:      l1 = (c.y * v2.z - c.z * v2.y) / det; break;
-        default:      l1 = 0.0_r;
-    }
-
+    const real l1 = compute_det_2d(c, v2, case_det) / det;
     if (is_negative_not_zero(l1) || l1 > 1.0_r)
         return infinity;
 
-    real l2;
-    switch (case_det) {
-        case Default: l2 = (v1.x * c.y - v1.y * c.x) / det; break;
-        case XZ:      l2 = (v1.x * c.z - v1.z * c.x) / det; break;
-        case YZ:      l2 = (v1.y * c.z - v1.z * c.y) / det; break;
-        default:      l2 = 0.0_r;
-    }
-
+    const real l2 = compute_det_2d(v1, c, case_det) / det;
     return (is_positive(l2) && l1 + l2 <= 1.0_r) ? t : infinity;
 }
 
@@ -364,29 +345,8 @@ barycentric_info triangle::get_barycentric(const rt::vector& p) const {
 
     const rt::vector c = p - position;
 
-    real l1, l2;
-    using enum det_case;
-    switch (case_det) {
-        case Default:
-            l1 = (c.x * v2.y - c.y * v2.x) / det;
-            l2 = (v1.x * c.y - v1.y * c.x) / det;
-            break;
-
-        case XZ:
-            l1 = (c.x * v2.z - c.z * v2.x) / det;
-            l2 = (v1.x * c.z - v1.z * c.x) / det;
-            break;
-
-        case YZ:
-            l1 = (c.y * v2.z - c.z * v2.y) / det;
-            l2 = (v1.y * c.z - v1.z * c.y) / det;
-            break;
-
-        default:
-            l1 = 0.0_r;
-            l2 = 0.0_r;
-            break;
-    }
+    const real l1 = compute_det_2d(c, v2, case_det) / det;
+    const real l2 = compute_det_2d(v1, c, case_det) / det;
 
     return barycentric_info(l1, l2, object_type::Triangle);
 }

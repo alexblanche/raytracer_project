@@ -13,7 +13,7 @@ void set_up_det(const rt::vector& v1, const rt::vector& v2, const rt::vector& v3
         
         det12 = det12xy;
         det23 = v3.x * v2.y - v3.y * v2.x;
-        case_det = det_case::Default;
+        case_det = det_case::XY;
         return;
     }
     
@@ -296,7 +296,7 @@ real quad::measure_distance(const ray& r) const {
     real detv2, l2;
     using enum det_case;
     switch (case_det) {
-        case Default:
+        case XY:
             detv2 = c.x * v2.y - c.y * v2.x;
             l2 = (v1.x * c.y - v1.y * c.x) / det12;
             break;
@@ -327,10 +327,10 @@ real quad::measure_distance(const ray& r) const {
         
     real l2a;
     switch (case_det) {
-        case Default: l2a = (v3.x * c.y - v3.y * c.x) / det23; break;
-        case XZ:      l2a = (v3.x * c.z - v3.z * c.x) / det23; break;
-        case YZ:      l2a = (v3.y * c.z - v3.z * c.y) / det23; break;
-        default:      l2a = 0.0_r;
+        case XY: l2a = (v3.x * c.y - v3.y * c.x) / det23; break;
+        case XZ: l2a = (v3.x * c.z - v3.z * c.x) / det23; break;
+        case YZ: l2a = (v3.y * c.z - v3.z * c.y) / det23; break;
+        default: l2a = 0.0_r;
     }
 
     return (is_positive(l2a) && l1a + l2a <= 1.0_r) ? t : infinity;
@@ -401,7 +401,7 @@ barycentric_info quad::get_barycentric(const rt::vector& p) const {
     real detv2, l2;
     using enum det_case;
     switch (case_det) {
-        case Default:
+        case XY:
             detv2 = c.x * v2.y - c.y * v2.x;
             l2 = (v1.x * c.y - v1.y * c.x) / det12;
             break;
@@ -428,10 +428,10 @@ barycentric_info quad::get_barycentric(const rt::vector& p) const {
     }
 
     switch (case_det) {
-        case Default: l2 = (v3.x * c.y - v3.y * c.x) / det23; break;
-        case XZ:      l2 = (v3.x * c.z - v3.z * c.x) / det23; break;
-        case YZ:      l2 = (v3.y * c.z - v3.z * c.y) / det23; break;
-        default:      l2 = 0.0_r;
+        case XY: l2 = (v3.x * c.y - v3.y * c.x) / det23; break;
+        case XZ: l2 = (v3.x * c.z - v3.z * c.x) / det23; break;
+        case YZ: l2 = (v3.y * c.z - v3.z * c.y) / det23; break;
+        default: l2 = 0.0_r;
     }
     const real l11 = detv2 / det23;
 

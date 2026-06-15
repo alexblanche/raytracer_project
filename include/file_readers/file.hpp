@@ -10,6 +10,8 @@
 
 #include <optional>
 
+constexpr unsigned int INFINITE = static_cast<unsigned int>(-1);
+
 // Used to ignore unused indices from std::index_sequence
 template<typename T>
 static consteval T id(std::size_t, T value) {
@@ -207,18 +209,44 @@ class file {
             return std::ungetc(c, f);
         }
 
+        int peek_next() const {
+            const char c = getc();
+            ungetc(c);
+            return c;
+        }
+
         exit_status skip(unsigned int n) const {
             std::vector<char> buffer(n);
             return read<char>(buffer);
         }
 
-        void skip_char(char ch) const {
+        void skip_char(char ch, unsigned int count = INFINITE) const {
+            if (eof()) return;
             char c;
-            while (!eof() && (c = getc()) != ch);
+            while (!eof() && (c = getc()) == ch && ((count--) != 0));
             ungetc(c);
+        }
+
+        void skip_until_char(char ch, unsigned int count = INFINITE) const {
+            if (eof()) return;
+            char c;
+            while (!eof() && (c = getc()) != ch && ((count--) != 0));
+            ungetc(c);
+        }
+
+        void skip_whitespace() const {
+            char c;
+            while (!eof()) {
+                c = getc();
+                if (!(c == ' ' || c == '\r' || c == '\n' || c == '\t')) {
+                    ungetc(c);
+                    break;
+                }
+            }
         }
         
         void skip_line() const {
+            skip_until_char('\n');
             skip_char('\n');
         }
 

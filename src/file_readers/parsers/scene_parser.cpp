@@ -61,10 +61,12 @@ std::optional<material> parse_material(const file& f, const real gamma) {
         return scene_opt;
     }
     */
+
     constexpr int BUFFER_MAX_SIZE = 256;
     char buffer[BUFFER_MAX_SIZE];
-    //const int ret = fscanf(file, "%255[^\n]", buffer);
     // Manual extraction (to avoid going over texture declaration)
+    f.skip_whitespace();
+    f.skip_char('(', 1);
     int depth = 0;
     int i;
     for (i = 0; i < BUFFER_MAX_SIZE; i++) {
@@ -72,8 +74,10 @@ std::optional<material> parse_material(const file& f, const real gamma) {
         if (c == '(')
             depth++;
         else if (c == ')') {
-            if (depth == 0)
+            if (depth == 0) {
+                buffer[i] = '\0';
                 break;
+            }
             depth--;
         }
         buffer[i] = c;
@@ -97,7 +101,7 @@ std::optional<material> parse_material(const file& f, const real gamma) {
     };
     param_set is_set;
 
-    std::istringstream stream(buffer); 
+    std::istringstream stream(buffer + (buffer[0] == '('));
     std::string word;
     while (stream >> word) {
         if (is_set.nb_param >= 9) {
