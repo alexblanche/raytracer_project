@@ -97,8 +97,8 @@ class file {
 
             if (f == nullptr) {
                 const std::string message = (mode == mode::R || mode == mode::RB) ? "not found" : "could not be created";
-                printf("File %s %s\n", filename.c_str(), message.c_str());
-                throw std::runtime_error("");
+                std::printf("\rFile %s %s\n", filename.c_str(), message.c_str());
+                throw std::runtime_error("File not found");
             }
         }
 

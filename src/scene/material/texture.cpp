@@ -13,10 +13,8 @@ texture::texture(const std::string& file_name, bool& parsing_successful, const r
     const std::string extension = std::filesystem::path(file_name).extension().generic_string();
     const bool is_bmp = extension == ".bmp";
     const bool is_right_format = is_bmp || extension == ".hdr";
-    if (not is_right_format) {
-        printf("Error in texture definition: wrong file format\n");
-        throw;
-    }
+    if (not is_right_format)
+        throw std::runtime_error("Error in texture definition: wrong file format\n");
     
     std::optional<matrix> mat_opt = (is_bmp) ? read_bmp(file_name) : read_hdr(file_name);
     parsing_successful = mat_opt.has_value();
@@ -27,7 +25,7 @@ texture::texture(const std::string& file_name, bool& parsing_successful, const r
     if (gamma != 1.0_r)
         data.apply_gamma(gamma);
 
-    width  = data.width - 1;
+    width  = data.width  - 1;
     height = data.height - 1;
     width_real  = static_cast<real>(width);
     height_real = static_cast<real>(height);

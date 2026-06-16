@@ -2,11 +2,9 @@
 
 #include "parameters.hpp"
 
-// #include <cmath>
-
 #include <type_traits>
 #include <bit>
-#include <limits>
+// #include <cmath>
 
 // Experiments around basing float expressions
 
@@ -20,7 +18,7 @@ inline bool is_zero(real x) {
 
 inline bool is_not_zero(real x) {
     //return not is_zero(x);
-    return x != 0.0_r; //std::fpclassify(x) != FP_ZERO;
+    return x != 0.0_r;
 }
 
 inline bool is_positive(real x) {
@@ -41,6 +39,7 @@ inline bool is_negative_not_zero(real x) {
     return x < 0.0_r; //is_not_zero(x) && is_negative(x);
 }
 
+// Unsigned int type with given size
 template<unsigned int UINT_SIZE>
 requires (UINT_SIZE >= 2 && UINT_SIZE <= sizeof(real))
 using UInt =
@@ -49,7 +48,6 @@ using UInt =
 
 inline bool is_between_zero_and_one(const real x) {
 
-    constexpr bool IEEE754 = std::numeric_limits<real>::is_iec559;
     if constexpr (IEEE754) {
         
         // Extraction of the 12 most significant bits b11 ... b0 (b11 = MSB) of the binary representation of x
@@ -69,7 +67,7 @@ inline bool is_between_zero_and_one(const real x) {
 
         const UInt n = (reinterpret_cast<const UInt*>(&x)[NB_BLOCKS - 1]) >> (UINT_BIT_SIZE - 16);
         
-        constexpr UInt max = 1023 << 4;
+        constexpr UInt max = 1023 << (16 - 12);
         return n < max;
     }
     else {
@@ -80,7 +78,6 @@ inline bool is_between_zero_and_one(const real x) {
 // About 1% faster than (std::abs(x) < 1.0_r). Unused
 inline bool abs_less_than_one(const real x) {
 
-    constexpr bool IEEE754 = std::numeric_limits<real>::is_iec559;
     if constexpr (IEEE754) {
         constexpr unsigned int UINT_SIZE = 2; // size of the chosen uint type in bytes
         
@@ -127,14 +124,19 @@ consteval unsigned int only_set_bit_position(UInt x) {
 
 template<typename Float>
 requires std::is_floating_point_v<Float> && (sizeof(Float) <= 8)
-consteval unsigned int sign_bit_position () {
-    
-    using UInt = std::conditional_t<sizeof(Float) == 4, uint32_t, uint64_t>;
-    static_assert(sizeof(UInt) == sizeof(Float));
-    
-    constexpr Float pos = 1.0;
-    constexpr Float neg = -pos;
+consteval unsigned int sign_bit_position() {
 
-    constexpr UInt diff = std::bit_cast<UInt, Float>(pos) ^ std::bit_cast<UInt, Float>(neg);
-    return only_set_bit_position(diff);
+    if constexpr (IEEE754) {
+        return 8 * sizeof(Float) - 1;
+    }
+    else {
+        using UInt = UInt<sizeof(Float)>;
+        static_assert(sizeof(UInt) == sizeof(Float));
+        
+        constexpr Float pos = 1.0;
+        constexpr Float neg = -pos;
+
+        constexpr UInt diff = std::bit_cast<UInt>(pos) ^ std::bit_cast<UInt>(neg);
+        return only_set_bit_position(diff);
+    }
 }

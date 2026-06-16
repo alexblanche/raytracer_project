@@ -8,6 +8,13 @@
 static constexpr unsigned int MAX_ELTS_PER_LEAF = 10;
 static constexpr unsigned int NB_REGIONS = 8;
 
+static inline unsigned char get_region(const rt::vector& v, const rt::vector& node) {
+    const bool bx = v.x >= node.x;
+    const bool by = v.y >= node.y;
+    const bool bz = v.z >= node.z;
+    return (bx << 2) | (by << 1) | bz;
+}
+
 // Each index stores a 3D point p. Dividing the space into 8 regions 0..7
 // (1st bit: x < or > p.x; 2nd bit: y < or > p.y; 3rd bit: z < or > p.z)
 // E.g. x < p.x (0); y > p.y (1); z > p.z (1), region 011(2) = 3
@@ -38,10 +45,7 @@ static std::vector<unsigned int> split(const std::vector<rt::vector>& means, sea
 
     for (unsigned int elt : elts) {
         const rt::vector& v = means[elt];
-        const unsigned char bx = v.x >= avg.x;
-        const unsigned char by = v.y >= avg.y;
-        const unsigned char bz = v.z >= avg.z;
-        const unsigned char region = (bx << 2) + (by << 1) + bz;
+        const unsigned char region = get_region(v, avg);
         nb_elt_region[region]++;
     }
     
@@ -64,10 +68,7 @@ static std::vector<unsigned int> split(const std::vector<rt::vector>& means, sea
     for (unsigned int elt : elts) {
 
         const rt::vector& v = means[elt];
-        const unsigned char bx = v.x >= avg.x;
-        const unsigned char by = v.y >= avg.y;
-        const unsigned char bz = v.z >= avg.z;
-        const unsigned char region = (bx << 2) + (by << 1) + bz;
+        const unsigned char region = get_region(v, avg);
         elts_temp[first_index[region] - index_min] = elt;
         first_index[region]++;
     }
@@ -170,11 +171,7 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
 static unsigned int compute_subregion_index(const search_tree& tree, const rt::vector& v, const unsigned int index) {
     
     const rt::vector& root = tree.internal_nodes[index];
-    const unsigned char bx = v.x >= root.x;
-    const unsigned char by = v.y >= root.y;
-    const unsigned char bz = v.z >= root.z;
-    const unsigned char region = (bx << 2) + (by << 1) + bz;
-
+    const unsigned char region = get_region(v, root);
     return (index << 3) + region + 1;
 }
 
@@ -197,34 +194,6 @@ static std::pair<real, std::optional<unsigned int>> compute_min_dist_sq(const st
 
     return { min_dist_sq, closest_index };
 }
-
-/*
-real distance_sq_to_region(const rt::vector& v, const rt::vector& root, const unsigned char region) {
-
-    const bool bx = v.x >= root.x;
-    const bool by = v.y >= root.y;
-    const bool bz = v.z >= root.z;
-
-    const bool rx = region & 0x04;
-    const bool ry = region & 0x02;
-    const bool rz = region & 0x01;
-
-    real d = 0.0_r;
-    if (bx != rx) {
-        const real dx = v.x - root.x;
-        d += dx * dx;
-    }
-    if (by != ry) {
-        const real dy = v.y - root.y;
-        d += dy * dy;
-    }
-    if (bz != rz) {
-        const real dz = v.z - root.z;
-        d += dz * dz;
-    }
-    return d;
-}
-*/
 
 // Optimized version
 static inline real distance_sq_to_region(const rt::vector& d2,
@@ -299,7 +268,8 @@ unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree
             // Pre-computation for distance checking
             
             const rt::vector d = v - root;
-            const unsigned char b = ((d.x >= 0.0_r) << 2) + ((d.y >= 0.0_r) << 1) + (d.z >= 0.0_r);
+            constexpr rt::vector zero(0, 0, 0);
+            const unsigned char b = get_region(d, zero);
             const rt::vector d2(d.x * d.x, d.y * d.y, d.z * d.z);
 
             for (unsigned char i = region_to_start_from; i < 8; i++) {

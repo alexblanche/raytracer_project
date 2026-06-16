@@ -593,15 +593,14 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
             printf("Parsing %s...", bg_tfile_name_short.c_str());
             fflush(stdout);
+
             bool bg_parsing_successful;
             background_texture = texture(bg_tfile_name, bg_parsing_successful);
-            if (not bg_parsing_successful) {
+            if (not bg_parsing_successful)
                 throw std::runtime_error("Parsing error in scene constructor (background texture parsing)");
-            }
-            else {
-                printf("\r> %s texture loaded\n", bg_tfile_name_short.c_str());
-                background_texture_is_set = true;
-            }
+            
+            printf("\r> %s texture loaded\n", bg_tfile_name_short.c_str());
+            background_texture_is_set = true;
         }
         
         unsigned int polygons_per_bounding = 0;
