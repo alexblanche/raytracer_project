@@ -9,11 +9,12 @@
 static constexpr int BYTES_PER_COLOR = 3;
 
 /* Extracts the data from the given .bmp file into the matrix data, which must have the right size */
-std::optional<matrix> read_bmp(const std::string& file_name) {
-
-    file f(file_name, "rb");
+std::optional<matrix> bmp::read_file(const std::string& file_name) {
 
     try {
+        
+        file f(file_name, "rb");
+
         /* 18 bytes ignored:
            Type (2), Size (4), Reserved 1 (2), Reserved 2 (2), Offset (4), Size of the header (4)
         */
@@ -36,12 +37,14 @@ std::optional<matrix> read_bmp(const std::string& file_name) {
         */
         f.skip(28);
 
+        const unsigned int row_length_bytes = BYTES_PER_COLOR * bmpwidth;
+
         /* Padding at the end of each row in the file */
-        const unsigned int p = (4 - ((BYTES_PER_COLOR * bmpwidth) % 4)) % 4;
+        const unsigned int padding_bytes = (4 - (row_length_bytes % 4)) % 4;
 
         /* Color data */
-        const unsigned int nb_bytes = ((BYTES_PER_COLOR * bmpwidth) + p) * bmpheight;
-        std::vector<unsigned char> buffer(nb_bytes);
+        const unsigned int size_bytes = (row_length_bytes + padding_bytes) * bmpheight;
+        std::vector<unsigned char> buffer(size_bytes);
         const exit_status status = f.read(buffer);
         throw_if_failure(status, "Reading error in read_bmp (pixel data)");
 
@@ -56,7 +59,7 @@ std::optional<matrix> read_bmp(const std::string& file_name) {
                 color = rt::color(r, g, b);
                 index += 3;
             }
-            index += p;
+            index += padding_bytes;
         }
 
         return matrix;
@@ -68,7 +71,7 @@ std::optional<matrix> read_bmp(const std::string& file_name) {
 }
 
 /* Prints the info contained in the header of the given .bmp file */
-exit_status print_bmp_info(const std::string& file_name) {
+exit_status bmp::print_info(const std::string& file_name) {
 
     file f(file_name, "rb");
 
@@ -76,7 +79,7 @@ exit_status print_bmp_info(const std::string& file_name) {
     char filetype[2];
     f.read<char>(filetype);
 
-    std::optional<bmp_header> h_opt = f.scan<bmp_header>();
+    std::optional<bmp::header> h_opt = f.scan<bmp::header>();
 
     if (not h_opt.has_value()) {
         printf("Reading error in read_bmp header\n");
@@ -96,116 +99,115 @@ static inline void check(exit_status status) {
 /* Writes the data into a .bmp file with the given name
    The value (double) of each component of each color of data is divided by number_of_rays before being written in the file
    Returns true if the operation was successful */
-exit_status write_bmp(const std::string& file_name, const image& image) {
+exit_status bmp::export_data(const std::string& file_name, const image& image) {
 
     const auto [ width, height ] = image.data.get_dimensions();
 
-    const unsigned int p = (4 - ((BYTES_PER_COLOR * width) % 4)) % 4;
-    const bool padding = (p != 0);
-
-    file f(file_name, "wb");
+    const unsigned int row_length_bytes = BYTES_PER_COLOR * width;
+    const unsigned int padding_bytes = (4 - (row_length_bytes % 4)) % 4;
 
     /* All sizes are stored in little-endian */
-    try {
-        /** Header **/
+
+    const unsigned int data_size = (row_length_bytes + padding_bytes) * height;
+    const unsigned int file_size = 14 + 40 + data_size;
+
+    /** Header **/
+
+    uint8_t header[] = {
 
         /* 2 bytes: BM */
-        check(f.printf("BM"));
+        'B', 'M', 
 
         /* 4 bytes: File size */
-        /* Size = 14 (header) + 40 (infoheader) + BYTES_PER_COLOR * width * height (pixel data) + p * height */
-        const unsigned int file_size = 14 + 40 + (BYTES_PER_COLOR * width + p) * height;
-        check(f.write<char>(
-            file_size         & 0xFF,
-            (file_size >> 8)  & 0xFF,
-            (file_size >> 16) & 0xFF,
-            (file_size >> 24) & 0xFF
-        ));
+        static_cast<uint8_t>( file_size        & 0xFF),
+        static_cast<uint8_t>((file_size >> 8)  & 0xFF),
+        static_cast<uint8_t>((file_size >> 16) & 0xFF),
+        static_cast<uint8_t>((file_size >> 24) & 0xFF),
 
         /* 4 bytes: 0 0 0 0 */
-        check(f.write<char, '\0', 4>());
-
+        0, 0, 0, 0,
+        
         /* 4 bytes: Offset from beginning of file to the beginning of the bitmap data = 54 */
-        check(f.write<char>(54, 0, 0, 0));
+        54, 0, 0, 0,
 
         /** InfoHeader **/
 
         /* 4 bytes: Size of InfoHeader = 40 */
-        check(f.write<char>(40, 0, 0, 0));
-
+        40, 0, 0, 0,
+        
         /* 4 bytes: Width */
-        check(f.write<char>(
-            width         & 0xFF,
-            (width >> 8)  & 0xFF,
-            (width >> 16) & 0xFF,
-            (width >> 24) & 0xFF
-        ));
-
+        static_cast<uint8_t>( width        & 0xFF),
+        static_cast<uint8_t>((width >> 8)  & 0xFF),
+        static_cast<uint8_t>((width >> 16) & 0xFF),
+        static_cast<uint8_t>((width >> 24) & 0xFF),
+        
         /* 4 bytes: Height */
-        check(f.write<char>(
-            height         & 0xFF,
-            (height >> 8)  & 0xFF,
-            (height >> 16) & 0xFF,
-            (height >> 24) & 0xFF
-        ));
+        static_cast<uint8_t>( height        & 0xFF),
+        static_cast<uint8_t>((height >> 8)  & 0xFF),
+        static_cast<uint8_t>((height >> 16) & 0xFF),
+        static_cast<uint8_t>((height >> 24) & 0xFF),
 
         /* 2 bytes: Planes = 1 */
-        check(f.write<char>(1, 0));
+        1,  0,
 
         /* 2 bytes: Bits per Pixel (24 for 24 bits RGB) */
-        check(f.write<char>(24, 0));
+        24, 0,
 
         /* 4 bytes: compression (0 for no compression) */
-        check(f.write<char, '\0', 4>());
+        0, 0, 0, 0,
 
         /* 4 bytes: Size of the pixel data */
-        /* Size = 3 * width * height (pixel data) + p * height */
-        const unsigned int data_size = (BYTES_PER_COLOR * width + p) * height;
-        check(f.write<char>(
-            data_size         & 0xFF,
-            (data_size >> 8)  & 0xFF,
-            (data_size >> 16) & 0xFF,
-            (data_size >> 24) & 0xFF
-        ));
+        static_cast<uint8_t>( data_size        & 0xFF),
+        static_cast<uint8_t>((data_size >> 8)  & 0xFF),
+        static_cast<uint8_t>((data_size >> 16) & 0xFF),
+        static_cast<uint8_t>((data_size >> 24) & 0xFF),
 
-        /* 4 bytes: Horizontal resolution (in pixels/meter)
-        Unimportant: leaving it as 0 */
-        check(f.write<char, '\0', 4>());
+        /*
+            16 unimportant bytes left as 0
+            - 4 bytes: Horizontal resolution (in pixels/meter)
+            - 4 bytes: Vertical resolution (in pixels/meter)
+            - 4 bytes: Number of actually used colors
+            - 4 bytes: Important colors
+        */
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0
+    };
 
-        /* 4 bytes: Vertical resolution (in pixels/meter)
-        Unimportant: leaving it as 0 */
-        check(f.write<char, '\0', 4>());
+    /** Color data **/
 
-        /* 4 bytes: Number of actually used colors
-        Unimportant: leaving it as 0 */
-        check(f.write<char, '\0', 4>());
+    std::vector<uint8_t> buffer(data_size, 0);
 
-        /* 4 bytes: Important colors
-        Unimportant: leaving it as 0 */
-        check(f.write<char, '\0', 4>());
-        
+    /* Each pixel is represented as 3 bytes BGR, each line (sequence of 3*width bytes) is followed by p bytes '0' of padding */
+    const bool gamma_enabled = image.gamma != 1.0_r;
+    const real invN = 1.0_r / image.number_of_samples;
 
-        /** Color data **/
-        /* Each pixel is represented as 3 bytes BGR, each line (sequence of 3*width bytes) is followed by p bytes '0' of padding */
-        const bool gamma_enabled = image.gamma != 1.0_r;
-        const real invN = 1.0_r / image.number_of_samples;
-    
-        for (const matrix::const_row row : image.data) {
-            for (const rt::color& c : row) {
-                
-                rt::color col = c * invN;
-                col.in_place_max_out();
+    int index = 0;
+    for (const matrix::const_row row : image.data) {
+        for (const rt::color& c : row) {
+            
+            rt::color col = c * invN;
+            col.cap();
 
-                if (gamma_enabled)
-                    col.apply_gamma(image.gamma);
+            if (gamma_enabled)
+                col.apply_gamma(image.gamma);
 
-                const auto [ b, g, r ] = col.to_uint8_bgr();
-                f.write<char>(b, g, r);
-            }
-            /* Writing p bytes '0' of padding */
-            if (padding)
-                f.write<char, '\0'>(p);
+            const auto [ b, g, r ] = col.to_uint8_bgr();
+            buffer[index]     = b;
+            buffer[index + 1] = g;
+            buffer[index + 2] = r;
+            index += 3;
         }
+        index += padding_bytes;
+    }
+
+    try {
+
+        file f(file_name, "wb");
+
+        check(f.write<uint8_t>(header));
+        check(f.write(buffer));
 
         return exit_status::Success;
     }

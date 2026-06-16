@@ -20,7 +20,7 @@ static void test_bmp() {
     timer_ms timer;
     timer.start();
     for (int k = 0; k < NB_ITERATIONS; k++) {
-        mat_opt = read_bmp(filename_bmp);
+        mat_opt = bmp::read_file(filename_bmp);
         assert(mat_opt.has_value());
     }
     timer.stop();
@@ -60,7 +60,7 @@ static void test_hdr() {
 static void test_fastcopy() {
     const std::string& filename_bmp = BMP_FILE_NAME;
     
-    std::optional<matrix> mat_opt = read_bmp(filename_bmp);
+    std::optional<matrix> mat_opt = bmp::read_file(filename_bmp);
     if (not mat_opt.has_value())
         return;
     

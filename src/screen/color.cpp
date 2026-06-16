@@ -5,7 +5,7 @@
 
 namespace rt {
 
-	[[nodiscard]] color color::max_out() const {
+	[[nodiscard]] color color::get_capped() const {
 		constexpr real max = 255.0_r;
 		return color(
 			std::min(red,   max),
@@ -20,7 +20,7 @@ namespace rt {
 		for (const color& c : color_set)
 			col += c;
 
-		return col.max_out();
+		return col.get_capped();
 	}
 
 	/* Returns the average of all the colors of the given color vector */

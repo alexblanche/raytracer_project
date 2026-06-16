@@ -173,7 +173,7 @@ namespace rt {
 		for (const matrix::const_row row : img.data) {
             for (const color& pixel_col : row) {
 				color avg = pixel_col * invN;
-				avg.in_place_max_out();
+				avg.cap();
 				const auto [ r, g, b ] = avg.to_uint8();
 				texture_pixels[index] 	  = r;
 				texture_pixels[index + 1] = g;
@@ -206,7 +206,7 @@ namespace rt {
 				color corrected = pixel_col * inv;
 				corrected ^= img.gamma;
 				corrected *= 255.0_r;
-				corrected.in_place_max_out();
+				corrected.cap();
 				const auto [ cr, cg, cb ] = corrected.to_uint8();
 				texture_pixels[index] 	  = cr;
 				texture_pixels[index + 1] = cg;
@@ -261,7 +261,7 @@ namespace rt {
 				color corrected = col * (lcorr * inv);
 				corrected ^= img.gamma;
 				corrected *= 255.0_r;
-				corrected.in_place_max_out();
+				corrected.cap();
 
 				const auto [ cr, cg, cb ] = corrected.to_uint8();
 				texture_pixels[index] 	  = cr;

@@ -27,7 +27,7 @@ static normal_map::vector_matrix convert_bmp_to_normal_field(const matrix& col_d
 
 std::optional<normal_map::vector_matrix> read_normal_map(const std::string& file_name) {
 
-    const std::optional<matrix> mat_opt = read_bmp(file_name);
+    const std::optional<matrix> mat_opt = bmp::read_file(file_name);
     if (not mat_opt.has_value())
         return std::nullopt;
 

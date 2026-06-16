@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    const exit_status status = combine_raw(args[0], args[1], std::span(args).subspan(index_source), gamma);
+    const exit_status status = raw_data::combine_files(args[0], args[1], std::span(args).subspan(index_source), gamma);
 
     printf("Generating merged files\n");
 

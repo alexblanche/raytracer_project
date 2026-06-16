@@ -30,10 +30,10 @@ exit_status file_handler::export_file(const type file_type, const std::string& f
     exit_status status;
     switch (file_type) {
         case Bmp:
-            status = write_bmp(file_path, image);
+            status = bmp::export_data(file_path, image);
             break;
         case Raw:
-            status = export_raw(file_path, image);
+            status = raw_data::export_data(file_path, image);
             break;
     }
 

@@ -23,7 +23,7 @@ static rt::color apply_lights_obj(const hit& h,
             apply
         );
 
-    return sum.max_out();
+    return sum.get_capped();
 }
 
 /* Ray tracing function: computes the hit of the given ray on the closest object,
