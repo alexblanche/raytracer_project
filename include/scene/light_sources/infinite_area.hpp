@@ -45,13 +45,13 @@ struct alias_table {
     : alias_table(compute_low_res_table(matrix), matrix.width, matrix.height, pt_width, pt_height) {}
 
     // Should be called in each thread at initialization
-    static inline random_ratio_gen<double> get_random_generator() {
-        return random_ratio_gen<double>();
+    inline random_ratio_gen<double> get_random_generator() const {
+        return random_ratio_gen<double>(bins.size() - 1);
     }
 
     inline unsigned int sample_table(const random_ratio_gen<double>& rg) const {
 
-        const unsigned int i = static_cast<unsigned int>(rg.random(nb_bins));
+        const unsigned int i = rg.random_int(); //static_cast<unsigned int>(rg.random(nb_bins));
         const auto [ p, alias ] = bins[i];
         return (rg.random() < p) ? i : alias;
     }

@@ -57,18 +57,21 @@ requires std::is_floating_point_v<Float>
 class random_ratio_gen {
 
     private:
-        mutable std::default_random_engine engine;
+        mutable std::default_random_engine            engine;
         mutable std::uniform_real_distribution<Float> unif_ratio;
+        mutable std::uniform_int_distribution<>       unif_int;
 
     public:
 
-        random_ratio_gen()
+        random_ratio_gen(int max_index)
             :   engine(timer_ms::get_time()),
-                unif_ratio(0, 1) {}
+                unif_ratio(0, 1),
+                unif_int(0, max_index) {}
                 
-        random_ratio_gen(uint64_t seed)
+        random_ratio_gen(uint64_t seed, int max_index)
             :   engine(seed),
-                unif_ratio(0, 1) {}
+                unif_ratio(0, 1),
+                unif_int(0, max_index) {}
 
         inline Float random() const {
             return unif_ratio(engine);
@@ -76,5 +79,9 @@ class random_ratio_gen {
 
         inline Float random(Float m) const {
             return m * random();
+        }
+
+        inline int random_int() const {
+            return unif_int(engine);
         }
 };
