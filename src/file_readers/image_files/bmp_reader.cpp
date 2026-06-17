@@ -2,6 +2,8 @@
 
 #include "file_readers/file.hpp"
 
+#include "parallel/parallel.hpp"
+
 #include <iostream>
 #include <stdexcept>
 #include <cmath>
@@ -47,11 +49,14 @@ std::optional<matrix> bmp::read_file(const std::string& file_name) {
         std::vector<unsigned char> buffer(size_bytes);
         const exit_status status = f.read(buffer);
         throw_if_failure(status, "Reading error in read_bmp (pixel data)");
+        f.close();
 
         matrix matrix(bmpwidth, bmpheight);
 
-        unsigned int index = 0;
-        for (const matrix::row row : matrix) {
+        parallel_for(bmpheight, [&] (int j) {
+
+            const matrix::row row = matrix[j];
+            unsigned int index = 3 * j * (bmpwidth + padding_bytes);
             for (rt::color& color : row) {
                 const real b = buffer[index];
                 const real g = buffer[index + 1];
@@ -59,8 +64,7 @@ std::optional<matrix> bmp::read_file(const std::string& file_name) {
                 color = rt::color(r, g, b);
                 index += 3;
             }
-            index += padding_bytes;
-        }
+        });
 
         return matrix;
     }
@@ -96,6 +100,17 @@ static inline void check(exit_status status) {
     throw_if_failure(status, "");
 }
 
+struct byte_representation {
+
+    uint8_t b0, b1, b2, b3;
+
+    byte_representation(unsigned int n) :
+        b0( n        & 0xFF),
+        b1((n >> 8)  & 0xFF),
+        b2((n >> 16) & 0xFF),
+        b3((n >> 24) & 0xFF) {}
+};
+
 /* Writes the data into a .bmp file with the given name
    The value (double) of each component of each color of data is divided by number_of_rays before being written in the file
    Returns true if the operation was successful */
@@ -113,16 +128,18 @@ exit_status bmp::export_data(const std::string& file_name, const image& image) {
 
     /** Header **/
 
+    const auto [ s0, s1, s2, s3 ] = byte_representation(file_size);
+    const auto [ w0, w1, w2, w3 ] = byte_representation(width);
+    const auto [ h0, h1, h2, h3 ] = byte_representation(height);
+    const auto [ d0, d1, d2, d3 ] = byte_representation(data_size);
+
     uint8_t header[] = {
 
         /* 2 bytes: BM */
         'B', 'M', 
 
         /* 4 bytes: File size */
-        static_cast<uint8_t>( file_size        & 0xFF),
-        static_cast<uint8_t>((file_size >> 8)  & 0xFF),
-        static_cast<uint8_t>((file_size >> 16) & 0xFF),
-        static_cast<uint8_t>((file_size >> 24) & 0xFF),
+        s0, s1, s2, s3,
 
         /* 4 bytes: 0 0 0 0 */
         0, 0, 0, 0,
@@ -136,16 +153,10 @@ exit_status bmp::export_data(const std::string& file_name, const image& image) {
         40, 0, 0, 0,
         
         /* 4 bytes: Width */
-        static_cast<uint8_t>( width        & 0xFF),
-        static_cast<uint8_t>((width >> 8)  & 0xFF),
-        static_cast<uint8_t>((width >> 16) & 0xFF),
-        static_cast<uint8_t>((width >> 24) & 0xFF),
+        w0, w1, w2, w3,
         
         /* 4 bytes: Height */
-        static_cast<uint8_t>( height        & 0xFF),
-        static_cast<uint8_t>((height >> 8)  & 0xFF),
-        static_cast<uint8_t>((height >> 16) & 0xFF),
-        static_cast<uint8_t>((height >> 24) & 0xFF),
+        h0, h1, h2, h3,
 
         /* 2 bytes: Planes = 1 */
         1,  0,
@@ -157,10 +168,7 @@ exit_status bmp::export_data(const std::string& file_name, const image& image) {
         0, 0, 0, 0,
 
         /* 4 bytes: Size of the pixel data */
-        static_cast<uint8_t>( data_size        & 0xFF),
-        static_cast<uint8_t>((data_size >> 8)  & 0xFF),
-        static_cast<uint8_t>((data_size >> 16) & 0xFF),
-        static_cast<uint8_t>((data_size >> 24) & 0xFF),
+        d0, d1, d2, d3,
 
         /*
             16 unimportant bytes left as 0

@@ -30,19 +30,23 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
+    const std::string& dest_bmp = args[0];
+    const std::string& dest_raw = args[1];
+
+    const std::string extension_bmp = std::filesystem::path(dest_bmp).extension().generic_string();
+    const std::string extension_raw = std::filesystem::path(dest_raw).extension().generic_string();
+
     /* Checking file extensions */
-    if (!(std::filesystem::path(args[0]).extension().generic_string() == ".bmp")) {
-        printf("Error: first output file should have format bmp\n");
+    if (extension_bmp != ".bmp") {
+        printf("Error: first output file should have format .bmp\n");
         return EXIT_FAILURE;
     }
-    if (!(std::filesystem::path(args[1]).extension().generic_string() == ".rtdata")) {
-        printf("Error: second output file should have format rtdata\n");
+    if (extension_raw != ".rtdata") {
+        printf("Error: second output file should have format .rtdata\n");
         return EXIT_FAILURE;
     }
 
-    const exit_status status = raw_data::combine_files(args[0], args[1], std::span(args).subspan(index_source), gamma);
-
-    printf("Generating merged files\n");
+    const exit_status status = raw_data::combine_files(dest_bmp, dest_raw, std::span(args).subspan(index_source), gamma);
 
     switch (status) {
         case exit_status::Success:
@@ -50,7 +54,7 @@ int main(int argc, char* argv[]) {
             break;
     
         case exit_status::Failure:
-            printf("Error, merger failed\n");
+            printf("Error: merger failed\n");
             return EXIT_FAILURE;
     }
 
