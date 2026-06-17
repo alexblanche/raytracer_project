@@ -75,7 +75,7 @@ inline bool is_between_zero_and_one(const real x) {
     }
 }
 
-// About 1% faster than (std::abs(x) < 1.0_r). Unused
+// About 1% faster than (std::abs(x) < 1.0_r), consistently. (Disappointing...)
 inline bool abs_less_than_one(const real x) {
 
     if constexpr (IEEE754) {

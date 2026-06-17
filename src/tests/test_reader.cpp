@@ -36,14 +36,14 @@ static void test_bmp() {
 
 static void test_hdr() {
     const std::string& filename_hdr = HDR_FILE_NAME;
-    constexpr int NB_ITERATIONS = 5;
+    constexpr int NB_ITERATIONS = 10;
 
     std::optional<matrix> mat_opt;
 
     timer_ms timer;
     timer.start();
     for (int k = 0; k < NB_ITERATIONS; k++) {
-        mat_opt = read_hdr(filename_hdr);
+        mat_opt = hdr::read_file(filename_hdr);
         assert(mat_opt.has_value());
     }
     timer.stop();

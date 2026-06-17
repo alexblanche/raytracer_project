@@ -5,4 +5,7 @@
 #include <string>
 #include <optional>
 
-std::optional<matrix> read_hdr(const std::string& file_name);
+class hdr {
+    public:
+        static std::optional<matrix> read_file(const std::string& file_name);
+};

@@ -7,22 +7,21 @@
 #include <cmath>
 #include <stdexcept>
 
-std::optional<matrix> read_hdr(const std::string& file_name) {
-
-    file f(file_name, "rb");
+std::optional<matrix> hdr::read_file(const std::string& file_name) {
 
     try {
 
-        float gamma;
-        int p1, p2, p3, p4, p5, p6, p7, p8;
-        char format[16];
+        file f(file_name, "rb");
+
         {
+            float gamma;
+            int p[8];
+            char format[16];
             const exit_status status = f.scanf("#?RADIANCE\n#?RADIANCE\nGAMMA=%f\nPRIMARIES=%d %d %d %d %d %d %d %d\nFORMAT=%15s",
-                gamma, p1, p2, p3, p4, p5, p6, p7, p8, format);
+                gamma, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], format);
             if (status == exit_status::Failure) {
-                const exit_status status = f.scanf("FORMAT=%15s", format);
-                if (status == exit_status::Failure)
-                    throw std::runtime_error("Reading error in print_hdr_info: header");
+                const exit_status status_format = f.scanf("FORMAT=%15s", format);
+                throw_if_failure(status_format, "Reading error in print_hdr_info: header");
             }
         }
         
@@ -30,17 +29,13 @@ std::optional<matrix> read_hdr(const std::string& file_name) {
         unsigned int v1, v2;
         {
             const exit_status status = f.scanf("\n%c%c %u %c%c %u\n", s1, l1, v1, s2, l2, v2);
-            if (status == exit_status::Failure)
-                throw std::runtime_error("Reading error in print_hdr_info: dimensions");
+            throw_if_failure(status, "Reading error in print_hdr_info: dimensions");
         }
-        if ((l1 != 'X' && l1 != 'Y') || (l2 != 'X' && l2 != 'Y') || (s1 != '-' && s1 != '+') || (s2 != '-' && s2 != '+'))
+        if (not ((l1 == 'X' || l1 == 'Y') && (l2 == 'X' || l2 == 'Y')
+              && (s1 == '-' || s1 == '+') && (s2 == '-' || s2 == '+')))
             throw std::runtime_error("Incorrect dimensions");
 
-        bool l1_is_x = l1 == 'X';
-        // bool x_orientation  = l1_is_x ? s1 == '+' : s2 == '+';
-        // bool y_orientation  = l1_is_x ? s2 == '+' : s1 == '+';
-        unsigned int width  = l1_is_x ? v1 : v2;
-        unsigned int height = l1_is_x ? v2 : v1;
+        const auto [ width, height ] = (l1 == 'X') ? std::pair { v1, v2 } : std::pair { v2, v1 };
 
         // Filling pixel data
         std::array<std::vector<unsigned char>, 4> data_buffer;
@@ -48,7 +43,7 @@ std::optional<matrix> read_hdr(const std::string& file_name) {
             v.resize(width * height);
 
         const std::vector<unsigned char> content = f.extract_from();
-        const std::size_t length = f.length();
+        const std::size_t length = content.size();
         if (length > static_cast<std::size_t>(INT32_MAX)) {
             throw std::runtime_error("read_hdr: file too large");
         }
@@ -67,7 +62,7 @@ std::optional<matrix> read_hdr(const std::string& file_name) {
             if (header != expected_row_header) [[unlikely]] {
                 throw std::runtime_error("Reading error in read_hdr: bytes '2' or width at beginning of row");
             }
-            pos++;
+            pos += 4;
             
             for (int component = 0; component < 4; component++) {
 
@@ -97,17 +92,23 @@ std::optional<matrix> read_hdr(const std::string& file_name) {
         matrix data(width, height);
 
         parallel_for(height, [&] (int j) {
+
             int index = (height - 1 - j) * width;
             const matrix::row row = data[j];
+
             for (rt::color& color : row) {
-                color = rt::color(
+
+                const rt::color col(
                     data_buffer[0][index],
                     data_buffer[1][index],
                     data_buffer[2][index]
                 );
+
                 const int e = data_buffer[3][index];
-                const real radiance_val = pow(2.0_r, e - 128);
-                color *= radiance_val;
+                const real radiance_val = std::exp2(static_cast<real>(e - 128));
+
+                color = col * radiance_val;
+
                 index++;
             }
         });
