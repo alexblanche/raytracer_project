@@ -35,67 +35,26 @@ class direction {
         // Constexpr theta_max
         /* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
         template <angle theta_max>
-        static rt::vector random(const randomgen& rg, const rt::vector& central_dir) {
+        static rt::vector random(const randomgen& rg, const rt::vector& central_dir = rt::vector(0,0,0)) {
 
-            constexpr real cos_theta_max = [] (angle theta) {
-                using enum angle;
-                switch (theta) {
-                    case Pi:        return -1.0_r;
-                    case Pi_over_2: return  0.0_r;
-                    default:        throw;
-                }
-            } (theta_max);
+            using enum angle;
+            if constexpr (theta_max == Pi || theta_max == Pi_over_2) {
+                const real cos_theta = 2.0_r * rg.random_ratio() - 1.0_r;
+                const real sin_theta = sqrt(1.0_r - cos_theta * cos_theta);
+                const real phi = rg.random_angle();
+                
+                const rt::vector v(
+                    cos(phi) * sin_theta,
+                    sin(phi) * sin_theta,
+                    cos_theta
+                );
 
-            constexpr real one_m_costhetamax = 1.0_r - cos_theta_max;
-
-            // random ray in the cone of angle theta_max to central_dir
-            /*
-            theta = acos(1 - p(1 - cos(theta_max)))
-            x = cos(phi) sin(theta) = cos(phi) * sqrt(1 - (1 - p(1-cos(theta_max))^2))
-            y = sin(phi) sin(theta) = sin(phi) * sqrt(1 - (1 - p(1-cos(theta_max))^2))
-            z = cos(theta)          = 1 - p(1-cos(theta_max))
-            */
-            if constexpr (one_m_costhetamax != 0.0_r) {
-
-                // Central direction of the rays
-                const auto [ a, b, c ] = central_dir;
-
-                // Orthonormal base of the plane orthogonal to central_dir
-                rt::vector X, Y;
-                if (is_not_zero(a)) {
-                    const real nX = a * a + b * b;
-                    const real sqrtnX = sqrt(nX);
-                    X = rt::vector(- b / sqrtnX, a / sqrtnX, 0.0_r);
-                    Y = rt::vector(a * c, b * c, -nX).unit();
-                }
-                else if (is_not_zero(b)) {
-                    // central_dir = (0,b,c)
-                    X = rt::vector(0.0_r, - c, b).unit();
-                    Y = rt::vector(1, 0, 0);
+                if constexpr (theta_max == Pi) {
+                    return v;
                 }
                 else {
-                    // central_dir = (0,0,1)
-                    X = rt::vector(1, 0, 0);
-                    Y = rt::vector(0, 1, 0);
+                    return std::signbit(v | central_dir) ? (-1.0_r) * v : v;
                 }
-
-                const real p   = rg.random_ratio();
-                const real phi = rg.random_angle();
-                const real cos_theta = 1.0_r - p * one_m_costhetamax;
-                const real sin_theta = sqrt(1.0_r - cos_theta * cos_theta);
-                
-                return
-                    matprod(
-                        X,           cos(phi) * sin_theta,
-                        Y,           sin(phi) * sin_theta,
-                        central_dir, cos_theta
-                    );
-            }
-            else {
-                // constexpr real cos_theta = 1.0;
-                // constexpr real sin_theta = 0.0;
-                
-                return central_dir;
             }
         }
         // Run-time theta_max

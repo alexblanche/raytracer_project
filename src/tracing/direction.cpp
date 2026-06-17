@@ -38,42 +38,9 @@ rt::vector direction::central_reflected(const hit& h, const rt::vector& normal, 
 
 // Run-time version (compile-time in hpp)
 rt::vector direction::random(const randomgen& rg, const rt::vector& central_dir, const real theta_max) {
-
-    const real p   = rg.random_ratio();
-    const real phi = rg.random_angle();
-
-    // Central direction of the rays
-    const auto [ a, b, c ] = central_dir;
-
-    // Orthonormal base of the plane orthogonal to central_dir
-    rt::vector X, Y;
-    if (is_not_zero(a)) {
-        const real nX = a * a + b * b;
-        const real sqrtnX = sqrt(nX);
-        X = rt::vector(- b / sqrtnX, a / sqrtnX, 0.0_r);
-        Y = rt::vector(a * c, b * c, -nX).unit();
-    }
-    else if (is_not_zero(b)) {
-        // central_dir = (0,b,c)
-        X = rt::vector(0.0_r, - c, b).unit();
-        Y = rt::vector(1, 0, 0);
-    }
-    else {
-        // central_dir = (0,0,1)
-        X = rt::vector(1, 0, 0);
-        Y = rt::vector(0, 1, 0);
-    }
-
-    const real cos_theta_max = cos(theta_max);
-    const real cos_theta = 1.0_r - p * (1.0_r - cos_theta_max);
-    const real sin_theta = sqrt(1.0_r - cos_theta * cos_theta);
     
-    return
-        matprod(
-            X,           cos(phi) * sin_theta,
-            Y,           sin(phi) * sin_theta,
-            central_dir, cos_theta
-        );
+    const rt::vector random_dir = direction::random<angle::Pi>(rg);
+    return (fma(random_dir, sin(theta_max), central_dir)).unit();
 }
 
 

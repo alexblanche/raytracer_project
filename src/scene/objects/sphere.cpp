@@ -129,7 +129,7 @@ using enum direction::angle;
 
 /* Uniformly samples a point on the sphere */
 rt::vector sphere::sample(const randomgen& rg) const {
-    const rt::vector central_dir = direction::random<Pi>(rg, rt::vector(0, 1, 0));
+    const rt::vector central_dir = direction::random<Pi>(rg);
     return fma(central_dir, radius, position);
 }
 

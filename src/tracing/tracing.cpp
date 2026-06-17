@@ -78,7 +78,7 @@ template <orientation_type ray_orientation, orientation_type bias_orientation>
     using enum direction::angle;
     const rt::vector dir = (smoothness >= 1.0_r) ?
           central_dir
-        : (fma(direction::random<Pi>(rg, central_dir), 1.0_r - smoothness, central_dir)).unit();
+        : (fma(direction::random<Pi>(rg), 1.0_r - smoothness, central_dir)).unit();
 
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
@@ -99,7 +99,7 @@ template<orientation_type ray_orientation>
     using enum direction::angle;
     const rt::vector dir = (smoothness >= 1.0_r) ?
           central_dir
-        : (fma(direction::random<Pi>(rg, central_dir), 1.0_r - smoothness, central_dir)).unit();
+        : (fma(direction::random<Pi>(rg), 1.0_r - smoothness, central_dir)).unit();
         
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
@@ -117,7 +117,7 @@ template<orientation_type ray_orientation>
     const rt::vector dir(
         ((ray_orientation == Inward ?
             local_normal : (-1.0_r) * local_normal)
-            + direction::random<Pi>(rg, local_normal)
+            + direction::random<Pi>(rg)
         ).unit()
     );
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
