@@ -11,14 +11,13 @@ enum class side {
 };
 
 struct barycentric_info {
-    real l1;
-    real l2;
+    real l[2];
     object_type type;
     side triangle_side;
 
     barycentric_info(real l1, real l2, object_type type, side triangle_side)
-        : l1(l1), l2(l2), type(type), triangle_side(triangle_side) {}
+        : l(l1, l2), type(type), triangle_side(triangle_side) {}
 
     barycentric_info(real l1, real l2, object_type type)
-        : l1(l1), l2(l2), type(type), triangle_side(side::LowerTriangle) {}
+        : l(l1, l2), type(type), triangle_side(side::LowerTriangle) {}
 };

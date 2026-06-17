@@ -128,12 +128,12 @@ rt::vector sphere::compute_normal_from_map(const rt::vector& tangent_space_norma
 using enum direction::angle;
 
 /* Uniformly samples a point on the sphere */
-rt::vector sphere::sample(randomgen& rg) const {
+rt::vector sphere::sample(const randomgen& rg) const {
     const rt::vector central_dir = direction::random<Pi>(rg, rt::vector(0, 1, 0));
     return fma(central_dir, radius, position);
 }
 
 /* Uniformly samples a point on the sphere that is visible from pt */
-rt::vector sphere::sample_visible(randomgen& rg, const rt::vector& pt) const {
+rt::vector sphere::sample_visible(const randomgen& rg, const rt::vector& pt) const {
     return direction::random<Pi_over_2>(rg, (pt - position).unit());
 }

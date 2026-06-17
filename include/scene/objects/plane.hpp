@@ -52,8 +52,8 @@ class plane : public object {
         /* Minimum and maximum coordinates (undefined for planes )*/
         min_max_coord get_min_max_coord() const override final;
 
-        rt::vector sample(randomgen& rg) const override final;
+        rt::vector sample(const randomgen& rg) const override final;
         
-        rt::vector sample_visible(randomgen& rg, const rt::vector& pt) const override final;
+        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const override final;
 
 };

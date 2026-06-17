@@ -42,7 +42,7 @@ class direction {
                 switch (theta) {
                     case Pi:        return -1.0_r;
                     case Pi_over_2: return  0.0_r;
-                    default:        return  0.0_r;
+                    default:        throw;
                 }
             } (theta_max);
 
@@ -56,9 +56,6 @@ class direction {
             z = cos(theta)          = 1 - p(1-cos(theta_max))
             */
             if constexpr (one_m_costhetamax != 0.0_r) {
-
-                const real p   = rg.random_ratio();
-                const real phi = rg.random_angle();
 
                 // Central direction of the rays
                 const auto [ a, b, c ] = central_dir;
@@ -82,6 +79,8 @@ class direction {
                     Y = rt::vector(0, 1, 0);
                 }
 
+                const real p   = rg.random_ratio();
+                const real phi = rg.random_angle();
                 const real cos_theta = 1.0_r - p * one_m_costhetamax;
                 const real sin_theta = sqrt(1.0_r - cos_theta * cos_theta);
                 

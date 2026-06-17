@@ -353,7 +353,8 @@ barycentric_info triangle::get_barycentric(const rt::vector& p) const {
 
 inline rt::vector triangle::get_interpolated_normal(const barycentric_info& bary) const {
     
-    return fma(vn2mvn0, bary.l2, fma(vn1mvn0, bary.l1, vn0));
+    const auto [ l1, l2 ] = bary.l;
+    return fma(vn2mvn0, l2, fma(vn1mvn0, l1, vn0));
 }
 
 hit triangle::compute_intersection(const ray& r, const real t) const {
@@ -445,17 +446,13 @@ rt::vector triangle::compute_normal_from_map(const rt::vector& tangent_space_nor
     }
 }
 
-
-inline rt::vector triangle::sample(randomgen& rg) const {
+inline rt::vector triangle::sample(const randomgen& rg) const {
     
-    /* Incorrect version: does not sample uniformly (will do for now) */
-    const real u = rg.random_ratio();
-    const real v = rg.random_real(1.0_r - u);
-
-    return position + (u * v1) + (v * v2);
-
+    // Samples uniformly inside the triangle
+    
+    return sample_triangle(rg, position, v1, v2);
 }
 
-inline rt::vector triangle::sample_visible(randomgen& rg, const rt::vector&) const {
+inline rt::vector triangle::sample_visible(const randomgen& rg, const rt::vector&) const {
     return sample(rg);
 }

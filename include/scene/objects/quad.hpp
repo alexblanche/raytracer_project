@@ -18,6 +18,7 @@ class quad : public object {
         real d;
         real det12, det23;
         det_case case_det;
+        real ratio; // ratio of the area of the lower triangle over the whole quad
 
     public:
         
@@ -70,7 +71,7 @@ class quad : public object {
         Local normal may be the normal of the quad (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
         rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const override final;
 
-        rt::vector sample(randomgen& rg) const override final;
+        rt::vector sample(const randomgen& rg) const override final;
         
-        rt::vector sample_visible(randomgen& rg, const rt::vector& pt) const override final;
+        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const override final;
 };

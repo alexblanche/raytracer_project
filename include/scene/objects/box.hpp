@@ -51,7 +51,7 @@ class box : public object {
             const texture_info& info
         ) const override final;
 
-        rt::vector sample(randomgen& rg) const override final;
+        rt::vector sample(const randomgen& rg) const override final;
         
-        rt::vector sample_visible(randomgen& rg, const rt::vector& pt) const override final;
+        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const override final;
 };

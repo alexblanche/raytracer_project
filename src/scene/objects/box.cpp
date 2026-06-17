@@ -274,10 +274,10 @@ rt::vector box::compute_normal_from_map(
     throw std::runtime_error("Texturing is unavailable for boxes");
 }
 
-rt::vector box::sample(randomgen&) const {
+rt::vector box::sample(const randomgen&) const {
     throw std::runtime_error("Sampling is unavailable for boxes");
 }
 
-rt::vector box::sample_visible(randomgen&, const rt::vector&) const {
+rt::vector box::sample_visible(const randomgen&, const rt::vector&) const {
     throw std::runtime_error("Sampling is unavailable for boxes");
 }

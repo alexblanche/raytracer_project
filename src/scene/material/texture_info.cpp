@@ -27,28 +27,29 @@ uvcoord texture_info::get_barycenter(const barycentric_info& bary) const {
     
     uvcoord uvc;
     auto& [ u, v ] = uvc;
+    const auto [ l1, l2 ] = bary.l;
     
     using enum object_type;
     switch (bary.type) {
         case Sphere:
         case Plane:
-            u = bary.l1;
-            v = bary.l2;
+            u = l1;
+            v = l2;
             break;
         case Quad:
             if (bary.triangle_side == side::LowerTriangle) {
                 // Quads with (u0, v0), (u3, v3), (u2, v2) (in this order) considered
-                const real l0 = 1.0_r - bary.l1 - bary.l2;
-                u = l0 * uv_coordinates[0] + bary.l1 * uv_coordinates[6] + bary.l2 * uv_coordinates[4];
-                v = l0 * uv_coordinates[1] + bary.l1 * uv_coordinates[7] + bary.l2 * uv_coordinates[5];
+                const real l0 = 1.0_r - l1 - l2;
+                u = l0 * uv_coordinates[0] + l1 * uv_coordinates[6] + l2 * uv_coordinates[4];
+                v = l0 * uv_coordinates[1] + l1 * uv_coordinates[7] + l2 * uv_coordinates[5];
                 break;
             }
             // else: same as Triangle case
         case Triangle: {
                 // Triangles or Quads with (u0, v0), (u1, v1), (u2, v2) considered
-                const real l0 = 1.0_r - bary.l1 - bary.l2;
-                u = l0 * uv_coordinates[0] + bary.l1 * uv_coordinates[2] + bary.l2 * uv_coordinates[4];
-                v = l0 * uv_coordinates[1] + bary.l1 * uv_coordinates[3] + bary.l2 * uv_coordinates[5];
+                const real l0 = 1.0_r - l1 - l2;
+                u = l0 * uv_coordinates[0] + l1 * uv_coordinates[2] + l2 * uv_coordinates[4];
+                v = l0 * uv_coordinates[1] + l1 * uv_coordinates[3] + l2 * uv_coordinates[5];
             }
             break;
         default:

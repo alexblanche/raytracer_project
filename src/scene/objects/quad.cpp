@@ -49,7 +49,8 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
     v2 = p2 - p0;
     v3 = p3 - p0;
     const rt::vector n = (v1 ^ v2);
-    normal = n.unit();
+    const real n_norm = n.norm();
+    normal = n / n_norm;
     vn0 = normal;
     // vn1 = normal;
     // vn2 = normal;
@@ -58,6 +59,8 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
     set_up_det(v1, v2, v3, det12, det23, case_det);
 
     d = - (normal | p0);
+
+    ratio = (n_norm / (n_norm + (v2 ^ v3).norm()));
 }
 
 // Constructor from four points with vertex normals
@@ -73,7 +76,8 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
     v2 = p2 - p0;
     v3 = p3 - p0;
     const rt::vector n = (v1 ^ v2);
-    normal = n.unit();
+    const real n_norm = n.norm();
+    normal = n / n_norm;
     d = - (normal | p0);
 
     vn1mvn0 = (vn1.unit()) - vn0;
@@ -81,6 +85,8 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
     vn3mvn0 = (vn3.unit()) - vn0;
 
     set_up_det(v1, v2, v3, det12, det23, case_det);
+
+    ratio = (n_norm / (n_norm + (v2 ^ v3).norm()));
 }
 
 // Constructor from four points with normal mapping enabled
@@ -94,7 +100,8 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
     v2 = p2 - p0;
     v3 = p3 - p0;
     const rt::vector n = (v1 ^ v2);
-    normal = n.unit();
+    const real n_norm = n.norm();
+    normal = n / n_norm;
     vn0 = normal;
     // vn1 = normal;
     // vn2 = normal;
@@ -102,6 +109,8 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
     d = - (normal | p0);
 
     set_up_det(v1, v2, v3, det12, det23, case_det);
+
+    ratio = (n_norm / (n_norm + (v2 ^ v3).norm()));
 
     if (normal_mapping) {
         
@@ -134,7 +143,8 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
     v2 = p2 - p0;
     v3 = p3 - p0;
     const rt::vector n = (v1 ^ v2);
-    normal = n.unit();
+    const real n_norm = n.norm();
+    normal = n / n_norm;
     d = - (normal | p0);
 
     vn1mvn0 = (vn1.unit()) - vn0;
@@ -142,6 +152,8 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
     vn3mvn0 = (vn3.unit()) - vn0;
 
     set_up_det(v1, v2, v3, det12, det23, case_det);
+
+    ratio = (n_norm / (n_norm + (v2 ^ v3).norm()));
 
     if (normal_mapping) {
         
@@ -441,19 +453,9 @@ barycentric_info quad::get_barycentric(const rt::vector& p) const {
 
 inline rt::vector quad::get_interpolated_normal(const barycentric_info& bary) const {
     
-    // return (((1.0_r - bary.l1 - bary.l2) * vn0)
-    //     + (bary.l1 * ((bary.lower_triangle) ? vn1 : vn3))
-    //     + (bary.l2 * vn2));
-    //return vn0 + bary.l1 * ((bary.lower_triangle) ? vn1mvn0 : vn3mvn0) + bary.l2 * vn2mvn0;
-    return fma(
-        vn2mvn0,
-        bary.l2,
-        fma(
-            ((bary.triangle_side == side::LowerTriangle) ? vn1mvn0 : vn3mvn0),
-            bary.l1,
-            vn0
-        )
-    );
+    const rt::vector& vn = (bary.triangle_side == side::LowerTriangle) ? vn1mvn0 : vn3mvn0;
+    const auto [ l1, l2 ] = bary.l;
+    return fma(vn2mvn0, l2, fma(vn, l1, vn0));
 }
 
 hit quad::compute_intersection(const ray& r, const real t) const {
@@ -557,19 +559,15 @@ rt::vector quad::compute_normal_from_map(const rt::vector& tangent_space_normal,
 }
 
 
-rt::vector quad::sample(randomgen& rg) const {
-    
-    /* Incorrect version: does not sample uniformly (will do for now) */
+rt::vector quad::sample(const randomgen& rg) const {
 
-    const real u = rg.random_ratio();
-    const real v = rg.random_real(1.0_r - u);
+    // Choosing lower or upper triangle with probability proportional to their area
+    const rt::vector& vi = (rg.random_ratio() < ratio) ? v1 : v3;
 
-    const rt::vector& vi = (rg.random_ratio() < 0.5_r) ? v1 : v3;
-    return fma(v2, v, fma(vi, u, position));
-
+    return triangle::sample_triangle(rg, position, vi, v2);
 }
 
-rt::vector quad::sample_visible(randomgen& rg, const rt::vector& /*pt*/) const {
+rt::vector quad::sample_visible(const randomgen& rg, const rt::vector& /*pt*/) const {
     
     return sample(rg);
 }

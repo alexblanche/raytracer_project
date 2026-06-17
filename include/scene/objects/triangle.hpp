@@ -76,7 +76,25 @@ class triangle : public object {
         Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
         rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const override final;
 
-        rt::vector sample(randomgen& rg) const override final;
+        static inline rt::vector sample_triangle(const randomgen& rg, const rt::vector& v0, const rt::vector& v1, const rt::vector& v2) {
+            
+            const real x = rg.random_ratio();
+            const real y = rg.random_ratio();
+            
+            real u, v;
+            if (x < y) {
+                u = x / 2;
+                v = y - u;
+            }
+            else {
+                v = y / 2;
+                u = x - v;
+            }
+
+            return fma(v1, u, fma(v2, v, v0));
+        }
+
+        rt::vector sample(const randomgen& rg) const override final;
         
-        rt::vector sample_visible(randomgen& rg, const rt::vector& pt) const override final;
+        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const override final;
 };

@@ -75,8 +75,8 @@ class object {
         ) const                                                                         = 0;
 
         /* Uniformly samples a point on the object */
-        virtual rt::vector sample(randomgen& rg) const                                  = 0;
+        virtual rt::vector sample(const randomgen& rg) const                                  = 0;
 
         /* Uniformly samples a point on the object that is visible from pt */
-        virtual rt::vector sample_visible(randomgen& rg, const rt::vector& pt) const    = 0;
+        virtual rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const    = 0;
 };

@@ -259,10 +259,10 @@ rt::vector cylinder::compute_normal_from_map(
     throw std::runtime_error("Texturing is unavailable for cylinders");
 }
 
-rt::vector cylinder::sample(randomgen&) const {
+rt::vector cylinder::sample(const randomgen&) const {
     throw std::runtime_error("Sampling is unavailable for cylinders");
 }
 
-rt::vector cylinder::sample_visible(randomgen&, const rt::vector&) const {
+rt::vector cylinder::sample_visible(const randomgen&, const rt::vector&) const {
     throw std::runtime_error("Sampling is unavailable for cylinders");
 }

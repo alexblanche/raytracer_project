@@ -120,11 +120,11 @@ min_max_coord plane::get_min_max_coord() const {
 }
 
 
-rt::vector plane::sample(randomgen&) const {
+rt::vector plane::sample(const randomgen&) const {
     throw std::runtime_error("Sampling is unavailable for planes");
 }
 
 
-rt::vector plane::sample_visible(randomgen&, const rt::vector&) const {
+rt::vector plane::sample_visible(const randomgen&, const rt::vector&) const {
     throw std::runtime_error("Sampling is unavailable for planes");
 }
