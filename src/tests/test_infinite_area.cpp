@@ -31,13 +31,17 @@ int main() {
     image lrdata(dwidth, dheight);
 
     const alias_table alt(mat_opt.value(), dwidth, dheight);
-    const random_ratio_gen<double> rg = alt.get_random_generator();
+    const random_ratio_gen<alias_table::Float> rg = alt.get_random_generator();
 
     const rt::screen test_scr(lrdata);
-    [[maybe_unused]] constexpr rt::color color_one(1, 1, 1);
+    constexpr rt::color color_one(1, 1, 1);
 
+    constexpr int batch_size = 10 * 100000;
+    timer_ms timer;
+    int cpt = 0;
     while (true) {
-        for (int i = 0; i < 100000; i++) {
+        timer.start();
+        for (int i = 0; i < batch_size; i++) {
             const unsigned int s = alt.sample_table(rg);
             lrdata[s / dwidth, s % dwidth] += color_one;
         }
@@ -45,6 +49,13 @@ int main() {
         test_scr.update_from_texture();
         if (test_scr.poll_keyboard_event() == rt::screen::key::QuitEvent)
             break;
+        timer.stop();
+        const uint64_t elapsed = timer.elapsed();
+        cpt++;
+        if ((cpt & 3) == 0) {
+            printf("\r%.2f fps", 1000.0f / elapsed);
+            fflush(stdout);
+        }
     }
 
     return EXIT_SUCCESS;

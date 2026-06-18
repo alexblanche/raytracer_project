@@ -8,10 +8,10 @@
 class randomgen {
 
     private:
-        mutable std::default_random_engine engine;
+        mutable std::mt19937                         engine;
         mutable std::uniform_real_distribution<real> unif_ratio;
         mutable std::uniform_real_distribution<real> unif_angle;
-        mutable std::normal_distribution<real> normal_dist;
+        mutable std::normal_distribution<real>       normal_dist;
 
     public:
         // Factor 4.0_r to improve camera ray generation computation speed
@@ -44,9 +44,14 @@ class randomgen {
 
         /* Returns two random reals chosen according to a normal distribution
            of mean m and standard deviation std_dev */
-        inline std::pair<real, real> random_pair_normal() const {
-            return { normal_dist(engine), normal_dist(engine) };
-        } 
+        template<unsigned int n>
+        requires (n >= 2)
+        inline std::array<real, n> random_normal() const {
+            std::array<real, n> t;
+            for (real& p : t)
+                p = random_normal();
+            return t;
+        }
 };
 
 
@@ -57,7 +62,7 @@ requires std::is_floating_point_v<Float>
 class random_ratio_gen {
 
     private:
-        mutable std::default_random_engine            engine;
+        mutable std::mt19937                          engine;
         mutable std::uniform_real_distribution<Float> unif_ratio;
         mutable std::uniform_int_distribution<>       unif_int;
 
@@ -73,15 +78,23 @@ class random_ratio_gen {
                 unif_ratio(0, 1),
                 unif_int(0, max_index) {}
 
-        inline Float random() const {
+        template<typename T>
+        T random() const = delete;
+        template<typename T>
+        T random(T) const = delete;
+        
+        template<>
+        Float random<Float>() const {
             return unif_ratio(engine);
         }
 
-        inline Float random(Float m) const {
-            return m * random();
+        template<>
+        Float random<Float>(Float m) const {
+            return m * random<Float>();
         }
 
-        inline int random_int() const {
+        template<>
+        int random<int>() const {
             return unif_int(engine);
         }
 };
