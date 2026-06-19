@@ -50,8 +50,8 @@ real box::measure_distance(const ray& r) const {
      *      = pmun1 / pdt1 - l1 / abspdt1
      * 
      * (p | n2)
-     *      = ((c1 - u - (t1*dir)) | n2)
-     *      = ((position - (...)*n1 - u - t1*dir) | n2)
+     *      = ((c1 - u - (t1 * dir)) | n2)
+     *      = ((position - (...)*n1 - u - t1 * dir) | n2)
      *      = (pmu | n2) - t1 * pdt2
      *      = pmnu2 - t1 * pdt2
      * **/
@@ -74,16 +74,14 @@ real box::measure_distance(const ray& r) const {
         // Determination of t1
         const real t1 = pmun1 / pdt1 + a * l1 / std::abs(pdt1);
         // Check that t1 gives a point inside the face
-        if (std::abs(pmun2 - t1 * pdt2) <= l2 && std::abs(pmun3 - t1 * pdt3) <= l3) {
+        if (std::abs(pmun2 - t1 * pdt2) <= l2 && std::abs(pmun3 - t1 * pdt3) <= l3)
             return (is_positive(t1)) ? t1 : infinity;
-        }
     }
 
     if (is_not_zero(pdt2)) {
         const real t2 = pmun2 / pdt2 + a * l2 / std::abs(pdt2);
-        if (std::abs(pmun1 - t2 * pdt1) <= l1 && std::abs(pmun3 - t2 * pdt3) <= l3) {
+        if (std::abs(pmun1 - t2 * pdt1) <= l1 && std::abs(pmun3 - t2 * pdt3) <= l3)
             return (is_positive(t2)) ? t2 : infinity;
-        }
     }
 
     if (is_not_zero(pdt3)) {
@@ -94,74 +92,10 @@ real box::measure_distance(const ray& r) const {
 
     return infinity;
 }
-    /** Original version */
-    /*
-    if (std::abs(pdt1) > 0.0000001f) {
-        // Determination of t1
-        const rt::vector c1 = position - (l1 * pdt1 / std::abs(pdt1)) * n1;
-        t1 = ((c1 - u) | n1) / pdt1;
-
-        // Check that t1 gives a point inside the face
-        const rt::vector p = c1 - u - (t1 * dir);
-        const real checkpdt2 = (p | n2);
-        if (std::abs(checkpdt2) <= l2) {
-            const real checkpdt3 = (p | n3);
-            if (std::abs(checkpdt3) <= l3) {
-                t1 = infinity;
-            }
-        }
-        else {
-            t1 = infinity;
-        }
-
-        if (t1 < 0) { return infinity; }
-    }
-
-    if (std::abs(pdt2) > 0.0000001f) {
-        const rt::vector c2 = position - (l2 * pdt2/ std::abs(pdt2)) * n2;
-        t2 = ((c2 - u) | n2) / pdt2;
-    
-        const rt::vector p = c2 - u - (t2 * dir);
-        const real checkpdt1 = (p | n1);
-        if (std::abs(checkpdt1) <= l1) {
-            const real checkpdt3 = (p | n3);
-            if (std::abs(checkpdt3) <= l3) {
-                t2 = infinity;
-            }
-        }
-        else {
-            t2 = infinity;
-        }
-
-        if (t2 < 0) { return infinity; }
-    }
-
-    if (std::abs(pdt3) > 0.0000001f) {
-        const rt::vector c3 = position - (l3 * pdt3/ std::abs(pdt3)) * n3;
-        t3 = ((c3 - u) | n3) / pdt3;
-        
-        const rt::vector p = c3 - u - (t3 * dir);
-        const real checkpdt1 = (p | n1);
-        if (std::abs(checkpdt1) <= l1) {
-            const real checkpdt2 = (p | n2);
-            if (std::abs(checkpdt2) <= l2) {
-                t3 = infinity;
-            }
-        }
-        else {
-            t3 = infinity;
-        }
-
-        if (t3 < 0) { return infinity; }
-    }
-    
-    return std::min(t1, std::min(t2, t3));
-    */
         
 hit box::compute_intersection(const ray& r, const real t) const {
     // Intersection point
-    const rt::vector& u = r.origin;
-    const rt::vector p = fma(r.direction, t, u);
+    const rt::vector p = r.extend(t);
 
     // Re-computing the face of intersection
     // (not great, but the alternative is to return a hit object (with distance t) for every intersection check)
@@ -171,22 +105,24 @@ hit box::compute_intersection(const ray& r, const real t) const {
     const object* pt_obj = this;
     const ray* pt_ray = &r;
 
+    constexpr real EPSILON = 0.0000001_r;
+
     const real pdt1 = (v | n1);
-    if (std::abs(pdt1 - l1) < 0.0000001_r)
+    if (std::abs(pdt1 - l1) < EPSILON)
         return hit(pt_ray, p, n1, pt_obj);
     
-    if (std::abs(pdt1 + l1) < 0.0000001_r)
+    if (std::abs(pdt1 + l1) < EPSILON)
         return hit(pt_ray, p, (-1.0_r) * n1, pt_obj);
     
     const real pdt2 = (v | n2);
-    if (std::abs(pdt2 - l2) < 0.0000001_r)
+    if (std::abs(pdt2 - l2) < EPSILON)
         return hit(pt_ray, p, n2, pt_obj);
     
-    if (std::abs(pdt2 + l2) < 0.0000001_r)
+    if (std::abs(pdt2 + l2) < EPSILON)
         return hit(pt_ray, p, (-1.0_r) * n2, pt_obj);
     
     const real pdt3 = (v | n3);
-    if (std::abs(pdt3 - l3) < 0.0000001_r)
+    if (std::abs(pdt3 - l3) < EPSILON)
         return hit(pt_ray, p, n3, pt_obj);
 
     return hit(pt_ray, p, (-1.0_r) * n3, pt_obj);

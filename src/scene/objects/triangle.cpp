@@ -7,17 +7,7 @@
 
 using enum det_case;
 
-static inline real compute_det_2d(const rt::vector& v1, const rt::vector& v2, det_case det_case) {
-
-    switch (det_case) {
-        case XY:    return v1.x * v2.y - v1.y * v2.x;
-        case XZ:    return v1.x * v2.z - v1.z * v2.x;
-        case YZ:    return v1.y * v2.z - v1.z * v2.y;
-        case Error: return 0.0_r;
-    }
-}
-
-std::pair<real, det_case> set_up_det(const rt::vector& v1, const rt::vector& v2) {
+static std::pair<real, det_case> set_up_det(const rt::vector& v1, const rt::vector& v2) {
 
     // det(XY) = 0 => v1, v2 are colinear when projected onto the plane z = 0
     // det(XZ) = 0 => v1, v2 are colinear when projected onto the planes y = 0 and z = 0
@@ -42,11 +32,6 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     v2 = p2 - p0;
     const rt::vector n = (v1 ^ v2);
     normal = n.unit();
-    vn0 = normal;
-    // vn1 = normal;
-    // vn2 = normal;
-    // vn1mvn0 = rt::vector();
-    // vn2mvn0 = rt::vector();
     d = - (normal | p0);
 
     const auto [ d, case_d ] = set_up_det(v1, v2);
@@ -59,22 +44,11 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2,
     const unsigned int material_index, const unsigned int texture_info_index)
 
-    : object(p0, material_index, texture_info_index), vn0(vn0init.unit())
-    //, vn1(vn1.unit()), vn2(vn2.unit())
-    {
-    
-    v1 = p1 - p0;
-    v2 = p2 - p0;
-    const rt::vector n = (v1 ^ v2);
-    normal = n.unit();
-    d = - (normal | p0);
+    : triangle(p0, p1, p2, material_index, texture_info_index) {
 
+    vn0     = vn0init.unit();
     vn1mvn0 = (vn1.unit()) - vn0;
     vn2mvn0 = (vn2.unit()) - vn0;
-
-    const auto [ d, case_d ] = set_up_det(v1, v2);
-    det      = d;//std::max(d, 1.0e-10_r);
-    case_det = case_d;
 }
 
 // Constructor from three points with normal mapping enabled
@@ -82,23 +56,7 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     const unsigned int material_index, const unsigned int texture_info_index, const bool normal_mapping,
     texture_info& info)
 
-    : object(p0, material_index, texture_info_index) {
-    
-    v1 = p1 - p0;
-    v2 = p2 - p0;
-    const rt::vector n = (v1 ^ v2);
-    normal = n.unit();
-    vn0 = normal;
-    // vn1 = normal;
-    // vn2 = normal;
-    // vn1mvn0 = rt::vector();
-    // vn2mvn0 = rt::vector();
-
-    d = - (normal | p0);
-
-    std::pair<real, det_case> p = set_up_det(v1, v2);
-    det = p.first;
-    case_det = p.second;
+    : triangle(p0, p1, p2, material_index, texture_info_index) {
 
     if (normal_mapping) {
         
@@ -138,53 +96,11 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     const unsigned int material_index, const unsigned int texture_info_index, const bool normal_mapping,
     texture_info& info)
 
-    : object(p0, material_index, texture_info_index), vn0(vn0init.unit())
-    //, vn1(vn1.unit()), vn2(vn2.unit())
-    {
+    : triangle(p0, p1, p2, material_index, texture_info_index, normal_mapping, info) {
     
-    v1 = p1 - p0;
-    v2 = p2 - p0;
-    const rt::vector n = (v1 ^ v2);
-    normal = n.unit();
-    d = - (normal | p0);
-
+    vn0     = vn0init.unit();
     vn1mvn0 = (vn1.unit()) - vn0;
     vn2mvn0 = (vn2.unit()) - vn0;
-
-    const auto [ d, case_d ] = set_up_det(v1, v2);
-    det      = d;
-    case_det = case_d;
-
-    if (normal_mapping) {
-        
-        /*
-        Computation of tangent space
-        v1 = x1 * t + y1 * b
-        v2 = x2 * t + y2 * b
-
-        In matrix form:
-        (v1.x v1.y v1.z)   (x1 y1)(t.x t.y t.z)
-        (v2.x v2.y v2.z) = (x2 y2)(b.x b.y b.z)
-
-        So,
-        (x1 y1)-1 (v1.x v1.y v1.z)   (t.x t.y t.z)
-        (x2 y2)   (v2.x v2.y v2.z) = (b.x b.y b.z)
-
-        (x1 y1)-1                             (y2  -y1)
-        (x2 y2)   = (1 / (x1 * y2 - x2 * y1)) (-x2  x1)
-        */
-    
-        const std::vector<real>& uvc = info.uv_coordinates;
-        // uvc = (u0, v0, u1, v1, u2, v2)
-        const real x1 = uvc[2] - uvc[0];
-        const real x2 = uvc[4] - uvc[0];
-        const real y1 = uvc[3] - uvc[1];
-        const real y2 = uvc[5] - uvc[1];
-        const real r = 1.0_r / (x1 * y2 - x2 * y1);
-        const rt::vector t = r * ( y2 * v1 + -y1 * v2);
-        const rt::vector b = r * (-x2 * v1 +  x1 * v2);
-        info.set_tangent_space(t.unit(), b.unit());
-    }
 }
 
 /* Returns the barycenter of the triangle */
@@ -193,83 +109,6 @@ inline rt::vector triangle::get_barycenter() const {
 }
 
 /* Intersection determination */
-
-#if 0
-std::optional<real> triangle::measure_distance_orig(const ray& r) const {
-    const rt::vector& u   = r.origin;
-    const rt::vector& dir = r.direction;
-
-    // Intersection between the ray and the triangle plane
-    const real pdt = (normal | dir); // ax + by + cz
-    const real upln = (normal | u) + d; // aX + bY + cZ + d
-
-    // printf("u = (%lf, %lf, %lf), dir = (%lf, %lf, %lf), pdt = %lf, upln = %lf\n",
-    //     u.x, u.y, u.z, dir.x, dir.y, dir.z, pdt, upln);
-    
-    // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
-    if (pdt * upln >= 0.0_r) {
-        return std::nullopt;
-    }
-
-    const real t = - upln / pdt;
-
-    // Check if the point of intersection lies inside the triangle
-    /* The system we try to solve is:
-       l1 * v1 + l2 * v2 = c (= pt - pos), so 3 equations (on x, y, z) and two variables.
-       We calculate the solution to the rows x and y (it necessarily solves row z)
-       
-       According to Cramer's rule, the solution to
-       ax + by = e
-       cx + dy = f
-       is x = (ed-bf)/(ad-bc) and y = (af-ec)/(ad-bc).
-       
-       In our case, when det = v1x * v2y - v1y * v2x,
-       l1 = (cx * v2y - cy * v2x) / det and l2 = (v1x * cy - v1y * cx) / det */
-
-    const rt::vector c = u + (t * dir) - position;
-    const real detxy = v1.x * v2.y - v1.y * v2.x;
-
-    // printf("c = (%lf, %lf, %lf), detxy = %lf, abs(detxy) = %lf, cond = %d\n", c.x, c.y, c.z, detxy, std::abs(detxy), std::abs(detxy) > 0.00000001);
-
-    if (std::abs(detxy) > 0.00000001f) {
-        const real l1 = (c.x * v2.y - c.y * v2.x) / detxy;
-        if (l1 >= 0.0_r && l1 <= 1.0_r) {
-            const real l2 = (v1.x * c.y - v1.y * c.x) / detxy;
-            return (l2 >= 0.0_r && l1 + l2 <= 1.0_r) ?
-                std::optional<real>(t) : std::nullopt;
-        }
-    }
-    else {
-        // The vectors v1, v2 are colinear when projected on the plane z = 0
-        // Another attempt with rows x, z
-        const real detxz = v1.x * v2.z - v1.z * v2.x;
-        if (std::abs(detxz) > 0.00000001f) {
-            const real l1xz = (c.x * v2.z - c.z * v2.x) / detxz;
-            if (l1xz >= 0.0_r && l1xz <= 1.0_r) {
-                const real l2xz = (v1.x * c.z - v1.z * c.x) / detxz;
-                return (l2xz >= 0.0_r && l1xz + l2xz <= 1.0_r) ?
-                    std::optional<real>(t) : std::nullopt;
-            }
-        }
-        else {
-            // The vectors v1, v2 are colinear when projected on the planes y = 0 and z = 0
-            // (e.g. the triangle lies in the plane x = constant)
-            // Last attempt with rows y, z
-            const real detyz = v1.y * v2.z - v1.z * v2.y;
-            if (std::abs(detyz) > 0.00000001f) {
-                const real l1yz = (c.y * v2.z - c.z * v2.y) / detyz;
-                if (l1yz >= 0.0_r && l1yz <= 1.0_r) {
-                    const real l2yz = (v1.y * c.z - v1.z * c.y) / detyz;
-                    return (l2yz >= 0.0_r && l1yz + l2yz <= 1.0_r) ?
-                        std::optional<real>(t) : std::nullopt;
-                }
-            }
-        }
-    }
-
-    return std::nullopt;
-}
-#endif
 
 real triangle::measure_distance(const ray& r) const {
 
@@ -300,47 +139,20 @@ real triangle::measure_distance(const ray& r) const {
        In our case, when det = v1x * v2y - v1y * v2x,
        l1 = (cx * v2y - cy * v2x) / det and l2 = (v1x * cy - v1y * cx) / det */
 
-    const rt::vector c = fma(dir, t, u) - position;
+    const rt::vector c = r.extend(t) - position;
 
     const real l1 = compute_det_2d(c, v2, case_det) / det;
     if (not is_between_zero_and_one(l1))
         return infinity;
 
     const real l2 = compute_det_2d(v1, c, case_det) / det;
-    return (is_positive(l2) && is_between_zero_and_one(l1 + l2)) ? t : infinity;
+    return (is_positive(l2) && (l1 + l2) <= 1.0_r) ? t : infinity;
 }
 
 /* Returns the barycentric info (l1, l2):
    p = position + l1 * v1 + l2 * v2
    (0 <= l1, l2 <= 1)
 */
-#if 0
-barycentric_info triangle::get_barycentric_orig(const rt::vector& p) const {
-
-    const rt::vector c = p - position;
-    const real detxy = v1.x * v2.y - v1.y * v2.x;
-    if (std::abs(detxy) > 0.00000001) {
-        const real l1 = (c.x * v2.y - c.y * v2.x) / detxy;
-        const real l2 = (v1.x * c.y - v1.y * c.x) / detxy;
-        return barycentric_info(l1, l2);
-    }
-    else {
-        const real detxz = v1.x * v2.z - v1.z * v2.x;
-        if (std::abs(detxz) > 0.00000001) {
-            const real l1 = (c.x * v2.z - c.z * v2.x) / detxz;
-            const real l2 = (v1.x * c.z - v1.z * c.x) / detxz;
-            return barycentric_info(l1, l2);
-        }
-        else {
-            const real detyz = v1.y * v2.z - v1.z * v2.y;
-            const real l1 = (c.y * v2.z - c.z * v2.y) / detyz;
-            const real l2 = (v1.y * c.z - v1.z * c.y) / detyz;
-            return barycentric_info(l1, l2);
-        }
-    }
-}
-#endif
-
 barycentric_info triangle::get_barycentric(const rt::vector& p) const {
 
     const rt::vector c = p - position;
@@ -359,7 +171,7 @@ inline rt::vector triangle::get_interpolated_normal(const barycentric_info& bary
 
 hit triangle::compute_intersection(const ray& r, const real t) const {
     
-    const rt::vector p = fma(r.direction, t, r.origin);
+    const rt::vector p = r.extend(t);
     const object* pt_obj = this;
     const ray* pt_ray = &r;
     
@@ -387,13 +199,17 @@ min_max_coord triangle::get_min_max_coord() const {
     const rt::vector p1 = position + v1;
     const rt::vector p2 = position + v2;
 
+    const auto& [ min12_x, max12_x ] = (p1.x < p2.x) ? std::pair{ p1.x, p2.x } : std::pair{ p2.x, p1.x };
+    const auto& [ min12_y, max12_y ] = (p1.y < p2.y) ? std::pair{ p1.y, p2.y } : std::pair{ p2.y, p1.y };
+    const auto& [ min12_z, max12_z ] = (p1.z < p2.z) ? std::pair{ p1.z, p2.z } : std::pair{ p2.z, p1.z };
+
     return {
-        .min_x = std::min(position.x, std::min(p1.x, p2.x)),
-        .max_x = std::max(position.x, std::max(p1.x, p2.x)),
-        .min_y = std::min(position.y, std::min(p1.y, p2.y)),
-        .max_y = std::max(position.y, std::max(p1.y, p2.y)),
-        .min_z = std::min(position.z, std::min(p1.z, p2.z)),
-        .max_z = std::max(position.z, std::max(p1.z, p2.z))
+        .min_x = std::min(position.x, min12_x),
+        .max_x = std::max(position.x, max12_x),
+        .min_y = std::min(position.y, min12_y),
+        .max_y = std::max(position.y, max12_y),
+        .min_z = std::min(position.z, min12_z),
+        .max_z = std::max(position.z, max12_z)
     };
 }
 

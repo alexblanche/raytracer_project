@@ -9,29 +9,7 @@
 #include <stdexcept>
 #include <optional>
 
-/* Main constructor */
-/* A plane (P) of equation (P): ax + by + cz + d = 0
- defined by 4 reals a,b,c,d */
-/* The normal vector (a, b, c) is a unit vector */
-plane::plane(const real pa, const real pb, const real pc, const real pd,
-    const unsigned int material_index)
-    
-    : object(rt::vector(0, 0, 0), material_index) {
-
-    /* Normalization of the normal vector */
-    const rt::vector normal_vector(pa, pb, pc);
-    normal = normal_vector.unit();
-    const auto [ a, b, c ] = normal;
-    d = pd / normal_vector.norm();
-    
-    position =
-          (is_not_zero(pa)) ? rt::vector(-d/a, 0, 0)
-        : (is_not_zero(pb)) ? rt::vector(0, -d/b, 0)
-        : (is_not_zero(pc)) ? rt::vector(0, 0, -d/c)
-        :                     rt::vector(0, 0, 0);
-}
-
-/* Constructor of a plane of normal vector (a,b,c) and touching the point v */
+/* Constructor of a plane of normal vector (a,b,c) and touching the point position */
 plane::plane(const real pa, const real pb, const real pc, const rt::vector& position,
     const unsigned int material_index)
 
@@ -39,15 +17,28 @@ plane::plane(const real pa, const real pb, const real pc, const rt::vector& posi
       normal(rt::vector(pa, pb, pc).unit()),
       d(-(normal | position)) {} // = -aX-bY-cZ if position = (X,Y,Z)
 
+/* A plane (P) of equation (P): ax + by + cz + d = 0
+ defined by 4 reals a,b,c,d */
+/* The normal vector (a, b, c) is a unit vector */
+plane::plane(const real pa, const real pb, const real pc, const real pd,
+    const unsigned int material_index)
+    
+    : plane(pa, pb, pc,
+            // position =
+              (is_not_zero(pa)) ? rt::vector(-pd/pa, 0, 0)
+            : (is_not_zero(pb)) ? rt::vector(0, -pd/pb, 0)
+            : (is_not_zero(pc)) ? rt::vector(0, 0, -pd/pc)
+            :                     rt::vector(0, 0, 0),
+        material_index) {}
+
 // Constructor for textured planes
 plane::plane(const real pa, const real pb, const real pc, const rt::vector& position,
     const unsigned int material_index,
     const unsigned int texture_info_index, const rt::vector& right, const real scale)
 
-    : object(position, material_index, texture_info_index),
-      normal(rt::vector(pa, pb, pc).unit()),
-      d(-(normal | position)) {
+    : plane(pa, pb, pc, position, material_index) {
 
+    texture_information_index = texture_info_index;
     const rt::vector right_dir = right.unit();
     orientation = {
         .right_dir         = right_dir,
@@ -82,7 +73,7 @@ hit plane::compute_intersection(const ray& r, const real t) const {
 
     // Intersection point
     //const rt::vector p = r.origin + t * r.direction;
-    const rt::vector p = fma(r.direction, t, r.origin);
+    const rt::vector p = r.extend(t);
 
     // The normal vector (a, b, c) is assumed to be a unit vector
 

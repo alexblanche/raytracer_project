@@ -18,12 +18,12 @@ std::vector<Float> alias_table::compute_low_res_table(const matrix& matrix) {
     
     const Float ratio_x = static_cast<Float>(matrix.width)  / LOWRES_DEFAULT_WIDTH;
     const Float ratio_y = static_cast<Float>(matrix.height) / LOWRES_DEFAULT_HEIGHT;
-    const Float r = PI / static_cast<Float>(height);
+    const Float r = PI / height;
 
     const int table_size = height * width;
     std::vector<Float> table(table_size);
 
-    Float phi = 0.0_r;
+    Float phi = 0.0f;
     for (int ly = 0; ly < height; ly++) {
 
         const Float sinphi = sin(phi);
@@ -160,10 +160,10 @@ light_map_sample alias_table::sample_light_map(const random_ratio_gen<Float>& rg
     const Float lr_y = static_cast<Float>(s / pt_width);
 
     const unsigned int min_x = static_cast<unsigned int>(ratio_x *  lr_x);
-    const unsigned int max_x = static_cast<unsigned int>(ratio_x * (lr_x + 1.0_r));
+    const unsigned int max_x = static_cast<unsigned int>(ratio_x * (lr_x + 1.0f));
     
     const unsigned int min_y = static_cast<unsigned int>(ratio_y *  lr_y);
-    const unsigned int max_y = static_cast<unsigned int>(ratio_y * (lr_y + 1.0_r));
+    const unsigned int max_y = static_cast<unsigned int>(ratio_y * (lr_y + 1.0f));
 
     const unsigned int x = min_x + rg.random<Float>(max_x - min_x);
     const unsigned int y = min_y + rg.random<Float>(max_y - min_y);

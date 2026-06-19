@@ -15,8 +15,9 @@ sphere::sphere(const rt::vector& center, const real radius, const unsigned int m
 sphere::sphere(const rt::vector& center, const real radius, const unsigned int material_index,
     const unsigned int texture_info_index, const rt::vector& forward, const rt::vector& right)
 
-    : object(center, material_index, texture_info_index), radius(radius), radius_sq(radius * radius) {
-        
+    : sphere(center, radius, material_index) {
+    
+        texture_information_index = texture_info_index;
         orientation.forward_dir = forward.unit();
         orientation.right_dir   = right.unit();
         orientation.up_dir = orientation.right_dir ^ orientation.forward_dir;
@@ -68,7 +69,7 @@ real sphere::measure_distance(const ray& r) const {
 hit sphere::compute_intersection(const ray& r, const real t) const {
 
     // Intersection point
-    const rt::vector p = fma(r.direction, t, r.origin);
+    const rt::vector p = r.extend(t);
     // Normal at intersection point
     const rt::vector n = (p - position) / radius;
     return hit(&r, p, n, this);

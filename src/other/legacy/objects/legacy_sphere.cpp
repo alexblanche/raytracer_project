@@ -55,7 +55,7 @@ std::optional<real> sphere::measure_distance(const ray& r) const {
 hit sphere::compute_intersection(ray& r, const real t) const {
 
     // Intersection point
-    const rt::vector p = r.origin + t * r.direction;
+    const rt::vector p = r.extend(t);
     
     const rt::vector n = (p - position) / radius;
     

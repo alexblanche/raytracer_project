@@ -38,5 +38,9 @@ struct ray {
         ray(ray&&)                 = default;
         ray(const ray&)            = default;
         ray& operator=(const ray&) = delete;
+
+        inline rt::vector extend(const real t) const {
+            return fma(direction, t, origin);
+        }
 };
 

@@ -32,8 +32,6 @@ class direction {
         };
 
         /* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
-        // Constexpr theta_max
-        /* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
         template <angle theta_max>
         static rt::vector random(const randomgen& rg, const rt::vector& central_dir = rt::vector(0,0,0)) {
 
@@ -57,7 +55,8 @@ class direction {
                 }
             }
         }
-        // Run-time theta_max
+
+        // Run-time
         static rt::vector random(const randomgen& rg, const rt::vector& central_dir, real theta_max);
 
         /* Refraction */

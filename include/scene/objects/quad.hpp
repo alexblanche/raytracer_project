@@ -47,7 +47,7 @@ class quad : public object {
 
         /* Intersection determination */
 
-        real measure_distance(const ray& r) const override final;
+        real measure_distance(const ray& r) const final;
 
         /* Returns the barycentric info (l1, l2, lower_triangle):
            (0 <= l1, l2 <= 1)
@@ -55,23 +55,23 @@ class quad : public object {
            or
            p = position + l1 * v3 + l2 * v2 otherwise
         */
-        barycentric_info get_barycentric(const rt::vector& p) const override final;
+        barycentric_info get_barycentric(const rt::vector& p) const final;
         
         rt::vector get_interpolated_normal(const barycentric_info& bary) const;
 
-        hit compute_intersection(const ray& r, real t) const override final;
+        hit compute_intersection(const ray& r, real t) const final;
 
         /* Minimum and maximum coordinates */
-        min_max_coord get_min_max_coord() const override final;
+        min_max_coord get_min_max_coord() const final;
 
         /* Prints the quad */
         void print() const;
 
         /* Normal map vector computation at render time
         Local normal may be the normal of the quad (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
-        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const override final;
+        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const final;
 
-        rt::vector sample(const randomgen& rg) const override final;
+        rt::vector sample(const randomgen& rg) const final;
         
-        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const override final;
+        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const final;
 };

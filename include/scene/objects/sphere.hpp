@@ -27,24 +27,24 @@ class sphere : public object {
         
         /* Intersection determination */
 
-        real measure_distance(const ray& r) const override final;
+        real measure_distance(const ray& r) const final;
 
-        hit compute_intersection(const ray& r, real t) const override final;
+        hit compute_intersection(const ray& r, real t) const final;
 
         /* Minimum and maximum coordinates */
-        min_max_coord get_min_max_coord() const override final;
+        min_max_coord get_min_max_coord() const final;
 
         /* Returns the barycentric info for the object (l1 = longitude, l2 = latitude) (both between 0 and 1) */
-        barycentric_info get_barycentric(const rt::vector& p) const override final;
+        barycentric_info get_barycentric(const rt::vector& p) const final;
 
         /* Normal map vector computation at render time
         Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
-        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const override final;
+        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const final;
 
         /* Uniformly samples a point on the sphere */
-        rt::vector sample(const randomgen& rg) const override final;
+        rt::vector sample(const randomgen& rg) const final;
 
         /* Uniformly samples a point on the sphere that is visible from pt */
-        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const override final;
+        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const final;
 
 };

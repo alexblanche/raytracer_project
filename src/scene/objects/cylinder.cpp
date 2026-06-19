@@ -184,7 +184,7 @@ real cylinder::measure_distance(const ray& r) const {
 hit cylinder::compute_intersection(const ray& r, const real t) const {
 
     // Intersection point
-    const rt::vector p = fma(r.direction, t, r.origin);
+    const rt::vector p = r.extend(t);
     const real rr = radius * radius;
     const rt::vector pmpos = p - position;
 

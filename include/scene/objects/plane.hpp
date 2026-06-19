@@ -21,11 +21,11 @@ class plane : public object {
          defined by 4 reals a,b,c,d, where normal = (a, b, c) */
 
     public:
-        
-        plane(real pa, real pb, real pc, real pd,
+
+        plane(real pa, real pb, real pc, const rt::vector& position,
             unsigned int material_index);
         
-        plane(real pa, real pb, real pc, const rt::vector& position,
+        plane(real pa, real pb, real pc, real pd,
             unsigned int material_index);
 
         plane(real pa, real pb, real pc, const rt::vector& position,
@@ -39,21 +39,21 @@ class plane : public object {
 
         /* Intersection determination */
 
-        real measure_distance(const ray& r) const override final;
+        real measure_distance(const ray& r) const final;
         
-        hit compute_intersection(const ray& r, real t) const override final;
+        hit compute_intersection(const ray& r, real t) const final;
 
         /* Returns the barycentric info (tiles according to texture_scale) */
-        barycentric_info get_barycentric(const rt::vector& p) const override final;
+        barycentric_info get_barycentric(const rt::vector& p) const final;
 
         /* Normal map vector computation at render time */
-        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const override final;
+        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const final;
 
         /* Minimum and maximum coordinates (undefined for planes )*/
-        min_max_coord get_min_max_coord() const override final;
+        min_max_coord get_min_max_coord() const final;
 
-        rt::vector sample(const randomgen& rg) const override final;
+        rt::vector sample(const randomgen& rg) const final;
         
-        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const override final;
+        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const final;
 
 };

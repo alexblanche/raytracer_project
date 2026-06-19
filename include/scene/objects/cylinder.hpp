@@ -29,23 +29,23 @@ class cylinder : public object {
         
         /* Intersection determination */
 
-        real measure_distance(const ray& r) const override final;
+        real measure_distance(const ray& r) const final;
 
-        hit compute_intersection(const ray& r, real t) const override final;
+        hit compute_intersection(const ray& r, real t) const final;
 
         /* Minimum and maximum coordinates */
-        min_max_coord get_min_max_coord() const override final;
+        min_max_coord get_min_max_coord() const final;
 
         /* Returns the barycentric info (the texture is mapped onto the top, the bottom, and the curved surface) */
-        barycentric_info get_barycentric(const rt::vector& p) const override final;
+        barycentric_info get_barycentric(const rt::vector& p) const final;
 
         rt::vector compute_normal_from_map(
             const rt::vector& tangent_space_normal,
             const rt::vector& local_normal,
             const texture_info& info
-        ) const override final;
+        ) const final;
 
-        rt::vector sample(const randomgen& rg) const override final;
+        rt::vector sample(const randomgen& rg) const final;
         
-        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const override final;
+        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const final;
 };

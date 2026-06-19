@@ -6,6 +6,16 @@ enum class det_case {
     XY, XZ, YZ, Error
 };
 
+inline real compute_det_2d(const rt::vector& v1, const rt::vector& v2, det_case det_case) {
+    using enum det_case;
+    switch (det_case) {
+        case XY:    return v1.x * v2.y - v1.y * v2.x;
+        case XZ:    return v1.x * v2.z - v1.z * v2.x;
+        case YZ:    return v1.y * v2.z - v1.z * v2.y;
+        case Error: return 0.0_r;
+    }
+}
+
 class triangle : public object {
     
     private:
@@ -18,8 +28,7 @@ class triangle : public object {
            and searched through for each ray-object intersection computation.
         */
 
-        rt::vector normal, v1, v2, vn0, //vn1, vn2;
-            vn1mvn0, vn2mvn0;
+        rt::vector normal, v1, v2, vn0, vn1mvn0, vn2mvn0;
         real d;
         real det;
         det_case case_det;
@@ -53,28 +62,28 @@ class triangle : public object {
 
         /* Intersection determination */
 
-        real measure_distance(const ray& r) const override final;
+        real measure_distance(const ray& r) const final;
 
         /* Returns the barycentric info (l1, l2):
            p = position + l1 * v1 + l2 * v2
            (0 <= l1, l2 <= 1)
         */
-        barycentric_info get_barycentric(const rt::vector& p) const override final;
+        barycentric_info get_barycentric(const rt::vector& p) const final;
 
         rt::vector get_interpolated_normal(const barycentric_info& bary) const;
 
-        hit compute_intersection(const ray& r, real t) const override final;
+        hit compute_intersection(const ray& r, real t) const final;
 
 
         /* Minimum and maximum coordinates */
-        min_max_coord get_min_max_coord() const override final;
+        min_max_coord get_min_max_coord() const final;
 
         /* Prints the triangle */
         void print() const;
 
         /* Normal map vector computation at render time
         Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
-        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const override final;
+        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const final;
 
         static inline rt::vector sample_triangle(const randomgen& rg, const rt::vector& v0, const rt::vector& v1, const rt::vector& v2) {
             
@@ -94,7 +103,7 @@ class triangle : public object {
             return fma(v1, u, fma(v2, v, v0));
         }
 
-        rt::vector sample(const randomgen& rg) const override final;
+        rt::vector sample(const randomgen& rg) const final;
         
-        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const override final;
+        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const final;
 };
