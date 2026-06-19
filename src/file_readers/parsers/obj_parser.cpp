@@ -71,8 +71,8 @@ static void add_triangle(const std::vector<rt::vector>& vertex_set, const std::v
 
    obj_set.push_back(tr);
 
-   number_of_polygons ++;
-   number_of_triangles ++;
+   number_of_polygons++;
+   number_of_triangles++;
 
    if (bounding_enabled) {
       content.push_back(tr);
@@ -113,8 +113,8 @@ static void add_triangle_subdiv(const std::vector<rt::vector>& vertex_set, const
 
    obj_set.push_back(tr);
 
-   number_of_polygons ++;
-   number_of_triangles ++;
+   number_of_polygons++;
+   number_of_triangles++;
 
    if (bounding_enabled) {
       content.push_back(tr);
@@ -157,8 +157,8 @@ static void add_quad(const std::vector<rt::vector>& vertex_set, const std::vecto
 
    obj_set.push_back(q);
                
-   number_of_polygons ++;
-   number_of_quads ++;
+   number_of_polygons++;
+   number_of_quads++;
 
    if (bounding_enabled) {
       content.push_back(q);
@@ -197,8 +197,8 @@ static void add_triangle_no_normal(const std::vector<rt::vector>& vertex_set, co
 
    obj_set.push_back(tr);
 
-   number_of_polygons ++;
-   number_of_triangles ++;
+   number_of_polygons++;
+   number_of_triangles++;
 
    if (bounding_enabled) {
       content.push_back(tr);
@@ -236,8 +236,8 @@ static void add_triangle_subdiv_no_normal(const std::vector<rt::vector>& vertex_
 
    obj_set.push_back(tr);
 
-   number_of_polygons ++;
-   number_of_triangles ++;
+   number_of_polygons++;
+   number_of_triangles++;
 
    if (bounding_enabled) {
       content.push_back(tr);
@@ -277,8 +277,8 @@ static void add_quad_no_normal(const std::vector<rt::vector>& vertex_set, const 
 
    obj_set.push_back(q);
                
-   number_of_polygons ++;
-   number_of_quads ++;
+   number_of_polygons++;
+   number_of_quads++;
 
    if (bounding_enabled) {
       content.push_back(q);
@@ -345,7 +345,7 @@ static void add_subdivided_polygon(const file& f,
       final_v = final_v + vertex_set[vi];
       if (apply_texture) { final_vt = final_vt + uv_coord_set[vti]; }
       final_vn = final_vn + normal_set[vni];
-      cpt ++;
+      cpt++;
 
       c = f.getc();
    }
@@ -446,7 +446,7 @@ static void add_subdivided_polygon_no_normal(const file& f,
 
       final_v = final_v + vertex_set[vi];
       if (apply_texture) { final_vt = final_vt + uv_coord_set[vti]; }
-      cpt ++;
+      cpt++;
 
       c = f.getc();
    }
@@ -576,9 +576,6 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
       /* Parsing loop */
       while (not f.eof()) {
 
-         // cpt_loop ++;
-         // if (cpt_loop % 1000 == 0) printf("\r%u vertices %u polygons %u normals %llu", cpt_loop, number_of_vertices, number_of_polygons, normal_set.size());
-
          // longest items are usemtl, mtllib
          std::array<char, 7> buffer = make_array<char, 7>('\0');
          const exit_status status = f.read<char>({ buffer.data(), 6 });
@@ -611,7 +608,7 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
             /* Vertex definition */
             const auto [ x, y, z ] = f.scan<double, 3>();
             vertex_set.push_back(rt::vector(x, y, z));
-            number_of_vertices ++;
+            number_of_vertices++;
 
             /* Updating max dimensions */
             if (x > max_x) { max_x = x; }

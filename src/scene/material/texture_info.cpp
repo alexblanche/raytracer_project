@@ -12,10 +12,9 @@ texture_info::texture_info(
     std::optional<int> n_index,
 //  std::optional<int> roughness_map_index,
 //  std::optional<int> displacement_map_index,
-    // std::vector<real>&& uv_coordinates)
-    std::initializer_list<double>&& uv_coordinates)
-    :   uv_coordinates(uv_coordinates.begin(), uv_coordinates.end()),
-        texture_index(t_index.value_or(NONE)),
+    std::array<real, 8>&& uv_coords)
+    :   uv_coordinates(std::move(uv_coords)),
+        texture_index   (t_index.value_or(NONE)),
         normal_map_index(n_index.value_or(NONE)) {}
 
 /* Texturing */

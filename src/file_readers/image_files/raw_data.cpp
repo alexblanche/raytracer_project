@@ -71,6 +71,8 @@ static std::unique_ptr<rt::color[]> read_raw_file_content(const file& f, const f
     if (f.length() < buffer_size * pixel_size)
         throw std::runtime_error("read_raw_file_content: Incorrect file size");
     
+    // Default-initializes all the colors!
+    // To be reworked with an allocator
     std::unique_ptr<rt::color[]> buffer(new rt::color[buffer_size]);
     
     const exit_status status = f.read(std::span{ buffer.get(), buffer_size });

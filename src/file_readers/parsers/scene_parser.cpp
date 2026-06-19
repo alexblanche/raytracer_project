@@ -545,12 +545,9 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
         const real fovh = fovw * static_cast<real>(height) / static_cast<real>(width);
 
-        camera cam = (depth_of_field_enabled) ?
-            camera(cam_pos, cam_dir, cam_right_dir,
-                fovw, fovh, dist, width, height, focl, apr)
-            :
-            camera(cam_pos, cam_dir, cam_right_dir,
-                fovw, fovh, dist, width, height);
+        camera cam = depth_of_field_enabled ?
+              camera(cam_pos, cam_dir, cam_right_dir, fovw, fovh, dist, width, height, focl, apr)
+            : camera(cam_pos, cam_dir, cam_right_dir, fovw, fovh, dist, width, height);
 
         bool background_color_is_set   = false;
         bool background_texture_is_set = false;
@@ -784,10 +781,9 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
                 std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Sphere);
                 if (info.has_value()) {
-                    std::vector<real>& info_vect = info.value().uv_coordinates;
-                    const rt::vector forward(info_vect[0], info_vect[1], info_vect[2]);
-                    const rt::vector right  (info_vect[3], info_vect[4], info_vect[5]);
-                    info_vect.clear();
+                    const auto& [ fx, fy, fz, rx, ry, rz, _, _ ] = info.value().uv_coordinates;
+                    const rt::vector forward(fx, fy, fz);
+                    const rt::vector right  (rx, ry, rz);
 
                     sph = new sphere(position, r, m_index.value(), texture_info_set.size(), forward, right);
                     texture_info_set.push_back(info.value());
@@ -820,10 +816,8 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Plane);
                 if (info.has_value()) {
 
-                    std::vector<real>& info_vect = info.value().uv_coordinates;
-                    const rt::vector right(info_vect[0], info_vect[1], info_vect[2]);
-                    const real scale = info_vect[3];
-                    info_vect.clear();
+                    const auto& [ rx, ry, rz, scale, _, _, _, _ ] = info.value().uv_coordinates;
+                    const rt::vector right(rx, ry, rz);
 
                     pln = new plane(n.x, n.y, n.z, p, m_index.value(), texture_info_set.size(), right, scale);
                     texture_info_set.push_back(info.value());
@@ -877,13 +871,15 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                     throw std::runtime_error("Material definition error");
 
                 std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Triangle);
-                const bool normal_mapping = info.has_value() && info.value().has_normal_information();
+                const bool texturing = info.has_value();
+                const bool normal_mapping = texturing && info.value().has_normal_information();
                 
+                const unsigned int texture_info_index = texturing ? texture_info_set.size() : EMPTY_INDEX;
                 const triangle* tr = normal_mapping ?
-                      new triangle(v0, v1, v2, m_index.value(), texture_info_set.size(), normal_mapping, info.value())
-                    : new triangle(v0, v1, v2, m_index.value(), (info.has_value() ? texture_info_set.size() : EMPTY_INDEX));
+                      new triangle(v0, v1, v2, m_index.value(), texture_info_index, info.value())
+                    : new triangle(v0, v1, v2, m_index.value(), texture_info_index);
                 object_set.push_back(tr);
-                if (info.has_value())
+                if (texturing)
                     texture_info_set.push_back(info.value());
                         
                 if (bounding_enabled)
@@ -911,10 +907,13 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                     throw std::runtime_error("Material definition error");
                 
                 std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Quad);
-                const bool normal_mapping = info.has_value() && info.value().has_normal_information();
+                
+                const bool texturing = info.has_value();
+                const bool normal_mapping = texturing && info.value().has_normal_information();
+                const unsigned int texture_info_index = texturing ? texture_info_set.size() : EMPTY_INDEX;
                 const quad* q = normal_mapping ?
-                      new quad(v0, v1, v2, v3, m_index.value(), texture_info_set.size(), normal_mapping, info.value())
-                    : new quad(v0, v1, v2, v3, m_index.value(), (info.has_value() ? texture_info_set.size() : EMPTY_INDEX));
+                      new quad(v0, v1, v2, v3, m_index.value(), texture_info_index, info.value())
+                    : new quad(v0, v1, v2, v3, m_index.value(), texture_info_index);
                 object_set.push_back(q);
                 if (info.has_value())
                     texture_info_set.push_back(info.value());

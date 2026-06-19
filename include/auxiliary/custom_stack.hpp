@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <span>
+#include <memory>
 
 constexpr std::size_t DEFAULT_INIT_SIZE = 10; // Default initial reserve
 constexpr std::size_t MAX_ELEMENT_SIZE  = 16; // Maximum size of stored elements
@@ -12,6 +13,9 @@ requires (sizeof(T) <= MAX_ELEMENT_SIZE) // Not so important, can be lifted if n
     && std::is_trivially_destructible_v<T>
 class custom_stack {
 
+    inline static std::allocator<T> allocator;
+    using alloc = std::allocator_traits<std::allocator<T>>;
+
     T*  data             = nullptr;
     std::size_t size     = 0;
     std::size_t capacity = 0;
@@ -19,8 +23,9 @@ class custom_stack {
     private:
         
         inline void increase_capacity(const std::size_t target) {
-            T* new_data = new T[target];
+            T* new_data(alloc::allocate(allocator, target));
             std::memcpy(new_data, data, size * sizeof(T));
+            alloc::deallocate(allocator, data, capacity);
             data = new_data;
             capacity = target;
         }
@@ -40,11 +45,11 @@ class custom_stack {
         inline custom_stack(const std::size_t init_size = DEFAULT_INIT_SIZE) {
             size     = 0;
             capacity = init_size;
-            data     = new T[capacity];
+            data     = alloc::allocate(allocator, capacity);
         }
 
         inline ~custom_stack() noexcept {
-            delete[] data;
+            alloc::deallocate(allocator, data, capacity);
             size     = 0;
             capacity = 0;
         }
@@ -78,7 +83,7 @@ class custom_stack {
         requires std::is_constructible_v<T, Args...>
         inline void emplace(Args&&... args) {
             check_capacity();
-            data[size] = T(std::forward<Args>(args)...);
+            alloc::construct(allocator, &data[size], std::forward<Args>(args)...);
             size++;
         }
 

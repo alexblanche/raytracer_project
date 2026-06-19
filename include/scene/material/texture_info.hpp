@@ -8,6 +8,7 @@
 // #include "scene/material/roughness_map.hpp"
 // #include "scene/material/displacement_map.hpp"
 
+#include <array>
 #include <optional>
 
 /* Struct representing UV-coordinates */
@@ -22,7 +23,7 @@ class texture_info {
 
         /* Vector of UV coordinates (between 0 and 1)
            6 for a triangle (u0,v0,u1,v1,u2,v2) and 8 for a quad */
-        std::vector<real> uv_coordinates;
+        std::array<real, 8> uv_coordinates;
 
         /* Tangent and bitangent for normal mapping */
         rt::vector tangent;
@@ -40,7 +41,8 @@ class texture_info {
         texture_info(std::optional<int> t_index,
             std::optional<int> n_index,
             //std::vector<real>&& uv_coordinates);
-            std::initializer_list<double>&& uv_coordinates);
+            //std::initializer_list<double>&& uv_coordinates
+            std::array<real, 8>&& uv_coords); // parsing requires double type, then converted to real
 
         /* Sets the tangent and bitangent vectors */
         void set_tangent_space(const rt::vector& t, const rt::vector& b);

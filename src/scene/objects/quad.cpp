@@ -61,35 +61,31 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
 
 // Constructor from four points with normal mapping enabled
 quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
-    const unsigned int material_index, const unsigned int texture_info_index, const bool normal_mapping,
+    const unsigned int material_index, const unsigned int texture_info_index,
     texture_info& info)
 
     : quad(p0, p1, p2, p3, material_index, texture_info_index) {
-    
-    if (normal_mapping) {
         
-        /* Same as triangle */
-    
-        const std::vector<real>& uvc = info.uv_coordinates;
-        // uvc = (u0, v0, u1, v1, u2, v2)
-        const real x1 = uvc[2] - uvc[0];
-        const real x2 = uvc[4] - uvc[0];
-        const real y1 = uvc[3] - uvc[1];
-        const real y2 = uvc[5] - uvc[1];
-        const real r = 1.0_r / (x1 * y2 - x2 * y1);
-        const rt::vector t = r * ( y2 * v1 + -y1 * v2);
-        const rt::vector b = r * (-x2 * v1 +  x1 * v2);
-        info.set_tangent_space(t.unit(), b.unit());
-    }
+    /* Same as triangle */
+
+    const auto& [ u_0, v_0, u_1, v_1, u_2, v_2, _, _ ] = info.uv_coordinates;
+    const real x1 = u_1 - u_0;
+    const real x2 = u_2 - u_0;
+    const real y1 = v_1 - v_0;
+    const real y2 = v_2 - v_0;
+    const real r = 1.0_r / (x1 * y2 - x2 * y1);
+    const rt::vector t = r * ( y2 * v1 + -y1 * v2);
+    const rt::vector b = r * (-x2 * v1 +  x1 * v2);
+    info.set_tangent_space(t.unit(), b.unit());
 }
 
 // Constructor from four points with vertex normals and normal mapping enabled
 quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
-    const unsigned int material_index, const unsigned int texture_info_index, const bool normal_mapping,
+    const unsigned int material_index, const unsigned int texture_info_index,
     texture_info& info)
 
-    : quad(p0, p1, p2, p3, material_index, texture_info_index, normal_mapping, info) {
+    : quad(p0, p1, p2, p3, material_index, texture_info_index, info) {
 
     vn0     = vn0init.unit();
     vn1mvn0 = (vn1.unit()) - vn0;

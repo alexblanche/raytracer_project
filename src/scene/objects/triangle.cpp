@@ -53,50 +53,47 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
 
 // Constructor from three points with normal mapping enabled
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
-    const unsigned int material_index, const unsigned int texture_info_index, const bool normal_mapping,
+    const unsigned int material_index, const unsigned int texture_info_index,
     texture_info& info)
 
     : triangle(p0, p1, p2, material_index, texture_info_index) {
 
-    if (normal_mapping) {
-        
-        /*
-        Computation of tangent space
-        v1 = x1 * t + y1 * b
-        v2 = x2 * t + y2 * b
+    /*
+    Computation of tangent space
+    v1 = x1 * t + y1 * b
+    v2 = x2 * t + y2 * b
 
-        In matrix form:
-        (v1.x v1.y v1.z)   (x1 y1)(t.x t.y t.z)
-        (v2.x v2.y v2.z) = (x2 y2)(b.x b.y b.z)
+    In matrix form:
+    (v1.x v1.y v1.z)   (x1 y1)(t.x t.y t.z)
+    (v2.x v2.y v2.z) = (x2 y2)(b.x b.y b.z)
 
-        So,
-        (x1 y1)-1 (v1.x v1.y v1.z)   (t.x t.y t.z)
-        (x2 y2)   (v2.x v2.y v2.z) = (b.x b.y b.z)
+    So,
+    (x1 y1)-1 (v1.x v1.y v1.z)   (t.x t.y t.z)
+    (x2 y2)   (v2.x v2.y v2.z) = (b.x b.y b.z)
 
-        (x1 y1)-1                             (y2  -y1)
-        (x2 y2)   = (1 / (x1 * y2 - x2 * y1)) (-x2  x1)
-        */
+    (x1 y1)-1                             (y2  -y1)
+    (x2 y2)   = (1 / (x1 * y2 - x2 * y1)) (-x2  x1)
+    */
+
+    const auto& [ u_0, v_0, u_1, v_1, u_2, v_2, _, _ ] = info.uv_coordinates;
+    const real x1 = u_1 - u_0;
+    const real x2 = u_2 - u_0;
+    const real y1 = v_1 - v_0;
+    const real y2 = v_2 - v_0;
+    const real r = 1.0_r / (x1 * y2 - x2 * y1);
+    const rt::vector t = r * ( y2 * v1 + -y1 * v2);
+    const rt::vector b = r * (-x2 * v1 +  x1 * v2);
+    info.set_tangent_space(t.unit(), b.unit());
     
-        const std::vector<real>& uvc = info.uv_coordinates;
-        // uvc = (u0, v0, u1, v1, u2, v2)
-        const real x1 = uvc[2] - uvc[0];
-        const real x2 = uvc[4] - uvc[0];
-        const real y1 = uvc[3] - uvc[1];
-        const real y2 = uvc[5] - uvc[1];
-        const real r = 1.0_r / (x1 * y2 - x2 * y1);
-        const rt::vector t = r * ( y2 * v1 + -y1 * v2);
-        const rt::vector b = r * (-x2 * v1 +  x1 * v2);
-        info.set_tangent_space(t.unit(), b.unit());
-    }
 }
 
 // Constructor from three points with vertex normals and normal mapping enabled
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2,
-    const unsigned int material_index, const unsigned int texture_info_index, const bool normal_mapping,
+    const unsigned int material_index, const unsigned int texture_info_index,
     texture_info& info)
 
-    : triangle(p0, p1, p2, material_index, texture_info_index, normal_mapping, info) {
+    : triangle(p0, p1, p2, material_index, texture_info_index, info) {
     
     vn0     = vn0init.unit();
     vn1mvn0 = (vn1.unit()) - vn0;
