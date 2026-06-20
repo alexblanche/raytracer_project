@@ -136,7 +136,7 @@ exit_status bmp::export_data(const std::string& file_name, const image& image) {
     uint8_t header[] = {
 
         /* 2 bytes: BM */
-        'B', 'M', 
+        'B', 'M',
 
         /* 4 bytes: File size */
         s0, s1, s2, s3,
@@ -216,7 +216,7 @@ exit_status bmp::export_data(const std::string& file_name, const image& image) {
 
         check(f.write<uint8_t>(header));
         check(f.write(buffer));
-
+        
         return exit_status::Success;
     }
     catch(const std::exception& e) {

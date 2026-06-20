@@ -217,3 +217,7 @@ target_include_directories(${test_infinite_name}
 add_executable(testfile
 	src/tests/test_file.cpp
 )
+
+add_executable(tests
+	src/tests/test.cpp
+)

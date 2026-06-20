@@ -24,7 +24,7 @@ class custom_stack {
         
         inline void increase_capacity(const std::size_t target) {
             T* new_data(alloc::allocate(allocator, target));
-            std::memcpy(new_data, data, size * sizeof(T));
+            std::memcpy(reinterpret_cast<void*>(new_data), reinterpret_cast<void*>(data), size * sizeof(T));
             alloc::deallocate(allocator, data, capacity);
             data = new_data;
             capacity = target;

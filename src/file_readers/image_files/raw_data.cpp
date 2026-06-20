@@ -4,6 +4,7 @@
 
 #include <optional>
 #include <stdexcept>
+#include <cstdlib>
 
 using format = raw_data::format;
 using enum raw_data::format;
@@ -46,7 +47,7 @@ exit_status raw_data::export_data(const std::string& file_name, const image& ima
                     std::memcpy(buffer_start + index, row.data(), row_length_bin);
                     index += width;
                 }
-
+                
                 const std::span buffer = { reinterpret_cast<const rt::color*>(buffer_start), buffer_size };
                 const exit_status status = f.write(buffer);
                 throw_if_failure(status, "Could not write in file");

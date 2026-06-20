@@ -1,5 +1,6 @@
 #include "file_readers/image_files/bmp_reader.hpp"
 #include "file_readers/image_files/hdr_reader.hpp"
+#include "file_readers/image_files/raw_data.hpp"
 #include "screen/screen.hpp"
 #include "auxiliary/timer.hpp"
 
@@ -31,6 +32,58 @@ static void test_bmp() {
     rt::screen scr(img);
     scr.fast_copy(1);
     scr.update_from_texture();
+    scr.wait_quit_event();
+}
+
+static void test_write_bmp() {
+    const std::string& filename_bmp = BMP_FILE_NAME;
+    const std::string output_filename_bmp_base = "../output/TEST/TEST_";
+    constexpr int NB_ITERATIONS = 10;
+
+    std::optional<matrix> mat_opt = bmp::read_file(filename_bmp);
+    assert(mat_opt.has_value());
+    image img(std::move(mat_opt.value()));
+    rt::screen scr(img);
+    scr.fast_copy(1);
+    scr.update_from_texture();
+
+    timer_ms timer;
+    timer.start();
+    for (int k = 0; k < NB_ITERATIONS; k++) {
+        const std::string output_filename = output_filename_bmp_base + std::to_string(k) + ".bmp";
+        const exit_status status = bmp::export_data(output_filename, img);
+        assert(status == exit_status::Success);
+    }
+    timer.stop();
+    printf("BMP write ");
+    timer.print();
+
+    scr.wait_quit_event();
+}
+
+static void test_write_raw() {
+    const std::string& filename_bmp = BMP_FILE_NAME;
+    const std::string output_filename_raw_base = "../output/TEST/TEST_";
+    constexpr int NB_ITERATIONS = 10;
+
+    std::optional<matrix> mat_opt = bmp::read_file(filename_bmp);
+    assert(mat_opt.has_value());
+    image img(std::move(mat_opt.value()));
+    rt::screen scr(img);
+    scr.fast_copy(1);
+    scr.update_from_texture();
+
+    timer_ms timer;
+    timer.start();
+    for (int k = 0; k < NB_ITERATIONS; k++) {
+        const std::string output_filename = output_filename_raw_base + std::to_string(k) + ".rtdata";
+        const exit_status status = raw_data::export_data(output_filename, img);
+        assert(status == exit_status::Success);
+    }
+    timer.stop();
+    printf("Raw data write ");
+    timer.print();
+
     scr.wait_quit_event();
 }
 
@@ -93,6 +146,10 @@ int main(int argc, char **argv) {
         test_bmp();
     else if (arg == "hdr")
         test_hdr();
+    else if (arg == "wbmp")
+        test_write_bmp();
+    else if (arg == "wraw")
+        test_write_raw();
     else
         test_fastcopy();
 
