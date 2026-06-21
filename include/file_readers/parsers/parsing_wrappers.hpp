@@ -24,38 +24,24 @@ template <Wrappable T>
 class wrapper {
     public:
         T content;
-        std::optional<std::string> name;
+        std::optional<std::string> name = std::nullopt;
         std::size_t index;
 
         static inline std::size_t counter = 0;
 
-        wrapper()
-            : index(counter) {
-        
-            counter++;
-        }
+        wrapper(T&& t)
+            : content(std::forward<T>(t)), index(counter++) {}
 
-        wrapper(T&& t, const std::string& name)
-            : content(std::forward<T>(t)), name(name), index(counter) {
-
-            counter++;
-        }
+        wrapper(T&& t, const std::string& name_)
+            : wrapper(std::forward<T>(t)) { name = name_; }
 
         wrapper(const T& t, const std::string& name)
-            : content(t), name(name), index(counter) {
-        
-            counter++;
-        }
-
-        wrapper(T&& t)
-            : content(std::forward<T>(t)), name(std::nullopt), index(counter) {
-
-            counter++;
-        }
+            : content(t), name(name), index(counter++) {}
 
         wrapper(wrapper&&)                  = default;
         wrapper& operator=(wrapper&&)       = default;
 
+        wrapper()                           = delete;
         wrapper(const wrapper&)             = delete;
         wrapper& operator=(const wrapper&)  = delete;
 
@@ -71,12 +57,9 @@ class wrapper {
                 }
             }
 
-            if (not vindex.has_value()) {
-                if (not silent) {
-                    printf("Error, %s %s not found.\n", type_str<T>().c_str(), vname.c_str());
-                }
-                return std::nullopt;
-            }
+            if ((not vindex.has_value()) && (not silent))
+                printf("Error, %s %s not found.\n", type_str<T>().c_str(), vname.c_str());
+
             return vindex;
         }
 

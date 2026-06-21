@@ -18,9 +18,7 @@
    Returns true if the operation was successful */
 
 static inline void check(exit_status status, const std::string& error_message) {
-    if (status == exit_status::Failure) {
-        throw std::runtime_error(error_message + "\n");
-    }
+    throw_if_failure(status, error_message + "\n");
 }
 
 exit_status parse_mtl_file(const std::filesystem::path& path, const std::string& file_name,

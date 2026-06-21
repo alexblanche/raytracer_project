@@ -645,10 +645,7 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
 
             /* Looking up the material name in the vector of already declared material names */
             const std::optional<unsigned int> vindex = wrapper<material>::find_element(material_wrapper_set, m_name);
-            
-            if (not vindex.has_value()) {
-               throw std::runtime_error("(material reading)");
-            }
+            throw_if_null(vindex, "(material reading)");
             
             current_material_index = vindex.value();
             if (mt_assoc.count(current_material_index) > 0) {
@@ -668,10 +665,7 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
             const exit_status mtl_parsing_successful =
                parse_mtl_file(path, mtl_file_name, material_wrapper_set,
                   texture_wrapper_set, mt_assoc, gamma);
-
-            if (mtl_parsing_successful == exit_status::Failure) {
-               throw std::runtime_error("(mtl file loading)");
-            }
+            throw_if_failure(mtl_parsing_successful, "(mtl file loading)");
          }
          else if (s == "f") {
             /* Face declaration */

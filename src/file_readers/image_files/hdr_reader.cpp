@@ -44,9 +44,9 @@ std::optional<matrix> hdr::read_file(const std::string& file_name) {
 
         const std::vector<unsigned char> content = f.extract_from();
         const std::size_t length = content.size();
-        if (length > static_cast<std::size_t>(INT32_MAX)) {
+        if (length > static_cast<std::size_t>(INT32_MAX))
             throw std::runtime_error("read_hdr: file too large");
-        }
+
         f.close();
         int pos = 0;
             

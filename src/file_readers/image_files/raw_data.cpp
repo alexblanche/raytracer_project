@@ -21,10 +21,7 @@ exit_status raw_data::export_data(const std::string& file_name, const image& ima
         const exit_status status = f.printf("width:%u height:%u number_of_rays:%u format:%u pixel_size:%zu\n",
             width, height, image.number_of_samples, format, sizeof(rt::color));
 
-        if (status == exit_status::Failure) {
-            printf("Writing error at first line of %s\n", file_name.c_str());
-            throw std::runtime_error("");
-        }
+        throw_if_failure(status, "Writing error at first line of " + file_name + "\n");
 
         switch (format) {
             case Text:
@@ -96,10 +93,8 @@ std::optional<image> raw_data::read_file(const std::string& file_name) {
         const int ret = f.scanf_count("width:%u height:%u number_of_rays:%u format:%u pixel_size:%zu\n",
             width, height, number_of_rays, format_code, pixel_size);
 
-        if (ret < 3 || (format_code != 0 && format_code != 1)) {
-            printf("Reading error at first line of file %s\n", file_name.c_str());
-            throw std::runtime_error("");
-        }
+        if (ret < 3 || (format_code != 0 && format_code != 1))
+            throw std::runtime_error("Reading error at first line of file" + file_name + "\n");
 
         const format format = static_cast<raw_data::format>(format_code);
 

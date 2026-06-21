@@ -146,13 +146,12 @@ map_sample scene::sample_maps(const unsigned int texture_info_index, const baryc
           normal_map_set[ti.normal_map_index].get_tangent_space_normal(u, v)
         : default_vector;
     // const real smoothness = (ti.roughness_map_index.has_value()) ?
-    //     1.0f - roughness_map_set[ti.roughness_map_index.value()].get_roughness(uvc.u, uvc.v)
-    //     :
-    //     default_smoothness;
+    //       1.0f - roughness_map_set[ti.roughness_map_index.value()].get_roughness(uvc.u, uvc.v)
+    //     : default_smoothness;
     // const real displacement = displacement_map_set[ti.displacement_map_index].get_displacement(uvc.u, uvc.v);
 
     return map_sample(t_col, n_vec//,
         // smoothness,
         // displacement
-        );
+    );
 }

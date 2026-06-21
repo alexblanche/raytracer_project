@@ -34,3 +34,8 @@ inline void throw_if_failure(exit_status s, const std::string& error_message) {
     if (s == exit_status::Failure)
         throw std::runtime_error(error_message);
 }
+
+template<typename T>
+inline void throw_if_null(const std::optional<T>& opt, const std::string& error_message) {
+    throw_if_failure(exit_status_of(opt.has_value()), error_message);
+}

@@ -333,13 +333,11 @@ std::optional<unsigned int> get_material(const file& f, std::vector<wrapper<mate
         // material declaration
         std::optional<material> m = parse_material(f, gamma);
 
-        if (m.has_value()) {
-            material_wrapper_set.emplace_back(std::move(m.value()));
-            return material_wrapper_set.back().index;
-        }
-        else {
+        if (not m.has_value())
             return std::nullopt;
-        }
+        
+        material_wrapper_set.emplace_back(std::move(m.value()));
+        return material_wrapper_set.back().index;
     }
     else {
         // Moving back the pointer back by one position
@@ -709,8 +707,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 const std::string m_name = f.read_string(64);
 
                 std::optional<material> m = parse_material(f, inverse_gamma);
-                if (not m.has_value())
-                    throw std::runtime_error("Material parsing error");
+                throw_if_null(m, "Material parsing error");
                 
                 material_wrapper_set.emplace_back(std::move(m.value()), m_name);
                 continue;
@@ -773,14 +770,13 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 const rt::vector position(posx, posy, posz);
 
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
-
-                if (not m_index.has_value())
-                    throw std::runtime_error("Material definition error");
+                throw_if_null(m_index, "Material definition error");
                 
                 const sphere* sph = nullptr;
 
                 std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Sphere);
                 if (info.has_value()) {
+
                     const auto& [ fx, fy, fz, rx, ry, rz, _, _ ] = info.value().uv_coordinates;
                     const rt::vector forward(fx, fy, fz);
                     const rt::vector right  (rx, ry, rz);
@@ -808,9 +804,8 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 rt::vector p(px, py, pz);
 
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
-                if (not m_index.has_value())
-                    throw std::runtime_error("Material definition error");
-                
+                throw_if_null(m_index, "Material definition error");
+
                 const plane* pln = nullptr;
 
                 std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Plane);
@@ -843,8 +838,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 rt::vector n2(n2x, n2y, n2z);
 
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
-                if (not m_index.has_value())
-                    throw std::runtime_error("Material definition error");
+                throw_if_null(m_index, "Material definition error");
                 
                 const box* bx = new box(c, n1.unit(), n2.unit(), lx, ly, lz, m_index.value());
                 object_set.push_back(bx);
@@ -867,8 +861,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 rt::vector v2(v2x, v2y, v2z);
 
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
-                if (not m_index.has_value())
-                    throw std::runtime_error("Material definition error");
+                throw_if_null(m_index, "Material definition error");
 
                 std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Triangle);
                 const bool texturing = info.has_value();
@@ -902,9 +895,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 rt::vector v3(v3x, v3y, v3z);
 
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
-
-                if (not m_index.has_value())
-                    throw std::runtime_error("Material definition error");
+                throw_if_null(m_index, "Material definition error");
                 
                 std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, Quad);
                 
@@ -934,9 +925,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 rt::vector d(d_x, d_y, d_z);
 
                 const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
-
-                if (not m_index.has_value())
-                    throw std::runtime_error("Material definition error");
+                throw_if_null(m_index, "Material definition error");
                 
                 const cylinder* cyl = new cylinder(p, d.unit(), r, l, m_index.value());
                 object_set.push_back(cyl);
@@ -965,8 +954,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 if (ret == 6 && std::string(t_name) == "none") {
 
                     t_index = wrapper<texture>::find_element(texture_wrapper_set, t_name);
-                    if (not t_index.has_value())
-                        throw std::runtime_error("Texture not found");
+                    throw_if_null(t_index, "Texture not found");
                 }
 
                 const bounding* output_bd;

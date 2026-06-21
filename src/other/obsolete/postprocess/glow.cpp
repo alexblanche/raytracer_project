@@ -1,7 +1,7 @@
 #include "other/obsolete/postprocess/glow.hpp"
 
-#include "file_readers/raw_data.hpp"
-#include "file_readers/bmp_reader.hpp"
+#include "file_readers/image_files/raw_data.hpp"
+#include "file_readers/image_files/bmp_reader.hpp"
 
 #include <cmath>
 
@@ -36,7 +36,7 @@ struct pixel {
         return (alpha == 0.0
             || std::max(r, std::max(g, b)) > 255.0_r * number_of_rays * threshold) ?
             
-               (orig_col / number_of_rays).max_out()
+               (orig_col / number_of_rays).get_capped()
             : ((orig_col / number_of_rays) * (1.0 - alpha)) + (col * alpha);
     }
 };
@@ -197,12 +197,12 @@ int main(int argc, char* argv[]) {
     fflush(stdout);
 
     unsigned int number_of_rays;
-    std::optional<image> image_opt = read_raw(argv[input_arg]);
+    std::optional<image> image_opt = raw_data::read_file(argv[input_arg]);
 
     
     if (not image_opt.has_value()) {
         printf("Error reading file %s\n", argv[input_arg]);
-        return EXIT_SUCCESS;
+        return EXIT_FAILURE;
     }
 
     image& image = image_opt.value();
@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
 
     printf("Done.\n");
 
-    const exit_status success_export = write_bmp(argv[output_arg], image);
+    const exit_status success_export = bmp::export_data(argv[output_arg], image);
 
     if (success_export == exit_status::Success) {
         printf("File %s created\n", argv[output_arg]);

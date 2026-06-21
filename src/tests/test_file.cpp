@@ -44,7 +44,7 @@ int main() {
         };
         const std::optional<obj> c = f.scan<obj>();
         if (not c.has_value())
-            exit(1);
+            exit(EXIT_FAILURE);
         printf("%.5s c = %.2s\n", t, c.value().t);
 
         const auto [ c1, c2 ] = c.value().t;
