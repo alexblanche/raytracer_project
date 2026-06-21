@@ -18,6 +18,7 @@ static consteval T id(std::size_t, T value) {
     return value;
 }
 
+// Auxiliary
 template<typename T, std::size_t... i>
 static consteval inline std::array<T, sizeof...(i)> make_array_aux_(T value, std::index_sequence<i...>) {
     return { id(i, value)... };
@@ -29,6 +30,7 @@ static consteval inline std::array<T, count> make_array(T value) {
     return make_array_aux_<T>(value, std::make_index_sequence<count>());
 }
 
+// Auxiliary
 template<std::size_t count, std::size_t... i>
 static consteval inline std::string string_concat_aux_(const std::string& value, std::index_sequence<i...>) {
     return (id(i, value) + ...);
@@ -40,25 +42,42 @@ static consteval inline std::string string_concat(const std::string& value) {
     return string_concat_aux_<count>(value, std::make_index_sequence<count>());
 }
 
-template<typename T, typename U>
-concept Convertible = std::is_convertible_v<U, T>;
+// template<typename T, typename U>
+// concept Convertible = std::is_convertible_v<U, T>;
 
 template<typename T>
 concept Arithm = std::is_arithmetic_v<T>;
 
+// Returns the printf/scanf format for data type T
 template<Arithm T>
 static consteval std::string data_format() {
-    constexpr std::string prefix = (sizeof(T) <= sizeof(int)) ? "" : (sizeof(T) == sizeof(long int)) ? "l" : "ll";
-    constexpr std::string suffix =
-        std::is_floating_point_v<T> ? "f" :
-        sizeof(T) == 1              ? "c" :
-        std::is_unsigned_v<T>       ? "u" : "d";
-    return "%" + prefix + suffix;
+    if constexpr (sizeof(T) == 1)
+        return "%c";
+    else if constexpr (std::is_floating_point_v<T>) {
+        constexpr std::string prefix =
+            std::is_same_v<T, float>  ? ""  :
+            std::is_same_v<T, double> ? "l" : "ll";
+        return "%" + prefix + "f";
+    }
+    else {
+        constexpr std::string prefix =
+            sizeof(T) <= sizeof(int)             ? ""  :
+            std::is_same_v<long, T>
+             || std::is_same_v<unsigned long, T> ? "l" : "ll";
+        constexpr std::string suffix = std::is_unsigned_v<T> ? "u" : "d";
+        return "%" + prefix + suffix;
+    }
 }
 
+// Returns the format string for printf/scanf for the given types
 template<Arithm... T>
 static consteval std::string build_format_string() {
     return (data_format<T>() + ...);
+}
+
+template<Arithm... T>
+static consteval std::string build_format_string_space() {
+    return ((data_format<T>() + " ") + ...);
 }
 
 constexpr unsigned int MAX_STRING_LENGTH = 1000;
@@ -87,7 +106,8 @@ class file {
         // Helper function to scan
         template<Arithm T, std::size_t count, std::size_t... i>
         exit_status scanf_array_(const std::string& format, std::array<T, count>& t, std::index_sequence<i...>) const {
-            return scanf(format, t[i]...);
+            auto& [ ...t_i ] = t;
+            return scanf(format, t_i...);
         }
 
 
@@ -98,7 +118,7 @@ class file {
             if (f == nullptr) {
                 const std::string message = (mode == mode::R || mode == mode::RB) ? "not found" : "could not be created";
                 std::printf("\rFile %s %s\n", filename.c_str(), message.c_str());
-                throw std::runtime_error("File not found");
+                throw std::runtime_error("");
             }
         }
 
@@ -183,7 +203,8 @@ class file {
                         out.find_first_of('\r')),
                         out.find_first_of('\n')
                     );
-                    if (n != std::string::npos) {
+                    const bool found = (n != std::string::npos);
+                    if (found) {
                         out.resize(n);
                         seek(pos + n + 1);
                     }
@@ -300,8 +321,7 @@ class file {
             constexpr std::string format = string_concat<count>(df);
             std::array<T, count> t;
             const exit_status status = scanf_array_(format, t, std::make_index_sequence<count>());
-            if (status == exit_status::Failure)
-                throw std::runtime_error("scan<T, count>");
+            throw_if_failure(status, "scan<T, count>");
             return t;
         }
 
@@ -369,10 +389,18 @@ class file {
             return exit_status_of(fprintf(f, "%s", s.c_str()));
         }
 
-        template<typename T, Convertible<T>... Ti>
+        // template<typename T, Convertible<T>... Ti>
+        // exit_status write(const Ti... x) const {
+        //     constexpr std::size_t extent = sizeof...(Ti);
+        //     const std::array<T, extent> t = { static_cast<T>(x)... };
+        //     return write(std::span<const T, extent>(t));
+        // }
+
+        template<typename T, typename... Ti>
+        requires (std::is_same_v<T, Ti> && ...)
         exit_status write(const Ti... x) const {
             constexpr std::size_t extent = sizeof...(Ti);
-            const std::array<T, extent> t = { static_cast<T>(x)... };
+            const std::array<T, extent> t = { x... };
             return write(std::span<const T, extent>(t));
         }
 
