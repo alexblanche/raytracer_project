@@ -141,6 +141,13 @@ void test_allocator() {
 }
 
 #include "auxiliary/custom_stack.hpp"
+#include <variant>
+#include <expected>
+#include "scene/scene.hpp"
+
+enum class error_type {
+    ParsingError, FileNotFound
+};
 
 int main() {
     // srand(time(0));
@@ -149,11 +156,26 @@ int main() {
     //B b(A(1), A(2), A(3));    // 6 objects created
     //B b(1, 2, 3);             // 3
 
-    custom_stack<A> stack(3);
+    // custom_stack<A> stack(3);
 
-    for (int i = 0; i < 4; i++) {
-        stack.emplace(i);
-    }
+    // for (int i = 0; i < 4; i++) {
+    //     stack.emplace(i);
+    // }
+
+    // using T = std::variant<int, float, short>;
+    // T a;
+
+    // std::cout << sizeof(T) << std::endl;
+    // auto x = a.index();
+    // std::cout << sizeof(x) << std::endl;
+
+    using U = std::pair<int, short>;
+    using T = std::expected<U, error_type>;
+
+    std::cout << "sizeof(U) = " << sizeof(U) << std::endl;
+    std::cout << "sizeof(error_type) = " << sizeof(error_type) << std::endl;
+    std::cout << "sizeof(std::expected<U, error_type>) = " << sizeof(T) << std::endl;
+    std::cout << "sizeof(std::optional<U>) = " << sizeof(std::optional<U>) << std::endl;
 
     return EXIT_SUCCESS;
 }

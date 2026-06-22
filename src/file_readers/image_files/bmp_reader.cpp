@@ -11,8 +11,9 @@
 static constexpr int BYTES_PER_COLOR = 3;
 
 /* Extracts the data from the given .bmp file into the matrix data, which must have the right size */
-std::optional<matrix> bmp::read_file(const std::string& file_name) {
+std::expected<matrix, file_reader::error> bmp::read_file(const std::string& file_name) {
 
+    using enum file_reader::error;
     try {
         
         file f(file_name, "rb");
@@ -20,24 +21,24 @@ std::optional<matrix> bmp::read_file(const std::string& file_name) {
         /* 18 bytes ignored:
            Type (2), Size (4), Reserved 1 (2), Reserved 2 (2), Offset (4), Size of the header (4)
         */
-        f.skip(18);
+        throw_if_failure(f.skip(18), ReadingErrorHeader);
         
         /* Width: 4 bytes */
         unsigned int bmpwidth;
         const exit_status status_w = f.read<unsigned int>({ &bmpwidth, 1 });
-        throw_if_failure(status_w, "Reading error in read_bmp_size (width)");
+        throw_if_failure(status_w, ReadingErrorHeader);
 
         /* Height: 4 bytes */
         unsigned int bmpheight;
         const exit_status status_h = f.read<unsigned int>({ &bmpheight, 1 });
-        throw_if_failure(status_h, "Reading error in read_bmp_size (height)");
+        throw_if_failure(status_h, ReadingErrorHeader);
 
         /* 28 bytes ignored:
            Number of color planes (2), Number of bits per pixel (2), Compression method used (4),
            Compressed size of the image (4), Horizontal resolution (4), Vertical resolution (4),
            Number of colors used (4), Number of important colors used (4)
         */
-        f.skip(28);
+        throw_if_failure(f.skip(28), ReadingErrorHeader);
 
         const unsigned int row_length_bytes = BYTES_PER_COLOR * bmpwidth;
 
@@ -48,7 +49,7 @@ std::optional<matrix> bmp::read_file(const std::string& file_name) {
         const unsigned int size_bytes = (row_length_bytes + padding_bytes) * bmpheight;
         std::vector<unsigned char> buffer(size_bytes);
         const exit_status status = f.read(buffer);
-        throw_if_failure(status, "Reading error in read_bmp (pixel data)");
+        throw_if_failure(status, ReadingErrorData);
         f.close();
 
         matrix matrix(bmpwidth, bmpheight);
@@ -68,9 +69,15 @@ std::optional<matrix> bmp::read_file(const std::string& file_name) {
 
         return matrix;
     }
+    catch(file::error) {
+        return std::unexpected(FileError);
+    }
+    catch(file_reader::error e) {
+        return std::unexpected(e);
+    }
     catch(const std::exception& e) {
         printf("%s\n", e.what());
-        return std::nullopt;
+        return std::unexpected(Other);
     }
 }
 
@@ -93,11 +100,6 @@ exit_status bmp::print_info(const std::string& file_name) {
     printf("Type:                  %.2s\n", filetype);
     h_opt.value().print();
     return exit_status::Success;
-}
-
-
-static inline void check(exit_status status) {
-    throw_if_failure(status, "");
 }
 
 struct byte_representation {
@@ -214,12 +216,13 @@ exit_status bmp::export_data(const std::string& file_name, const image& image) {
 
         file f(file_name, "wb");
 
-        check(f.write<uint8_t>(header));
-        check(f.write(buffer));
+        using enum file_reader::error;
+        throw_if_failure(f.write<uint8_t>(header), WritingErrorHeader);
+        throw_if_failure(f.write(buffer),          WritingErrorData);
         
         return exit_status::Success;
     }
-    catch(const std::exception& e) {
+    catch(...) {
 
         printf("Writing error in file %s\n", file_name.c_str());
         return exit_status::Failure;

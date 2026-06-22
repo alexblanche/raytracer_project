@@ -57,7 +57,7 @@ std::optional<material> parse_material(const file& f, const real gamma) {
         &r, &g, &b, &er, &eg, &eb, &refl, &em_int, &spec_p, refl_c, &transp, &scattering, &refr_i);
 
     if (ret != 13) {
-        printf("Parsing error in parse_material\n");
+        printf("parsing error in parse_material\n");
         return scene_opt;
     }
     */
@@ -84,7 +84,7 @@ std::optional<material> parse_material(const file& f, const real gamma) {
     }
     
     if (i == BUFFER_MAX_SIZE) {
-        printf("Parsing error in parse_material: material definition is too long\n");
+        printf("parsing error in parse_material: material definition is too long\n");
         return std::nullopt;
     }
 
@@ -105,13 +105,13 @@ std::optional<material> parse_material(const file& f, const real gamma) {
     std::string word;
     while (stream >> word) {
         if (is_set.nb_param >= 9) {
-            printf("Parsing error in parse_material: too many parameters set\n");
+            printf("parsing error in parse_material: too many parameters set\n");
             return std::nullopt;
         }
 
         if (word.starts_with("diffuse")) {
             if (is_set.nb_param) {
-                printf("Parsing error in parse_material: no parameter should be set in addition to diffuse\n");
+                printf("parsing error in parse_material: no parameter should be set in addition to diffuse\n");
                 return std::nullopt;
             }
             // Default is diffuse white
@@ -119,7 +119,7 @@ std::optional<material> parse_material(const file& f, const real gamma) {
         }
         else if (word.starts_with("mirror")) {
             if (is_set.nb_param) {
-                printf("Parsing error in parse_material: no parameter should be set in addition to mirror\n");
+                printf("parsing error in parse_material: no parameter should be set in addition to mirror\n");
                 return std::nullopt;
             }
             mp = copy_material(MIRROR);
@@ -127,7 +127,7 @@ std::optional<material> parse_material(const file& f, const real gamma) {
         }
         else if (word.starts_with("glass")) {
             if (is_set.nb_param) {
-                printf("Parsing error in parse_material: no parameter should be set in addition to glass\n");
+                printf("parsing error in parse_material: no parameter should be set in addition to glass\n");
                 return std::nullopt;
             }
             mp = copy_material(GLASS);
@@ -135,7 +135,7 @@ std::optional<material> parse_material(const file& f, const real gamma) {
         }
         else if (word.starts_with("water")) {
             if (is_set.nb_param) {
-                printf("Parsing error in parse_material: no parameter should be set in addition to water\n");
+                printf("parsing error in parse_material: no parameter should be set in addition to water\n");
                 return std::nullopt;
             }
             mp = copy_material(WATER);
@@ -144,7 +144,7 @@ std::optional<material> parse_material(const file& f, const real gamma) {
 
         if (word.starts_with("color:")) {
             if (is_set.color) {
-                printf("Parsing error in parse_material: duplicate color definition\n");
+                printf("parsing error in parse_material: duplicate color definition\n");
                 return std::nullopt;
             }
             const int ret1 = sscanf(word.data(), "color:(%lf,%lf,%lf)", &mp.r, &mp.g, &mp.b);
@@ -162,7 +162,7 @@ std::optional<material> parse_material(const file& f, const real gamma) {
                 ret3 = sscanf(word.data(), "%lf)", &mp.b);
             }
             if (ret1 + ret2 + ret3 != 3) {
-                printf("Parsing error in parse_material: color\n");
+                printf("parsing error in parse_material: color\n");
                 return std::nullopt;
             }
             is_set.color = true;
@@ -172,7 +172,7 @@ std::optional<material> parse_material(const file& f, const real gamma) {
         /*
         else if (word.starts_with("emitted_color:")) {
             if (is_set.em_color) {
-                printf("Parsing error in parse_material: duplicate emitted color definition\n");
+                printf("parsing error in parse_material: duplicate emitted color definition\n");
                 return std::nullopt;
             }
             const int ret1 = sscanf(word.data(), "emitted_color:(%lf,%lf,%lf)", &mp.er, &mp.eg, &mp.eb);
@@ -191,7 +191,7 @@ std::optional<material> parse_material(const file& f, const real gamma) {
             }
             if (ret1 + ret2 + ret3 != 3) {
                 // printf("Faulty word: %s\n", word.data());
-                printf("Parsing error in parse_material: emitted color\n");
+                printf("parsing error in parse_material: emitted color\n");
                 return std::nullopt;
             }
             is_set.em_color = true;
@@ -201,12 +201,12 @@ std::optional<material> parse_material(const file& f, const real gamma) {
 
         else if (word.starts_with("smoothness:")) {
             if (is_set.smooth) {
-                printf("Parsing error in parse_material: duplicate smoothness definition\n");
+                printf("parsing error in parse_material: duplicate smoothness definition\n");
                 return std::nullopt;
             }
             const int ret = sscanf(word.data(), "smoothness:%lf", &mp.smooth);
             if (ret != 1) {
-                printf("Parsing error in parse_material: smoothness\n");
+                printf("parsing error in parse_material: smoothness\n");
                 return std::nullopt;
             }
             is_set.smooth = true;
@@ -215,12 +215,12 @@ std::optional<material> parse_material(const file& f, const real gamma) {
 
         else if (word.starts_with("emission:")) {
             if (is_set.em_int) {
-                printf("Parsing error in parse_material: duplicate emission definition\n");
+                printf("parsing error in parse_material: duplicate emission definition\n");
                 return std::nullopt;
             }
             const int ret = sscanf(word.data(), "emission:%lf", &mp.em_int);
             if (ret != 1) {
-                printf("Parsing error in parse_material: emission\n");
+                printf("parsing error in parse_material: emission\n");
                 return std::nullopt;
             }
             is_set.em_int = true;
@@ -229,12 +229,12 @@ std::optional<material> parse_material(const file& f, const real gamma) {
 
         else if (word.starts_with("reflectivity:")) {
             if (is_set.refl) {
-                printf("Parsing error in parse_material: duplicate reflectivity definition\n");
+                printf("parsing error in parse_material: duplicate reflectivity definition\n");
                 return std::nullopt;
             }
             const int ret = sscanf(word.data(), "reflectivity:%lf", &mp.refl);
             if (ret != 1) {
-                printf("Parsing error in parse_material: reflectivity\n");
+                printf("parsing error in parse_material: reflectivity\n");
                 return std::nullopt;
             }
             is_set.refl = true;
@@ -243,12 +243,12 @@ std::optional<material> parse_material(const file& f, const real gamma) {
 
         else if (word.starts_with("transparency:")) {
             if (is_set.transp) {
-                printf("Parsing error in parse_material: duplicate transparency definition\n");
+                printf("parsing error in parse_material: duplicate transparency definition\n");
                 return std::nullopt;
             }
             const int ret = sscanf(word.data(), "transparency:%lf", &mp.transp);
             if (ret != 1) {
-                printf("Parsing error in parse_material: transparency\n");
+                printf("parsing error in parse_material: transparency\n");
                 return std::nullopt;
             }
             is_set.transp = true;
@@ -257,12 +257,12 @@ std::optional<material> parse_material(const file& f, const real gamma) {
 
         else if (word.starts_with("scattering:")) {
             if (is_set.scattering) {
-                printf("Parsing error in parse_material: duplicate scattering definition\n");
+                printf("parsing error in parse_material: duplicate scattering definition\n");
                 return std::nullopt;
             }
             const int ret = sscanf(word.data(), "scattering:%lf", &mp.scattering);
             if (ret != 1) {
-                printf("Parsing error in parse_material: scattering\n");
+                printf("parsing error in parse_material: scattering\n");
                 return std::nullopt;
             }
             is_set.scattering = true;
@@ -271,12 +271,12 @@ std::optional<material> parse_material(const file& f, const real gamma) {
 
         else if (word.starts_with("refraction_index:")) {
             if (is_set.refr_i) {
-                printf("Parsing error in parse_material: duplicate refraction_index definition\n");
+                printf("parsing error in parse_material: duplicate refraction_index definition\n");
                 return std::nullopt;
             }
             const int ret = sscanf(word.data(), "refraction_index:%lf", &mp.refr_i);
             if (ret != 1) {
-                printf("Parsing error in parse_material: refraction_index\n");
+                printf("parsing error in parse_material: refraction_index\n");
                 return std::nullopt;
             }
             is_set.refr_i = true;
@@ -285,7 +285,7 @@ std::optional<material> parse_material(const file& f, const real gamma) {
 
         else if (word.starts_with("reflects_color:")) {
             if (is_set.refl_col) {
-                printf("Parsing error in parse_material: duplicate reflects_color definition\n");
+                printf("parsing error in parse_material: duplicate reflects_color definition\n");
                 return std::nullopt;
             }
             if (word.starts_with("reflects_color:true")) {
@@ -295,7 +295,7 @@ std::optional<material> parse_material(const file& f, const real gamma) {
                 mp.refl_color = false;
             }
             else {
-                printf("Parsing error in parse_material: reflects_color\n");
+                printf("parsing error in parse_material: reflects_color\n");
                 return std::nullopt;
             }
             is_set.refl_col = true;
@@ -307,7 +307,7 @@ std::optional<material> parse_material(const file& f, const real gamma) {
         }
         
         else {
-            printf("Parsing error in parse_material: %s\n", word.data());
+            printf("parsing error in parse_material: %s\n", word.data());
             return std::nullopt;
         }
     }
@@ -375,7 +375,7 @@ std::optional<texture_info> parse_texture_info(const file& f,
     char t_name[65];
     const exit_status status_t = f.scanf(":(%64s", t_name);
     if (status_t == exit_status::Failure) {
-        printf("Parsing error in parse_texture_info (texture name)\n");
+        printf("parsing error in parse_texture_info (texture name)\n");
         return std::nullopt;
     }
 
@@ -391,7 +391,7 @@ std::optional<texture_info> parse_texture_info(const file& f,
         char n_name[65];
         const exit_status status = f.scanf("%64s", n_name);
         if (status == exit_status::Failure) {
-            printf("Parsing error in parse_texture_info (normal map name)\n");
+            printf("parsing error in parse_texture_info (normal map name)\n");
             return std::nullopt;
         }
         nindex = wrapper<normal_map>::find_element(normal_map_wrapper_set, n_name); 
@@ -410,7 +410,7 @@ std::optional<texture_info> parse_texture_info(const file& f,
         char r_name[65];
         const exit_status status_r = f.scanf("%64s", r_name);
         if (status_r == exit_status::Failure) {
-            printf("Parsing error in parse_texture_info (roughness map name)\n");
+            printf("parsing error in parse_texture_info (roughness map name)\n");
             return std::nullopt;
         }
 
@@ -436,7 +436,7 @@ std::optional<texture_info> parse_texture_info(const file& f,
             const exit_status status = f.scanf(" (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
                 u0, v0, u1, v1, u2, v2);
             if (status == exit_status::Failure) {
-                printf("Parsing error in parse_texture_info (triangle UV-coordinates)\n");
+                printf("parsing error in parse_texture_info (triangle UV-coordinates)\n");
                 return std::nullopt;
             }
 
@@ -448,7 +448,7 @@ std::optional<texture_info> parse_texture_info(const file& f,
             const exit_status status = f.scanf(" (%lf,%lf) (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
                 u0, v0, u1, v1, u2, v2, u3, v3);
             if (status == exit_status::Failure) {
-                printf("Parsing error in parse_texture_info (quad UV-coordinates)\n");
+                printf("parsing error in parse_texture_info (quad UV-coordinates)\n");
                 return std::nullopt;
             }
 
@@ -460,7 +460,7 @@ std::optional<texture_info> parse_texture_info(const file& f,
             const exit_status status = f.scanf(" forward:(%lf,%lf,%lf) right:(%lf,%lf,%lf))\n",
                 x0, y0, z0, x1, y1, z1);
             if (status == exit_status::Failure) {
-                printf("Parsing error in parse_texture_info (sphere forward and right directions)\n");
+                printf("parsing error in parse_texture_info (sphere forward and right directions)\n");
                 return std::nullopt;
             }
 
@@ -473,7 +473,7 @@ std::optional<texture_info> parse_texture_info(const file& f,
             const exit_status status = f.scanf(" right:(%lf,%lf,%lf) scale:%lf)\n",
                 x0, y0, z0, u0);
             if (status == exit_status::Failure) {
-                printf("Parsing error in parse_texture_info (plane right direction and scale)\n");
+                printf("parsing error in parse_texture_info (plane right direction and scale)\n");
                 return std::nullopt;
             }
 
@@ -525,7 +525,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         bool depth_of_field_enabled = true;
 
         const exit_status status1 = f.scanf("resolution width:%d height:%d\n", width, height);
-        throw_if_failure(status1, "Parsing error in scene constructor (resolution)");
+        throw_if_failure(status1, "parsing error in scene constructor (resolution)");
         
         const int ret = f.scanf_count("camera position:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) rightdir:(%lf,%lf,%lf) fov_width:%lf distance:%lf focal_distance:%lf aperture:%lf\n",
             posx, posy, posz, dx, dy, dz, rdx, rdy, rdz, fovw, dist, focl, apr);
@@ -534,7 +534,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         rt::vector cam_right_dir(rdx, rdy, rdz);
 
         if (ret < 11) {
-            throw std::runtime_error("Parsing error in scene constructor (camera)");
+            throw std::runtime_error("parsing error in scene constructor (camera)");
         }
         else if (ret == 11) {
             // Focal length and aperture omitted
@@ -574,7 +574,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         // Neither background color nor texture
         if (status_background2 == exit_status::Failure){
             if (not background_color_is_set)
-                throw std::runtime_error("Parsing error in scene constructor (background)");
+                throw std::runtime_error("parsing error in scene constructor (background)");
         }
         else if (std::abs(rx) > 2.0_r * PI || std::abs(ry) > 2.0_r * PI || std::abs(rz) > 2.0_r * PI) {
             throw std::runtime_error("Incorrect background texture angles");
@@ -592,7 +592,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             bool bg_parsing_successful;
             background_texture = texture(bg_tfile_name, bg_parsing_successful);
             if (not bg_parsing_successful)
-                throw std::runtime_error("Parsing error in scene constructor (background texture parsing)");
+                throw std::runtime_error("parsing error in scene constructor (background texture parsing)");
             
             printf("\r> %s texture loaded\n", bg_tfile_name_short.c_str());
             background_texture_is_set = true;
@@ -608,7 +608,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             if (Failure == f.scanf("polygons_per_bounding %u\n", polygons_per_bounding)) {
                 f.rewind(pos);
                 throw_if_failure(f.scanf("disabled\n"),
-                    "Parsing error in scene constructor (BVH parameters)");
+                    "parsing error in scene constructor (BVH parameters)");
             }
         }
         
@@ -718,7 +718,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 char t_name_buffer[65];
                 char tfile_name[513];
                 const exit_status status = f.scanf(" %64s %512s", t_name_buffer, tfile_name);
-                throw_if_failure(status, "Parsing error in scene constructor (texture loading)");
+                throw_if_failure(status, "parsing error in scene constructor (texture loading)");
                 const std::string t_name(t_name_buffer);
                 const std::string tfile_name_short = std::filesystem::path(tfile_name).filename().generic_string();
                 
@@ -740,7 +740,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 char t_name_buffer[65];
                 char tfile_name[513];
                 const exit_status status = f.scanf(" %64s %512s", t_name_buffer, tfile_name);
-                throw_if_failure(status, "Parsing error in scene constructor (normal map loading)");
+                throw_if_failure(status, "parsing error in scene constructor (normal map loading)");
                 const std::string t_name(t_name_buffer);
                 const std::string tfile_name_short = std::filesystem::path(tfile_name).filename().generic_string();
 
@@ -765,7 +765,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 /* center:(-500, 0, 600) radius:120 [material] */
                 double posx, posy, posz, r;
                 const exit_status status = f.scanf("center:(%lf,%lf,%lf) radius:%lf material:", posx, posy, posz, r);
-                throw_if_failure(status, "Parsing error in scene constructor (sphere declaration)");
+                throw_if_failure(status, "parsing error in scene constructor (sphere declaration)");
 
                 const rt::vector position(posx, posy, posz);
 
@@ -799,7 +799,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 double nx, ny, nz, px, py, pz;
                 const exit_status status = f.scanf("normal:(%lf,%lf,%lf) position:(%lf,%lf,%lf) material:",
                     nx, ny, nz, px, py, pz);
-                throw_if_failure(status, "Parsing error in scene constructor (plane declaration)");
+                throw_if_failure(status, "parsing error in scene constructor (plane declaration)");
                 rt::vector n(nx, ny, nz);
                 rt::vector p(px, py, pz);
 
@@ -832,7 +832,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 double cx, cy, cz, n1x, n1y, n1z, n2x, n2y, n2z, lx, ly, lz;
                 const exit_status status = f.scanf("center:(%lf,%lf,%lf) x_axis:(%lf,%lf,%lf) y_axis:(%lf,%lf,%lf) %lf %lf %lf material:",
                     cx, cy, cz, n1x, n1y, n1z, n2x, n2y, n2z, lx, ly, lz);
-                throw_if_failure(status, "Parsing error in scene constructor (box declaration)");
+                throw_if_failure(status, "parsing error in scene constructor (box declaration)");
                 rt::vector c(cx, cy, cz);
                 rt::vector n1(n1x, n1y, n1z);
                 rt::vector n2(n2x, n2y, n2z);
@@ -855,7 +855,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                     v0x, v0y, v0z,
                     v1x, v1y, v1z,
                     v2x, v2y, v2z);
-                throw_if_failure(status, "Parsing error in scene constructor (triangle declaration)");
+                throw_if_failure(status, "parsing error in scene constructor (triangle declaration)");
                 rt::vector v0(v0x, v0y, v0z);
                 rt::vector v1(v1x, v1y, v1z);
                 rt::vector v2(v2x, v2y, v2z);
@@ -888,7 +888,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                     v1x, v1y, v1z,
                     v2x, v2y, v2z,
                     v3x, v3y, v3z);
-                throw_if_failure(status, "Parsing error in scene constructor (quad declaration)");
+                throw_if_failure(status, "parsing error in scene constructor (quad declaration)");
                 rt::vector v0(v0x, v0y, v0z);
                 rt::vector v1(v1x, v1y, v1z);
                 rt::vector v2(v2x, v2y, v2z);
@@ -920,7 +920,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 double r, l;
                 const exit_status status = f.scanf("origin:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) radius:%lf length:%lf material:",
                     px, py, pz, d_x, d_y, d_z, r, l);
-                throw_if_failure(status, "Parsing error in scene constructor (cylinder declaration)");
+                throw_if_failure(status, "parsing error in scene constructor (cylinder declaration)");
                 rt::vector p(px, py, pz);
                 rt::vector d(d_x, d_y, d_z);
 
@@ -945,7 +945,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                     ofile_name, t_name, sx, sy, sz, scale);
 
                 if (ret != 1 && ret != 6)
-                    throw std::runtime_error("Parsing error in scene constructor (obj file loading)");
+                    throw std::runtime_error("parsing error in scene constructor (obj file loading)");
 
                 rt::vector shift(sx, sy, sz);
                 
@@ -976,7 +976,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 continue;
             }
 
-            /* Parsing error */
+            /* parsing error */
             throw std::runtime_error(s);
         }
 
@@ -1007,7 +1007,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         );
     }
     catch (const std::exception& e) {
-        printf("Error during scene parsing:\n");
+        printf("Error during scene parsing: ");
         printf("%s\n", e.what());
         printf("Scene creation failed\n");
     }

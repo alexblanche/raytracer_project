@@ -7,7 +7,7 @@
 #include <cmath>
 #include <stdexcept>
 
-std::optional<matrix> hdr::read_file(const std::string& file_name) {
+std::expected<matrix, file_reader::error> hdr::read_file(const std::string& file_name) {
 
     try {
 
@@ -115,8 +115,11 @@ std::optional<matrix> hdr::read_file(const std::string& file_name) {
 
         return data;
     }
+    catch(file::error e) {
+        return std::unexpected(file_reader::error::FileError);
+    }
     catch(const std::exception& e) {
         printf("%s\n", e.what());
-        return std::nullopt;
+        return std::unexpected(file_reader::error::Other);
     }
 }

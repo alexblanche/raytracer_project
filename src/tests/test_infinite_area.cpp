@@ -22,7 +22,7 @@ int main() {
         //  "../../../raytracer_project/sky/dome/garden_8k.hdr";
             "../../../assets/sundowner_overlook.hdr";
 
-    const std::optional<matrix> mat_opt = hdr::read_file(file_name);
+    const std::expected<matrix, file_reader::error> mat_opt = hdr::read_file(file_name);
     if (not mat_opt.has_value())
         return EXIT_FAILURE;
 

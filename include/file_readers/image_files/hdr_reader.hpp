@@ -1,11 +1,12 @@
 #pragma once
 
 #include "image/matrix.hpp"
+#include "file_readers/error.hpp"
 
 #include <string>
-#include <optional>
+#include <expected>
 
 class hdr {
     public:
-        static std::optional<matrix> read_file(const std::string& file_name);
+        static std::expected<matrix, file_reader::error> read_file(const std::string& file_name);
 };

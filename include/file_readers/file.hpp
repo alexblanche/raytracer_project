@@ -102,7 +102,6 @@ class file {
         FILE *f;
         mode mode;
 
-    private:
         // Helper function to scan
         template<Arithm T, std::size_t count, std::size_t... i>
         exit_status scanf_array_(const std::string& format, std::array<T, count>& t, std::index_sequence<i...>) const {
@@ -112,13 +111,20 @@ class file {
 
 
     public:
+        enum class error {
+            FileNotFound, FileCouldNotBeCreated
+        };
+
         file(const std::string& filename, const std::string& mode_s = "r") :
             f(fopen(filename.c_str(), mode_s.c_str())), mode(string(mode_s)) {
 
             if (f == nullptr) {
-                const std::string message = (mode == mode::R || mode == mode::RB) ? "not found" : "could not be created";
+                using enum mode;
+                using enum error;
+                const bool read = mode == R || mode == RB;
+                const std::string message = read ? "not found" : "could not be created";
                 std::printf("\rFile %s %s\n", filename.c_str(), message.c_str());
-                throw std::runtime_error("");
+                throw read ? FileNotFound : FileCouldNotBeCreated;
             }
         }
 

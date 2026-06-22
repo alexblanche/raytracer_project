@@ -3,8 +3,9 @@
 #include "screen/color.hpp"
 #include "auxiliary/exit_status.hpp"
 #include "image/image.hpp"
+#include "file_readers/error.hpp"
 
-#include <optional>
+#include <expected>
 
 class bmp {
 
@@ -49,7 +50,7 @@ class bmp {
 		/* Extracts the data from the given .bmp file: stores the width and height in the provided
 			references, and returns a matrix of width rows and height columns containing colors
 			Returns true if the operation was successful */
-		static std::optional<matrix> read_file(const std::string& file_name);
+		static std::expected<matrix, file_reader::error> read_file(const std::string& file_name);
 
 		/* Prints the info contained in the header of the given .bmp file */
 		static exit_status print_info(const std::string& file_name);

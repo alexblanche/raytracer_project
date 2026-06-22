@@ -16,7 +16,7 @@ texture::texture(const std::string& file_name, bool& parsing_successful, const r
     if (not is_right_format)
         throw std::runtime_error("Error in texture definition: wrong file format\n");
     
-    std::optional<matrix> mat_opt = (is_bmp) ? bmp::read_file(file_name) : hdr::read_file(file_name);
+    std::expected<matrix, file_reader::error> mat_opt = (is_bmp) ? bmp::read_file(file_name) : hdr::read_file(file_name);
     parsing_successful = mat_opt.has_value();
     if (not parsing_successful)
         return;

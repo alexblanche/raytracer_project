@@ -16,7 +16,7 @@ static void test_bmp() {
     const std::string& filename_bmp = BMP_FILE_NAME;
     constexpr int NB_ITERATIONS = 10;
 
-    std::optional<matrix> mat_opt;
+    std::expected<matrix, file_reader::error> mat_opt;
 
     timer_ms timer;
     timer.start();
@@ -40,7 +40,7 @@ static void test_write_bmp() {
     const std::string output_filename_bmp_base = "../output/TEST/TEST_";
     constexpr int NB_ITERATIONS = 10;
 
-    std::optional<matrix> mat_opt = bmp::read_file(filename_bmp);
+    std::expected<matrix, file_reader::error> mat_opt = bmp::read_file(filename_bmp);
     assert(mat_opt.has_value());
     image img(std::move(mat_opt.value()));
     rt::screen scr(img);
@@ -66,7 +66,7 @@ static void test_write_raw() {
     const std::string output_filename_raw_base = "../output/TEST/TEST_";
     constexpr int NB_ITERATIONS = 10;
 
-    std::optional<matrix> mat_opt = bmp::read_file(filename_bmp);
+    std::expected<matrix, file_reader::error> mat_opt = bmp::read_file(filename_bmp);
     assert(mat_opt.has_value());
     image img(std::move(mat_opt.value()));
     rt::screen scr(img);
@@ -91,7 +91,7 @@ static void test_hdr() {
     const std::string& filename_hdr = HDR_FILE_NAME;
     constexpr int NB_ITERATIONS = 10;
 
-    std::optional<matrix> mat_opt;
+    std::expected<matrix, file_reader::error> mat_opt;
 
     timer_ms timer;
     timer.start();
@@ -113,7 +113,7 @@ static void test_hdr() {
 static void test_fastcopy() {
     const std::string& filename_bmp = BMP_FILE_NAME;
     
-    std::optional<matrix> mat_opt = bmp::read_file(filename_bmp);
+    std::expected<matrix, file_reader::error> mat_opt = bmp::read_file(filename_bmp);
     if (not mat_opt.has_value())
         return;
     
