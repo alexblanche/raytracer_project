@@ -7,6 +7,8 @@
 #include <cmath>
 #include <stdexcept>
 
+using enum file_reader::error;
+
 std::expected<matrix, file_reader::error> hdr::read_file(const std::string& file_name) {
 
     try {
@@ -21,7 +23,7 @@ std::expected<matrix, file_reader::error> hdr::read_file(const std::string& file
                 gamma, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], format);
             if (status == exit_status::Failure) {
                 const exit_status status_format = f.scanf("FORMAT=%15s", format);
-                throw_if_failure(status_format, "Reading error in print_hdr_info: header");
+                throw_if_failure(status_format, ReadingErrorHeader);
             }
         }
         
@@ -29,11 +31,11 @@ std::expected<matrix, file_reader::error> hdr::read_file(const std::string& file
         unsigned int v1, v2;
         {
             const exit_status status = f.scanf("\n%c%c %u %c%c %u\n", s1, l1, v1, s2, l2, v2);
-            throw_if_failure(status, "Reading error in print_hdr_info: dimensions");
+            throw_if_failure(status, DataError);
         }
         if (not ((l1 == 'X' || l1 == 'Y') && (l2 == 'X' || l2 == 'Y')
               && (s1 == '-' || s1 == '+') && (s2 == '-' || s2 == '+')))
-            throw std::runtime_error("Incorrect dimensions");
+            throw DataError;
 
         const auto [ width, height ] = (l1 == 'X') ? std::pair { v1, v2 } : std::pair { v2, v1 };
 
@@ -44,8 +46,10 @@ std::expected<matrix, file_reader::error> hdr::read_file(const std::string& file
 
         const std::vector<unsigned char> content = f.extract_from();
         const std::size_t length = content.size();
-        if (length > static_cast<std::size_t>(INT32_MAX))
-            throw std::runtime_error("read_hdr: file too large");
+        if (length > static_cast<std::size_t>(INT32_MAX)) {
+            printf("read_hdr: file too large (> %d bytes)\n", INT32_MAX);
+            throw FileError;
+        }
 
         f.close();
         int pos = 0;
@@ -60,7 +64,8 @@ std::expected<matrix, file_reader::error> hdr::read_file(const std::string& file
 
             const uint32_t header = *reinterpret_cast<const uint32_t*>(content.data() + pos);
             if (header != expected_row_header) [[unlikely]] {
-                throw std::runtime_error("Reading error in read_hdr: bytes '2' or width at beginning of row");
+                printf("Reading error in read_hdr: bytes '2' or width at beginning of row\n");
+                throw DataError;
             }
             pos += 4;
             

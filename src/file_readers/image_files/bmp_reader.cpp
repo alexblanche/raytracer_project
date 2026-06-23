@@ -10,10 +10,11 @@
 
 static constexpr int BYTES_PER_COLOR = 3;
 
+using enum file_reader::error;
+
 /* Extracts the data from the given .bmp file into the matrix data, which must have the right size */
 std::expected<matrix, file_reader::error> bmp::read_file(const std::string& file_name) {
 
-    using enum file_reader::error;
     try {
         
         file f(file_name, "rb");
