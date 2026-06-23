@@ -103,8 +103,8 @@ class file {
         mode mode;
 
         // Helper function to scan
-        template<Arithm T, std::size_t count, std::size_t... i>
-        exit_status scanf_array_(const std::string& format, std::array<T, count>& t, std::index_sequence<i...>) const {
+        template<Arithm T, std::size_t count>
+        exit_status scanf_array_(const std::string& format, std::array<T, count>& t) const {
             auto& [ ...t_i ] = t;
             return scanf(format, t_i...);
         }
@@ -112,7 +112,9 @@ class file {
 
     public:
         enum class error {
-            FileNotFound, FileCouldNotBeCreated
+            FileNotFound, FileCouldNotBeCreated,
+            WrongParameter,
+            ScanError
         };
 
         file(const std::string& filename, const std::string& mode_s = "r") :
@@ -147,8 +149,10 @@ class file {
         }
 
         void rewind(std::size_t pos = 0) const {
-            if (pos > position())
-                throw std::runtime_error("Error file::rewind: rewind to position set ahead of current position");
+            if (pos > position()) {
+                printf("file::rewind: rewind to position set ahead of current position");
+                throw file::error::WrongParameter;
+            }
             seek(pos);
         }
 
@@ -190,10 +194,12 @@ class file {
         [[nodiscard]] std::string read_string(unsigned int max_length = MAX_STRING_LENGTH, string_reading_type type = string_reading_type::StopAtSpace) const {
             if (max_length > MAX_STRING_LENGTH) {
                 std::printf("Error: read_string can read a string of length at most %d\n", MAX_STRING_LENGTH);
-                throw std::runtime_error("");
+                throw file::error::WrongParameter;
             }
             constexpr std::size_t LENGTH = MAX_STRING_LENGTH + 1;
             std::array<char, LENGTH> t = make_array<char, LENGTH>('\0');
+
+            skip_whitespace();
 
             const std::size_t pos = position();
 
@@ -285,7 +291,6 @@ class file {
         exit_status scanf(const std::string& string) const {
             const std::size_t pos = position();
             const std::string read = read_string(string.length(), string_reading_type::ReadAll);
-            // std::cout << "read: " << read << std::endl;
             if (read == string)
                 return exit_status::Success;
             
@@ -326,8 +331,8 @@ class file {
             constexpr std::string df = data_format<T>();
             constexpr std::string format = string_concat<count>(df);
             std::array<T, count> t;
-            const exit_status status = scanf_array_(format, t, std::make_index_sequence<count>());
-            throw_if_failure(status, "scan<T, count>");
+            const exit_status status = scanf_array_(format, t);
+            throw_if_failure(status, file::error::ScanError);
             return t;
         }
 

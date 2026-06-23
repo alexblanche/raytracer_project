@@ -5,6 +5,8 @@
 
 #include <cstdlib>
 
+#include "auxiliary/utils.hpp"
+
 using real = double;
 
 class A {

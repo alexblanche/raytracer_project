@@ -6,6 +6,9 @@
 #include <bit>
 // #include <cmath>
 
+#include <optional>
+#include <span>
+
 // Experiments around basing float expressions
 
 inline bool is_zero(real x) {
@@ -38,6 +41,30 @@ inline bool is_negative(real x) {
 inline bool is_negative_not_zero(real x) {
     return x < 0.0_r; //is_not_zero(x) && is_negative(x);
 }
+
+///////////////////////////////////////////////////
+
+
+// Returns the index of x in the given set of values if it is present, otherwise std::nullopt
+template<typename T, std::size_t extent>
+requires (requires (T x, T y) { x == y; })
+std::optional<unsigned int> index_of(const T& x, const std::span<const T, extent> values) {
+    for (unsigned int i = 0; const T& y : values) {
+        if (x == y)
+            return i;
+        i++;
+    }
+    return std::nullopt;
+}
+
+// Returns true if x belongs to the given values
+template<typename T>
+requires (requires (T x, T y) { x == y; })
+bool belongs_to(const T& x, const std::span<const T> values) {
+    return index_of(x, values).has_value();
+}
+
+///////////////////////////////////////////////////
 
 // Unsigned int type with given size
 template<unsigned int UINT_SIZE>
