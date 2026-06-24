@@ -50,7 +50,7 @@ class wrapper {
 
             std::optional<unsigned int> vindex;
         
-            for (wrapper const& elt_wrap : wrapper_set) {
+            for (const wrapper& elt_wrap : wrapper_set) {
                 if (elt_wrap.name.has_value() && elt_wrap.name.value() == vname) {
                     vindex = elt_wrap.index;
                     break;
@@ -58,15 +58,16 @@ class wrapper {
             }
 
             if ((not vindex.has_value()) && (not silent))
-                printf("Error, %s %s not found.\n", type_str<T>().c_str(), vname.c_str());
+                printf("Error: %s %s not found.\n", type_str<T>().c_str(), vname.c_str());
 
             return vindex;
         }
 
         static std::vector<T> build_set(const std::span<wrapper> wrapper_set) {
-            std::vector<T> set(wrapper::counter);
+            std::vector<T> set;
+            set.reserve(wrapper::counter);
             for (wrapper& elt_wrap : wrapper_set) {
-                set[elt_wrap.index] = std::move(elt_wrap.content);
+                set.emplace_back(std::move(elt_wrap.content));
             }
             return set;
         }

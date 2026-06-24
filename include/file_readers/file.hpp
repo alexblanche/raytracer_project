@@ -308,6 +308,28 @@ class file {
             return exit_status_of(ret == sizeof...(Args));
         }
 
+        template<typename... Args>
+        exit_status scanf_rewind_if_failure(const std::string& format, Args&... x) const {
+            const std::size_t pos = position();
+            
+            const int ret = scanf_count(format, x...);
+            if (ret == sizeof...(Args))
+                return exit_status::Success;
+
+            rewind(pos);
+            return exit_status::Failure;
+        }
+
+        exit_status scanf_rewind_if_failure(const std::string& string) const {
+            const std::size_t pos = position();
+            
+            const exit_status status = scanf(string);
+            if (status == exit_status::Failure)
+                rewind(pos);
+
+            return status;
+        }
+
 
         template<Arithm... T>
         requires (sizeof...(T) > 1)

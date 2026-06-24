@@ -22,6 +22,9 @@
 #include <filesystem>
 #include <stdexcept>
 
+static constexpr unsigned int MAX_NAME_LENGTH     = 64;
+static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
+
 /*** Scene description parsing ***/
 
 /* Auxiliary function: returns a material from a description file */
@@ -345,7 +348,7 @@ std::optional<unsigned int> get_material(const file& f, std::vector<wrapper<mate
         f.ungetc(firstchar);
 
         // material variable name
-        const std::string vname = f.read_string(64);
+        const std::string vname = f.read_string(MAX_NAME_LENGTH);
         return wrapper<material>::find_element(material_wrapper_set, vname);
     }
 }
@@ -357,6 +360,7 @@ std::optional<unsigned int> get_material(const file& f, std::vector<wrapper<mate
 std::optional<texture_info> parse_texture_info(const file& f,
     const std::vector<wrapper<texture>>& texture_wrapper_set,
     const std::vector<wrapper<normal_map>>& normal_map_wrapper_set,
+    // const std::vector<wrapper<roughness_map>>& roughness_map_wrapper_set,
     const object_type object_type) {
 
     const size_t position = f.position();
@@ -373,13 +377,7 @@ std::optional<texture_info> parse_texture_info(const file& f,
     double u0, v0, u1, v1, u2, v2, u3, v3;
     double x0, y0, z0, x1, y1, z1;
 
-    char t_name[65];
-    const exit_status status_t = f.scanf(":(%64s", t_name);
-    if (status_t == exit_status::Failure) {
-        printf("parsing error in parse_texture_info (texture name)\n");
-        return std::nullopt;
-    }
-
+    const std::string t_name = f.read_string(MAX_NAME_LENGTH);
     const std::optional<unsigned int> vindex = wrapper<texture>::find_element(texture_wrapper_set, t_name);
 
     const std::size_t pos2 = f.position();
@@ -389,18 +387,14 @@ std::optional<texture_info> parse_texture_info(const file& f,
         f.rewind(pos2);
     }
     else {
-        char n_name[65];
-        const exit_status status = f.scanf("%64s", n_name);
-        if (status == exit_status::Failure) {
-            printf("parsing error in parse_texture_info (normal map name)\n");
-            return std::nullopt;
-        }
+        const std::string n_name = f.read_string(MAX_NAME_LENGTH);
         nindex = wrapper<normal_map>::find_element(normal_map_wrapper_set, n_name); 
     }
 
     /*
     // Roughness map
 
+    std::optional<unsigned int> rindex;
     const std::size_t pos3 = f.position();
     const std::string keyword_r = f.read_string(6);
     if (keyword_r != "rough:") {
@@ -408,28 +402,11 @@ std::optional<texture_info> parse_texture_info(const file& f,
         f.rewind(pos3);
     }
     else {
-        char r_name[65];
-        const exit_status status_r = f.scanf("%64s", r_name);
-        if (status_r == exit_status::Failure) {
-            printf("parsing error in parse_texture_info (roughness map name)\n");
-            return std::nullopt;
-        }
-
-        // Finding the index associated with the normal map name
-        for (wrapper<roughness_map> const& rm_wrap : roughness_map_wrapper_set) {
-            if (rm_wrap.name.has_value() && rm_wrap.name.value().compare(r_name) == 0) {
-                rindex = rm_wrap.index;
-                break;
-            }
-        }
-        if (not rindex.has_value()) {
-            printf("Error, roughness map %s not found\n", r_name);
-            return std::nullopt;
-        }
-
-        printf("Roughness map : %s, index %lld\n", r_name, rindex.value());
+        const std::string r_name = f.read_string(MAX_NAME_LENGTH);
+        rindex = wrapper<roughness_map>::find_element(roughness_map_wrapper_set, r_name);
     }
     */
+    
     using enum object_type;
     switch (object_type) {
         case Triangle: {
@@ -752,22 +729,25 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         double posx, posy, posz, dx, dy, dz, rdx, rdy, rdz, fovw, dist, focl, apr;
         bool depth_of_field_enabled = true;
 
-        const exit_status status1 = f.scanf("resolution width:%d height:%d\n", width, height);
-        throw_if_failure(status1, "parsing error in scene constructor (resolution)");
-        
-        const int ret = f.scanf_count("camera position:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) rightdir:(%lf,%lf,%lf) fov_width:%lf distance:%lf focal_distance:%lf aperture:%lf\n",
-            posx, posy, posz, dx, dy, dz, rdx, rdy, rdz, fovw, dist, focl, apr);
+        {
+            const exit_status status1 = f.scanf("resolution width:%d height:%d\n", width, height);
+            throw_if_failure(status1, "parsing error in scene constructor (resolution)");
+        }
+
+        {
+            const int ret = f.scanf_count("camera position:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) rightdir:(%lf,%lf,%lf) fov_width:%lf distance:%lf focal_distance:%lf aperture:%lf\n",
+                posx, posy, posz, dx, dy, dz, rdx, rdy, rdz, fovw, dist, focl, apr);
+                
+            if (ret < 11)
+                throw std::runtime_error("parsing error in scene constructor (camera)");
+            
+            if (ret == 11) // Focal length and aperture omitted
+                depth_of_field_enabled = false;
+        }
+
         rt::vector cam_pos(posx, posy, posz);
         rt::vector cam_dir(dx, dy, dz);
         rt::vector cam_right_dir(rdx, rdy, rdz);
-
-        if (ret < 11) {
-            throw std::runtime_error("parsing error in scene constructor (camera)");
-        }
-        if (ret == 11) {
-            // Focal length and aperture omitted
-            depth_of_field_enabled = false;
-        }
 
         const real fovh = fovw * static_cast<real>(height) / static_cast<real>(width);
 
@@ -783,13 +763,15 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
         // Setting up the background_color (optional)
         double r, g, b;
-        const exit_status status_background = f.scanf("background_color %lf %lf %lf\n", r, g, b);
-        if (status_background == exit_status::Failure) {
-            f.rewind(position_bg);
-        }
-        else {
-            background_color = rt::color(r, g, b);
-            background_color_is_set = true;
+        {
+            const exit_status status_background = f.scanf("background_color %lf %lf %lf\n", r, g, b);
+            if (status_background == exit_status::Failure) {
+                f.rewind(position_bg);
+            }
+            else {
+                background_color = rt::color(r, g, b);
+                background_color_is_set = true;
+            }
         }
 
         // Setting up the background texture (also optional)
@@ -868,6 +850,9 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             // longest item is load_normal_map, of length 15
             const std::string arg = f.read_string(17);
 
+            if (f.eof())
+                break;
+
             /* Commented line */
             if (arg.starts_with("#")) {
                 f.skip_line();
@@ -876,7 +861,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             
             /* Material declaration */
             if (arg == "material") {
-                const std::string m_name = f.read_string(64);
+                const std::string m_name = f.read_string(MAX_NAME_LENGTH);
 
                 std::optional<material> m = parse_material(f, inverse_gamma);
                 throw_if_null(m, "material parsing error");
@@ -891,8 +876,8 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 const bool is_texture = arg == "load_texture";
                 const std::string type = is_texture ? "texture" : "normal map";
                 
-                const std::string t_name = f.read_string(64);
-                const std::string tfile_name = f.read_string(512);
+                const std::string t_name = f.read_string(MAX_NAME_LENGTH);
+                const std::string tfile_name = f.read_string(MAX_FILENAME_LENGTH);
                 throw_if_failure(exit_status_of(t_name.length() != 0 && tfile_name.length() != 0),
                     "parsing error in scene constructor (" + type + " loading)");
                 
@@ -918,8 +903,12 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             /* Objects declaration */
             {
                 using enum object_type;
-                constexpr std::array<std::string, 6> object_type_names = { "triangle", "quad", "sphere", "plane", "box", "cylinder" };
-                constexpr std::array object_types = { Triangle, Quad, Sphere, Plane, Box, Cylinder };
+                constexpr std::array<std::string, 6> object_type_names = {
+                    "triangle", "quad", "sphere", "plane", "box", "cylinder"
+                };
+                constexpr std::array object_types = {
+                    Triangle, Quad, Sphere, Plane, Box, Cylinder
+                };
 
                 const std::optional<unsigned int> index_opt = index_of(arg, std::span(object_type_names));
                 
@@ -938,27 +927,25 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
             /* Obj file parsing */
             if (arg == "load_obj") {
-                const std::string ofile_name = f.read_string(512);
+                const std::string ofile_name = f.read_string(MAX_FILENAME_LENGTH);
 
-                char t_name[65];
                 double sx = 0, sy = 0, sz = 0, scale = 1;
-                const int ret = f.scanf_count(" (texture:%64s shift:(%lf,%lf,%lf) scale:%lf)\n",
-                    t_name, sx, sy, sz, scale);
-
-                if (ret != 5)
-                    throw std::runtime_error("parsing error in scene constructor (obj file loading)");
-
-                rt::vector shift(sx, sy, sz);
-                
                 std::optional<unsigned int> t_index;
 
-                if (ret == 5 && std::string(t_name) != "none") {
-
-                    t_index = wrapper<texture>::find_element(texture_wrapper_set, t_name);
-                    throw_if_null(t_index, "texture not found");
+                exit_status status = f.scanf(" (texture:");
+                if (status == exit_status::Success) {
+                    const std::string t_name = f.read_string(MAX_NAME_LENGTH);
+                    if (t_name != "none)") {
+                        exit_status status_shift_scale = f.scanf(" shift:(%lf,%lf,%lf) scale:%lf)\n", sx, sy, sz, scale);
+                        throw_if_failure(status_shift_scale, "parsing error in scene constructor (obj file loading)");
+                        
+                        t_index = wrapper<texture>::find_element(texture_wrapper_set, t_name);
+                        throw_if_null(t_index, "texture not found");
+                    }
                 }
 
-                const bounding* output_bd;
+                const rt::vector shift(sx, sy, sz);
+                const bounding* output_bd = nullptr;
                 const exit_status status_obj =
                     parse_obj_file(ofile_name, t_index, object_set,
                         material_wrapper_set, texture_wrapper_set,

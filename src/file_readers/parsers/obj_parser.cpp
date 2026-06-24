@@ -10,6 +10,7 @@
 #include "file_readers/parsers/mtl_parser.hpp"
 #include "file_readers/parsers/parsing_wrappers.hpp"
 #include "file_readers/file.hpp"
+#include "auxiliary/utils.hpp"
 
 #include <string>
 #include <stack>
@@ -517,7 +518,7 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
    const bool bounding_enabled, const unsigned int polygons_per_bounding,
    const bounding*& output_bd, const real gamma) {
 
-   printf("Parsing obj file...");
+   printf("Parsing obj file... ");
    fflush(stdout);
 
    file f(file_name);
@@ -554,13 +555,9 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
    unsigned int number_of_texture_coords  = 0;
    unsigned int number_of_normals         = 0;
 
-   /* Max dimensions */
-   real min_x = infinity,
-      min_y = infinity,
-      min_z = infinity,
-      max_x = -infinity,
-      max_y = -infinity,
-      max_z = -infinity;
+   /* Min-max dimensions */
+   rt::vector min( infinity,  infinity,  infinity);
+   rt::vector max(-infinity, -infinity, -infinity);
 
    /* Bounding containers
       content will contain the polygons of a group before being placed in a bounding,
@@ -577,17 +574,12 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
       while (not f.eof()) {
 
          // longest items are usemtl, mtllib
-         std::array<char, 7> buffer = make_array<char, 7>('\0');
-         const exit_status status = f.read<char>({ buffer.data(), 6 });
-         if (status == exit_status::Failure) {
-            break;
-         }
-         const std::string s(buffer.data());
-
+         const std::string arg = f.read_string(6);
+         
          /* New group definition
             If bounding_enabled is true, the current content vector of polygons
             is placed in a box that is added to the children vector */
-         if (bounding_enabled && (s == "o" || s == "g") && not content.empty()) {
+         if (bounding_enabled && (arg == "o" || arg == "g") && not content.empty()) {
 
             // Create a bounding hierarchy containing all the nodes
             /* Heuristic: each group is a depth 1 node in the global bounding box hierarchy */
@@ -600,25 +592,34 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
          }
 
          /* Commented line, or ignored command */
-         if (s == "#" || s == "s" || s == "l" || s == "g" || s == "o" || s == "vp") {
+         if (arg.starts_with("#") || belongs_to(arg, { "s", "l", "g", "o", "vp" })) {
 
             f.skip_line();
+            continue;
          }
-         else if (s == "v") {
+
+         if (arg == "v") {
             /* Vertex definition */
             const auto [ x, y, z ] = f.scan<double, 3>();
-            vertex_set.push_back(rt::vector(x, y, z));
+            vertex_set.emplace_back(x, y, z);
             number_of_vertices++;
 
             /* Updating max dimensions */
-            if (x > max_x) { max_x = x; }
-            if (x < min_x) { min_x = x; }
-            if (y > max_y) { max_y = y; }
-            if (y < min_y) { min_y = y; }
-            if (z > max_z) { max_z = z; }
-            if (z < min_z) { min_z = z; }
+            min = {
+               std::min(min.x, x),
+               std::min(min.y, y),
+               std::min(min.z, z)
+            };
+            max = {
+               std::max(max.x, x),
+               std::max(max.y, y),
+               std::max(max.z, z)
+            };
+
+            continue;
          }
-         else if (s == "vt") {
+         
+         if (arg == "vt") {
             /* Texture UV-coordinates definition */
             const auto [ u, v ] = f.scan<double, 2>();
             
@@ -632,14 +633,20 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
                uv_coord_set.push_back(rt::vector(nu, nv, 0));
             }
             number_of_texture_coords++;
+
+            continue;
          }
-         else if (s == "vn") {
+
+         if (arg == "vn") {
             /* Vertex normal definition */
             const auto [ x, y, z ] = f.scan<double, 3>();
             normal_set.push_back(rt::vector(x, y, z));
             number_of_normals++;
+
+            continue;
          }
-         else if (s == "usemtl") {
+
+         if (arg == "usemtl") {
             /* Using a new material */
             const std::string m_name = f.read_string(64);
 
@@ -658,16 +665,21 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
                apply_texture = default_texture_provided;
             }
             
+            continue;
          }
-         else if (s == "mtllib") {
+         
+         if (arg == "mtllib") {
             const std::string mtl_file_name = f.read_string(512);
 
             const exit_status mtl_parsing_successful =
                parse_mtl_file(path, mtl_file_name, material_wrapper_set,
                   texture_wrapper_set, mt_assoc, gamma);
             throw_if_failure(mtl_parsing_successful, "(mtl file loading)");
+
+            continue;
          }
-         else if (s == "f") {
+
+         if (arg == "f") {
             /* Face declaration */
 
             /* 3 or 4 vertices will be parsed */
@@ -1004,6 +1016,8 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
                      current_texture_index, current_material_index, apply_texture);
                }
             }
+
+            continue;
          }
       }
       
@@ -1029,16 +1043,15 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
       printf("%u vertices, %u polygons (%u triangles, %u quads)\n",
          number_of_vertices, number_of_polygons, number_of_triangles, number_of_quads);
       printf("Dimensions: (x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf])\n",
-         min_x, max_x, min_y, max_y, min_z, max_z);
-      if (scale != 1 || not (shift == rt::vector(0,0,0))) {
+         min.x, max.x, min.y, max.y, min.z, max.z);
+      if (scale != 1.0_r || not (shift == rt::vector(0,0,0))) {
+         const rt::vector scaled_min = fma(min, scale, shift);
+         const rt::vector scaled_max = fma(max, scale, shift);
          printf("Rescaled/shifted dimensions: (x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf])\n",
-            shift.x + scale * min_x, shift.x + scale * max_x,
-            shift.y + scale * min_y, shift.y + scale * max_y,
-            shift.z + scale * min_z, shift.z + scale * max_z);   
+            scaled_min.x, scaled_max.x, scaled_min.y, scaled_max.y, scaled_min.z, scaled_max.z);
       }
 
       return exit_status::Success;
-
    }
    catch(const std::exception& e) {
       printf("Parsing error in file %s ", file_name.c_str());
