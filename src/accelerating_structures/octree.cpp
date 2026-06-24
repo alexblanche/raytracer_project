@@ -58,10 +58,11 @@ static std::vector<unsigned int> split(const std::vector<rt::vector>& means, sea
         last += nbr;
     }
 
-    std::vector<unsigned int> output(NB_REGIONS + 1);
+    std::vector<unsigned int> output;
+    output.reserve(NB_REGIONS + 1);
     output.assign_range(first_index);
-    output.back() = last;
-
+    output.push_back(last);
+    
     // Organizing the elements by region
     std::vector<unsigned int> elts_temp(nb_indices);
     
@@ -80,16 +81,22 @@ static std::vector<unsigned int> split(const std::vector<rt::vector>& means, sea
 
 void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
 
+    // std::cout << "build_tree: 0" << std::endl;
     tree.initial_resize(10 * means.size());
+    // std::cout << "build_tree: 1" << std::endl;
 
     std::vector<unsigned int> elts(means.size());
     for (unsigned int i = 0; i < means.size(); i++)
         elts[i] = i;
 
+    // std::cout << "build_tree: 2" << std::endl;
+
     const unsigned int max_groups = tree.internal_nodes.size();
     std::vector<unsigned int> g1, g2, gs1, gs2, ti1, ti2;
     for (auto v : { &g1, &g2, &gs1, &gs2, &ti1, &ti2 })
         v->reserve(max_groups);
+
+    // std::cout << "build_tree: 3" << std::endl;
 
     // First iteration: one group, with all the elements
     g1.push_back(0);
@@ -98,8 +105,11 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
 
     unsigned int nb_non_terminal_groups = 1;
     bool parity = true;
+    // int iter = 0;
 
     while (nb_non_terminal_groups != 0) {
+
+        // std::cout << "build_tree: iter " << (iter++) << std::endl;
 
         unsigned int new_nb_non_term_groups = 0;
 
@@ -117,7 +127,10 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
         new_tree_indices.clear();
 
         // Split all the groups and compute the terminal nodes
+        // std::cout << "build_tree: nb_non_terminal_groups " << nb_non_terminal_groups << std::endl;
         for (unsigned int g = 0; g < nb_non_terminal_groups; g++) {
+
+            // std::cout << "build_tree: group " << g << std::endl;
 
             const unsigned int index_min     = groups[g];
             const unsigned int nb_elts_group = group_size[g];
@@ -133,6 +146,9 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
             // }
             
             if (nb_elts_group <= MAX_ELTS_PER_LEAF) {
+
+                // std::cout << "yes" << std::endl;
+
                 // Compute leaf
                 tree.increase_size(tree_index);
 
@@ -144,28 +160,45 @@ void build_tree(const std::vector<rt::vector>& means, search_tree& tree) {
             }
             else {
 
+                // std::cout << "no (nb elts = " << nb_elts_group << ")" << std::endl;
+
                 // new_regions has size 9: each of the 8 regions (0..7) is defined by the interval [new_regions[i] .. new_regions[i+1]]
                 std::vector<unsigned int> new_regions = split(means, tree, tree_index, std::span(elts.data() + index_min, nb_elts_group), index_min);
+
+                // std::cout << "after split" << std::endl;
 
                 // Add the new groups
                 // const unsigned int ng = new_nb_non_term_groups;
                 const unsigned int ni = (tree_index << 3) + 1;
+
+                // for (unsigned char i = 0; i < 9; i++)
+                //     std::cout << new_regions[i] << " ";
+                // std::cout << std::endl;
+
                 for (unsigned char i = 0; i < 8; i++) {
                     // unsigned int ngi = ng + i;
                     // new_groups[ngi]     = new_regions[i];
                     // new_group_size[ngi] = new_regions[i + 1] - new_regions[i];
                     // new_tree_indices[ngi] = ni + i;
+
                     new_groups.push_back(new_regions[i]);
                     new_group_size.push_back(new_regions[i + 1] - new_regions[i]);
                     new_tree_indices.push_back(ni + i);
                 }
+                // std::cout << std::endl;
                 new_nb_non_term_groups += 8;
+
+                // std::cout << "iter loop end" << std::endl;
             }
+
+            // std::cout << "done." << std::endl;
         }
 
         parity = not parity;
         nb_non_terminal_groups = new_nb_non_term_groups;
     }
+
+    // std::cout << "build_tree: 999" << std::endl;
 }
 
 static unsigned int compute_subregion_index(const search_tree& tree, const rt::vector& v, const unsigned int index) {

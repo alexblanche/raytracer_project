@@ -1025,7 +1025,6 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
       
       if (bounding_enabled) {
          /* Placing the last group into a bounding */
-         // const bounding* bd = containing_objects(content);
          const bounding* bd = create_bounding_hierarchy(std::move(content), polygons_per_bounding);
          if constexpr (DISPLAY_HIERARCHY) {
             display_hierarchy_properties(bd);

@@ -291,7 +291,12 @@ class file {
         exit_status scanf(const std::string& string) const {
             const std::size_t pos = position();
             const std::string read = read_string(string.length(), string_reading_type::ReadAll);
-            if (read == string)
+
+            // Skip whitespace in string
+            int i = 0;
+            while (string[i] == ' ')
+                i++;
+            if (read.starts_with(string.substr(i)))
                 return exit_status::Success;
             
             // Rewind to last character successfully matched

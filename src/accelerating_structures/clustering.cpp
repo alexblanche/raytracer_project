@@ -357,6 +357,7 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
         return containing_bounding_any(element::get_content<const bounding*>(nodes));
 }
 
+#include <iostream>
 
 /* Main function: creates the bounding box hierarchy of a set of objects */
 
@@ -386,7 +387,7 @@ const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
         printf("\nOptimizing the data structure...\n");
     }
     else {
-        printf("\rOptimizing the data structure...");
+        printf("\rOptimizing the data structure... ");
         fflush(stdout);
     }
 
@@ -410,7 +411,7 @@ const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
     if constexpr (DISPLAY_KMEANS) {
         printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
     }
-    
+
     return create_hierarchy_from_boundings(std::move(term_nodes));
 }
 
