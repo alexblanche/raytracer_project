@@ -289,13 +289,16 @@ class file {
         }
 
         exit_status scanf(const std::string& string) const {
-            const std::size_t pos = position();
-            const std::string read = read_string(string.length(), string_reading_type::ReadAll);
 
             // Skip whitespace in string
             int i = 0;
             while (string[i] == ' ')
                 i++;
+            const std::string_view string_to_match = std::string_view(string).substr(i);
+
+            const std::size_t pos = position();
+            const std::string read = read_string(string_to_match.length(), string_reading_type::ReadAll);
+            
             if (read.starts_with(string.substr(i)))
                 return exit_status::Success;
             

@@ -9,7 +9,8 @@
 #include <iostream>
 #include <cassert>
 
-static const std::string BMP_FILE_NAME = "../../../assets/cobblestone_street_night.bmp";
+static const std::string BMP_FILE_NAME = "../../../assets/obj/alaskan_cliff_rock/CliffRock_0014_2K_Albedo.bmp";
+    //"../../../assets/cobblestone_street_night.bmp";
 static const std::string HDR_FILE_NAME = "../../../assets/sundowner_overlook.hdr";
 
 static void test_bmp() {

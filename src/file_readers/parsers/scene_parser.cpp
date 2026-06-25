@@ -740,57 +740,45 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
               camera(cam_pos, cam_dir, cam_right_dir, fovw, fovh, dist, width, height, focl, apr)
             : camera(cam_pos, cam_dir, cam_right_dir, fovw, fovh, dist, width, height);
 
-        bool background_color_is_set   = false;
         bool background_texture_is_set = false;
-        const std::size_t position_bg = f.position();
         rt::color background_color;
         texture background_texture;
 
-        // Setting up the background_color (optional)
+        // Setting up the background_color or texture
         double r, g, b;
-        {
-            const exit_status status_background = f.scanf("background_color %lf %lf %lf\n", r, g, b);
-            if (status_background == exit_status::Failure) {
-                f.rewind(position_bg);
-            }
-            else {
-                background_color = rt::color(r, g, b);
-                background_color_is_set = true;
-            }
-        }
-
-        // Setting up the background texture (also optional)
         char bg_tfile_name[513];
         double rx, ry, rz, inverse_gamma;
         inverse_gamma = 1.0;
-        const exit_status status_background2 = f.scanf("background_texture %512s rotate_x:%lf rotate_y:%lf rotate_z:%lf gamma:%lf\n",
-            bg_tfile_name, rx, ry, rz, inverse_gamma);
+        {
+            const exit_status status_background = f.scanf_rewind_if_failure("background_color %lf %lf %lf\n", r, g, b);
+            if (status_background == exit_status::Success) {
+                background_color = rt::color(r, g, b);
+            }
+            else {
+                const exit_status status_bg_texture = f.scanf("background_texture %512s rotate_x:%lf rotate_y:%lf rotate_z:%lf gamma:%lf\n",
+                    bg_tfile_name, rx, ry, rz, inverse_gamma);
+                if (status_bg_texture == exit_status::Failure)
+                    throw std::runtime_error("parsing error in scene constructor (background)");
+                if (std::abs(rx) > 2.0_r * PI || std::abs(ry) > 2.0_r * PI || std::abs(rz) > 2.0_r * PI)
+                    throw std::runtime_error("incorrect background texture angles");
+                
+                const std::string bg_tfile_name_short = std::filesystem::path(bg_tfile_name).filename().generic_string();
 
-        // Neither background color nor texture
-        if (status_background2 == exit_status::Failure){
-            if (not background_color_is_set)
-                throw std::runtime_error("parsing error in scene constructor (background)");
-        }
-        else if (std::abs(rx) > 2.0_r * PI || std::abs(ry) > 2.0_r * PI || std::abs(rz) > 2.0_r * PI) {
-            throw std::runtime_error("incorrect background texture angles");
-        }
-        else {
-            const std::string bg_tfile_name_short = std::filesystem::path(bg_tfile_name).filename().generic_string();
+                if (rx < 0) rx += 2.0_r * PI;
+                if (ry < 0) ry += 2.0_r * PI;
+                if (rz < 0) rz += 2.0_r * PI;
 
-            if (rx < 0) rx += 2.0_r * PI;
-            if (ry < 0) ry += 2.0_r * PI;
-            if (rz < 0) rz += 2.0_r * PI;
+                printf("Parsing %s... ", bg_tfile_name_short.c_str());
+                fflush(stdout);
 
-            printf("Parsing %s...", bg_tfile_name_short.c_str());
-            fflush(stdout);
-
-            bool bg_parsing_successful;
-            background_texture = texture(bg_tfile_name, bg_parsing_successful);
-            if (not bg_parsing_successful)
-                throw std::runtime_error("parsing error in scene constructor (background texture parsing)");
-            
-            printf("\r> %s texture loaded\n", bg_tfile_name_short.c_str());
-            background_texture_is_set = true;
+                bool bg_parsing_successful;
+                background_texture = texture(bg_tfile_name, bg_parsing_successful);
+                if (not bg_parsing_successful)
+                    throw std::runtime_error("parsing error in scene constructor (background texture parsing)");
+                
+                printf("\r> %s texture loaded\n", bg_tfile_name_short.c_str());
+                background_texture_is_set = true;
+            }
         }
         
         unsigned int polygons_per_bounding = 0;
@@ -915,19 +903,13 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 double sx = 0, sy = 0, sz = 0, scale = 1;
                 std::optional<unsigned int> t_index;
 
-                // std::size_t pos = f.position();
-                // std::string followup = f.read_string(15);
-                // std::cout << "followup = |" << followup << "|" << std::endl;
-                // f.rewind(pos);
-
                 exit_status status = f.scanf(" (texture:");
-                // std::cout << (status == exit_status::Success ? "Success" : "Failure") << std::endl;
                 if (status == exit_status::Success) {
+
                     const std::string t_name = f.read_string(MAX_NAME_LENGTH);
                     exit_status status_shift_scale = f.scanf(" shift:(%lf,%lf,%lf) scale:%lf)\n", sx, sy, sz, scale);
                     throw_if_failure(status_shift_scale, "parsing error in scene constructor (obj file loading)");
                     
-                    std::cout << "t_name " << t_name << std::endl;
                     if (not t_name.starts_with("none")) {
                         t_index = wrapper<texture>::find_element(texture_wrapper_set, t_name);
                         throw_if_null(t_index, "texture not found");
