@@ -17,6 +17,8 @@ static void test_bmp() {
     const std::string& filename_bmp = BMP_FILE_NAME;
     constexpr int NB_ITERATIONS = 10;
 
+    bmp::print_info(BMP_FILE_NAME);
+
     std::expected<matrix, file_reader::error> mat_opt;
 
     timer_ms timer;

@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <cmath>
 
-static constexpr int BYTES_PER_COLOR = 3;
+static constexpr int DEFAULT_BYTES_PER_COLOR = 3;
 
 using enum file_reader::error;
 
@@ -19,52 +19,59 @@ std::expected<matrix, file_reader::error> bmp::read_file(const std::string& file
         
         file f(file_name, "rb");
 
-        /* 18 bytes ignored:
-           Type (2), Size (4), Reserved 1 (2), Reserved 2 (2), Offset (4), Size of the header (4)
-        */
-        throw_if_failure(f.skip(18), ReadingErrorHeader);
-        
-        /* Width: 4 bytes */
-        unsigned int bmpwidth;
-        const exit_status status_w = f.read<unsigned int>({ &bmpwidth, 1 });
-        throw_if_failure(status_w, ReadingErrorHeader);
+        // "BM" characters
+        const std::string file_type = f.read_string(2);
+        if (file_type != "BM")
+            throw DataError;
 
-        /* Height: 4 bytes */
-        unsigned int bmpheight;
-        const exit_status status_h = f.read<unsigned int>({ &bmpheight, 1 });
-        throw_if_failure(status_h, ReadingErrorHeader);
+        const std::optional<bmp::header> h_opt = f.scan<bmp::header>();
 
-        /* 28 bytes ignored:
-           Number of color planes (2), Number of bits per pixel (2), Compression method used (4),
-           Compressed size of the image (4), Horizontal resolution (4), Vertical resolution (4),
-           Number of colors used (4), Number of important colors used (4)
-        */
-        throw_if_failure(f.skip(28), ReadingErrorHeader);
+        if (not h_opt.has_value())
+            throw ReadingErrorHeader;
 
-        const unsigned int row_length_bytes = BYTES_PER_COLOR * bmpwidth;
+        const auto& [
+            _ /* file_size */,
+            _ /* reserved1 */,
+            _ /* reserved2 */,
+            _ /* offset */,
+            _ /* header_size */,
+            width,
+            height,
+            _ /* color_planes */,
+            bits_per_pixel,
+            _ /* compression_method */,
+            _ /* compressed_size */,
+            _ /* horizontal_resolution */,
+            _ /* vertical_resolution */,
+            _ /* colors_used */,
+            _ /* important_colors */
+        ] = h_opt.value();
+
+        const unsigned int bytes_per_pixels = bits_per_pixel / 8;
+        const unsigned int row_length_bytes = bytes_per_pixels * width;
 
         /* Padding at the end of each row in the file */
         const unsigned int padding_bytes = (4 - (row_length_bytes % 4)) % 4;
 
         /* Color data */
-        const unsigned int size_bytes = (row_length_bytes + padding_bytes) * bmpheight;
+        const unsigned int size_bytes = (row_length_bytes + padding_bytes) * height;
         std::vector<unsigned char> buffer(size_bytes);
         const exit_status status = f.read(buffer);
         throw_if_failure(status, ReadingErrorData);
         f.close();
 
-        matrix matrix(bmpwidth, bmpheight);
+        matrix matrix(width, height);
 
-        parallel_for(bmpheight, [&] (int j) {
+        parallel_for(height, [&] (int j) {
 
             const matrix::row row = matrix[j];
-            unsigned int index = 3 * j * (bmpwidth + padding_bytes);
+            unsigned int index = bytes_per_pixels * j * (width + padding_bytes);
             for (rt::color& color : row) {
                 const real b = buffer[index];
                 const real g = buffer[index + 1];
                 const real r = buffer[index + 2];
                 color = rt::color(r, g, b);
-                index += 3;
+                index += bytes_per_pixels;
             }
         });
 
@@ -88,8 +95,7 @@ exit_status bmp::print_info(const std::string& file_name) {
     file f(file_name, "rb");
 
     // "BM" characters
-    char filetype[2];
-    f.read<char>(filetype);
+    const std::string filetype = f.read_string(2);
 
     std::optional<bmp::header> h_opt = f.scan<bmp::header>();
 
@@ -98,7 +104,7 @@ exit_status bmp::print_info(const std::string& file_name) {
         return exit_status::Failure;
     }
     
-    printf("Type:                  %.2s\n", filetype);
+    printf("Type:                  %s\n", filetype.c_str());
     h_opt.value().print();
     return exit_status::Success;
 }
@@ -121,7 +127,7 @@ exit_status bmp::export_data(const std::string& file_name, const image& image) {
 
     const auto [ width, height ] = image.data.get_dimensions();
 
-    const unsigned int row_length_bytes = BYTES_PER_COLOR * width;
+    const unsigned int row_length_bytes = DEFAULT_BYTES_PER_COLOR * width;
     const unsigned int padding_bytes = (4 - (row_length_bytes % 4)) % 4;
 
     /* All sizes are stored in little-endian */
@@ -165,7 +171,7 @@ exit_status bmp::export_data(const std::string& file_name, const image& image) {
         1,  0,
 
         /* 2 bytes: Bits per Pixel (24 for 24 bits RGB) */
-        24, 0,
+        8 * DEFAULT_BYTES_PER_COLOR, 0,
 
         /* 4 bytes: compression (0 for no compression) */
         0, 0, 0, 0,
@@ -208,7 +214,10 @@ exit_status bmp::export_data(const std::string& file_name, const image& image) {
             buffer[index]     = b;
             buffer[index + 1] = g;
             buffer[index + 2] = r;
-            index += 3;
+            if constexpr (DEFAULT_BYTES_PER_COLOR == 4) {
+                buffer[index + 3] = 255;
+            }
+            index += DEFAULT_BYTES_PER_COLOR;
         }
         index += padding_bytes;
     }
