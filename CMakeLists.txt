@@ -220,4 +220,5 @@ add_executable(testfile
 
 add_executable(tests
 	src/tests/test.cpp
+	src/scene/objects/box.cpp
 )

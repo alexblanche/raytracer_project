@@ -6,15 +6,15 @@
 
 /* Constructor for terminal nodes: container node (for first-level non-triangle objects) if no box provided,
    or terminal node with a bounding box, containing triangles */
-bounding::bounding(std::vector<const object*>&& content, const box* b)
+bounding::bounding(std::vector<const object*>&& content, std::unique_ptr<box>&& b)
 
-    : is_terminal(true), b(b),
+    : is_terminal(true), b(std::move(b)),
       node(std::move(content)) {}
 
 /* Internal node constructor */
-bounding::bounding(std::vector<const bounding*>&& children, const box* b)
+bounding::bounding(std::vector<const bounding*>&& children, std::unique_ptr<box>&& b)
 
-    : is_terminal(false), b(b),
+    : is_terminal(false), b(std::move(b)),
       node(std::move(children)) {}
 
 

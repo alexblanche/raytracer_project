@@ -3,6 +3,8 @@
 #include "scene/objects/box.hpp"
 #include "auxiliary/custom_stack.hpp"
 
+#include <memory>
+
 class bounding {
     
     public:
@@ -16,7 +18,7 @@ class bounding {
         bool is_terminal = true;
 
         /* Bounding box */
-        const box* b = nullptr;
+        std::unique_ptr<box> b = nullptr;
 
     
     private:
@@ -40,22 +42,17 @@ class bounding {
 
         /* Constructor for terminal nodes: container node (for first-level non-triangle objects) if no box provided,
            or terminal node with a bounding box, containing triangles */
-        bounding(std::vector<const object*>&& content, const box* b = nullptr);
+        bounding(std::vector<const object*>&& content, std::unique_ptr<box>&& b = nullptr);
 
         /* Internal node constructor */
-        bounding(std::vector<const bounding*>&& children, const box* b);
+        bounding(std::vector<const bounding*>&& children, std::unique_ptr<box>&& b);
 
         bounding(const bounding&)            = delete;
         bounding(bounding&&)                 = delete;
         bounding& operator=(const bounding&) = delete;
         bounding& operator=(bounding&&)      = delete;
 
-        ~bounding() {
-            if (b != nullptr)
-                delete b;
-            
-            // objects and chidlren are destroyed by the scene destructor
-        }
+        // No destructor: objects and children are destroyed by the scene destructor
 
         inline const std::vector<const object*>& get_content() const {
             if (not is_terminal)
@@ -121,8 +118,8 @@ requires (requires (T x) { { x.get_min_max_coord() } -> std::same_as<min_max_coo
     const rt::vector center = (max + min) / 2.0_r;
     const auto [ l1, l2, l3 ] = max - min;
 
-    const box* b = new box(center, rt::vector(1, 0, 0), rt::vector(0, 1, 0), l1, l2, l3);
-    return new bounding(std::forward<std::vector<const T*>>(set), b);
+    std::unique_ptr<box> b = std::make_unique<box>(center, rt::vector(1, 0, 0), rt::vector(0, 1, 0), l1, l2, l3);
+    return new bounding(std::forward<std::vector<const T*>>(set), std::move(b));
 }
 
 /* Returns a bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))

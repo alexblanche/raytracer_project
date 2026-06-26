@@ -151,6 +151,8 @@ enum class error_type {
     ParsingError, FileNotFound
 };
 
+#include <memory>
+#include "scene/objects/box.hpp"
 int main() {
     // srand(time(0));
     // A a = f();
@@ -179,5 +181,10 @@ int main() {
     std::cout << "sizeof(std::expected<U, error_type>) = " << sizeof(T) << std::endl;
     std::cout << "sizeof(std::optional<U>) = " << sizeof(std::optional<U>) << std::endl;
 
+
+    std::unique_ptr<box> pt(new box(rt::vector(), rt::vector(), rt::vector(), 1, 1, 1));
+
+    std::cout << "sizeof(std::unique_ptr) = " << sizeof(pt) << std::endl;
+    std::cout << "sizeof(box*) = " << sizeof(box*) << std::endl;
     return EXIT_SUCCESS;
 }
