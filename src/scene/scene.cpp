@@ -32,13 +32,13 @@ scene::scene(
 
 
 scene::~scene() {
+
     /* Destruction of the objects located on the heap */
     for (const object* obj : object_set) {
         delete obj;
     }
 
-    /* Recursive destruction of the bounding boxes */
-    //std::stack<const bounding*> bd_stack;
+    /* Destruction of the boundings with a breadth-first search */
     custom_stack<const bounding*> bd_stack(50);
     bd_stack.push(bounding_set);
     

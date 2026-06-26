@@ -161,7 +161,7 @@ min_max_coord box::get_min_max_coord() const {
    The box is assumed to be standard (axes are n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1)) */
 bool box::is_hit_by(const ray& r) const {
     
-    const auto& [ u, dir, inv_dir, abs_inv_dir] = r;
+    const auto& [ u, dir, inv_dir, abs_inv_dir ] = r;
 
     // See measure_distance
 

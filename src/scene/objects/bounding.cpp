@@ -4,27 +4,18 @@
 
 #include <optional>
 
-
-/* The vector n3 is taken as the cross product of n1 and n2 */
-bounding::bounding(const bool is_terminal, const box* b,
-    std::vector<const object*>&& content,
-    std::vector<const bounding*>&& children)
-
-    : is_terminal(is_terminal), b(b),
-      content(std::move(content)), children(std::move(children)) {}
-
 /* Constructor for terminal nodes: container node (for first-level non-triangle objects) if no box provided,
    or terminal node with a bounding box, containing triangles */
 bounding::bounding(std::vector<const object*>&& content, const box* b)
 
-    : is_terminal(true), b(b != nullptr ? std::optional(b) : std::nullopt),
-      content(std::move(content)) {}
+    : is_terminal(true), b(b),
+      node(std::move(content)) {}
 
 /* Internal node constructor */
 bounding::bounding(std::vector<const bounding*>&& children, const box* b)
 
     : is_terminal(false), b(b),
-      children(std::move(children)) {}
+      node(std::move(children)) {}
 
 
 
@@ -37,23 +28,23 @@ bounding::bounding(std::vector<const bounding*>&& children, const box* b)
    in which case the two variables are overwritten)
 */
 void bounding::check_box(const ray& r,
-    // out parameters
-    real& distance_to_closest, const object*& closest_object,
-    custom_stack<const bounding*>& bounding_stack
+        // out parameters
+        real& distance_to_closest, const object*& closest_object,
+        custom_stack<const bounding*>& bounding_stack
     ) const {
 
-    if (b.has_value() && not b.value()->is_hit_by(r))
+    if (b != nullptr && not b->is_hit_by(r))
         return;
 
     if (not is_terminal) {
-        bounding_stack.push(children);
+        bounding_stack.push(node.children);
         return;
     }
         
     real d_closest       = distance_to_closest;
     const object* cl_obj = closest_object;
     
-    for (const object* const obj : content) {
+    for (const object* const obj : node.content) {
         const real d = obj->measure_distance(r);
         if (d < d_closest) {
             d_closest = d;
@@ -75,13 +66,13 @@ void bounding::check_box_next(const ray& r,
 
     bd_stored = false;
 
-    if (b.has_value() && not b.value()->is_hit_by(r))
+    if (b != nullptr && not b->is_hit_by(r))
         return;
 
     if (not is_terminal) {
-        const unsigned int last_index = children.size() - 1;
-        bounding_stack.push(std::span(children).first(last_index));
-        next_bounding = children[last_index];
+        const unsigned int last_index = node.children.size() - 1;
+        bounding_stack.push(std::span(node.children).first(last_index));
+        next_bounding = node.children[last_index];
         bd_stored = true;
         return;
     }
@@ -89,7 +80,7 @@ void bounding::check_box_next(const ray& r,
     real d_closest       = distance_to_closest;
     const object* cl_obj = closest_object;
 
-    for (const object* obj : content) {
+    for (const object* obj : node.content) {
         const real d = obj->measure_distance(r);
         if (d < d_closest) {
             d_closest = d;

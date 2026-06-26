@@ -5,7 +5,7 @@
 
 class bounding {
     
-    private:
+    public:
     
         /*
             The search for the intersection point between the ray and the scene will now be performed with a tree-search.
@@ -16,20 +16,27 @@ class bounding {
         bool is_terminal = true;
 
         /* Bounding box */
-        const std::optional<const box*> b = std::nullopt;
+        const box* b = nullptr;
 
-        /* If the node is terminal: indices of the objects contained in the box */
-        std::vector<const object*> content;
+    
+    private:
 
-        /* If the node is internal: bounding boxes contained in the box */
-        std::vector<const bounding*> children;
+        union node {
+            /* If the node is terminal: indices of the objects contained in the box */
+            std::vector<const object*> content;
+            /* If the node is internal: bounding boxes contained in the box */
+            std::vector<const bounding*> children;
+
+            node(std::vector<const object*>&& content)
+                : content(std::move(content)) {}
+
+            node(std::vector<const bounding*>&& children)
+                : children(std::move(children)) {}
+
+            ~node() {}
+        } node;
 
     public:
-
-        bounding() {}
-        
-        bounding(bool is_terminal, const box* b, std::vector<const object*>&& content,
-            std::vector<const bounding*>&& children);
 
         /* Constructor for terminal nodes: container node (for first-level non-triangle objects) if no box provided,
            or terminal node with a bounding box, containing triangles */
@@ -43,25 +50,28 @@ class bounding {
         bounding& operator=(const bounding&) = delete;
         bounding& operator=(bounding&&)      = delete;
 
-        inline std::optional<const box*> get_b() const {
-            return b;
+        ~bounding() {
+            if (b != nullptr)
+                delete b;
+            
+            // objects and chidlren are destroyed by the scene destructor
         }
 
         inline const std::vector<const object*>& get_content() const {
-            return content;
+            if (not is_terminal)
+                throw std::runtime_error("Getting content of a non-terminal bounding");
+            return node.content;
         }
 
-        inline const std::vector<const bounding*>& get_children() const {
-            return children;
-        }
-
-        inline bool is_terminal_bd() const {
-            return is_terminal;
+        inline const std::span<const bounding * const> get_children() const {
+            return (not is_terminal) ?
+                  node.children
+                : std::span<const bounding * const> {};
         }
 
         inline min_max_coord get_min_max_coord() const {
-            return (b.has_value()) ?
-                  b.value()->get_min_max_coord()
+            return (b != nullptr) ?
+                  b->get_min_max_coord()
                 : empty_set_min_max_coords;
         }
 

@@ -444,15 +444,14 @@ void display_hierarchy_properties(const bounding* bd0) {
         while (not bds.empty()) {
             const bounding* bd = bds.pop();
             unsigned int arity;
-            if (bd->is_terminal_bd()) {
+            if (bd->is_terminal) {
                 terminal_nodes ++;
                 arity = bd->get_content().size();
             }
             else {
-                const std::vector<const bounding*>& children = bd->get_children();
+                const std::span children = bd->get_children();
+                next_bds.push(children);
                 arity = children.size();
-                for (const bounding* b : children)
-                    next_bds.push(b);
             }
             if      (arity > max) { max = arity; }
             else if (arity < min) { min = arity; }

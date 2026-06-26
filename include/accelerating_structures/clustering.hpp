@@ -46,9 +46,8 @@ struct element {
          
          case Bounding: {
             const bounding* bd = std::get<const bounding*>(content);
-            const std::optional<const box*>& b = bd->get_b();
-            return (b.has_value()) ?
-                 b.value()->get_position()
+            return (bd->b != nullptr) ?
+                 bd->b->get_position()
                : bd->get_content()[0]->get_position();
          }
       }

@@ -92,6 +92,8 @@ class custom_stack {
         }
 
         inline void push(const std::span<const T> ts) {
+            if (ts.size() == 0)
+                return;
             const std::size_t new_size = size + ts.size();
             reserve(new_size);
             std::memcpy(data + size, ts.data(), ts.size() * sizeof(T));
