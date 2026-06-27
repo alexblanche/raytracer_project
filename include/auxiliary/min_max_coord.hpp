@@ -23,10 +23,13 @@ struct min_max_coord {
 };
 
 constexpr min_max_coord empty_set_min_max_coords = {
+
     .min_x =  infinity,
     .max_x = -infinity,
+
     .min_y =  infinity,
     .max_y = -infinity,
+
     .min_z =  infinity,
     .max_z = -infinity
 };

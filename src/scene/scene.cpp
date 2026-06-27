@@ -18,14 +18,14 @@ scene::scene(
     const unsigned int polygons_per_bounding,
     const real gamma)
     :
-    object_set      (std::move(object_set)),
-    bounding_set    (std::move(bounding_set)),
-    texture_set     (std::move(texture_set)),
-    normal_map_set  (std::move(normal_map_set)),
-    material_set    (std::move(material_set)),
-    texture_info_set(std::move(texture_info_set)),
-    background      (std::move(background)),
-    cam             (std::move(cam)),
+    object_set       (std::move(object_set)),
+    bounding_set     (std::move(bounding_set)),
+    texture_set      (std::move(texture_set)),
+    normal_map_set   (std::move(normal_map_set)),
+    material_set     (std::move(material_set)),
+    texture_info_set (std::move(texture_info_set)),
+    background       (std::move(background)),
+    cam              (std::move(cam)),
     width(width), height(height),
     polygons_per_bounding(polygons_per_bounding),
     gamma(gamma) {}
@@ -39,9 +39,9 @@ scene::~scene() {
     }
 
     /* Destruction of the boundings with a breadth-first search */
-    custom_stack<const bounding*> bd_stack(50);
+    custom_stack<const bounding*> bd_stack(150);
     bd_stack.push(bounding_set);
-    
+
     while (not bd_stack.empty()) {
         const bounding* bd = bd_stack.pop();
         bd_stack.push(bd->get_children());
@@ -92,13 +92,12 @@ std::optional<hit> scene::find_closest_object_bounding(const ray& r) const {
     real distance_to_closest  = infinity;
     const object* closest_obj = nullptr;
     
-    //std::stack<const bounding*> bounding_stack;
     static thread_local custom_stack<const bounding*> bounding_stack(50);
     bounding_stack.set_empty();
 
     /* Pass through the set of first-level bounding boxes */
     for (const bounding* const bd : bounding_set) {
-        bd->check_box(r, distance_to_closest, closest_obj, bounding_stack);
+        bd->check_box(r, bounding_stack, distance_to_closest, closest_obj);
     }
 
     /* In order to avoid pushing and then immediately popping an element from bounding_stack,
@@ -114,7 +113,7 @@ std::optional<hit> scene::find_closest_object_bounding(const ray& r) const {
 
         const bounding* bd = bd_stored ? next_bounding : bounding_stack.pop();
         
-        bd->check_box_next(r, distance_to_closest, closest_obj, bounding_stack,
+        bd->check_box_next(r, bounding_stack, distance_to_closest, closest_obj,
             bd_stored, next_bounding);
     }
 

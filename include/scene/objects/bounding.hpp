@@ -42,10 +42,12 @@ class bounding {
 
         /* Constructor for terminal nodes: container node (for first-level non-triangle objects) if no box provided,
            or terminal node with a bounding box, containing triangles */
-        bounding(std::vector<const object*>&& content, std::unique_ptr<box>&& b = nullptr);
+        bounding(std::vector<const object*>&& content, std::unique_ptr<box>&& b = nullptr)
+            : is_terminal(true), b(std::move(b)), node(std::move(content)) {}
 
         /* Internal node constructor */
-        bounding(std::vector<const bounding*>&& children, std::unique_ptr<box>&& b);
+        bounding(std::vector<const bounding*>&& children, std::unique_ptr<box>&& b)
+            : is_terminal(false), b(std::move(b)), node(std::move(children)) {}
 
         bounding(const bounding&)            = delete;
         bounding(bounding&&)                 = delete;
@@ -78,17 +80,82 @@ class bounding {
            (if it is closest than the current closest_object, at a distance distance_to_closest,
            in which case the two variables are overwritten)
         */
+        // void check_box(const ray& r,
+        //     custom_stack<const bounding*>& bounding_stack,
+        //     real& distance_to_closest, const object*& closest_object) const;
+
+        // /* Same as check_box, but the last child is stored in a pointer to avoid pushing and
+        //    immediately popping on the stack */
+        // void check_box_next(const ray& r,
+        //     custom_stack<const bounding*>& bounding_stack,
+        //     real& distance_to_closest, const object*& closest_object,
+        //     bool& bd_stored, const bounding*& next_bounding) const;
+
         void check_box(const ray& r,
-            real& distance_to_closest, const object*& closest_object,
-            custom_stack<const bounding*>& bounding_stack
-            ) const;
+                custom_stack<const bounding*>& bounding_stack,
+                // out parameters
+                real& distance_to_closest, const object*& closest_object
+                
+            ) const {
+
+            if (b != nullptr && not b->is_hit_by(r))
+                return;
+
+            if (not is_terminal) {
+                bounding_stack.push(node.children);
+                return;
+            }
+                
+            real d_closest       = distance_to_closest;
+            const object* cl_obj = closest_object;
+            
+            for (const object* const obj : node.content) {
+                const real d = obj->measure_distance(r);
+                if (d < d_closest) {
+                    d_closest = d;
+                    cl_obj = obj;
+                }
+            }
+
+            distance_to_closest = d_closest;
+            closest_object      = cl_obj;
+        }
 
         /* Same as check_box, but the last child is stored in a pointer to avoid pushing and
-           immediately popping on the stack */
+        immediately popping on the stack */
         void check_box_next(const ray& r,
-            real& distance_to_closest, const object*& closest_object,
             custom_stack<const bounding*>& bounding_stack,
-            bool& bd_stored, const bounding*& next_bounding) const;
+            // out parameters
+            real& distance_to_closest, const object*& closest_object,
+            bool& bd_stored, const bounding*& next_bounding) const {
+
+            bd_stored = false;
+
+            if (b != nullptr && not b->is_hit_by(r))
+                return;
+
+            if (not is_terminal) {
+                const unsigned int last_index = node.children.size() - 1;
+                bounding_stack.push(std::span(node.children).first(last_index));
+                next_bounding = node.children[last_index];
+                bd_stored = true;
+                return;
+            }
+
+            real d_closest       = distance_to_closest;
+            const object* cl_obj = closest_object;
+
+            for (const object* obj : node.content) {
+                const real d = obj->measure_distance(r);
+                if (d < d_closest) {
+                    d_closest = d;
+                    cl_obj = obj;
+                }
+            }
+
+            distance_to_closest = d_closest;
+            closest_object      = cl_obj;
+        }
 };
 
 template<typename T>
@@ -118,8 +185,9 @@ requires (requires (T x) { { x.get_min_max_coord() } -> std::same_as<min_max_coo
     const rt::vector center = (max + min) / 2.0_r;
     const auto [ l1, l2, l3 ] = max - min;
 
-    std::unique_ptr<box> b = std::make_unique<box>(center, rt::vector(1, 0, 0), rt::vector(0, 1, 0), l1, l2, l3);
-    return new bounding(std::forward<std::vector<const T*>>(set), std::move(b));
+    return new bounding(
+        std::forward<std::vector<const T*>>(set),
+        std::make_unique<box>(center, RIGHT, UP, l1, l2, l3));
 }
 
 /* Returns a bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))

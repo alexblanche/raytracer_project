@@ -58,7 +58,7 @@ namespace rt {
 		}
 
 		/* Rotation around axis x by an angle theta */
-		vector rotate_x(const real theta) const {
+		inline vector rotate_x(const real theta) const {
 			const real costheta = cos(theta);
 			const real sintheta = sin(theta);
 			return vector(
@@ -68,7 +68,7 @@ namespace rt {
 			);
 		}
 
-		vector rotate_x(const real costheta, const real sintheta) const {
+		inline vector rotate_x(const real costheta, const real sintheta) const {
 			
 			return vector(
 				x,
@@ -78,7 +78,7 @@ namespace rt {
 		}
 
 		/* Rotation around axis y by an angle theta */
-		vector rotate_y(const real theta) const {
+		inline vector rotate_y(const real theta) const {
 			const real costheta = cos(theta);
 			const real sintheta = sin(theta);
 			return vector(
@@ -88,7 +88,7 @@ namespace rt {
 			);
 		}
 
-		vector rotate_y(const real costheta, const real sintheta) const {
+		inline vector rotate_y(const real costheta, const real sintheta) const {
 
 			return vector(
 				x * costheta + z * sintheta,
@@ -98,7 +98,7 @@ namespace rt {
 		}
 
 		/* Rotation around axis z by an angle theta */
-		vector rotate_z(const real theta) const {
+		inline vector rotate_z(const real theta) const {
 			const real costheta = cos(theta);
 			const real sintheta = sin(theta);
 			return vector(
@@ -108,7 +108,7 @@ namespace rt {
 			);
 		}
 
-		vector rotate_z(const real costheta, const real sintheta) const {
+		inline vector rotate_z(const real costheta, const real sintheta) const {
 
 			return vector(
 				x * costheta - y * sintheta,
@@ -191,5 +191,8 @@ namespace rt {
 		return matprod(v1, v.x, v2, v.y, v3, v.z);
 	}
 }
+
+constexpr rt::vector UP		(0, 1, 0);
+constexpr rt::vector RIGHT	(1, 0, 0);
 
 
