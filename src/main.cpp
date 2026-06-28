@@ -10,7 +10,7 @@
  */
 
 int main(int argc, char *argv[]) {
-
+    
     const std::vector<std::string> args(argv + 1, argv + argc);
 
     menu menu;

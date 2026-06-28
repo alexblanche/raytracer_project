@@ -192,6 +192,7 @@ namespace rt {
 	}
 }
 
+constexpr rt::vector ZERO   (0, 0, 0);
 constexpr rt::vector UP		(0, 1, 0);
 constexpr rt::vector RIGHT	(1, 0, 0);
 

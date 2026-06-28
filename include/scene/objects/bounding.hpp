@@ -3,11 +3,16 @@
 #include "scene/objects/box.hpp"
 #include "auxiliary/custom_stack.hpp"
 
+#include <iostream>
 #include <memory>
 
 class bounding {
-    
+
     public:
+
+        enum class type {
+            InternalNode, TerminalNode
+        };
     
         /*
             The search for the intersection point between the ray and the scene will now be performed with a tree-search.
@@ -15,7 +20,7 @@ class bounding {
             or contains a pointer to a box and a stack of indices of bounding boxes contained in said box.
         */
 
-        bool is_terminal = true;
+        type type;
 
         /* Bounding box */
         std::unique_ptr<box> b = nullptr;
@@ -40,14 +45,16 @@ class bounding {
 
     public:
 
+        using enum type;
+
         /* Constructor for terminal nodes: container node (for first-level non-triangle objects) if no box provided,
            or terminal node with a bounding box, containing triangles */
         bounding(std::vector<const object*>&& content, std::unique_ptr<box>&& b = nullptr)
-            : is_terminal(true), b(std::move(b)), node(std::move(content)) {}
+            : type(TerminalNode), b(std::move(b)), node(std::move(content)) {}
 
         /* Internal node constructor */
         bounding(std::vector<const bounding*>&& children, std::unique_ptr<box>&& b)
-            : is_terminal(false), b(std::move(b)), node(std::move(children)) {}
+            : type(InternalNode), b(std::move(b)), node(std::move(children)) {}
 
         bounding(const bounding&)            = delete;
         bounding(bounding&&)                 = delete;
@@ -57,13 +64,16 @@ class bounding {
         // No destructor: objects and children are destroyed by the scene destructor
 
         inline const std::vector<const object*>& get_content() const {
-            if (not is_terminal)
-                throw std::runtime_error("Getting content of a non-terminal bounding");
-            return node.content;
+            switch (type) {
+                case InternalNode:
+                    throw std::runtime_error("Getting content of a non-terminal bounding");
+                case TerminalNode:
+                    return node.content;
+            }
         }
 
         inline const std::span<const bounding * const> get_children() const {
-            return (not is_terminal) ?
+            return (type == InternalNode) ?
                   node.children
                 : std::span<const bounding * const> {};
         }
@@ -80,17 +90,6 @@ class bounding {
            (if it is closest than the current closest_object, at a distance distance_to_closest,
            in which case the two variables are overwritten)
         */
-        // void check_box(const ray& r,
-        //     custom_stack<const bounding*>& bounding_stack,
-        //     real& distance_to_closest, const object*& closest_object) const;
-
-        // /* Same as check_box, but the last child is stored in a pointer to avoid pushing and
-        //    immediately popping on the stack */
-        // void check_box_next(const ray& r,
-        //     custom_stack<const bounding*>& bounding_stack,
-        //     real& distance_to_closest, const object*& closest_object,
-        //     bool& bd_stored, const bounding*& next_bounding) const;
-
         void check_box(const ray& r,
                 custom_stack<const bounding*>& bounding_stack,
                 // out parameters
@@ -98,27 +97,31 @@ class bounding {
                 
             ) const {
 
-            if (b != nullptr && not b->is_hit_by(r))
+            if (b != nullptr && b->is_hit_with_distance(r) >= distance_to_closest)
                 return;
 
-            if (not is_terminal) {
-                bounding_stack.push(node.children);
-                return;
-            }
-                
-            real d_closest       = distance_to_closest;
-            const object* cl_obj = closest_object;
-            
-            for (const object* const obj : node.content) {
-                const real d = obj->measure_distance(r);
-                if (d < d_closest) {
-                    d_closest = d;
-                    cl_obj = obj;
+            switch (type) {
+                case InternalNode:
+                    bounding_stack.push(node.children);
+                    break;
+
+                case TerminalNode: {
+                    real d_closest       = distance_to_closest;
+                    const object* cl_obj = closest_object;
+                    
+                    for (const object* const obj : node.content) {
+                        const real d = obj->measure_distance(r);
+                        if (d < d_closest) {
+                            d_closest = d;
+                            cl_obj = obj;
+                        }
+                    }
+
+                    distance_to_closest = d_closest;
+                    closest_object      = cl_obj;
+                    break;
                 }
             }
-
-            distance_to_closest = d_closest;
-            closest_object      = cl_obj;
         }
 
         /* Same as check_box, but the last child is stored in a pointer to avoid pushing and
@@ -131,30 +134,34 @@ class bounding {
 
             bd_stored = false;
 
-            if (b != nullptr && not b->is_hit_by(r))
+            if (b != nullptr && b->is_hit_with_distance(r) >= distance_to_closest)
                 return;
 
-            if (not is_terminal) {
-                const unsigned int last_index = node.children.size() - 1;
-                bounding_stack.push(std::span(node.children).first(last_index));
-                next_bounding = node.children[last_index];
-                bd_stored = true;
-                return;
-            }
+            switch (type) {
+                case InternalNode: {
+                    const unsigned int last_index = node.children.size() - 1;
+                    bounding_stack.push(std::span(node.children).first(last_index));
+                    next_bounding = node.children[last_index];
+                    bd_stored = true;
+                    break;
+                }
+                case TerminalNode: {
+                    real d_closest       = distance_to_closest;
+                    const object* cl_obj = closest_object;
 
-            real d_closest       = distance_to_closest;
-            const object* cl_obj = closest_object;
+                    for (const object* obj : node.content) {
+                        const real d = obj->measure_distance(r);
+                        if (d < d_closest) {
+                            d_closest = d;
+                            cl_obj = obj;
+                        }
+                    }
 
-            for (const object* obj : node.content) {
-                const real d = obj->measure_distance(r);
-                if (d < d_closest) {
-                    d_closest = d;
-                    cl_obj = obj;
+                    distance_to_closest = d_closest;
+                    closest_object      = cl_obj;
+                    break;
                 }
             }
-
-            distance_to_closest = d_closest;
-            closest_object      = cl_obj;
         }
 };
 
@@ -163,19 +170,21 @@ template<typename T>
 requires (requires (T x) { { x.get_min_max_coord() } -> std::same_as<min_max_coord>; })
 [[nodiscard]] static const bounding* containing_bounding_template(std::vector<const T*>&& set) {
 
-    if (set.size() == 0) {
+    const std::size_t size = set.size();
+
+    if (size == 0) {
         printf("Error: creating bounding box of empty set\n");
         return nullptr;
     }
-    else if (set.size() == 1) {
+    else if (size == 1) {
         if constexpr (std::is_same_v<T, bounding>)
             return set[0];
         else
             return new bounding({ set[0] });
     }
 
-    rt::vector max(-infinity, -infinity, -infinity);
-    rt::vector min( infinity,  infinity,  infinity);
+    rt::vector max = min_max_coord::max_empty;
+    rt::vector min = min_max_coord::min_empty;
 
     /* Computation of the dimensions of the object set */
     for(const T* p : set) {

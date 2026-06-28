@@ -53,7 +53,6 @@ set(OBJECTS_SOURCES
 	src/scene/objects/quad.cpp
 	src/scene/objects/box.cpp
 	src/scene/objects/cylinder.cpp
-	src/scene/objects/bounding.cpp
 )
 
 set(MATERIAL_SOURCES

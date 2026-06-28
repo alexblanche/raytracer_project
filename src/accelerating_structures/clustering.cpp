@@ -12,8 +12,12 @@ static constexpr unsigned int MIN_FOR_TREE_SEARCH            = 50;
 static constexpr unsigned int MIN_NUMBER_OF_POLYGONS_FOR_BOX = 5;
 static constexpr unsigned int CARDINAL_OF_BOX_GROUP          = 3;
 
-static constexpr bool DISPLAY_KMEANS = false;
+static constexpr unsigned int DEFAULT_STACK_SIZE = 8192;
 
+static constexpr bool ENABLE_PARALLELISM_FIRST      = false;
+static constexpr bool ENABLE_PARALLELISM_ITERATIONS = false;
+
+static constexpr bool DISPLAY_KMEANS = false;
 
 /** K-means clustering algorithm **/
 
@@ -75,149 +79,83 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
 
         const std::vector<element>& old_group = old_groups[0];
 
-        std::atomic<unsigned int> cpt = 0;
+        if constexpr (ENABLE_PARALLELISM_FIRST) {
+            parallel_for(old_group.size(), [&] (int i) {
 
-        parallel_for(old_group.size(), [&] (int i) {
+                const element& elt = old_group[i];
+                const rt::vector& v = elt.get_position();
 
-            const element& elt = old_group[i];
-            const rt::vector& v = elt.get_position();
+                const unsigned int closest_index =
+                    (search_type == search_type::Linear) ?
+                          linear_search(means, v)
+                        : tree_search(means, tree, v);
 
-            const unsigned int closest_index =
-                (search_type == search_type::Linear) ?
-                    linear_search(means, v)
-                    :
-                    tree_search(means, tree, v);
+                mut.lock();
+                new_groups[closest_index].push_back(elt);
+                mut.unlock();
+            });
+        }
+        else {
+            for (const element& elt : old_group) {
 
-            // Test
-            /*
-            if (search_type == search_type::Accelerated) {
-                const unsigned int closest_index_linear = linear_search(means, v);
-                const unsigned int closest_index_tree   = tree_search(means, tree, v);
-                if (closest_index_linear != closest_index_tree) {
-                    const rt::vector& vlin = means[closest_index_linear];
-                    const rt::vector& vtr  = means[closest_index_tree];
-                    const real dlin = (vlin - v).normsq();
-                    const real dtr  = (vtr  - v).normsq();
-                    if (dlin < dtr) {
-                        printf("ERROR: tree search incorrect\nSuccessful tests: %u\nv = (%f, %f, %f)\nLIN means[%u] = (%f, %f, %f), dist %f\nTR  means[%u] = (%f, %f, %f), dist %f\n",
-                            n, v.x, v.y, v.z, closest_index_linear, vlin.x, vlin.y, vlin.z, dlin, closest_index_tree, vtr.x, vtr.y, vtr.z, dtr);
+                const rt::vector& v = elt.get_position();
 
-                        // Search for closest_index_tree
-                        bool stop = false;
-                        unsigned int leaf_index_lin = 0;
-                        for (unsigned int i = 0; i < tree.terminal_state.size(); i++) {
-                            if (tree.terminal_state[i] && tree.leaves[i].size()) {
-                                for (unsigned int j = 0; j < tree.leaves[i].size(); j++) {
-                                    if (tree.leaves[i][j] == closest_index_linear) {
-                                        stop = true;
-                                        leaf_index_lin = i;
-                                        break;
-                                    }
-                                }
-                                if (stop) break;
-                            }
-                        }
-                        printf("Leaf containing index tr (%u) : %u\n", closest_index_linear, leaf_index_lin);
+                const unsigned int closest_index =
+                    (search_type == search_type::Linear) ?
+                          linear_search(means, v)
+                        : tree_search(means, tree, v);
 
-                        // printf("\nNew execution of tree\n");
-                        // tree_search(means, tree, v, true);
-
-                        // printf("\nTest actual closest\n");
-                        // tree_search(means, tree, vlin, true);
-
-                        throw;
-                    }
-                }
+                new_groups[closest_index].push_back(elt);
             }
-            */
-
-            mut.lock();
-            new_groups[closest_index].push_back(elt);
-            mut.unlock();
-            cpt++;
-        });
-        // }
-
+        }
         return true;
     }
     else {
         // All other iterations, 
         bool change = false;
-        parallel_for(nb_of_groups, [&] (int i) {
-            for (element const& elt : old_groups[i]) {
 
-                const rt::vector& v = elt.get_position();
+        if constexpr (ENABLE_PARALLELISM_ITERATIONS) {
+            parallel_for(nb_of_groups, [&] (int i) {
+                for (const element& elt : old_groups[i]) {
 
-                //
-                // unsigned int closest_index = 0;
-                // real distance_to_closest = (means[0] - v).normsq();
+                    const rt::vector& v = elt.get_position();
 
-                // for (unsigned int m = 1; m < means.size(); m++) {
-                //     const real d = (means[m] - v).normsq();
-                //     if(d < distance_to_closest) {
-                //         distance_to_closest = d;
-                //         closest_index = m;
-                //     }
-                // }
-                //
-                const unsigned int closest_index =
-                    (search_type == search_type::Linear) ?
-                        linear_search(means, v)
-                        :
-                        tree_search(means, tree, v);
+                    const unsigned int closest_index =
+                        (search_type == search_type::Linear) ?
+                              linear_search(means, v)
+                            : tree_search(means, tree, v);
 
-                // Test
-                /*
-                if (search_type == search_type::Accelerated) {
-                    const unsigned int closest_index_linear = linear_search(means, v);
-                    const unsigned int closest_index_tree   = tree_search(means, tree, v);
-                    if (closest_index_linear != closest_index_tree) {
-                        const rt::vector& vlin = means[closest_index_linear];
-                        const rt::vector& vtr  = means[closest_index_tree];
-                        const real dlin = (vlin - v).normsq();
-                        const real dtr  = (vtr  - v).normsq();
-                        if (dlin < dtr) {
-                            printf("ERROR: tree search incorrect\nv = (%f, %f, %f)\nLIN means[%u] = (%f, %f, %f), dist %f\nTR  means[%u] = (%f, %f, %f), dist %f\n",
-                                v.x, v.y, v.z, closest_index_linear, vlin.x, vlin.y, vlin.z, dlin, closest_index_tree, vtr.x, vtr.y, vtr.z, dtr);
-    
-                            // Search for closest_index_tree
-                            bool stop = false;
-                            unsigned int leaf_index_lin = 0;
-                            for (unsigned int i = 0; i < tree.terminal_state.size(); i++) {
-                                if (tree.terminal_state[i] && tree.leaves[i].size()) {
-                                    for (unsigned int j = 0; j < tree.leaves[i].size(); j++) {
-                                        if (tree.leaves[i][j] == closest_index_linear) {
-                                            stop = true;
-                                            leaf_index_lin = i;
-                                            break;
-                                        }
-                                    }
-                                    if (stop) break;
-                                }
-                            }
-                            printf("Leaf containing index tr (%u) : %u\n", closest_index_linear, leaf_index_lin);
-    
-                            // printf("\nNew execution of tree\n");
-                            // tree_search(means, tree, v, true);
-    
-                            // printf("\nTest actual closest\n");
-                            // tree_search(means, tree, vlin, true);
-    
-                            throw;
-                        }
+                    if (closest_index != static_cast<unsigned int>(i)) {
+                        change = true;
                     }
-                }
-                */
 
-                if (closest_index != static_cast<unsigned int>(i)) {
-                    change = true;
+                    mut.lock();
+                    new_groups[closest_index].push_back(elt);
+                    mut.unlock();
                 }
+            });
+        }
+        else {
+            for (unsigned int i = 0; i < nb_of_groups; i++) {
 
-                mut.lock();
-                new_groups[closest_index].push_back(elt);
-                mut.unlock();
+                const std::vector<element>& group = old_groups[i];
+
+                for (const element& elt : group) {
+
+                    const rt::vector& v = elt.get_position();
+
+                    const unsigned int closest_index =
+                        (search_type == search_type::Linear) ?
+                              linear_search(means, v)
+                            : tree_search(means, tree, v);
+
+                    if (closest_index != i)
+                        change = true;
+
+                    new_groups[closest_index].push_back(elt);
+                }
             }
-        });
+        }
 
         return change;
     }
@@ -225,15 +163,14 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
 
 /* Auxiliary function that fills all empty_clusters */
 static void fill_empty_clusters(std::vector<std::vector<element>>& groups) {
-    custom_stack<unsigned int> empty_groups;
+    static custom_stack<unsigned int> empty_groups(DEFAULT_STACK_SIZE);
+    empty_groups.set_empty();
     std::queue<unsigned int> non_empty_groups;
     for (unsigned int n = 0; n < groups.size(); n++) {
-        if (groups[n].empty()) {
+        if (groups[n].empty())
             empty_groups.push(n);
-        }
-        else {
+        else
             non_empty_groups.push(n);
-        }
     }
 
     while (not empty_groups.empty()) {
@@ -444,15 +381,22 @@ void display_hierarchy_properties(const bounding* bd0) {
         while (not bds.empty()) {
             const bounding* bd = bds.pop();
             unsigned int arity;
-            if (bd->is_terminal) {
-                terminal_nodes ++;
-                arity = bd->get_content().size();
+            
+            switch (bd->type) {
+                case bounding::type::InternalNode: {
+                    const std::span children = bd->get_children();
+                    next_bds.push(children);
+                    arity = children.size();
+                    break;
+                }
+
+                case bounding::type::TerminalNode: {
+                    terminal_nodes++;
+                    arity = bd->get_content().size();
+                    break;
+                }
             }
-            else {
-                const std::span children = bd->get_children();
-                next_bds.push(children);
-                arity = children.size();
-            }
+            
             if      (arity > max) { max = arity; }
             else if (arity < min) { min = arity; }
             total += arity;

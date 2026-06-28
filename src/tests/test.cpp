@@ -173,18 +173,26 @@ int main() {
     // auto x = a.index();
     // std::cout << sizeof(x) << std::endl;
 
-    using U = std::pair<int, short>;
-    using T = std::expected<U, error_type>;
+    // using U = std::pair<int, short>;
+    // using T = std::expected<U, error_type>;
 
-    std::cout << "sizeof(U) = " << sizeof(U) << std::endl;
-    std::cout << "sizeof(error_type) = " << sizeof(error_type) << std::endl;
-    std::cout << "sizeof(std::expected<U, error_type>) = " << sizeof(T) << std::endl;
-    std::cout << "sizeof(std::optional<U>) = " << sizeof(std::optional<U>) << std::endl;
+    // std::cout << "sizeof(U) = " << sizeof(U) << std::endl;
+    // std::cout << "sizeof(error_type) = " << sizeof(error_type) << std::endl;
+    // std::cout << "sizeof(std::expected<U, error_type>) = " << sizeof(T) << std::endl;
+    // std::cout << "sizeof(std::optional<U>) = " << sizeof(std::optional<U>) << std::endl;
 
+    // std::unique_ptr<box> pt(new box(rt::vector(), rt::vector(), rt::vector(), 1, 1, 1));
+    // std::cout << "sizeof(std::unique_ptr) = " << sizeof(pt) << std::endl;
+    // std::cout << "sizeof(box*) = " << sizeof(box*) << std::endl;
 
-    std::unique_ptr<box> pt(new box(rt::vector(), rt::vector(), rt::vector(), 1, 1, 1));
+    std::cout << "sizeof(vector) = " << sizeof(std::vector<void*>) << std::endl;
+    
+    struct array {
+        std::unique_ptr<int> data;
+        std::size_t size;
+    };
 
-    std::cout << "sizeof(std::unique_ptr) = " << sizeof(pt) << std::endl;
-    std::cout << "sizeof(box*) = " << sizeof(box*) << std::endl;
+    std::cout << "sizeof(custom array) = " << sizeof(array) << std::endl;
+
     return EXIT_SUCCESS;
 }

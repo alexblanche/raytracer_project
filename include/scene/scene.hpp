@@ -67,6 +67,7 @@ class scene {
         unsigned int polygons_per_bounding;
 
         real gamma;
+        
 
         /* Constructor with background texture and optional background color */
         scene(

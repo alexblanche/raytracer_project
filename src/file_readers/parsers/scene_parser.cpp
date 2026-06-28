@@ -939,8 +939,11 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
         f.close();
 
-        if (bounding_enabled)
+        if (bounding_enabled) {
+            // other_content should be tested first, to maximize pruning in the BVH tree-search
             bounding_set.push_back(new bounding(std::move(other_content)));
+            std::reverse(bounding_set.begin(), bounding_set.end());
+        }
 
         // Creation of the final structures
         auto [ material_set, texture_set, normal_map_set ] = build_sets(material_wrapper_set, texture_wrapper_set, normal_map_wrapper_set);

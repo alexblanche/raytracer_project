@@ -42,6 +42,9 @@ class box : public object {
         The box is assumed to be standard (axes are n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1)) */
         bool is_hit_by(const ray& r) const;
 
+        // Same as measure_distance but for AABB
+        real is_hit_with_distance(const ray& r) const;
+
         /* Returns the barycentric info (the faces behave like quads) */
         barycentric_info get_barycentric(const rt::vector& p) const final;
 

@@ -20,6 +20,9 @@ struct min_max_coord {
             std::max(max.z, max_z)
         };
     }
+
+    static constexpr rt::vector min_empty = rt::vector( infinity,  infinity,  infinity);
+    static constexpr rt::vector max_empty = rt::vector(-infinity, -infinity, -infinity);
 };
 
 constexpr min_max_coord empty_set_min_max_coords = {

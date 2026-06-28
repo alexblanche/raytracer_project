@@ -51,13 +51,15 @@ static void add_triangle(const std::vector<rt::vector>& vertex_set, const std::v
    const bool apply_texture) {
 
    if (apply_texture) {
-      texture_info_set.push_back(
-         texture_info(
+      texture_info_set.emplace_back(
+         
             current_texture_index,
             std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-            { uv_coord_set[vt1].x,  1 - uv_coord_set[vt1].y,
-              uv_coord_set[vt2].x,  1 - uv_coord_set[vt2].y,
-              uv_coord_set[vt3].x,  1 - uv_coord_set[vt3].y })
+            std::array<real, 8> {
+               uv_coord_set[vt1].x,  1 - uv_coord_set[vt1].y,
+               uv_coord_set[vt2].x,  1 - uv_coord_set[vt2].y,
+               uv_coord_set[vt3].x,  1 - uv_coord_set[vt3].y
+            }
       );
    }
 
@@ -94,13 +96,14 @@ static void add_triangle_subdiv(const std::vector<rt::vector>& vertex_set, const
    const bool apply_texture) {
 
    if (apply_texture) {
-      texture_info_set.push_back(
-         texture_info(
-            current_texture_index,
-            std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-            { uv_coord_set[vtj].x, 1 - uv_coord_set[vtj].y,
-              uv_coord_set[vti].x, 1 - uv_coord_set[vti].y,
-              final_vt.x,          1 - final_vt.y })
+      texture_info_set.emplace_back(
+         current_texture_index,
+         std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
+         std::array<real, 8> {
+            uv_coord_set[vtj].x, 1 - uv_coord_set[vtj].y,
+            uv_coord_set[vti].x, 1 - uv_coord_set[vti].y,
+            final_vt.x,          1 - final_vt.y
+         }
       );
    }
 
@@ -136,14 +139,15 @@ static void add_quad(const std::vector<rt::vector>& vertex_set, const std::vecto
    const bool apply_texture) {
 
    if (apply_texture) {
-      texture_info_set.push_back(
-         texture_info(
-            current_texture_index,
-            std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-            { uv_coord_set[vt1].x, 1 - uv_coord_set[vt1].y,
-              uv_coord_set[vt2].x, 1 - uv_coord_set[vt2].y,
-              uv_coord_set[vt3].x, 1 - uv_coord_set[vt3].y,
-              uv_coord_set[vt4].x, 1 - uv_coord_set[vt4].y })
+      texture_info_set.emplace_back(
+         current_texture_index,
+         std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
+         std::array<real, 8> {
+            uv_coord_set[vt1].x, 1 - uv_coord_set[vt1].y,
+            uv_coord_set[vt2].x, 1 - uv_coord_set[vt2].y,
+            uv_coord_set[vt3].x, 1 - uv_coord_set[vt3].y,
+            uv_coord_set[vt4].x, 1 - uv_coord_set[vt4].y
+         }
       );
    }
 
@@ -179,13 +183,14 @@ static void add_triangle_no_normal(const std::vector<rt::vector>& vertex_set, co
    const bool apply_texture) {
 
    if (apply_texture) {
-      texture_info_set.push_back(
-         texture_info(
-            current_texture_index,
-            std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-            { uv_coord_set[vt1].x, 1 - uv_coord_set[vt1].y,
-              uv_coord_set[vt2].x, 1 - uv_coord_set[vt2].y,
-              uv_coord_set[vt3].x, 1 - uv_coord_set[vt3].y })
+      texture_info_set.emplace_back(
+         current_texture_index,
+         std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
+         std::array<real, 8> {
+            uv_coord_set[vt1].x, 1 - uv_coord_set[vt1].y,
+            uv_coord_set[vt2].x, 1 - uv_coord_set[vt2].y,
+            uv_coord_set[vt3].x, 1 - uv_coord_set[vt3].y
+         }
       );
    }
 
@@ -218,13 +223,14 @@ static void add_triangle_subdiv_no_normal(const std::vector<rt::vector>& vertex_
    const bool apply_texture) {
 
    if (apply_texture) {
-      texture_info_set.push_back(
-         texture_info(
-            current_texture_index,
-            std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-            { uv_coord_set[vtj].x, 1 - uv_coord_set[vtj].y,
-              uv_coord_set[vti].x, 1 - uv_coord_set[vti].y,
-              final_vt.x,          1 - final_vt.y })
+      texture_info_set.emplace_back(
+         current_texture_index,
+         std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
+         std::array<real, 8> {
+            uv_coord_set[vtj].x, 1 - uv_coord_set[vtj].y,
+            uv_coord_set[vti].x, 1 - uv_coord_set[vti].y,
+            final_vt.x,          1 - final_vt.y
+         }
       );
    }
 
@@ -257,14 +263,15 @@ static void add_quad_no_normal(const std::vector<rt::vector>& vertex_set, const 
    const bool apply_texture) {
 
    if (apply_texture) {
-      texture_info_set.push_back(
-         texture_info(
-            current_texture_index,
-            std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-            { uv_coord_set[vt1].x, 1 - uv_coord_set[vt1].y,
-              uv_coord_set[vt2].x, 1 - uv_coord_set[vt2].y,
-              uv_coord_set[vt3].x, 1 - uv_coord_set[vt3].y,
-              uv_coord_set[vt4].x, 1 - uv_coord_set[vt4].y })
+      texture_info_set.emplace_back(
+         current_texture_index,
+         std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
+         std::array<real, 8> {
+            uv_coord_set[vt1].x, 1 - uv_coord_set[vt1].y,
+            uv_coord_set[vt2].x, 1 - uv_coord_set[vt2].y,
+            uv_coord_set[vt3].x, 1 - uv_coord_set[vt3].y,
+            uv_coord_set[vt4].x, 1 - uv_coord_set[vt4].y
+         }
       );
    }
 
@@ -556,8 +563,8 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
    unsigned int number_of_normals         = 0;
 
    /* Min-max dimensions */
-   rt::vector min( infinity,  infinity,  infinity);
-   rt::vector max(-infinity, -infinity, -infinity);
+   rt::vector min = min_max_coord::min_empty;
+   rt::vector max = min_max_coord::max_empty;
 
    /* Bounding containers
       content will contain the polygons of a group before being placed in a bounding,
@@ -623,14 +630,14 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
             /* Texture UV-coordinates definition */
             const auto [ u, v ] = f.scan<double, 2>();
             
-            if (u >= 0 && u <= 1 && v >= 0 && v <= 1) {
-               uv_coord_set.push_back(rt::vector(u, v, 0));
+            if (is_between_zero_and_one(u) && is_between_zero_and_one(v)) [[likely]] {
+               uv_coord_set.emplace_back(u, v, 0);
             }
             else {
                // Case that happened in one obj file
                const real nu = (u >= 0) ? 1.0_r : ((u <= (-1.0_r)) ? 0.0_r : 1.0_r + u);
                const real nv = (v >= 0) ? 1.0_r : ((v <= (-1.0_r)) ? 0.0_r : 1.0_r + v);
-               uv_coord_set.push_back(rt::vector(nu, nv, 0));
+               uv_coord_set.emplace_back(nu, nv, 0);
             }
             number_of_texture_coords++;
 
@@ -640,7 +647,7 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
          if (arg == "vn") {
             /* Vertex normal definition */
             const auto [ x, y, z ] = f.scan<double, 3>();
-            normal_set.push_back(rt::vector(x, y, z));
+            normal_set.emplace_back(x, y, z);
             number_of_normals++;
 
             continue;
@@ -1043,7 +1050,7 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
          number_of_vertices, number_of_polygons, number_of_triangles, number_of_quads);
       printf("Dimensions: (x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf])\n",
          min.x, max.x, min.y, max.y, min.z, max.z);
-      if (scale != 1.0_r || not (shift == rt::vector(0,0,0))) {
+      if (scale != 1.0_r || not (shift == ZERO)) {
          const rt::vector scaled_min = fma(min, scale, shift);
          const rt::vector scaled_max = fma(max, scale, shift);
          printf("Rescaled/shifted dimensions: (x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf])\n",

@@ -196,6 +196,46 @@ bool box::is_hit_by(const ray& r) const {
     return false;
 }
 
+/* Specific to (standard) boxes: returns true if the ray r hits the box
+   The box is assumed to be standard (axes are n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1)) */
+real box::is_hit_with_distance(const ray& r) const {
+    
+    const auto& [ u, dir, inv_dir, abs_inv_dir ] = r;
+
+    // See measure_distance
+
+    const rt::vector pmu = position - u;
+    
+    if (std::abs(pmu.x) <= l1 && std::abs(pmu.y) <= l2 && std::abs(pmu.z) <= l3) {
+        // u is inside the box
+        return 0.0_r;
+    }
+
+    if (is_not_zero(dir.x)) {
+        // Determination of t1
+        const real t1 = pmu.x * inv_dir.x - l1 * abs_inv_dir.x;
+        // Check that t1 gives a point inside the face
+        if (std::abs(pmu.y - t1 * dir.y) <= l2 && std::abs(pmu.z - t1 * dir.z) <= l3) {
+            return is_positive(t1) ? t1 : infinity;
+        }
+    }
+
+    if (is_not_zero(dir.y)) {
+        const real t2 = pmu.y * inv_dir.y - l2 * abs_inv_dir.y;
+        if (std::abs(pmu.x - t2 * dir.x) <= l1 && std::abs(pmu.z - t2 * dir.z) <= l3) {
+            return is_positive(t2) ? t2 : infinity;
+        }
+    }
+
+    if (is_not_zero(dir.z)) {
+        const real t3 = pmu.z * inv_dir.z - l3 * abs_inv_dir.z;
+        return (is_positive(t3) && std::abs(pmu.x - t3 * dir.x) <= l1 && std::abs(pmu.y - t3 * dir.y) <= l2) ?
+            t3 : infinity;
+    }
+
+    return infinity;
+}
+
 /* Returns the barycentric info (the faces behave like quads) [to be implemented] */
 barycentric_info box::get_barycentric(const rt::vector&) const {
     return barycentric_info(0.0_r, 0.0_r, object_type::Box);

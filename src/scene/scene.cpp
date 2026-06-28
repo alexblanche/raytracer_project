@@ -5,6 +5,8 @@
 
 #include <optional>
 
+static constexpr unsigned int DEFAULT_STACK_SIZE = 200;
+
 scene::scene(
     std::vector<const object*>&& object_set,
     std::vector<const bounding*>&& bounding_set,
@@ -92,7 +94,7 @@ std::optional<hit> scene::find_closest_object_bounding(const ray& r) const {
     real distance_to_closest  = infinity;
     const object* closest_obj = nullptr;
     
-    static thread_local custom_stack<const bounding*> bounding_stack(50);
+    static thread_local custom_stack<const bounding*> bounding_stack(DEFAULT_STACK_SIZE);
     bounding_stack.set_empty();
 
     /* Pass through the set of first-level bounding boxes */

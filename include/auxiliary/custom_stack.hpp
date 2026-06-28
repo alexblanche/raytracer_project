@@ -58,6 +58,10 @@ class custom_stack {
             return size;
         }
 
+        std::size_t get_capacity() const {
+            return capacity;
+        }
+
         std::span<const T> get_content() const {
             return { data, size };
         }

@@ -21,7 +21,7 @@ struct element {
    std::variant<const object*, const bounding*> content;
 
    element(const object* o) :
-      type(type::Object), content(std::in_place_type_t<const object*>(), o) {}
+      type(type::Object),   content(std::in_place_type_t<const object*>(),   o) {}
 
    element(const bounding* b) :
       type(type::Bounding), content(std::in_place_type_t<const bounding*>(), b) {}
