@@ -26,9 +26,6 @@ class object {
         /* Contains a texture_info if the object is textured */
         unsigned int texture_information_index = EMPTY_INDEX;
 
-    public:
-
-        constexpr object() {}
         constexpr object(const rt::vector& position, unsigned int material_index, unsigned int texture_info_index = EMPTY_INDEX)
             : position(position), material_index(material_index), texture_information_index(texture_info_index) {}
 
@@ -36,6 +33,8 @@ class object {
         object(object&&)                 = delete;
         object& operator=(const object&) = delete;
         object& operator=(object&&)      = delete;
+    
+    public:
 
         virtual ~object() noexcept       = default;
 

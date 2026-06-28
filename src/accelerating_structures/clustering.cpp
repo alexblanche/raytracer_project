@@ -378,7 +378,7 @@ void display_hierarchy_properties(const bounding* bd0) {
             const bounding* bd = bds.pop();
             unsigned int arity;
             
-            using enum bounding::type;
+            using enum bounding::node_type;
             switch (bd->type) {
                 case InternalNode: {
                     const std::span children = bd->get_children();

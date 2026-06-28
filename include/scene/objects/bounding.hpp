@@ -10,7 +10,7 @@ class bounding {
 
     public:
 
-        enum class type {
+        enum class node_type {
             InternalNode, TerminalNode
         };
     
@@ -20,7 +20,7 @@ class bounding {
             or contains a pointer to a box and a stack of indices of bounding boxes contained in said box.
         */
 
-        type type;
+        node_type type;
 
         /* Bounding box */
         std::unique_ptr<box> b = nullptr;
@@ -45,9 +45,29 @@ class bounding {
     
         node node;
 
+        // Helper method
+        inline void update_closest_from_objects(const ray& r,
+            // Out parameters
+            real& distance_to_closest, const object*& closest_object) const {
+
+            real d_closest       = distance_to_closest;
+            const object* cl_obj = closest_object;
+            
+            for (const object* const obj : node.content) {
+                const real d = obj->measure_distance(r);
+                if (d < d_closest) {
+                    d_closest = d;
+                    cl_obj = obj;
+                }
+            }
+
+            distance_to_closest = d_closest;
+            closest_object      = cl_obj;
+        }
+
     public:
 
-        using enum type;
+        using enum node_type;
 
         /* Constructor for terminal nodes: container node (for first-level non-triangle objects) if no box provided,
            or terminal node with a bounding box, containing triangles */
@@ -108,22 +128,9 @@ class bounding {
                     bounding_stack.push(node.children);
                     break;
 
-                case TerminalNode: {
-                    real d_closest       = distance_to_closest;
-                    const object* cl_obj = closest_object;
-                    
-                    for (const object* const obj : node.content) {
-                        const real d = obj->measure_distance(r);
-                        if (d < d_closest) {
-                            d_closest = d;
-                            cl_obj = obj;
-                        }
-                    }
-
-                    distance_to_closest = d_closest;
-                    closest_object      = cl_obj;
+                case TerminalNode:
+                    update_closest_from_objects(r, distance_to_closest, closest_object);
                     break;
-                }
             }
         }
 
@@ -151,19 +158,7 @@ class bounding {
                 }
 
                 case TerminalNode: {
-                    real d_closest       = distance_to_closest;
-                    const object* cl_obj = closest_object;
-
-                    for (const object* obj : node.content) {
-                        const real d = obj->measure_distance(r);
-                        if (d < d_closest) {
-                            d_closest = d;
-                            cl_obj = obj;
-                        }
-                    }
-
-                    distance_to_closest = d_closest;
-                    closest_object      = cl_obj;
+                    update_closest_from_objects(r, distance_to_closest, closest_object);
                     break;
                 }
             }
