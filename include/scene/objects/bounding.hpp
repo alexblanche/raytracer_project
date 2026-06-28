@@ -41,7 +41,9 @@ class bounding {
                 : children(std::move(children)) {}
 
             ~node() {}
-        } node;
+        };
+    
+        node node;
 
     public:
 
@@ -101,6 +103,7 @@ class bounding {
                 return;
 
             switch (type) {
+                
                 case InternalNode:
                     bounding_stack.push(node.children);
                     break;
@@ -138,6 +141,7 @@ class bounding {
                 return;
 
             switch (type) {
+
                 case InternalNode: {
                     const unsigned int last_index = node.children.size() - 1;
                     bounding_stack.push(std::span(node.children).first(last_index));
@@ -145,6 +149,7 @@ class bounding {
                     bd_stored = true;
                     break;
                 }
+
                 case TerminalNode: {
                     real d_closest       = distance_to_closest;
                     const object* cl_obj = closest_object;

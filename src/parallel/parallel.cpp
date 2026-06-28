@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 
+[[maybe_unused]]
 static void parallel_for_aux(const unsigned int nb_elements,
                   const std::function<void (int start, int end)>& functor) {
     
@@ -31,25 +32,25 @@ static void parallel_for_aux(const unsigned int nb_elements,
 
 void parallel_for(int nb_elements, const std::function<void (int i)>& functor) {
 
-    if constexpr (DISABLE_PARALLELISM) {
+    if constexpr (PARALLELISM == parallelism::Enabled) {
+        parallel_for_aux(nb_elements, [&functor] (int start, int end) {
+            for (int i = start; i < end; i++) {
+                functor(i);
+            }
+        });
+    }
+    else {
         for (int i = 0; i < nb_elements; i++)
             functor(i);
-        return;
     }
-
-    parallel_for_aux(nb_elements, [&functor] (int start, int end) {
-        for (int i = start; i < end; i++) {
-            functor(i);
-        }
-    });
 }
 
 void parallel_for(int nb_elements, const std::function<void (int start, int end)>& functor) {
 
-    if constexpr (DISABLE_PARALLELISM) {
-        functor(0, nb_elements);
-        return;
+    if constexpr (PARALLELISM == parallelism::Enabled) {
+        parallel_for_aux(nb_elements, functor);
     }
-
-    parallel_for_aux(nb_elements, functor);
+    else {
+        functor(0, nb_elements);
+    }
 }

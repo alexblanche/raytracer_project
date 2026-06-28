@@ -4,11 +4,13 @@
 #include <span>
 #include <memory>
 
-constexpr std::size_t DEFAULT_INIT_SIZE = 10; // Default initial reserve
-constexpr std::size_t MAX_ELEMENT_SIZE  = 16; // Maximum size of stored elements
+namespace custom {
+    inline static constexpr std::size_t DEFAULT_INIT_SIZE = 10; // Default initial reserve
+    inline static constexpr std::size_t MAX_ELEMENT_SIZE  = 16; // Maximum size of stored elements
+}
 
 template <typename T>
-requires (sizeof(T) <= MAX_ELEMENT_SIZE) // Not so important, can be lifted if needed
+requires (sizeof(T) <= custom::MAX_ELEMENT_SIZE) // Not so important, can be lifted if needed
     && std::is_trivially_copy_constructible_v<T> // Because of std::memcpy for push of span
     && std::is_trivially_destructible_v<T>
 class custom_stack {
@@ -42,9 +44,9 @@ class custom_stack {
 
     public:
 
-        inline custom_stack(const std::size_t init_size = DEFAULT_INIT_SIZE) {
+        inline custom_stack(const std::size_t init_capacity = custom::DEFAULT_INIT_SIZE) {
             size     = 0;
-            capacity = init_size;
+            capacity = init_capacity;
             data     = alloc::allocate(allocator, capacity);
         }
 

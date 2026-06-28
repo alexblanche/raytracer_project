@@ -153,6 +153,18 @@ enum class error_type {
 
 #include <memory>
 #include "scene/objects/box.hpp"
+
+template<typename X, std::size_t size = 10>
+class C {
+
+    public:
+        X data[size];
+
+        C() {
+            std::cout << "size = " << size << std::endl;
+        }
+};
+
 int main() {
     // srand(time(0));
     // A a = f();
@@ -185,14 +197,15 @@ int main() {
     // std::cout << "sizeof(std::unique_ptr) = " << sizeof(pt) << std::endl;
     // std::cout << "sizeof(box*) = " << sizeof(box*) << std::endl;
 
-    std::cout << "sizeof(vector) = " << sizeof(std::vector<void*>) << std::endl;
-    
-    struct array {
-        std::unique_ptr<int> data;
-        std::size_t size;
-    };
+    // std::cout << "sizeof(vector) = " << sizeof(std::vector<void*>) << std::endl;
+    // struct array {
+    //     std::unique_ptr<int> data;
+    //     std::size_t size;
+    // };
+    // std::cout << "sizeof(custom array) = " << sizeof(array) << std::endl;
 
-    std::cout << "sizeof(custom array) = " << sizeof(array) << std::endl;
+    C<int> c1;
+    C<int, 2> c2;
 
     return EXIT_SUCCESS;
 }

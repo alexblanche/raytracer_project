@@ -1,7 +1,7 @@
 #include "tracing/tracing.hpp"
 #include "tracing/direction.hpp"
-#include "auxiliary/custom_stack.hpp"
 #include "auxiliary/utils.hpp"
+#include "auxiliary/stack_based_custom_stack.hpp"
 
 #include <cmath>
 
@@ -171,17 +171,18 @@ template<orientation_type ray_orientation>
     until it is too dim, or a light-emitting object is hit, or the maximum number of bounces is reached. */
 
 /* In recursive form, the light equation is of the form u(n) = a(n) * u(n-1) + b(n),
-   in iterative form, we have an accumulator color_materials of the product of the a(k), k=n..,
-   and an accumulator (emitted_colors) of the (product of a(j), j=n..k) * b(k). */
+   in iterative form, we have an accumulator color_materials of the product of the a(k), k = n...,
+   and an accumulator (emitted_colors) of the (product of a(j), j = n..k) * b(k). */
 
 rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg, const unsigned int bounce,
     const russian_roulette_mode russian_roulette_mode,
     const real init_refr_index) {
 
     accumulators acc;
-        
+    
+    // Refraction index handling
     real refr_index = init_refr_index;
-    static thread_local custom_stack<real> refr_stack(20);
+    static thread_local stack_based_custom_stack<real, 20, allocation_type::Static> refr_stack;
     refr_stack.set_empty();
 
     const bvh_option bvh = (scene.polygons_per_bounding != 0) ? bvh_option::Enabled : bvh_option::Disabled;

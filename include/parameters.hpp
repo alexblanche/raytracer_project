@@ -35,4 +35,7 @@ enum class object_type {
 };
 
 // Parallelism
-constexpr bool DISABLE_PARALLELISM = false;
+enum class parallelism {
+    Enabled, Disabled
+};
+constexpr parallelism PARALLELISM = parallelism::Enabled;

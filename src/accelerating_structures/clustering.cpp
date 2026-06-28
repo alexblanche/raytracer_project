@@ -221,10 +221,9 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
 
         /* Updating the means */
         means.clear();
-        for (std::vector<element> const& group : groups) {
-            if (not group.empty()) {
-                means.push_back(compute_centroid(group));
-            }
+        for (const std::vector<element>& group : groups) {
+            if (not group.empty())
+                means.emplace_back(compute_centroid(group));
         }
 
         /* Re-assigning the objects to the right group */
@@ -235,9 +234,8 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
         groups.clear();
         groups.swap(new_groups);
 
-        if (change) {
+        if (change)
             iterations--;
-        }
     }
 
     if constexpr (DISPLAY_KMEANS) {
@@ -293,8 +291,6 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
     else
         return containing_bounding_any(element::get_content<const bounding*>(nodes));
 }
-
-#include <iostream>
 
 /* Main function: creates the bounding box hierarchy of a set of objects */
 
@@ -358,7 +354,7 @@ const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
 /* Displays the depth of the hierarchy, as well as the minimum, maximum and average arity of each depth */
 void display_hierarchy_properties(const bounding* bd0) {
 
-    printf("============================= HIERARCHY STATISTICS =============================\n");
+    printf("\r============================= HIERARCHY STATISTICS =============================\n");
 
     unsigned int level = 0;
     custom_stack<const bounding*> bds;
@@ -382,15 +378,16 @@ void display_hierarchy_properties(const bounding* bd0) {
             const bounding* bd = bds.pop();
             unsigned int arity;
             
+            using enum bounding::type;
             switch (bd->type) {
-                case bounding::type::InternalNode: {
+                case InternalNode: {
                     const std::span children = bd->get_children();
                     next_bds.push(children);
                     arity = children.size();
                     break;
                 }
 
-                case bounding::type::TerminalNode: {
+                case TerminalNode: {
                     terminal_nodes++;
                     arity = bd->get_content().size();
                     break;

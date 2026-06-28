@@ -41,7 +41,7 @@ scene::~scene() {
     }
 
     /* Destruction of the boundings with a breadth-first search */
-    custom_stack<const bounding*> bd_stack(150);
+    custom_stack<const bounding*> bd_stack(DEFAULT_STACK_SIZE);
     bd_stack.push(bounding_set);
 
     while (not bd_stack.empty()) {
