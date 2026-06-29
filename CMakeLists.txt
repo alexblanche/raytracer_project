@@ -187,6 +187,9 @@ target_include_directories(${sky_name}
 set(test_reader_name testreader)
 add_executable(${test_reader_name}
 	${IMAGE_SOURCES}
+	${PARSERS_SOURCES}
+	${AUXILIARY_ALGORITHMS_SOURCES}
+	${SCENE_SOURCES}
 	src/tests/test_reader.cpp
 )
 target_link_libraries(${test_reader_name}
@@ -213,11 +216,6 @@ target_include_directories(${test_infinite_name}
 		${SDL2_INCLUDE_DIRS}
 )
 
-add_executable(testfile
-	src/tests/test_file.cpp
-)
-
-add_executable(tests
-	src/tests/test.cpp
-	src/scene/objects/box.cpp
-)
+add_executable(testfile 	src/tests/test_file.cpp)
+add_executable(testalloc 	src/tests/test_alloc.cpp)
+add_executable(tests		src/tests/test.cpp)

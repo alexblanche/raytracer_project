@@ -182,7 +182,7 @@ rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg
     
     // Refraction index handling
     real refr_index = init_refr_index;
-    static thread_local stack_based_custom_stack<real, 20, allocation_type::Static> refr_stack;
+    static thread_local stack_based_custom_stack<real, 20> refr_stack;
     refr_stack.set_empty();
 
     const bvh_option bvh = (scene.polygons_per_bounding != 0) ? bvh_option::Enabled : bvh_option::Disabled;

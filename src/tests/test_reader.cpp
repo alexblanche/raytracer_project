@@ -1,6 +1,8 @@
 #include "file_readers/image_files/bmp_reader.hpp"
 #include "file_readers/image_files/hdr_reader.hpp"
 #include "file_readers/image_files/raw_data.hpp"
+#include "file_readers/parsers/obj_parser.hpp"
+
 #include "screen/screen.hpp"
 #include "auxiliary/timer.hpp"
 
@@ -9,9 +11,9 @@
 #include <iostream>
 #include <cassert>
 
-static const std::string BMP_FILE_NAME = "../../../assets/obj/alaskan_cliff_rock/CliffRock_0014_2K_Albedo.bmp";
-    //"../../../assets/cobblestone_street_night.bmp";
+static const std::string BMP_FILE_NAME = "../../../assets/cobblestone_street_night.bmp";
 static const std::string HDR_FILE_NAME = "../../../assets/sundowner_overlook.hdr";
+static const std::string OBJ_FILE_NAME = "../../../assets/obj/alaskan_cliff_rock/CliffRock_0014_High.obj";
 
 static void test_bmp() {
     const std::string& filename_bmp = BMP_FILE_NAME;
@@ -136,6 +138,48 @@ static void test_fastcopy() {
     timer.print();
 }
 
+static void test_obj() {
+    const std::string& filename_obj = OBJ_FILE_NAME;
+    constexpr int NB_ITERATIONS = 5;
+
+    std::vector<const object*>       object_set;
+    std::vector<wrapper<material>>   material_wrapper_set;
+    std::vector<wrapper<texture>>    texture_wrapper_set;
+    std::vector<wrapper<normal_map>> normal_map_wrapper_set;
+    std::vector<texture_info>        texture_info_set;
+
+    uint64_t total_time = 0;
+
+    timer_ms timer;
+    for (int k = 0; k < NB_ITERATIONS; k++) {
+
+        timer.start();
+        
+        const bounding* output_bd = nullptr;
+        const exit_status status = parse_obj_file(filename_obj, std::nullopt, object_set,
+            material_wrapper_set, texture_wrapper_set, texture_info_set, 2.0_r, rt::vector(1, 1, 1), false, 0, output_bd, 1.0_r);
+        assert(status == exit_status::Success);
+
+        timer.stop();
+        total_time += timer.elapsed();
+
+        ////
+        
+        //timer.start();
+        for (auto pt : object_set)
+            delete pt;
+        //timer.stop();
+        //timer.print();
+        object_set.clear();
+        material_wrapper_set.clear();
+        texture_wrapper_set.clear();
+        normal_map_wrapper_set.clear();
+        texture_info_set.clear();
+    }
+    printf("OBJ ");
+    printf("Time: %llums\n", total_time);
+}
+
 int main(int argc, char **argv) {
 
     if (argc < 2) {
@@ -153,6 +197,8 @@ int main(int argc, char **argv) {
         test_write_bmp();
     else if (arg == "wraw")
         test_write_raw();
+    else if (arg == "obj")
+        test_obj();
     else
         test_fastcopy();
 

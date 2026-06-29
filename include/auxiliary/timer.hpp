@@ -50,8 +50,13 @@ class timer {
 class timer_ms {
     private:
 
+        enum class state {
+            Stopped, Running  
+        };
+
         uint64_t time_start = 0;
         uint64_t time_end   = 0;
+        state state;
 
     public:
 
@@ -62,19 +67,27 @@ class timer_ms {
             ).count();
         }
 
+        using enum state;
+
         void start() {
             time_start = get_time();
+            state = Running;
         }
 
         void step() {
+            if (state == Stopped)
+                throw;
             time_end = get_time();
         }
 
         void stop() {
             step();
+            state = Stopped;
         }
 
         uint64_t elapsed() const {
+            if (state == Running)
+                throw;
             return time_end - time_start;
         }
 
