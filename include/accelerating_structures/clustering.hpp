@@ -4,7 +4,6 @@
 #include "scene/objects/bounding.hpp"
 
 #include <variant>
-#include <vector>
 
 /* K-means clustering algorithm */
 

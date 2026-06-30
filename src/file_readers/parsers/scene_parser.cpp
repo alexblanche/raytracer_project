@@ -747,17 +747,16 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         // Setting up the background_color or texture
         double r, g, b;
         char bg_tfile_name[513];
-        double rx, ry, rz, inverse_gamma;
-        inverse_gamma = 1.0;
+        double rx = 0.0, ry = 0.0, rz = 0.0, inverse_gamma = 1.0;
         {
             const exit_status status_background = f.scanf_rewind_if_failure("background_color %lf %lf %lf\n", r, g, b);
             if (status_background == exit_status::Success) {
                 background_color = rt::color(r, g, b);
             }
             else {
-                const exit_status status_bg_texture = f.scanf("background_texture %512s rotate_x:%lf rotate_y:%lf rotate_z:%lf gamma:%lf\n",
+                const int ret_bg_texture = f.scanf_count("background_texture %512s rotate_x:%lf rotate_y:%lf rotate_z:%lf gamma:%lf\n",
                     bg_tfile_name, rx, ry, rz, inverse_gamma);
-                if (status_bg_texture == exit_status::Failure)
+                if (ret_bg_texture < 1)
                     throw std::runtime_error("parsing error in scene constructor (background)");
                 if (std::abs(rx) > 2.0_r * PI || std::abs(ry) > 2.0_r * PI || std::abs(rz) > 2.0_r * PI)
                     throw std::runtime_error("incorrect background texture angles");
