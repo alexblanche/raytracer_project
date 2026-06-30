@@ -43,6 +43,8 @@ class C {
         C() { std::cout << "size = " << size << std::endl; }
 };
 
+#include <stack>
+
 int main() {
 
     // using T = std::variant<int, float, short>;
@@ -77,6 +79,20 @@ int main() {
 
     C<int> c1;
     C<int, 2> c2;
+
+    int values[] = { 1, 2, 3, 4, 5 };
+    std::stack<int> st;
+    
+    // for (int v : { 1, 2, 3, 4, 5 })
+    //     st.push(v);
+    st.push_range(values);
+    
+    while (not st.empty()) {
+        int v = st.top();
+        std::cout << v << " ";
+        st.pop();
+    }
+    std::cout << std::endl;
 
     return EXIT_SUCCESS;
 }
