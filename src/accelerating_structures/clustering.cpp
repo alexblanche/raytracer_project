@@ -14,8 +14,8 @@ static constexpr unsigned int CARDINAL_OF_BOX_GROUP          = 3;
 
 static constexpr unsigned int DEFAULT_STACK_SIZE = 8192;
 
-static constexpr bool ENABLE_PARALLELISM_FIRST      = false;
-static constexpr bool ENABLE_PARALLELISM_ITERATIONS = false;
+static constexpr bool ENABLE_PARALLELISM_FIRST      = true;
+static constexpr bool ENABLE_PARALLELISM_ITERATIONS = true;
 
 static constexpr bool DISPLAY_KMEANS = false;
 
@@ -24,13 +24,12 @@ static constexpr bool DISPLAY_KMEANS = false;
 
 /* Auxiliary function that computes the centroid of a vector of objects */
 static rt::vector compute_centroid(const std::vector<element>& elts) {
-    if (elts.empty()) {
-        printf("Error, empty element set\n");
-        throw;
-    }
+
+    if (elts.empty())
+        throw std::runtime_error("Error, empty element set\n");
 
     rt::vector sum;
-    for (element const& elt : elts)
+    for (const element& elt : elts)
         sum += elt.get_position();
 
     return sum / elts.size();
@@ -63,13 +62,21 @@ enum class search_type {
 static bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std::vector<std::vector<element>>& new_groups,
     const std::vector<rt::vector>& means) {
 
-    search_type search_type = search_type::Linear;
+    using enum search_type;
+    search_type search_type = Linear;
     search_tree tree;
     
     if (means.size() >= MIN_FOR_TREE_SEARCH) {
         build_tree(means, tree);
-        search_type = search_type::Accelerated;
+        search_type = Accelerated;
     }
+
+    auto search = [&search_type, &means, &tree] (const rt::vector& v) {
+        switch (search_type) {
+            case Linear:        return linear_search(means, v);
+            case Accelerated:   return tree_search(means, tree, v);
+        }
+    };
 
     std::mutex mut;
     const unsigned int nb_of_groups = old_groups.size();
@@ -78,33 +85,21 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
         // First iteration (all elements in the first group)
 
         const std::vector<element>& old_group = old_groups[0];
+        
+        std::vector<unsigned int> closest_indices(old_group.size());
 
         if constexpr (ENABLE_PARALLELISM_FIRST) {
             parallel_for(old_group.size(), [&] (int i) {
-
                 const element& elt = old_group[i];
-                const rt::vector& v = elt.get_position();
-
-                const unsigned int closest_index =
-                    (search_type == search_type::Linear) ?
-                          linear_search(means, v)
-                        : tree_search(means, tree, v);
-
-                mut.lock();
-                new_groups[closest_index].push_back(elt);
-                mut.unlock();
+                closest_indices[i] = search(elt.get_position());
             });
+            for (unsigned int i = 0; i < closest_indices.size(); i++)
+                new_groups[closest_indices[i]].push_back(old_group[i]);
         }
         else {
             for (const element& elt : old_group) {
 
-                const rt::vector& v = elt.get_position();
-
-                const unsigned int closest_index =
-                    (search_type == search_type::Linear) ?
-                          linear_search(means, v)
-                        : tree_search(means, tree, v);
-
+                const unsigned int closest_index = search(elt.get_position());
                 new_groups[closest_index].push_back(elt);
             }
         }
@@ -115,43 +110,39 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
         bool change = false;
 
         if constexpr (ENABLE_PARALLELISM_ITERATIONS) {
-            parallel_for(nb_of_groups, [&] (int i) {
-                for (const element& elt : old_groups[i]) {
+            parallel_for(nb_of_groups, [&] (int start, int end) {
 
-                    const rt::vector& v = elt.get_position();
+                std::vector<unsigned int> closest_indices;
 
-                    const unsigned int closest_index =
-                        (search_type == search_type::Linear) ?
-                              linear_search(means, v)
-                            : tree_search(means, tree, v);
+                for (int i = start; i < end; i++) {
+                    const auto& group = old_groups[i];
+                    //closest_indices.reserve(std::max(closest_indices.size() + group.size(), closest_indices.capacity()));
 
-                    if (closest_index != static_cast<unsigned int>(i)) {
-                        change = true;
+                    for (const element& elt : group) {
+                        const unsigned int closest_index = search(elt.get_position());
+                        change = change || (closest_index != static_cast<unsigned int>(i));
+                        closest_indices.push_back(closest_index);
                     }
-
-                    mut.lock();
-                    new_groups[closest_index].push_back(elt);
-                    mut.unlock();
                 }
+
+                mut.lock();
+                unsigned int j = 0;
+                for (int i = start; i < end; i++) {
+                    const auto& group = old_groups[i];
+                    for (const element& elt : group)
+                        new_groups[closest_indices[j++]].push_back(elt);
+                }
+                mut.unlock();
             });
         }
         else {
             for (unsigned int i = 0; i < nb_of_groups; i++) {
 
-                const std::vector<element>& group = old_groups[i];
+                const auto& group = old_groups[i];
 
                 for (const element& elt : group) {
-
-                    const rt::vector& v = elt.get_position();
-
-                    const unsigned int closest_index =
-                        (search_type == search_type::Linear) ?
-                              linear_search(means, v)
-                            : tree_search(means, tree, v);
-
-                    if (closest_index != i)
-                        change = true;
-
+                    const unsigned int closest_index = search(elt.get_position());
+                    change = change || (closest_index != i);
                     new_groups[closest_index].push_back(elt);
                 }
             }
@@ -181,9 +172,8 @@ static void fill_empty_clusters(std::vector<std::vector<element>>& groups) {
         groups[non_empty].pop_back();
 
         non_empty_groups.pop();
-        if (not groups[non_empty].empty()) {
+        if (not groups[non_empty].empty())
             non_empty_groups.push(non_empty);
-        }
     }
 }
 
@@ -198,9 +188,8 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
     const real step = std::max(static_cast<real>(obj.size() / k), 1.0_r);
 
     const int bound = std::min(static_cast<unsigned int>(obj.size()), k);
-    for (int i = 0; i < bound; i++) {
+    for (int i = 0; i < bound; i++)
         means[i] = obj[static_cast<int>(i * step)].get_position();
-    }
     
     std::vector<std::vector<element>> groups(k);
     assign_to_closest({ obj }, groups, means);
@@ -211,12 +200,12 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
     
     while (change && iterations != 0) {
 
-        if constexpr (DISPLAY_KMEANS) {
-            printf("\rIteration %u / %u", MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS);
-        }
-        else {
-            printf("\rOptimizing the data structure... Iteration %u / %u", MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS);
-        }
+        if constexpr (DISPLAY_KMEANS)
+            printf("\rIteration %u / %u",
+                MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS);
+        else
+            printf("\rOptimizing the data structure... Iteration %u / %u",
+                MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS);
         fflush(stdout);
 
         /* Updating the means */
@@ -238,13 +227,11 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
             iterations--;
     }
 
-    if constexpr (DISPLAY_KMEANS) {
-        
+    if constexpr (DISPLAY_KMEANS)
         printf("\r> k_means: %u iteration%s (maximum = %u, n = %zu, k = %u)\n",
             MAX_NUMBER_OF_ITERATIONS - iterations,
             (MAX_NUMBER_OF_ITERATIONS - iterations < 2) ? "" : "s",
             MAX_NUMBER_OF_ITERATIONS, obj.size(), k);
-    }
 
     return groups;
 }
@@ -253,12 +240,11 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
    Performs the second step of the algorithm: creates the hierarchy of the terminal boundings */
 const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& term_nodes) {
 
-    if (term_nodes.size() == 1) {
+    if (term_nodes.size() == 1)
         return term_nodes[0];
-    }
-    else if (term_nodes.size() <= CARDINAL_OF_BOX_GROUP) {
+    
+    if (term_nodes.size() <= CARDINAL_OF_BOX_GROUP)
         return containing_bounding_any(std::move(term_nodes));
-    }
 
     std::vector<element> nodes = element::get_element(term_nodes);
 
@@ -275,12 +261,11 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
             
             if (not elts.empty()) {
                 new_bd_nodes.push_back(containing_bounding_any(element::get_content<const bounding*>(elts)));
-                cpt ++;
+                cpt++;
             }
         }
-        if constexpr (DISPLAY_KMEANS) {
+        if constexpr (DISPLAY_KMEANS)
             printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
-        }
 
         nodes.clear();
         nodes = element::get_element(new_bd_nodes);
@@ -306,19 +291,16 @@ const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
 
     /* Not enough polygons for it to be worth having a bounding box,
        the bounding here just acts as a container */
-    if (content.size() < MIN_NUMBER_OF_POLYGONS_FOR_BOX) {
+    if (content.size() < MIN_NUMBER_OF_POLYGONS_FOR_BOX)
         return new bounding(std::move(content));
-    }
     
     /* content fits in one bounding box */
-    if (content.size() <= polygons_per_bounding) {
+    if (content.size() <= polygons_per_bounding)
         return containing_objects(std::move(content));
-    }
    
     /* A hierarchy has to be created */
-    if constexpr (DISPLAY_KMEANS) {
+    if constexpr (DISPLAY_KMEANS)
         printf("\nOptimizing the data structure...\n");
-    }
     else {
         printf("\rOptimizing the data structure... ");
         fflush(stdout);
@@ -341,9 +323,8 @@ const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
             cpt++;
         }
     }
-    if constexpr (DISPLAY_KMEANS) {
+    if constexpr (DISPLAY_KMEANS)
         printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
-    }
 
     return create_hierarchy_from_boundings(std::move(term_nodes));
 }
