@@ -1,23 +1,18 @@
 #include "file_readers/parsers/obj_parser.hpp"
 
-#include "scene/objects/bounding.hpp"
 #include "scene/objects/triangle.hpp"
 #include "scene/objects/quad.hpp"
-#include "scene/material/texture.hpp"
 
 #include "accelerating_structures/clustering.hpp"
 #include "file_readers/parsers/mtl_parser.hpp"
-#include "file_readers/parsers/parsing_wrappers.hpp"
 #include "file_readers/file.hpp"
 #include "auxiliary/utils.hpp"
 
-#include <string>
 #include <stack>
 #include <stdexcept>
 #include <filesystem>
 
 static constexpr bool DISPLAY_HIERARCHY = false;
-static constexpr bool DO_NOT_APPLY_TEXTURE = false;
 
 /* Quad splitting threshold: when the two triangles forming a quad form an angle
 superior to a certain amount depending on this constant,
@@ -39,13 +34,22 @@ struct sets {
     std::vector<texture_info>&       texture_info_set;
 };
 
+template<unsigned int size>
+using index_array = std::array<int, size>;
+
 /* When indices are negative, convert them to positive */
-static inline void correct(int& v, const int n) {
-    v += (v < 0 ? n + 1 : 0);
+static inline int correct(int& v, const int n) {
+    return (v += (v < 0 ? n + 1 : 0));
 }
 
-static inline bool is_split_quad(const rt::vector& n12, const rt::vector& n23) {
-    return (n12 - n23).normsq() > QUAD_SPLIT_THRESHOLD;
+static inline  std::pair<rt::vector, rt::vector> compute_normals(
+    const std::vector<rt::vector>& vertex_set, const index_array<4>& vi) {
+
+    const auto& [ v1, v2, v3, v4 ] = vi;
+    return {
+        ((vertex_set[v2] - vertex_set[v1]) ^ (vertex_set[v3] - vertex_set[v1])).unit(),
+        ((vertex_set[v3] - vertex_set[v1]) ^ (vertex_set[v4] - vertex_set[v1])).unit()
+    };
 }
 
 /* Wavefront .obj file parser */
@@ -69,13 +73,14 @@ enum class subdivision {
     Enabled, Disabled
 };
 
+enum class texturing {
+    Enabled, Disabled
+};
+
 template<Polygon polygon, subdivision subdiv_option>
 constexpr unsigned int size =
       std::is_same_v<polygon, quad> ?          4
     : subdiv_option == subdivision::Disabled ? 3 : 2;
-
-template<unsigned int size>
-using index_array = std::array<int, size>;
 
 template<unsigned int size>
 requires (size >= 2 && size <= 4)
@@ -108,11 +113,13 @@ requires size_fits_type<polygon, size>
 static inline const polygon* build_polygon(
     const std::vector<rt::vector>& vertex_set, const rt::vector shift, const real scale,
     const std::vector<rt::vector>& normal_set,
-    const unsigned int current_material_index, const bool apply_texture, const unsigned int current_texture_info_set_index,
+    const unsigned int current_material_index, const texturing texturing_option, const unsigned int current_texture_info_set_index,
     const index_array<size>& v, const index_array<size>& vn,
     const rt::vector& final_v = rt::vector(), const rt::vector& final_vn = rt::vector()) {
 
-    const unsigned int texture_info_index = apply_texture ? current_texture_info_set_index : EMPTY_INDEX;
+    const unsigned int texture_info_index = texturing_option == texturing::Enabled ?
+          current_texture_info_set_index
+        : EMPTY_INDEX;
 
     const auto& [ ...vi ]     = v;
     const auto  [ ...vert_i ] = std::array { fma(vertex_set[vi], scale, shift)... };
@@ -144,17 +151,17 @@ static inline void add_polygon(const sets& sets, const bool bounding_enabled,
     unsigned int& number_of_polygons, unsigned int& number_of__type__,
     const rt::vector& shift, const real scale,
     index_array<size>&& v, index_array<size>&& vt, index_array<size>&& vn,
-    const unsigned int current_texture_index, const unsigned int current_material_index, const bool apply_texture,
+    const unsigned int current_texture_index, const unsigned int current_material_index, const texturing texturing_option,
     const rt::vector& final_v = rt::vector(), const rt::vector& final_vt = rt::vector(), const rt::vector& final_vn = rt::vector()) {
 
     auto& [ vertex_set, uv_coord_set, normal_set, obj_set, content, texture_info_set ] = sets;
 
-    if (apply_texture)
+    if (texturing_option == texturing::Enabled)
         new_texture_info<size>(texture_info_set, uv_coord_set, current_texture_index, vt, final_vt);
 
     const polygon* poly = build_polygon<polygon, size, normal_option>(
         vertex_set, shift, scale, normal_set,
-        current_material_index, apply_texture, texture_info_set.size() - 1,
+        current_material_index, texturing_option, texture_info_set.size() - 1,
         v, vn, final_v, final_vn
     );
 
@@ -168,14 +175,16 @@ static inline void add_polygon(const sets& sets, const bool bounding_enabled,
 
 /* Auxiliary function that subdivides a polygon with more than 5 sides into triangles, and adds all of them */
 template<normal normal_option = normal::Enabled>
-static void add_subdivided_polygon(const file& f, const sets& sets,
+static void add_subdivided_polygon_template(const file& f, const sets& sets,
     const bool bounding_enabled, unsigned int& number_of_polygons, unsigned int& number_of_triangles,
     const rt::vector& shift, const real scale,
     index_array<5>&& v, index_array<5>&& vt, index_array<5>&& vn,
     const unsigned int current_texture_index, const unsigned int current_material_index,
-    bool apply_texture) {
+    texturing texturing_option) {
 
     constexpr bool normal_enabled = normal_option == normal::Enabled;
+    bool apply_texture = texturing_option == texturing::Enabled;
+
     const std::string error_message = "Error in parsing of polygons of at least 5 sides ("
         + std::string(normal_enabled ? "with" : "without") + "normal)\n";
 
@@ -216,6 +225,7 @@ static void add_subdivided_polygon(const file& f, const sets& sets,
                 if (ret2 != 1)
                     throw std::runtime_error((error_message + " [2]\n").c_str());
             }
+            texturing_option = texturing::Disabled;
             apply_texture = false;
         }
 
@@ -272,7 +282,7 @@ static void add_subdivided_polygon(const file& f, const sets& sets,
         add_polygon<triangle, normal_option, subdivision::Enabled>(
             sets, bounding_enabled, number_of_polygons, number_of_triangles,
             shift, scale, { vj, vi }, { vtj, vti }, { vnj, vni },
-            current_texture_index, current_material_index, apply_texture,
+            current_texture_index, current_material_index, texturing_option,
             final_v, final_vt, final_vn
         );
     }
@@ -281,7 +291,7 @@ static void add_subdivided_polygon(const file& f, const sets& sets,
     add_polygon<triangle, normal_option, subdivision::Enabled>(
         sets, bounding_enabled, number_of_polygons, number_of_triangles,
         shift, scale, { last_v, v[0] }, { last_vt, vt[0] }, { last_vn, vn[0] },
-        current_texture_index, current_material_index, apply_texture,
+        current_texture_index, current_material_index, texturing_option,
         final_v, final_vt, final_vn
     );
 }
@@ -336,7 +346,7 @@ exit_status parse_obj_file(const std::string& file_name,
     unsigned int current_texture_index = default_texture_index.value_or(EMPTY_INDEX);
 
     const bool default_texture_provided = default_texture_index.has_value();
-    bool apply_texture = default_texture_provided;
+    texturing texturing_option = default_texture_provided ? texturing::Enabled : texturing::Disabled;
 
     /* Counters */
     unsigned int number_of_vertices        = 0;
@@ -360,7 +370,7 @@ exit_status parse_obj_file(const std::string& file_name,
     sets sets { vertex_set, uv_coord_set, normal_set, obj_set, content, texture_info_set };
 
     auto add_triangle = [&] (index_array<3>&& v, index_array<3>&& vt, index_array<3>&& vn,
-        const bool apply_texture, const normal normal_option = normal::Enabled) {
+        const texturing texturing_option, const normal normal_option = normal::Enabled) {
 
         constexpr subdivision subdiv_disable = subdivision::Disabled;
         constexpr unsigned int size = 3;
@@ -369,18 +379,18 @@ exit_status parse_obj_file(const std::string& file_name,
             add_polygon<triangle, normal::Enabled, subdiv_disable, size>(
                 sets, bounding_enabled, number_of_polygons, number_of_triangles,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
-                current_texture_index, current_material_index, apply_texture
+                current_texture_index, current_material_index, texturing_option
             );
         else
             add_polygon<triangle, normal::Disabled, subdiv_disable, size>(
                 sets, bounding_enabled, number_of_polygons, number_of_triangles,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
-                current_texture_index, current_material_index, apply_texture
+                current_texture_index, current_material_index, texturing_option
             );
     };
 
     auto add_quad = [&] (index_array<4>&& v, index_array<4>&& vt, index_array<4>&& vn,
-        const bool apply_texture, const normal normal_option = normal::Enabled) {
+        const texturing texturing_option, const normal normal_option = normal::Enabled) {
 
         constexpr subdivision subdiv_disable = subdivision::Disabled;
         constexpr unsigned int size = 4;
@@ -389,14 +399,86 @@ exit_status parse_obj_file(const std::string& file_name,
             add_polygon<quad, normal::Enabled, subdiv_disable, size>(
                 sets, bounding_enabled, number_of_polygons, number_of_quads,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
-                current_texture_index, current_material_index, apply_texture
+                current_texture_index, current_material_index, texturing_option
             );
         else
             add_polygon<quad, normal::Disabled, subdiv_disable, size>(
                 sets, bounding_enabled, number_of_polygons, number_of_quads,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
-                current_texture_index, current_material_index, apply_texture
+                current_texture_index, current_material_index, texturing_option
             );
+    };
+
+    auto add_quad_check_split = [&] (const std::vector<rt::vector>& vertex_set,
+        index_array<4>&& v, index_array<4>&& vt, index_array<4>&& vn,
+        const texturing texturing_option, const normal normal_option = normal::Enabled) {
+
+        const auto [ n12, n23 ] = compute_normals(vertex_set, v);
+        const bool is_split_quad = (n12 - n23).normsq() > QUAD_SPLIT_THRESHOLD;
+
+        if (not is_split_quad)
+            add_quad(std::move(v), std::move(vt), std::move(vn), texturing_option, normal_option);
+        else {
+            const auto& [ v1,  v2,  v3,  v4  ] = v;
+            const auto& [ vt1, vt2, vt3, vt4 ] = vt;
+            const auto& [ vn1, vn2, vn3, vn4 ] = vn;
+            add_triangle({ v1, v2, v3 }, { vt1, vt2, vt3 }, { vn1, vn2, vn3 }, texturing_option, normal_option);
+            add_triangle({ v1, v3, v4 }, { vt1, vt3, vt4 }, { vn1, vn3, vn4 }, texturing_option, normal_option);
+        }
+    };
+
+    auto add_subdivided_polygon = [&] (index_array<5>&& v, index_array<5>&& vt, index_array<5>&& vn,
+        const texturing texturing_option, const normal normal_option = normal::Enabled) {
+        
+        if (normal_option == normal::Enabled)
+            add_subdivided_polygon_template<normal::Enabled>(f, sets, bounding_enabled,
+                number_of_polygons, number_of_triangles,
+                shift, scale, std::move(v), std::move(vt), std::move(vn),
+                current_texture_index, current_material_index, texturing_option
+            );
+        else
+            add_subdivided_polygon_template<normal::Disabled>(f, sets, bounding_enabled,
+                number_of_polygons, number_of_triangles,
+                shift, scale, std::move(v), std::move(vt), std::move(vn),
+                current_texture_index, current_material_index, texturing_option
+            );
+    };
+
+    auto add_geometry = [&] (const int nb, const texturing texturing_option, const normal normal_option,
+        index_array<5>&& v, index_array<5>&& vt, index_array<5>&& vn) {
+
+        if (nb < 3 || nb > 5)
+            throw std::runtime_error((std::string("add_geometry: Incorrect parameter nb = ") + std::to_string(nb)).c_str());
+
+        for (int i = 0; i < nb; i++) {
+            correct(v[i],  number_of_vertices);
+            correct(vt[i], number_of_texture_coords);
+            correct(vn[i], number_of_normals);
+        }
+
+        auto& [ v1,  v2,  v3,  v4,  v5  ] = v;
+        auto& [ vt1, vt2, vt3, vt4, vt5 ] = vt;
+        auto& [ vn1, vn2, vn3, vn4, vn5 ] = vn;
+
+        switch (nb) {
+            case 3:
+                add_triangle({ v1, v2, v3 }, { vt1, vt2, vt3 }, { vn1, vn2, vn3 },
+                    texturing_option, normal_option
+                ); break;
+            case 4:
+                /* Sometimes quads are made up of 4 non-coplanar vertices
+                   When it is the case, we split the quad in two triangles */
+                add_quad_check_split(vertex_set,
+                    { v1, v2, v3, v4 }, { vt1, vt2, vt3, vt4 }, { vn1, vn2, vn3, vn4 },
+                    texturing_option, normal_option
+                ); break;
+            default:
+                /* Polygons with more than 4 sides */
+                add_subdivided_polygon(
+                    { v1, v2, v3, v4, v5 }, { vt1, vt2, vt3, vt4, vt5 }, { vn1, vn2, vn3, vn4, vn5 },
+                    texturing_option, normal_option
+                ); break;
+        }    
     };
 
     try {
@@ -437,16 +519,8 @@ exit_status parse_obj_file(const std::string& file_name,
                 number_of_vertices++;
 
                 /* Updating max dimensions */
-                min = {
-                    std::min(min.x, x),
-                    std::min(min.y, y),
-                    std::min(min.z, z)
-                };
-                max = {
-                    std::max(max.x, x),
-                    std::max(max.y, y),
-                    std::max(max.z, z)
-                };
+                min = { std::min(min.x, x), std::min(min.y, y), std::min(min.z, z) };
+                max = { std::max(max.x, x), std::max(max.y, y), std::max(max.z, z) };
 
                 continue;
             }
@@ -456,6 +530,7 @@ exit_status parse_obj_file(const std::string& file_name,
                 const auto [ u, v ] = f.scan<double, 2>();
                 
                 if (is_between_zero_and_one(u) && is_between_zero_and_one(v)) [[likely]] {
+                    
                     uv_coord_set.emplace_back(u, v, 0);
                 }
                 else {
@@ -490,11 +565,11 @@ exit_status parse_obj_file(const std::string& file_name,
                 if (mt_assoc.count(current_material_index) > 0) {
                     // A texture was associated with the material by an mtl file
                     current_texture_index = mt_assoc[current_material_index];
-                    apply_texture = true;
+                    texturing_option = texturing::Enabled;
                 }
                 else {
                     current_texture_index = default_texture_index.value_or(EMPTY_INDEX);
-                    apply_texture = default_texture_provided;
+                    texturing_option = default_texture_provided ? texturing::Enabled : texturing::Disabled;
                 }
                 
                 continue;
@@ -519,195 +594,58 @@ exit_status parse_obj_file(const std::string& file_name,
                 const int ret = f.scanf_count("%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d",
                     v1, vt1, vn1, v2, vt2, vn2, v3, vt3, vn3, v4, vt4, vn4, v5, vt5, vn5);
 
-                if (ret >= 9) {
-                    correct(v1,  number_of_vertices);
-                    correct(v2,  number_of_vertices);
-                    correct(v3,  number_of_vertices);
+                int nb = 0;
+                texturing this_texturing_option = texturing_option;
+                normal this_normal_option = normal::Enabled;
 
-                    correct(vt1, number_of_texture_coords);
-                    correct(vt2, number_of_texture_coords);
-                    correct(vt3, number_of_texture_coords);
-
-                    correct(vn1, number_of_normals);
-                    correct(vn2, number_of_normals);
-                    correct(vn3, number_of_normals);
-                }
-                if (ret >= 12) {
-                    correct(v4,  number_of_vertices);
-                    correct(vt4, number_of_texture_coords);
-                    correct(vn4, number_of_normals);
-                }
-                if (ret >= 15) {
-                    correct(v5,  number_of_vertices);
-                    correct(vt5, number_of_texture_coords);
-                    correct(vn5, number_of_normals);
-                }
-
-                if (ret == 9) {
-                    add_triangle({ v1, v2, v3 }, { vt1, vt2, vt3 }, { vn1, vn2, vn3 }, apply_texture);
-                }
-                else if (ret == 12) {
-                    /* Sometimes quads are made up of 4 non-coplanar vertices
-                       When it is the case, we split the quad in two triangles */
-
-                    const rt::vector n12 = ((vertex_set[v2] - vertex_set[v1]) ^ (vertex_set[v3] - vertex_set[v1])).unit();
-                    const rt::vector n23 = ((vertex_set[v3] - vertex_set[v1]) ^ (vertex_set[v4] - vertex_set[v1])).unit();
-                    
-                    if (not is_split_quad(n12, n23))
-                        add_quad({ v1, v2, v3, v4 }, { vt1, vt2, vt3, vt4 }, { vn1, vn2, vn3, vn4 }, apply_texture);
-                    else {
-                        add_triangle({ v1, v2, v3 }, { vt1, vt2, vt3 }, { vn1, vn2, vn3 }, apply_texture);
-                        add_triangle({ v1, v3, v4 }, { vt1, vt3, vt4 }, { vn1, vn3, vn4 }, apply_texture);
+                switch (ret) {
+                    case 9:
+                    case 12:
+                    case 15: {
+                        nb = ret / 3;
+                        break;
                     }
-                }
-                else if (ret >= 15) {
-                    /* Polygons with more than 4 sides */
+                    case 1: {
+                        /* Neither texture coordinates nor the vertex normals are specified */
+                        const char c = f.getc();
+                        if (c == ' ') {
+                            // f v1 v2 v3 ...
+                            const int ret2 = f.scanf_count("%d %d %d %d", v2, v3, v4, v5);
 
-                    add_subdivided_polygon(f, sets, bounding_enabled,
-                        number_of_polygons, number_of_triangles,
-                        shift, scale,
-                        { v1,  v2,  v3,  v4,  v5  },
-                        { vt1, vt2, vt3, vt4, vt5 },
-                        { vn1, vn2, vn3, vn4, vn5 },
-                        current_texture_index, current_material_index, apply_texture
-                    );
-                }
-                else if (ret == 1) {
-                    /* Neither texture coordinates nor the vertex normals are specified */
-
-                    const char c = f.getc();
-                    if (c == ' ') {
-                        // f v1 v2 v3 ...
-
-                        const int ret2 = f.scanf_count("%d %d %d %d", v2, v3, v4, v5);
-
-                        correct(v1, number_of_vertices);
-                        if (ret2 >= 1) correct(v2, number_of_vertices);
-                        if (ret2 >= 2) correct(v3, number_of_vertices);
-                        if (ret2 >= 3) correct(v4, number_of_vertices);
-                        if (ret2 >= 4) correct(v5, number_of_vertices);
-
-                        // Polygon with no texture and no normal
-                        if (ret2 == 2) {
-                            add_triangle({ v1, v2, v3 }, {}, {}, DO_NOT_APPLY_TEXTURE, normal::Disabled);
+                            // Polygon with no texture and no normal
+                            nb = ret2 + 1;
+                            this_texturing_option = texturing::Disabled;
+                            this_normal_option = normal::Disabled;
                         }
-                        else if (ret2 == 3) {
-                            // Quad with no texture and normal
-                            const rt::vector n12 = ((vertex_set[v2] - vertex_set[v1]) ^ (vertex_set[v3] - vertex_set[v1])).unit();
-                            const rt::vector n23 = ((vertex_set[v3] - vertex_set[v1]) ^ (vertex_set[v4] - vertex_set[v1])).unit();
-                            
-                            if (not is_split_quad(n12, n23))
-                                add_quad({ v1, v2, v3, v4 }, {}, {}, DO_NOT_APPLY_TEXTURE, normal::Disabled);
-                            else {
-                                add_triangle({ v1, v2, v3 }, {}, {}, DO_NOT_APPLY_TEXTURE, normal::Disabled);
-                                add_triangle({ v1, v3, v4 }, {}, {}, DO_NOT_APPLY_TEXTURE, normal::Disabled);
-                            }
-                        }
-                        else
-                            add_subdivided_polygon<normal::Disabled>(
-                                f, sets, bounding_enabled,
-                                number_of_polygons, number_of_triangles,
-                                shift, scale,
-                                { v1, v2, v3, v4, v5 }, {}, {},
-                                0, current_material_index, DO_NOT_APPLY_TEXTURE
-                            );
-                    }
-                    else {
-                        // By elimination: c = '/'
-                        // f v1//vn1 v2//vn2 ...
-                        const int ret2 = f.scanf_count("%d %d//%d %d//%d %d//%d %d//%d",
-                            vn1, v2, vn2, v3, vn3, v4, vn4, v5, vn5);
-
-                        if (ret2 >= 5) {
-                            correct(v1, number_of_vertices);
-                            correct(v2, number_of_vertices);
-                            correct(v3, number_of_vertices);
-                            
-                            correct(vn1, number_of_normals);
-                            correct(vn2, number_of_normals);
-                            correct(vn3, number_of_normals);
-                        }
-                        if (ret2 >= 7) {
-                            correct(v4, number_of_vertices);
-                            correct(vn4, number_of_normals);
-                        }
-                        if (ret2 >= 9) {
-                            correct(v5, number_of_vertices);
-                            correct(vn5, number_of_normals);
-                        }
-
-                        // Untextured polygon
-                        if (ret2 == 5) {
-                            add_triangle({ v1, v2, v3 }, {}, { vn1, vn2, vn3 }, DO_NOT_APPLY_TEXTURE);
-                        }
-                        else if (ret2 == 7) {
-                            // Untextured quad
-                            const rt::vector n12 = ((vertex_set[v2] - vertex_set[v1]) ^ (vertex_set[v3] - vertex_set[v1])).unit();
-                            const rt::vector n23 = ((vertex_set[v3] - vertex_set[v1]) ^ (vertex_set[v4] - vertex_set[v1])).unit();
-                            
-                            if (not is_split_quad(n12, n23))
-                                add_quad({ v1, v2, v3, v4 }, {}, { vn1, vn2, vn3, vn4 }, DO_NOT_APPLY_TEXTURE);
-                            else {
-                                add_triangle({ v1, v2, v3 }, {}, { vn1, vn2, vn3 }, DO_NOT_APPLY_TEXTURE);
-                                add_triangle({ v1, v3, v4 }, {}, { vn1, vn3, vn4 }, DO_NOT_APPLY_TEXTURE);
-                            }
-                        }
-                        else
-                            add_subdivided_polygon(f, sets, bounding_enabled,
-                                number_of_polygons, number_of_triangles,
-                                shift, scale,
-                                { v1, v2, v3, v4, v5 }, {}, { vn1, vn2, vn3, vn4, vn5 },
-                                0, current_material_index, DO_NOT_APPLY_TEXTURE
-                            );
-                    }
-                }
-                else {
-                    // ret == 2
-                    // f v1/vt1 v2/vt2 ...
-                    const int ret2 = f.scanf_count("%d/%d %d/%d %d/%d %d/%d",
-                        v2, vt2, v3, vt3, v4, vt4, v5, vt5);
-
-                    if (ret2 >= 4) {
-                        correct(v1,  number_of_vertices);
-                        correct(v2,  number_of_vertices);
-                        correct(v3,  number_of_vertices);
-
-                        correct(vt1, number_of_texture_coords);
-                        correct(vt2, number_of_texture_coords);
-                        correct(vt3, number_of_texture_coords);
-                    }
-                    if (ret2 >= 6) {
-                        correct(v4,  number_of_vertices);
-                        correct(vt4, number_of_texture_coords);
-                    }
-                    if (ret2 >= 8) {
-                        correct(v5,  number_of_vertices);
-                        correct(vt5, number_of_texture_coords);
-                    }
-
-                    // Polygon with texture and no normal
-                    if (ret2 == 4) {
-                        add_triangle({ v1, v2, v3 }, { vt1, vt2, vt3 }, {}, apply_texture, normal::Disabled);
-                    }
-                    else if (ret2 == 6) {
-                        const rt::vector n12 = ((vertex_set[v2] - vertex_set[v1]) ^ (vertex_set[v3] - vertex_set[v1])).unit();
-                        const rt::vector n23 = ((vertex_set[v3] - vertex_set[v1]) ^ (vertex_set[v4] - vertex_set[v1])).unit();
-                        
-                        if (not is_split_quad(n12, n23))
-                            add_quad({ v1, v2, v3, v4 }, { vt1, vt2, vt3, vt4 }, {}, apply_texture, normal::Disabled);
                         else {
-                            add_triangle({ v1, v2, v3 }, { vt1, vt2, vt3 }, {}, apply_texture, normal::Disabled);
-                            add_triangle({ v1, v3, v4 }, { vt1, vt3, vt4 }, {}, apply_texture, normal::Disabled);
+                            // By elimination: c = '/'
+                            // f v1//vn1 v2//vn2 ...
+                            const int ret2 = f.scanf_count("%d %d//%d %d//%d %d//%d %d//%d",
+                                vn1, v2, vn2, v3, vn3, v4, vn4, v5, vn5);
+                            
+                            // Untextured polygon
+                            nb = (ret2 % 2 == 1) ? 1 + (ret2 / 2) : 0;
+                            this_texturing_option = texturing::Disabled;
                         }
+                        break;
                     }
-                    else
-                        add_subdivided_polygon<normal::Disabled>(f, sets, bounding_enabled,
-                            number_of_polygons, number_of_triangles,
-                            shift, scale,
-                            { v1, v2, v3, v4, v5 }, { vt1, vt2, vt3, vt4, vt5 }, {},
-                            current_texture_index, current_material_index, apply_texture
-                        );
+                    case 2: {
+                        // f v1/vt1 v2/vt2 ...
+                        const int ret2 = f.scanf_count("%d/%d %d/%d %d/%d %d/%d",
+                            v2, vt2, v3, vt3, v4, vt4, v5, vt5);
+
+                        // Polygon with texture and no normal
+                        nb = (ret2 % 2 == 0) ? 1 + (ret2 / 2) : 0;
+                        this_normal_option = normal::Disabled;
+                        break;
+                    }
+                    default:
+                        throw std::runtime_error("Unexpected syntax");
                 }
+
+                add_geometry(nb, this_texturing_option, this_normal_option,
+                    { v1, v2, v3, v4, v5 }, { vt1, vt2, vt3, vt4, vt5 }, { vn1, vn2, vn3, vn4, vn5 }
+                );
 
                 continue;
             }

@@ -5,7 +5,9 @@
 #include "scene/material/material.hpp"
 #include "scene/material/texture.hpp"
 #include "scene/material/texture_info.hpp"
+
 #include "file_readers/parsers/parsing_wrappers.hpp"
+
 #include "auxiliary/exit_status.hpp"
 
 #include <string>
