@@ -165,6 +165,13 @@ namespace rt {
 		v.z *= a;
 	}
 
+	inline void operator /=(vector& v, const real a) {
+		const real inv_a = 1.0_r / a;
+		v.x *= inv_a;
+		v.y *= inv_a;
+		v.z *= inv_a;
+	}
+
 	/* Returns v1 * a + v2, where a is a scalar */
 	inline vector fma(const vector& v1, const real a, const vector& v2) {
 		return
