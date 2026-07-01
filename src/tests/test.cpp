@@ -94,5 +94,10 @@ int main() {
     }
     std::cout << std::endl;
 
+    real x = 0_r;
+    real invx = 1.0_r / x;
+
+    printf("1 / 0 = %lf\n", invx);
+
     return EXIT_SUCCESS;
 }

@@ -27,6 +27,11 @@ namespace rt {
 			return vector(x - other.x, y - other.y, z - other.z);
 		}
 
+		/* Element-wise product */
+		inline vector operator*(const vector& other) const {
+			return vector(x * other.x, y * other.y, z * other.z);
+		}
+
 		/* Cross product */
 		inline vector operator^(const vector& other) const {
 			return

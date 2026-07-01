@@ -15,7 +15,7 @@ struct ray {
         rt::vector inv_dir;
 
         // Absolute values of each component
-        rt::vector abs_inv_dir;
+        // rt::vector abs_inv_dir;
 
         ray() = delete;
         
@@ -27,8 +27,8 @@ struct ray {
                 1.0_r / direction.x,
                 1.0_r / direction.y,
                 1.0_r / direction.z
-            ),
-            abs_inv_dir(rt::abs(inv_dir)) {}
+            )
+            /* , abs_inv_dir(rt::abs(inv_dir)) */ {}
 
         ray& operator=(ray&&)      = default;
         ray(ray&&)                 = default;

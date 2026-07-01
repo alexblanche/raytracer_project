@@ -9,18 +9,30 @@ class aabb {
     private:
         rt::vector corner;
         rt::vector dims;
+        rt::vector inv_dims;
+        rt::vector center;
 
     public:
 
         aabb(const rt::vector& corner, const rt::vector& dims)
-            : corner(corner), dims(dims) {}
+            :   corner(corner), dims(dims),
+                inv_dims(1.0_r / dims.x, 1.0_r / dims.y, 1.0_r / dims.z),
+                center(fma(dims, 0.5_r, corner)) {}
 
+        /* Only measures the distance from the outside of the aabb, otherwise returns 0.0_r */
         real measure_distance(const ray& r) const;
 
-        bool is_hit_by(const ray& r) const;
+        inline bool is_hit_by(const ray& r) const {
+            return measure_distance(r) < infinity;
+        }
 
         /* Minimum and maximum coordinates */
-        min_max_coord get_min_max_coord() const {
+        inline min_max_coord get_min_max_coord() const {
             return build_min_max_coord(corner, corner + dims);
+        }
+
+        /* Returns the corner */
+        inline const rt::vector& get_position() const {
+            return center;
         }
 };

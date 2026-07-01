@@ -81,6 +81,7 @@ set(TRACING_SOURCES
 set(AUXILIARY_ALGORITHMS_SOURCES
 	src/accelerating_structures/octree.cpp
 	src/accelerating_structures/clustering.cpp
+	src/scene/bounding/aabb.cpp
 )
 
 set(MENU_SOURCES

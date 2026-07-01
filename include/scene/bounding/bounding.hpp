@@ -1,6 +1,7 @@
 #pragma once
 
-#include "scene/objects/box.hpp"
+//#include "scene/objects/box.hpp"
+#include "scene/bounding/aabb.hpp"
 #include "auxiliary/custom_stack.hpp"
 
 #include <iostream>
@@ -10,6 +11,8 @@
 class bounding {
 
     public:
+
+        using box_type = aabb;
 
         enum class node_type {
             InternalNode, TerminalNode
@@ -24,7 +27,7 @@ class bounding {
         node_type type;
 
         /* Bounding box */
-        std::unique_ptr<box> b = nullptr;
+        std::unique_ptr<box_type> b = nullptr;
 
     
     private:
@@ -72,11 +75,11 @@ class bounding {
 
         /* Constructor for terminal nodes: container node (for first-level non-triangle objects) if no box provided,
            or terminal node with a bounding box, containing triangles */
-        bounding(std::vector<const object*>&& content, std::unique_ptr<box>&& b = nullptr)
+        bounding(std::vector<const object*>&& content, std::unique_ptr<box_type>&& b = nullptr)
             : type(TerminalNode), b(std::move(b)), node(std::move(content)) {}
 
         /* Internal node constructor */
-        bounding(std::vector<const bounding*>&& children, std::unique_ptr<box>&& b)
+        bounding(std::vector<const bounding*>&& children, std::unique_ptr<box_type>&& b)
             : type(InternalNode), b(std::move(b)), node(std::move(children)) {}
 
         bounding(const bounding&)            = delete;
@@ -120,7 +123,8 @@ class bounding {
                 
             ) const {
 
-            if (b != nullptr && b->is_hit_with_distance(r) >= distance_to_closest)
+            if (b != nullptr && b->measure_distance(r) >= distance_to_closest)
+            //if (b != nullptr && b->is_hit_with_distance(r) >= distance_to_closest)
                 return;
 
             switch (type) {
@@ -145,7 +149,8 @@ class bounding {
 
             bd_stored = false;
 
-            if (b != nullptr && b->is_hit_with_distance(r) >= distance_to_closest)
+            if (b != nullptr && b->measure_distance(r) >= distance_to_closest)
+            //if (b != nullptr && b->is_hit_with_distance(r) >= distance_to_closest)
                 return;
 
             switch (type) {
@@ -192,12 +197,17 @@ requires (requires (T x) { { x.get_min_max_coord() } -> std::same_as<min_max_coo
         p->get_min_max_coord().update_min_max_coord(min, max);
     }
 
-    const rt::vector center = (max + min) / 2.0_r;
-    const auto [ l1, l2, l3 ] = max - min;
+    // const rt::vector center = (max + min) / 2.0_r;
+    // const auto [ l1, l2, l3 ] = max - min;
+
+    const rt::vector& corner = min;
+    const rt::vector dims = max - min;
 
     return new bounding(
         std::forward<std::vector<const T*>>(set),
-        std::make_unique<box>(center, RIGHT, UP, l1, l2, l3));
+        //std::make_unique<bounding::box_type>(center, RIGHT, UP, l1, l2, l3)
+        std::make_unique<bounding::box_type>(corner, dims)
+    );
 }
 
 /* Returns an AABB containing the bounding boxes bd0 and bd1 */
