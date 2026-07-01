@@ -1,7 +1,7 @@
 #pragma once
 
 #include "scene/objects/object.hpp"
-#include "scene/objects/bounding.hpp"
+#include "scene/bounding/bounding.hpp"
 #include "scene/material/texture.hpp"
 #include "auxiliary/randomgen.hpp"
 #include "scene/camera.hpp"

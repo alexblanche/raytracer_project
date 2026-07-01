@@ -131,29 +131,13 @@ hit box::compute_intersection(const ray& r, const real t) const {
 /* Minimum and maximum coordinates */
 min_max_coord box::get_min_max_coord() const {
 
-    // (n1 * a1x) has a positive .x, (n1 * (-a1x)) has a negative one
-    const real a1x = n1.x >= 0 ? 1 : (-1);
-    const real a2x = n2.x >= 0 ? 1 : (-1);
-    const real a3x = n3.x >= 0 ? 1 : (-1);
+    const rt::vector absn1 = rt::abs(n1);
+    const rt::vector absn2 = rt::abs(n2);
+    const rt::vector absn3 = rt::abs(n3);
 
-    const real max_x = (position + l1 * (a1x * n1) + l2 * (a2x * n2) + l3 * (a3x * n3)).x;
-    const real min_x = (position + l1 * ((- a1x) * n1) + l2 * ((- a2x) * n2) + l3 * ((- a3x) * n3)).x;
-
-    const real a1y = n1.y >= 0 ? 1 : (-1);
-    const real a2y = n2.y >= 0 ? 1 : (-1);
-    const real a3y = n3.y >= 0 ? 1 : (-1);
-
-    const real max_y = (position + l1 * (a1y * n1) + l2 * (a2y * n2) + l3 * (a3y * n3)).y;
-    const real min_y = (position + l1 * ((- a1y) * n1) + l2 * ((- a2y) * n2) + l3 * ((- a3y) * n3)).y;
-
-    const real a1z = n1.z >= 0 ? 1 : (-1);
-    const real a2z = n2.z >= 0 ? 1 : (-1);
-    const real a3z = n3.z >= 0 ? 1 : (-1);
-
-    const real max_z = (position + l1 * (a1z * n1) + l2 * (a2z * n2) + l3 * (a3z * n3)).z;
-    const real min_z = (position + l1 * ((- a1z) * n1) + l2 * ((- a2z) * n2) + l3 * ((- a3z) * n3)).z;
-
-    return { min_x, max_x, min_y, max_y, min_z, max_z };
+    const rt::vector m = matprod(absn1, absn2, absn3, get_l());
+    
+    return build_min_max_coord(position - m, position + m);
 }
 
 

@@ -369,12 +369,10 @@ namespace sdl {
 
             template <polling_type type>
             bool next_event() {
-                if constexpr (type == polling_type::Wait) {
+                if constexpr (type == polling_type::Wait)
                     return wait_event();
-                }
-                else {
+                else
                     return poll_event();
-                }
             }
 
             bool wait_event_timeout(int timeout) {

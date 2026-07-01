@@ -28,11 +28,7 @@ struct ray {
                 1.0_r / direction.y,
                 1.0_r / direction.z
             ),
-            abs_inv_dir(
-                std::abs(inv_dir.x),
-                std::abs(inv_dir.y),
-                std::abs(inv_dir.z)
-            ) {}
+            abs_inv_dir(rt::abs(inv_dir)) {}
 
         ray& operator=(ray&&)      = default;
         ray(ray&&)                 = default;

@@ -2,7 +2,7 @@
 
 #include "file_readers/parsers/obj_parser.hpp"
 
-#include "scene/objects/bounding.hpp"
+#include "scene/bounding/bounding.hpp"
 #include "scene/objects/sphere.hpp"
 #include "scene/objects/plane.hpp"
 #include "scene/objects/box.hpp"

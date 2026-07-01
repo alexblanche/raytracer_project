@@ -3,6 +3,7 @@
 #include "parameters.hpp"
 
 #include <cmath>
+#include <algorithm>
 
 namespace rt {
 	
@@ -194,8 +195,37 @@ namespace rt {
 				v3 * a3));
 	}
 
+	/* Returns v.x * v1 + v.y * v2 + v.z * v3 */
 	inline vector matprod(const vector& v1, const vector& v2, const vector& v3, const vector& v) {
 		return matprod(v1, v.x, v2, v.y, v3, v.z);
+	}
+
+	inline vector min(const vector& v1, const vector& v2) {
+		return vector(
+			std::min(v1.x, v2.x),
+			std::min(v1.y, v2.y),
+			std::min(v1.z, v2.z)
+		);
+	}
+
+	inline vector max(const vector& v1, const vector& v2) {
+		return vector(
+			std::max(v1.x, v2.x),
+			std::max(v1.y, v2.y),
+			std::max(v1.z, v2.z)
+		);
+	}
+
+	inline std::pair<rt::vector, rt::vector> min_max(const vector& v1, const vector& v2) {
+		const auto& [ min_x, max_x ] = (v1.x < v2.x) ? std::pair { v1.x, v2.x } : std::pair { v2.x, v1.x };
+		const auto& [ min_y, max_y ] = (v1.y < v2.y) ? std::pair { v1.y, v2.y } : std::pair { v2.y, v1.y };
+		const auto& [ min_z, max_z ] = (v1.z < v2.z) ? std::pair { v1.z, v2.z } : std::pair { v2.z, v1.z };
+
+		return { rt::vector(min_x, min_y, min_z), rt::vector(max_x, max_y, max_z) };
+	}
+
+	inline vector abs(const vector& v) {
+		return vector(std::abs(v.x), std::abs(v.y), std::abs(v.z));
 	}
 }
 

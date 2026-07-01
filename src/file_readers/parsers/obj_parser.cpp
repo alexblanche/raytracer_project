@@ -12,6 +12,8 @@
 #include <stdexcept>
 #include <filesystem>
 
+#include <sstream>
+
 static constexpr bool DISPLAY_HIERARCHY = false;
 
 /* Quad splitting threshold: when the two triangles forming a quad form an angle
@@ -208,8 +210,7 @@ static void add_subdivided_polygon_template(const file& f, const sets& sets,
 
     // Reading triplets until the end of the line
     char c;
-    while ((c = f.getc()) != '\n' && c != EOF) {
-        f.ungetc(c);
+    while ((not f.eof()) && ((c = f.peek_next()) != '\n')) {
 
         int vi, vti, vni;
         const int ret = (normal_enabled) ?
@@ -248,8 +249,6 @@ static void add_subdivided_polygon_template(const file& f, const sets& sets,
 
         cpt++;
     }
-    
-    f.ungetc(c);
 
     // New central vertex
     final_v /= cpt;
@@ -483,7 +482,11 @@ exit_status parse_obj_file(const std::string& file_name,
 
     try {
 
-        // unsigned int cpt_loop = 0;
+        // To be implemented
+        // const std::vector<unsigned char> buffer = f.extract_from();
+        // f.close();
+        // std::istringstream stream(reinterpret_cast<const char*>(buffer.data()));
+        // std::string word;
 
         /* Parsing loop */
         while (not f.eof()) {

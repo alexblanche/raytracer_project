@@ -159,7 +159,6 @@ barycentric_info quad::get_barycentric(const rt::vector& p) const {
     const real l2a = compute_det_2d(v3, c, case_det) / det23;
     
     return barycentric_info(l1a, l2a, object_type::Quad, side::HigherTriangle);
-
 }
 
 inline rt::vector quad::get_interpolated_normal(const barycentric_info& bary) const {
@@ -198,26 +197,23 @@ min_max_coord quad::get_min_max_coord() const {
     const rt::vector p2 = position + v2;
     const rt::vector p3 = position + v3;
 
-    return {
-        .min_x = std::min(position.x, std::min(p1.x, std::min(p2.x, p3.x))),
-        .max_x = std::max(position.x, std::max(p1.x, std::max(p2.x, p3.x))),
+    const auto& [ min23, max23 ] = rt::min_max(p2, p3);
+    const rt::vector min123      = rt::min(p1, min23);
+    const rt::vector max123      = rt::max(p1, max23);
+    const rt::vector min         = rt::min(position, min123);
+    const rt::vector max         = rt::max(position, max123);
 
-        .min_y = std::min(position.y, std::min(p1.y, std::min(p2.y, p3.y))),
-        .max_y = std::max(position.y, std::max(p1.y, std::max(p2.y, p3.y))),
-        
-        .min_z = std::min(position.z, std::min(p1.z, std::min(p2.z, p3.z))),
-        .max_z = std::max(position.z, std::max(p1.z, std::max(p2.z, p3.z)))
-    };
+    return build_min_max_coord(min, max);
 }
 
 /* Prints the quad */
 void quad::print() const {
     printf("p0 = (%lf, %lf, %lf), ", position.x, position.y, position.z);
-    rt::vector p1 = position + v1;
+    const rt::vector p1 = position + v1;
     printf("p1 = (%lf, %lf, %lf), ", p1.x, p1.y, p1.z);
-    rt::vector p2 = position + v2;
+    const rt::vector p2 = position + v2;
     printf("p2 = (%lf, %lf, %lf)\n", p2.x, p2.y, p2.z);
-    rt::vector p3 = position + v3;
+    const rt::vector p3 = position + v3;
     printf("p3 = (%lf, %lf, %lf)\n", p3.x, p3.y, p3.z);
 }
 

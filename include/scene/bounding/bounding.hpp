@@ -200,20 +200,17 @@ requires (requires (T x) { { x.get_min_max_coord() } -> std::same_as<min_max_coo
         std::make_unique<box>(center, RIGHT, UP, l1, l2, l3));
 }
 
-/* Returns a bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
-   containing the bounding boxes bd0 and bd1 */
+/* Returns an AABB containing the bounding boxes bd0 and bd1 */
 [[nodiscard]] inline const bounding* containing_bounding_two(const bounding* bd0, const bounding* bd1) {
     return containing_bounding_template<bounding>({ bd0, bd1 });
 }
 
-/* Returns a non-terminal bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
-   containing the standard non-terminal bounding boxes in the children vector */
+/* Returns a non-terminal AABB containing the non-terminal AABBs in the children vector */
 [[nodiscard]] inline const bounding* containing_bounding_any(std::vector<const bounding*>&& children) {
     return containing_bounding_template(std::move(children));
 }
 
-/* Returns a bounding box (standard, with n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1))
-   containing the objects whose indices are in the obj vector */
+/* Returns an AABB containing the objects whose indices are in the obj vector */
 [[nodiscard]] inline const bounding* containing_objects(std::vector<const object*>&& obj) {
     return containing_bounding_template(std::move(obj));
 }

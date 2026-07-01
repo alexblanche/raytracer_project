@@ -36,3 +36,16 @@ constexpr min_max_coord empty_set_min_max_coords = {
     .min_z =  infinity,
     .max_z = -infinity
 };
+
+constexpr min_max_coord build_min_max_coord(const rt::vector& min, const rt::vector& max) {
+    return {
+        .min_x = min.x,
+        .max_x = max.x,
+
+        .min_y = min.y,
+        .max_y = max.y,
+
+        .min_z = min.z,
+        .max_z = max.z
+    };
+}

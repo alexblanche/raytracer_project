@@ -200,13 +200,18 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
     
     while (change && iterations != 0) {
 
-        if constexpr (DISPLAY_KMEANS)
+        if constexpr (DISPLAY_KMEANS) {
             printf("\rIteration %u / %u",
                 MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS);
-        else
+            fflush(stdout);
+        }
+        /*
+        else {
             printf("\rOptimizing the data structure... Iteration %u / %u",
                 MAX_NUMBER_OF_ITERATIONS - iterations, MAX_NUMBER_OF_ITERATIONS);
-        fflush(stdout);
+            fflush(stdout);
+        }
+        */
 
         /* Updating the means */
         means.clear();
@@ -257,7 +262,7 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
         std::vector<const bounding*> new_bd_nodes;
         
         unsigned int cpt = 0;
-        for (std::vector<element> const& elts : groups) {
+        for (const std::vector<element>& elts : groups) {
             
             if (not elts.empty()) {
                 new_bd_nodes.push_back(containing_bounding_any(element::get_content<const bounding*>(elts)));
@@ -302,7 +307,7 @@ const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
     if constexpr (DISPLAY_KMEANS)
         printf("\nOptimizing the data structure...\n");
     else {
-        printf("\rOptimizing the data structure... ");
+        printf("\rOptimizing the data structure...");
         fflush(stdout);
     }
 

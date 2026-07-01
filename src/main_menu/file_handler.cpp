@@ -41,7 +41,7 @@ exit_status file_handler::export_file(const type file_type, const std::string& f
         case exit_status::Success:
             printf("Saved as %s", output_dir.filename().append(filename).generic_string().c_str());
             if (display_sample_count)
-                printf(" (%d samples)", image.number_of_samples);
+                printf(" (%d samples)       ", image.number_of_samples);
             break;
         
         case exit_status::Failure:

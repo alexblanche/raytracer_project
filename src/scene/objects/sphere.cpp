@@ -80,19 +80,7 @@ hit sphere::compute_intersection(const ray& r, const real t) const {
 min_max_coord sphere::get_min_max_coord() const {
 
     const rt::vector r(radius, radius, radius);
-    const rt::vector min_pos = position - r;
-    const rt::vector max_pos = position + r;
-    
-    return {
-        .min_x = min_pos.x,
-        .max_x = max_pos.x,
-
-        .min_y = min_pos.y,
-        .max_y = max_pos.y,
-
-        .min_z = min_pos.z,
-        .max_z = max_pos.z
-    };
+    return build_min_max_coord(position - r, position + r);
 }
 
 /* Returns the barycentric info for the object (l1 = longitude, l2 = latitude) (both between 0 and 1) */

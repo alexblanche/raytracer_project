@@ -212,37 +212,17 @@ hit cylinder::compute_intersection(const ray& r, const real t) const {
 /* Minimum and maximum coordinates */
 min_max_coord cylinder::get_min_max_coord() const {
 
-    real min_x, max_x, min_y, max_y, min_z, max_z;
-    
-    /* Exact solution is not trivial, so I leave a upper bound */
-    if (direction.x >= 0.0_r) {
-        max_x = position.x + length * direction.x + radius;
-        min_x = position.x - radius;
-    }
-    else {
-        max_x = position.x + radius;
-        min_x = position.x + length * direction.x - radius;
-    }
+    /* Exact solution is not trivial, an upper bound will do */
 
-    if (direction.y >= 0.0_r) {
-        max_y = position.y + direction.y + radius;
-        min_y = position.y - radius;
-    }
-    else {
-        max_y = position.y + radius;
-        min_y = position.y + length * direction.y - radius;
-    }
+    const rt::vector lendir = length * direction;
+    const rt::vector rv(radius, radius, radius);
 
-    if (direction.z >= 0.0_r) {
-        max_z = position.z + length * direction.z + radius;
-        min_z = position.z - radius;
-    }
-    else {
-        max_z = position.z + radius;
-        min_z = position.z + length * direction.z - radius;
-    }
+    const auto [ min_l, max_l ] = rt::min_max(lendir, ZERO);
 
-    return { min_x, max_x, min_y, max_y, min_z, max_z };
+    const rt::vector max = position + rv + max_l;
+    const rt::vector min = position - rv + min_l;
+
+    return build_min_max_coord(min, max);
 }
 
 /* Returns the barycentric info (the texture is mapped onto the top, the bottom, and the curved surface) [to be implemented] */

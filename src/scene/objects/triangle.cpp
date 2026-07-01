@@ -196,18 +196,16 @@ min_max_coord triangle::get_min_max_coord() const {
     const rt::vector p1 = position + v1;
     const rt::vector p2 = position + v2;
 
-    const auto& [ min12_x, max12_x ] = (p1.x < p2.x) ? std::pair{ p1.x, p2.x } : std::pair{ p2.x, p1.x };
-    const auto& [ min12_y, max12_y ] = (p1.y < p2.y) ? std::pair{ p1.y, p2.y } : std::pair{ p2.y, p1.y };
-    const auto& [ min12_z, max12_z ] = (p1.z < p2.z) ? std::pair{ p1.z, p2.z } : std::pair{ p2.z, p1.z };
+    // const auto& [ min12_x, max12_x ] = (p1.x < p2.x) ? std::pair{ p1.x, p2.x } : std::pair{ p2.x, p1.x };
+    // const auto& [ min12_y, max12_y ] = (p1.y < p2.y) ? std::pair{ p1.y, p2.y } : std::pair{ p2.y, p1.y };
+    // const auto& [ min12_z, max12_z ] = (p1.z < p2.z) ? std::pair{ p1.z, p2.z } : std::pair{ p2.z, p1.z };
 
-    return {
-        .min_x = std::min(position.x, min12_x),
-        .max_x = std::max(position.x, max12_x),
-        .min_y = std::min(position.y, min12_y),
-        .max_y = std::max(position.y, max12_y),
-        .min_z = std::min(position.z, min12_z),
-        .max_z = std::max(position.z, max12_z)
-    };
+    const auto& [ min12, max12 ] = rt::min_max(p1, p2);
+
+    const rt::vector min = rt::min(position, min12);
+    const rt::vector max = rt::max(position, max12);
+
+    return build_min_max_coord(min, max);
 }
 
 /* Prints the triangle */
