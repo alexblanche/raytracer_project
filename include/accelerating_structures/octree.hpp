@@ -4,6 +4,9 @@
 
 #include <vector>
 #include <span>
+#include <cstring>
+
+#include <iostream>
 
 struct search_tree {
 
@@ -18,26 +21,36 @@ struct search_tree {
     // Each index contains a boolean that indicates whether the node is terminal (a leaf) or internal
     std::vector<bool_type> terminal_state;
 
-    void initial_resize(unsigned int number_of_nodes) {
-        internal_nodes.resize(number_of_nodes);
-        leaves.resize(number_of_nodes);
-        terminal_state.resize(number_of_nodes);
-        for (bool_type& state : terminal_state)
-            state = false;
-    }
+    private:
+        void resize_containers(unsigned int n) {
 
-    void increase_size(unsigned int wanted_index) {
-        const unsigned int current_size = internal_nodes.size();
-        if (wanted_index < current_size)
-            return;
-        const unsigned int new_size = std::max(static_cast<unsigned int>(2.5f * current_size), wanted_index + 1);
-        internal_nodes.resize(new_size);
-        leaves.resize(new_size);
-        terminal_state.resize(new_size);
-        std::span terms = std::span(terminal_state).subspan(current_size);
-        for (bool_type& state : terms)
-            state = false;
-    }
+            /******************/
+            static unsigned cpt = 0;
+            cpt++;
+            std::cout << "increasing... (to size " << n << ") " << cpt << std::endl;
+            /******************/
+
+            const unsigned int previous_size = terminal_state.size();
+            internal_nodes.resize(n);
+            leaves        .resize(n);
+            terminal_state.resize(n);
+            std::memset(terminal_state.data() + previous_size, 0, (n - previous_size) * sizeof(bool_type));
+        }
+
+    public:
+
+        void initial_resize(unsigned int number_of_nodes) {
+            resize_containers(number_of_nodes);
+        }
+
+        // Increases the size of the containers so that wanted_index is a valide index
+        void increase_size(unsigned int wanted_index) {
+            const unsigned int current_size = internal_nodes.size();
+            if (current_size < wanted_index) {
+                const unsigned int new_size = std::max(static_cast<unsigned int>(2.5f * current_size), wanted_index + 1);
+                resize_containers(new_size);
+            }
+        }
 };
 
 void build_tree(const std::vector<rt::vector>& means, search_tree& tree);
