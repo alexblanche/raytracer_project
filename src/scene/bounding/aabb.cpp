@@ -1,42 +1,52 @@
 #include "scene/bounding/aabb.hpp"
 
+#include <iostream>
+
 #include "auxiliary/utils.hpp"
 
 real aabb::measure_distance(const ray& r) const {
 
     const auto& [ u, dir, inv_dir ] = r;
-    const rt::vector v = u - corner;
-    const rt::vector inside = v * inv_dims;
 
-    if (is_between_zero_and_one(inside.x) && is_between_zero_and_one(inside.y) && is_between_zero_and_one(inside.z)) {
+    const rt::vector v = u - corner;
+
+    if ((v.x > 0.0_r && v.x < dims.x) && (v.y > 0.0_r && v.y < dims.y) && (v.z > 0.0_r && v.z < dims.z)) {
         // u is inside the box
         return 0.0_r;
     }
+
+    /* Only ONE t can reach the box, so we return as soon as one fits */
     
-    // Computation of the distance to the three visible faces from u
-    const rt::vector sign(std::signbit(dir.x), std::signbit(dir.y), std::signbit(dir.z));
-    const rt::vector t = ((dims * sign) - v) * inv_dir;
-    const bool is_admissible_t[3] = { is_positive(t.x), is_positive(t.y), is_positive(t.z) };
+    // constexpr real MAX_DIST = 1000.0_r;
 
-    constexpr rt::vector FAR_AWAY(infinity, infinity, infinity);
-    const rt::vector proj[3] = {
-        is_admissible_t[0] ? r.extend(t.x) : FAR_AWAY,
-        is_admissible_t[1] ? r.extend(t.y) : FAR_AWAY,
-        is_admissible_t[2] ? r.extend(t.z) : FAR_AWAY
-    };
-    const auto& [ px, py, pz ] = proj;
+    const real tx = ((std::signbit(dir.x) ? dims.x : 0.0_r) - v.x) * inv_dir.x;
+    //if (tx > 0.0_r && tx < MAX_DIST) {
+        const real py = std::fma(dir.y, tx, v.y);
+        if (py > 0.0_r && py < dims.y) {
+            const real pz = std::fma(dir.z, tx, v.z);
+            if (pz > 0.0_r && pz < dims.z)
+                return tx > 0.0_r ? tx : infinity;
+        }
+    //}
+    
+    const real ty = ((std::signbit(dir.y) ? dims.y : 0.0_r) - v.y) * inv_dir.y;
+    //if (ty > 0.0_r && ty < MAX_DIST) {
+        const real px = std::fma(dir.x, ty, v.x);
+        if (px > 0.0_r && px < dims.x) {
+            const real pz = std::fma(dir.z, ty, v.z);
+            if (pz > 0.0_r && pz < dims.z)
+                return ty > 0.0_r ? ty : infinity;
+        }
+    //}
 
-    const bool intersects[3] = {
-        is_admissible_t[0] && is_between_zero_and_one(px.y * inv_dims.y) && is_between_zero_and_one(px.z * inv_dims.z),
-        is_admissible_t[1] && is_between_zero_and_one(py.x * inv_dims.x) && is_between_zero_and_one(py.z * inv_dims.z),
-        is_admissible_t[2] && is_between_zero_and_one(pz.x * inv_dims.x) && is_between_zero_and_one(pz.y * inv_dims.y)
-    };
-
-    const rt::vector dist = {
-        intersects[0] ? t.x : infinity,
-        intersects[1] ? t.y : infinity,
-        intersects[2] ? t.z : infinity
-    };
-
-    return std::min(dist.x, std::min(dist.y, dist.z));
+    const real tz = ((std::signbit(dir.z) ? dims.z : 0.0_r) - v.z) * inv_dir.z;
+    if (tz > 0.0_r) { // && tz < MAX_DIST) {
+        const real px = std::fma(dir.x, tz, v.x);
+        if (px > 0.0_r && px < dims.x) {
+            const real py = std::fma(dir.y, tz, v.y);
+            return (py > 0.0_r && py < dims.y) ? tz : infinity;
+        }
+    }
+    
+    return infinity;
 }

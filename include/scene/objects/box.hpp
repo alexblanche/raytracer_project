@@ -16,6 +16,8 @@ class box : public object {
 
     public:
 
+        inline static unsigned int cpt = 0;
+
         /* Main constructor */
         box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
             real l1, real l2, real l3, unsigned int material_index);

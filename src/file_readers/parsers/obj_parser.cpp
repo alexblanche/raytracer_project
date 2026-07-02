@@ -14,7 +14,7 @@
 
 #include <sstream>
 
-static constexpr bool DISPLAY_HIERARCHY = false;
+static constexpr bool DISPLAY_HIERARCHY = true;
 
 /* Quad splitting threshold: when the two triangles forming a quad form an angle
 superior to a certain amount depending on this constant,

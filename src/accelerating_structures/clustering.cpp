@@ -64,11 +64,11 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
 
     using enum search_type;
     search_type search_type = Linear;
-    search_tree tree;
+    search_tree tree(means);
     
     std::cout << "Build tree" << std::endl;
     if (means.size() >= MIN_FOR_TREE_SEARCH) {
-        build_tree(means, tree);
+        build_tree(tree);
         search_type = Accelerated;
     }
     std::cout << "Build tree: done." << std::endl;
@@ -76,7 +76,7 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
     auto search = [&search_type, &means, &tree] (const rt::vector& v) {
         switch (search_type) {
             case Linear:        return linear_search(means, v);
-            case Accelerated:   return tree_search(means, tree, v);
+            case Accelerated:   return tree.search(v);
         }
     };
 

@@ -37,7 +37,7 @@ struct element {
       return std::get<T>(content);
    }
 
-   inline const rt::vector& get_position() const {
+   inline rt::vector get_position() const {
       using enum type;
       switch (type) {
          case Object:

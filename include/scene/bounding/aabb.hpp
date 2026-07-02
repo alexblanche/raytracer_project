@@ -9,15 +9,13 @@ class aabb {
     private:
         rt::vector corner;
         rt::vector dims;
-        rt::vector inv_dims;
-        rt::vector center;
 
     public:
 
+        inline static unsigned int cpt = 0;
+
         aabb(const rt::vector& corner, const rt::vector& dims)
-            :   corner(corner), dims(dims),
-                inv_dims(1.0_r / dims.x, 1.0_r / dims.y, 1.0_r / dims.z),
-                center(fma(dims, 0.5_r, corner)) {}
+            :   corner(corner), dims(dims) {cpt++;}
 
         /* Only measures the distance from the outside of the aabb, otherwise returns 0.0_r */
         real measure_distance(const ray& r) const;
@@ -32,7 +30,7 @@ class aabb {
         }
 
         /* Returns the corner */
-        inline const rt::vector& get_position() const {
-            return center;
+        inline rt::vector get_position() const {
+            return corner + dims;
         }
 };

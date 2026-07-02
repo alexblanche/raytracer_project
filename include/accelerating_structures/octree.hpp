@@ -21,6 +21,12 @@ struct search_tree {
     // Each index contains a boolean that indicates whether the node is terminal (a leaf) or internal
     std::vector<bool_type> terminal_state;
 
+    // Centroids referenced by the tree
+    const std::vector<rt::vector>& means;
+
+    search_tree(const std::vector<rt::vector>& means)
+        : means(means) {}
+
     private:
         void resize_containers(unsigned int n) {
 
@@ -40,6 +46,7 @@ struct search_tree {
     public:
 
         void initial_resize(unsigned int number_of_nodes) {
+            std::cout << "\ninitial_resize: " << number_of_nodes << std::endl;
             resize_containers(number_of_nodes);
         }
 
@@ -47,12 +54,21 @@ struct search_tree {
         void increase_size(unsigned int wanted_index) {
             const unsigned int current_size = internal_nodes.size();
             if (current_size < wanted_index) {
-                const unsigned int new_size = std::max(static_cast<unsigned int>(2.5f * current_size), wanted_index + 1);
+
+                const unsigned int target = static_cast<unsigned int>(2.5f * current_size);
+                /********/
+                std::cout
+                    << "\nincrease_size: size = " << current_size
+                    << ", target = " << target
+                    << ", wanted + 1 = " << wanted_index + 1 << std::endl;
+                /********/
+
+                const unsigned int new_size = std::max(target, wanted_index + 1);
                 resize_containers(new_size);
             }
         }
+
+        unsigned int search(const rt::vector& v);
 };
 
-void build_tree(const std::vector<rt::vector>& means, search_tree& tree);
-
-unsigned int tree_search(const std::vector<rt::vector>& means, const search_tree& tree, const rt::vector& v);// , bool verbose = false);
+void build_tree(search_tree& tree);
