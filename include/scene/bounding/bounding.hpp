@@ -12,7 +12,7 @@ class bounding {
 
     public:
 
-        using box_type = box; //aabb;
+        using box_type = aabb;
 
         enum class node_type {
             InternalNode, TerminalNode
@@ -128,13 +128,13 @@ class bounding {
                 || std::is_same_v<bounding::box_type, aabb>);
 
             if constexpr (std::is_same_v<bounding::box_type, box>) {
-                const box* b_ = reinterpret_cast<const box*>(b.get());
-                if (b != nullptr && b_->is_hit_with_distance(r) >= distance_to_closest)
+                if (b != nullptr
+                    && reinterpret_cast<const box*>(b.get())->is_hit_with_distance(r) >= distance_to_closest)
                     return;
             }
             else if constexpr (std::is_same_v<bounding::box_type, aabb>) {
-                const aabb* b_ = reinterpret_cast<const aabb*>(b.get());
-                if (b != nullptr && b_->measure_distance(r) >= distance_to_closest)
+                if (b != nullptr
+                    && reinterpret_cast<const aabb*>(b.get())->measure_distance(r) >= distance_to_closest)
                     return;
             }
 
@@ -165,13 +165,13 @@ class bounding {
                 || std::is_same_v<bounding::box_type, aabb>);
 
             if constexpr (std::is_same_v<bounding::box_type, box>) {
-                const box* b_ = reinterpret_cast<const box*>(b.get());
-                if (b != nullptr && b_->is_hit_with_distance(r) >= distance_to_closest)
+                if (b != nullptr
+                    && reinterpret_cast<const box*>(b.get())->is_hit_with_distance(r) >= distance_to_closest)
                     return;
             }
             else if constexpr (std::is_same_v<bounding::box_type, aabb>) {
-                const aabb* b_ = reinterpret_cast<const aabb*>(b.get());
-                if (b != nullptr && b_->measure_distance(r) >= distance_to_closest)
+                if (b != nullptr
+                    && reinterpret_cast<const aabb*>(b.get())->measure_distance(r) >= distance_to_closest)
                     return;
             }
 
@@ -234,13 +234,24 @@ requires (requires (T x) { { x.get_min_max_coord() } -> std::same_as<min_max_coo
     }
     else if constexpr (std::is_same_v<bounding::box_type, aabb>) {
 
-        const rt::vector& corner = min;
-        const rt::vector dims = max - min;
+        if constexpr (aabb::type == aabb::type::Corner) {
+            const rt::vector& corner = min;
+            const rt::vector dims = max - min;
 
-        return new bounding(
-            std::forward<std::vector<const T*>>(set),
-            std::make_unique<aabb>(corner, dims)
-        );
+            return new bounding(
+                std::forward<std::vector<const T*>>(set),
+                std::make_unique<aabb>(corner, dims)
+            );
+        }
+        else {
+            const rt::vector& center = (max + min) / 2.0_r;;
+            const rt::vector dims = max - min;
+
+            return new bounding(
+                std::forward<std::vector<const T*>>(set),
+                std::make_unique<aabb>(center, dims)
+            );
+        }
     }
 }
 
@@ -258,4 +269,3 @@ requires (requires (T x) { { x.get_min_max_coord() } -> std::same_as<min_max_coo
 [[nodiscard]] inline const bounding* containing_objects(std::vector<const object*>&& obj) {
     return containing_bounding_template(std::move(obj));
 }
-

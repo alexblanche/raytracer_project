@@ -7,7 +7,7 @@
 #include <mutex>
 #include <queue>
 
-static constexpr unsigned int MAX_NUMBER_OF_ITERATIONS       = 10;
+static constexpr unsigned int MAX_NUMBER_OF_ITERATIONS       = 50;
 static constexpr unsigned int MIN_FOR_TREE_SEARCH            = 50;
 static constexpr unsigned int MIN_NUMBER_OF_POLYGONS_FOR_BOX = 5;
 static constexpr unsigned int CARDINAL_OF_BOX_GROUP          = 3;
@@ -17,7 +17,7 @@ static constexpr unsigned int DEFAULT_STACK_SIZE = 8192;
 static constexpr bool ENABLE_PARALLELISM_FIRST      = true;
 static constexpr bool ENABLE_PARALLELISM_ITERATIONS = true;
 
-static constexpr bool DISPLAY_KMEANS = true;
+static constexpr bool DISPLAY_KMEANS = false;
 
 /** K-means clustering algorithm **/
 
@@ -66,12 +66,12 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
     search_type search_type = Linear;
     search_tree tree(means);
     
-    std::cout << "Build tree" << std::endl;
+    // std::cout << "Build tree" << std::endl;
     if (means.size() >= MIN_FOR_TREE_SEARCH) {
         build_tree(tree);
         search_type = Accelerated;
     }
-    std::cout << "Build tree: done." << std::endl;
+    // std::cout << "Build tree: done." << std::endl;
 
     auto search = [&search_type, &means, &tree] (const rt::vector& v) {
         switch (search_type) {
@@ -91,16 +91,19 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
         std::vector<unsigned int> closest_indices(old_group.size());
 
         if constexpr (ENABLE_PARALLELISM_FIRST) {
+
             parallel_for(old_group.size(), [&] (int i) {
+
                 const element& elt = old_group[i];
                 closest_indices[i] = search(elt.get_position());
             });
+
             for (unsigned int i = 0; i < closest_indices.size(); i++)
                 new_groups[closest_indices[i]].push_back(old_group[i]);
         }
         else {
-            for (const element& elt : old_group) {
 
+            for (const element& elt : old_group) {
                 const unsigned int closest_index = search(elt.get_position());
                 new_groups[closest_index].push_back(elt);
             }

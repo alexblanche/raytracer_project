@@ -6,7 +6,7 @@
 #include <span>
 #include <cstring>
 
-#include <iostream>
+// #include <iostream>
 
 struct search_tree {
 
@@ -31,9 +31,9 @@ struct search_tree {
         void resize_containers(unsigned int n) {
 
             /******************/
-            static unsigned cpt = 0;
-            cpt++;
-            std::cout << "increasing... (to size " << n << ") " << cpt << std::endl;
+            // static unsigned cpt = 0;
+            // cpt++;
+            // std::cout << "increasing... (to size " << n << ") " << cpt << std::endl;
             /******************/
 
             const unsigned int previous_size = terminal_state.size();
@@ -46,7 +46,7 @@ struct search_tree {
     public:
 
         void initial_resize(unsigned int number_of_nodes) {
-            std::cout << "\ninitial_resize: " << number_of_nodes << std::endl;
+            /**/ // std::cout << "\ninitial_resize: " << number_of_nodes << std::endl;
             resize_containers(number_of_nodes);
         }
 
@@ -55,12 +55,14 @@ struct search_tree {
             const unsigned int current_size = internal_nodes.size();
             if (current_size < wanted_index) {
 
+                // if (current_size >= (1u << 25))
+                //     throw std::runtime_error("octree too large\n");
                 const unsigned int target = static_cast<unsigned int>(2.5f * current_size);
                 /********/
-                std::cout
-                    << "\nincrease_size: size = " << current_size
-                    << ", target = " << target
-                    << ", wanted + 1 = " << wanted_index + 1 << std::endl;
+                // std::cout
+                //     << "\nincrease_size: size = " << current_size
+                //     << ", target = " << target
+                //     << ", wanted + 1 = " << wanted_index + 1 << std::endl;
                 /********/
 
                 const unsigned int new_size = std::max(target, wanted_index + 1);

@@ -7,15 +7,33 @@
 
 class aabb {
     private:
-        rt::vector corner;
+        rt::vector position; // position = center if type = Center, or corner if type = Corner
         rt::vector dims;
 
     public:
 
+        enum class type {
+            Center, Corner
+        };
+        using enum type;
+        static constexpr type type = Center;
+
         inline static unsigned int cpt = 0;
 
-        aabb(const rt::vector& corner, const rt::vector& dims)
-            :   corner(corner), dims(dims) {cpt++;}
+        aabb(const rt::vector& position, const rt::vector& dims_)
+            :   position(position) {
+                
+            if constexpr (type == Corner)
+                dims = dims_;
+            else if constexpr (type == Center)
+                dims = dims_ * 0.5_r;
+            
+            cpt++;
+        }
+
+        static constexpr aabb infinite_box() {
+            return aabb(ZERO, rt::vector(infinity, infinity, infinity));
+        }
 
         /* Only measures the distance from the outside of the aabb, otherwise returns 0.0_r */
         real measure_distance(const ray& r) const;
@@ -26,11 +44,19 @@ class aabb {
 
         /* Minimum and maximum coordinates */
         inline min_max_coord get_min_max_coord() const {
-            return build_min_max_coord(corner, corner + dims);
+            if constexpr (type == type::Corner)
+                return build_min_max_coord(position, position + dims);
+            else if constexpr (type == Center)
+                return build_min_max_coord(position - dims, position + dims);
         }
 
         /* Returns the corner */
         inline rt::vector get_position() const {
-            return corner + dims;
+            if constexpr (type == Corner)
+                return position + dims;
+            else if constexpr (type == Center)
+                return position;
         }
 };
+
+static_assert(sizeof(aabb) == 2 * sizeof(rt::vector));

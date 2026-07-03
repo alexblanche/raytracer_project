@@ -30,7 +30,7 @@ class object {
             : position(position), material_index(material_index), texture_information_index(texture_info_index) {}
 
         object(const object&)            = delete;
-        object(object&&)                 = delete;
+        object(object&&)                 = default;
         object& operator=(const object&) = delete;
         object& operator=(object&&)      = delete;
     

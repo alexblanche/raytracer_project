@@ -3,9 +3,9 @@
 #include <optional>
 #include <stack>
 #include <span>
-#include <iostream>
+// #include <iostream>
 
-#include <cassert>
+// #include <cassert>
 
 static constexpr unsigned int MAX_ELTS_PER_LEAF = 10;
 static constexpr unsigned int NB_REGIONS = 8;
@@ -24,7 +24,7 @@ static inline unsigned char region_of(unsigned int index) {
 
 static inline unsigned int index_of_region(unsigned int parent_index, unsigned char relative_region) {
     /******/
-    assert(parent_index + 1 < static_cast<unsigned int>(-1) / 8);
+    // assert(parent_index + 1 < static_cast<unsigned int>(-1) / 8);
     /******/
     return (parent_index << 3u) + relative_region + 1u;
 }
@@ -52,17 +52,27 @@ static inline unsigned int compute_subregion_index(const search_tree& tree, cons
 // Adds the center to the internal nodes
 // Returns an array of 8 unsigned integers containing the starting index of each computed subregion
 static std::array<unsigned int, NB_REGIONS + 1> split(search_tree& tree, const unsigned int index_root,
-    std::span<unsigned int> elts, const unsigned int index_min) {
+    const std::span<unsigned int> elts, const unsigned int index_min) {
 
     const unsigned int nb_indices = elts.size();
     if (nb_indices == 0)
         throw std::runtime_error("split: empty elts\n");
 
+    // std::cout << "\nSplitting "
+    //     << "(index_root = " << index_root
+    //     << ", index_min = " << index_min
+    //     << ", nb_indices = " << nb_indices
+    //     << ")" << std::endl;
+
     // Computing the average coordinates
     rt::vector avg = ZERO;
-    for (unsigned int elt : elts)
+    for (unsigned int elt : elts) {
+        // assert(elt < tree.means.size());
         avg += tree.means[elt];
+    }
     avg /= static_cast<real>(nb_indices);
+
+    // std::cout << "Calling increase" << std::endl;
 
     tree.increase_size(index_root);
     tree.internal_nodes[index_root] = avg;
@@ -74,18 +84,47 @@ static std::array<unsigned int, NB_REGIONS + 1> split(search_tree& tree, const u
     for (unsigned int elt : elts) {
         const rt::vector& v = tree.means[elt];
         const unsigned char region = region_of_point(v, avg);
+        // assert(region < NB_REGIONS);
         nb_elt_region[region]++;
     }
 
+    /*****/
+    // std::cout << "nb_elt_region: (elts.size() = " << elts.size() << ") ";
+    // for (unsigned int n : nb_elt_region)
+    //     std::cout << n << " ";
+    // std::cout << std::endl;
+
+    //if (nb_elt_region[NB_REGIONS - 1] == elts.size()) {
+        // std::cout << //"Pathological case:
+        //     "avg = (" << avg.x << ", " << avg.y << ", " << avg.z << ")" << std::endl;
+    //}
+    /*****/
+
+    /*****/
+    // if (nb_elt_region[NB_REGIONS - 1] == elts.size()) {
+    //     std::cout << "tree.means.size() = " << tree.means.size() << std::endl;
+    //     rt::vector avg = ZERO;
+    //     for (unsigned int elt : elts) {
+    //         const rt::vector& v = tree.means[elt];
+    //         std::cout << "tree.means[" << elt << "] = " << v.x << ", " << v.y << ", " << v.z << "" << std::endl;
+    //         avg += tree.means[elt];
+    //     }
+    //     std::cout << //"Pathological case:
+    //         "avg = (" << avg.x << ", " << avg.y << ", " << avg.z << ")" << std::endl;
+
+    //     exit(1);
+    // }
+    /*****/
+
     /***************/
-    /**/ std::array<unsigned int, NB_REGIONS> first_index_test;
-    /**/ first_index_test.fill(0);
-    /**/ for (unsigned int i = 0; i < NB_REGIONS; i++) {
-    /**/     unsigned int cpt = index_min;
-    /**/     for (unsigned int j = 0; j < i; j++)
-    /**/         cpt += nb_elt_region[j];
-    /**/     first_index_test[i] = cpt;
-    /**/ }
+    // /**/ std::array<unsigned int, NB_REGIONS> first_index_test;
+    // /**/ first_index_test.fill(0);
+    // /**/ for (unsigned int i = 0; i < NB_REGIONS; i++) {
+    // /**/     unsigned int cpt = index_min;
+    // /**/     for (unsigned int j = 0; j < i; j++)
+    // /**/         cpt += nb_elt_region[j];
+    // /**/     first_index_test[i] = cpt;
+    // /**/ }
     /***************/
     
     // Computing partial sums
@@ -97,9 +136,9 @@ static std::array<unsigned int, NB_REGIONS + 1> split(search_tree& tree, const u
         last += nbr;
     }
 
-    /***************/
-    /**/ for (unsigned int i = 0; i < NB_REGIONS; i++)
-    /**/     assert(first_index[i] == first_index_test[i]);
+    // /***************/
+    // /**/ for (unsigned int i = 0; i < NB_REGIONS; i++)
+    // /**/     assert(first_index[i] == first_index_test[i]);
     /***************/
 
     std::array<unsigned int, NB_REGIONS + 1> output;
@@ -107,8 +146,8 @@ static std::array<unsigned int, NB_REGIONS + 1> split(search_tree& tree, const u
     output[NB_REGIONS] = last;
 
     /***************/
-    /**/ for (unsigned int i = 0; i < NB_REGIONS; i++)
-    /**/     assert(output[i] == first_index_test[i]);
+    // /**/ for (unsigned int i = 0; i < NB_REGIONS; i++)
+    // /**/     assert(output[i] == first_index_test[i]);
     /***************/
     
     // Organizing the elements by region
@@ -120,19 +159,32 @@ static std::array<unsigned int, NB_REGIONS + 1> split(search_tree& tree, const u
         const unsigned char region = region_of_point(v, avg);
 
         /*****/
-        /**/ assert((first_index[region] >= index_min) && (first_index[region] - index_min < elts_temp.size()));
+        // /**/ assert((first_index[region] >= index_min) && (first_index[region] - index_min < elts_temp.size()));
         /*****/
 
         elts_temp[first_index[region] - index_min] = elt;
         first_index[region]++;
     }
 
+    // assert(elts_temp.size() == elts.size());
+    // std::cout << "Copying back" << std::endl;
     std::copy(elts_temp.begin(), elts_temp.end(), elts.begin());
+
+    // std::cout << "Split: returning" << std::endl;
     return output;
 }
 
 
 void build_tree(search_tree& tree) {
+
+    // /*****/
+    // std::cout << "tree.means = ";
+    // const int max_ = std::min(100zu, tree.means.size());
+    // for (int i = 0; i < max_; i++) {
+    //     const rt::vector& v = tree.means[i];
+    //     std::cout << "(" << v.x << "," << v.y << "," << v.z << ") ";
+    // }
+    // /*****/
 
     const unsigned int size = tree.means.size();
     const unsigned int initial_tree_size = 10 * size;
@@ -144,8 +196,8 @@ void build_tree(search_tree& tree) {
 
     const unsigned int max_groups = tree.internal_nodes.size();
     /****/
-    /**/ assert(max_groups == initial_tree_size);
-    /**/ std::cout << "max_groups = " << max_groups << " = " << tree.internal_nodes.size();
+    // /**/ assert(max_groups == initial_tree_size);
+    // /**/ std::cout << "max_groups = " << max_groups << " = " << tree.internal_nodes.size();
     /****/
 
     std::vector<unsigned int> g1, g2, gs1, gs2, ti1, ti2;
@@ -161,13 +213,13 @@ void build_tree(search_tree& tree) {
     bool parity = true;
 
     /*******/
-    /**/ int iter = 0;
+    // /**/ int iter = 0;
     /*******/
 
     while (nb_non_terminal_groups != 0) {
 
         /*******/
-        /**/ std::cout << "\nbuild_tree: iter " << (iter++) << std::endl;
+        // /**/ std::cout << "\nbuild_tree: iter " << (iter++) << std::endl;
         /*******/
 
         unsigned int new_nb_non_term_groups = 0;
@@ -187,15 +239,15 @@ void build_tree(search_tree& tree) {
 
         // Split all the groups and compute the terminal nodes
         /*****/
-        /**/ std::cout << "build_tree: nb_non_terminal_groups " << nb_non_terminal_groups << std::endl;
-        /**/ if (nb_non_terminal_groups - 1 >= groups.size())
-        /**/     throw std::runtime_error("loop goes too far\n");
+        // /**/ std::cout << "build_tree: nb_non_terminal_groups " << nb_non_terminal_groups << std::endl;
+        // /**/ if (nb_non_terminal_groups - 1 >= groups.size())
+        // /**/     throw std::runtime_error("loop goes too far\n");
         /*****/
         for (unsigned int g = 0; g < nb_non_terminal_groups; g++) {
 
             /*******/
             //std::cout << "build_tree: group " << g << std::endl;
-            /**/ printf("\rgroup %u", g);
+            // /**/ printf("\rgroup %u", g);
             /*******/
 
             const unsigned int index_min     = groups[g];
@@ -205,42 +257,41 @@ void build_tree(search_tree& tree) {
             /***************/
             /**/ // Why did I leave this throw?
             /**/ // Is it wrong that tree_index >= tree.internal_nodes.size(), since I do an increase_size right after?
-            /**/ if (tree_index >= tree.internal_nodes.size() && not (nb_elts_group <= MAX_ELTS_PER_LEAF)) {
-            /**/     std::cout << std::endl;
-            /**/     //std::cout << "(nb_elts_group <= MAX_ELTS_PER_LEAF) = " << (nb_elts_group <= MAX_ELTS_PER_LEAF) << std::endl;
-            /**/     throw std::runtime_error(
-            /**/         (std::string("Erroneous index: ") + std::to_string(tree_index)
-            /**/         + " (>= " + std::to_string(tree.internal_nodes.size()) + ")\n").c_str());
-            /**/ }
+            // /**/ if (tree_index >= tree.internal_nodes.size() && not (nb_elts_group <= MAX_ELTS_PER_LEAF)) {
+            // /**/     std::cout << std::endl;
+            // /**/     //std::cout << "(nb_elts_group <= MAX_ELTS_PER_LEAF) = " << (nb_elts_group <= MAX_ELTS_PER_LEAF) << std::endl;
+            // /**/     throw std::runtime_error(
+            // /**/         (std::string("Erroneous index: ") + std::to_string(tree_index)
+            // /**/         + " (>= " + std::to_string(tree.internal_nodes.size()) + ")\n").c_str());
+            // /**/ }
             /***************/
-            /**/ if (g >= max_groups) {
-            /**/     std::cout << std::endl;
-            /**/     throw std::runtime_error(
-            /**/         (std::string("Erroneous group: ") + std::to_string(g)
-            /**/         + " (>= " + std::to_string(max_groups) + ")\n").c_str());
-            /**/ }
+            // /**/ if (g >= max_groups) {
+            // /**/     std::cout << std::endl;
+            // /**/     throw std::runtime_error(
+            // /**/         (std::string("Erroneous group: ") + std::to_string(g)
+            // /**/         + " (>= " + std::to_string(max_groups) + ")\n").c_str());
+            // /**/ }
             /***************/
             
-            if (nb_elts_group <= MAX_ELTS_PER_LEAF) {
-
-                /**/ // std::cout << "yes" << std::endl;
-
-                // Compute leaf
-                tree.increase_size(tree_index);
-
-                std::vector<unsigned int>& leaf = tree.leaves[tree_index];
-                leaf.reserve(nb_elts_group);
-                const std::span<const unsigned int> leaf_elts(elts.data() + index_min, nb_elts_group);
-                leaf.insert(leaf.end(), leaf_elts.begin(), leaf_elts.end());
-                tree.terminal_state[tree_index] = true;
-            }
+            bool add_leaf = false;
+            if (nb_elts_group <= MAX_ELTS_PER_LEAF)
+                add_leaf = true;
             else {
 
-                /**/ // std::cout << "no (nb elts = " << nb_elts_group << ")" << std::endl;
+                // /**/ std::cout << "\nno (nb elts = " << nb_elts_group << ")" << std::endl;
 
                 // new_regions has size 9: each of the 8 regions (0..7) is defined by the interval [new_regions[i] .. new_regions[i+1]]
                 const std::array<unsigned int, NB_REGIONS + 1> new_regions =
                     split(tree, tree_index, std::span(elts.data() + index_min, nb_elts_group), index_min);
+
+
+                // Checking for pathological case
+                for (unsigned char i = 0; i < NB_REGIONS; i++) {
+                    if (new_regions[i + 1] - new_regions[i] == nb_elts_group) {
+                        add_leaf = true;
+                        break;
+                    }
+                }
 
                 /***********/
                 // /**/ std::cout << " -> after split: new regions = ";
@@ -249,33 +300,54 @@ void build_tree(search_tree& tree) {
                 // /**/ std::cout << std::endl;
                 /***********/
 
-                // Add the new groups
-                /*******/
-                /**/ static_assert((NB_REGIONS - 1) + 1 < new_regions.size());
-                /*******/
-                for (unsigned char i = 0; i < NB_REGIONS; i++) {
-                    new_groups.push_back(new_regions[i]);
-                    /*****/
-                    /**/ if (new_regions[i + 1] < new_regions[i])
-                    /**/     throw std::runtime_error("unsigned underflow\n");
-                    /*****/
-                    new_group_size.push_back(new_regions[i + 1] - new_regions[i]);
-                    new_tree_indices.push_back(index_of_region(tree_index, i));
+                if (not add_leaf) {
+
+                    // Add the new groups
+                    // std::cout << "new region sizes: ";
+                    for (unsigned char i = 0; i < NB_REGIONS; i++) {
+                        new_groups.push_back(new_regions[i]);
+                        /*****/
+                        // /**/ if (new_regions[i + 1] < new_regions[i])
+                        // /**/     throw std::runtime_error("unsigned underflow\n");
+                        /*****/
+                        new_group_size.push_back(new_regions[i + 1] - new_regions[i]);
+                        // std::cout << new_regions[i + 1] - new_regions[i] << " ";
+                        new_tree_indices.push_back(index_of_region(tree_index, i));
+                    }
+                    new_nb_non_term_groups += NB_REGIONS;
                 }
-                new_nb_non_term_groups += NB_REGIONS;
 
                 /**/ // std::cout << "iter loop end" << std::endl;
+            }
+
+            if (add_leaf) {
+                
+                /**/ // std::cout << "\nAdding a leaf" << std::endl;
+
+                // Compute leaf
+                tree.increase_size(tree_index);
+
+                std::vector<unsigned int>& leaf = tree.leaves[tree_index];
+                // /**/ assert(leaf.capacity() == 0);
+                leaf.reserve(nb_elts_group);
+                const std::span<const unsigned int> leaf_elts(elts.data() + index_min, nb_elts_group);
+                leaf.insert(leaf.end(), leaf_elts.begin(), leaf_elts.end());
+
+                // /**/ assert(leaf.size() == nb_elts_group);
+                
+                tree.terminal_state[tree_index] = true;
+            
             }
 
             /**/ // std::cout << "done." << std::endl;
         }
 
         /*************/
-        /**/ if (new_groups.size() != new_group_size.size() || new_groups.size() != new_tree_indices.size()) {
-        /**/     std::cout << "ERROR" << std::endl;
-        /**/     throw;
-        /**/ }
-        /**/ std::cout << "\nnew_groups.size() = " << new_groups.size() << std::endl;
+        // /**/ if (new_groups.size() != new_group_size.size() || new_groups.size() != new_tree_indices.size()) {
+        // /**/     std::cout << "ERROR, wrong sizes" << std::endl;
+        // /**/     throw;
+        // /**/ }
+        // /**/ std::cout << "\nnew_groups.size() = " << new_groups.size() << std::endl;
         /*************/
 
         parity = not parity;
