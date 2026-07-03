@@ -161,8 +161,7 @@ class bounding {
             bd_stored = false;
 
 
-            static_assert(std::is_same_v<bounding::box_type, box>
-                || std::is_same_v<bounding::box_type, aabb>);
+            static_assert(std::is_same_v<bounding::box_type, box> || std::is_same_v<bounding::box_type, aabb>);
 
             if constexpr (std::is_same_v<bounding::box_type, box>) {
                 if (b != nullptr
@@ -243,7 +242,7 @@ requires (requires (T x) { { x.get_min_max_coord() } -> std::same_as<min_max_coo
                 std::make_unique<aabb>(corner, dims)
             );
         }
-        else {
+        else if constexpr (aabb::type == aabb::type::Center) {
             const rt::vector& center = (max + min) / 2.0_r;;
             const rt::vector dims = max - min;
 

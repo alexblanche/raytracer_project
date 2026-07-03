@@ -7,7 +7,7 @@
 #include <mutex>
 #include <queue>
 
-static constexpr unsigned int MAX_NUMBER_OF_ITERATIONS       = 50;
+static constexpr unsigned int MAX_NUMBER_OF_ITERATIONS       = 10;
 static constexpr unsigned int MIN_FOR_TREE_SEARCH            = 50;
 static constexpr unsigned int MIN_NUMBER_OF_POLYGONS_FOR_BOX = 5;
 static constexpr unsigned int CARDINAL_OF_BOX_GROUP          = 3;
@@ -66,12 +66,10 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
     search_type search_type = Linear;
     search_tree tree(means);
     
-    // std::cout << "Build tree" << std::endl;
     if (means.size() >= MIN_FOR_TREE_SEARCH) {
         build_tree(tree);
         search_type = Accelerated;
     }
-    // std::cout << "Build tree: done." << std::endl;
 
     auto search = [&search_type, &means, &tree] (const rt::vector& v) {
         switch (search_type) {
@@ -121,8 +119,7 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
 
                 for (int i = start; i < end; i++) {
                     const auto& group = old_groups[i];
-                    //closest_indices.reserve(std::max(closest_indices.size() + group.size(), closest_indices.capacity()));
-
+                    
                     for (const element& elt : group) {
                         const unsigned int closest_index = search(elt.get_position());
                         change = change || (closest_index != static_cast<unsigned int>(i));
@@ -197,12 +194,9 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
         means[i] = obj[static_cast<int>(i * step)].get_position();
     
     std::vector<std::vector<element>> groups(k);
-    // std::cout << "assign_to_closest..." << std::endl;
     assign_to_closest({ obj }, groups, means);
-    // std::cout << "Done.\nfill_empty_clusters..." << std::endl;
     fill_empty_clusters(groups);
-    // std::cout << "Done." << std::endl;
-
+    
     unsigned int iterations = MAX_NUMBER_OF_ITERATIONS;
     bool change = true;
     
@@ -221,30 +215,21 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
         }
         /**/
 
-        // std::cout << "\nA" << std::endl;
-
         /* Updating the means */
         means.clear();
         for (const std::vector<element>& group : groups) {
             if (not group.empty())
                 means.emplace_back(compute_centroid(group));
         }
-        // std::cout << "B" << std::endl;
 
         /* Re-assigning the objects to the right group */
         std::vector<std::vector<element>> new_groups(k);
         change = assign_to_closest(groups, new_groups, means);
 
-        // std::cout << "C" << std::endl;
-
         fill_empty_clusters(new_groups);
-
-        // std::cout << "D" << std::endl;
 
         groups.clear();
         groups.swap(new_groups);
-
-        // std::cout << "E" << std::endl;
 
         if (change)
             iterations--;
@@ -255,9 +240,7 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
             MAX_NUMBER_OF_ITERATIONS - iterations,
             (MAX_NUMBER_OF_ITERATIONS - iterations < 2) ? "" : "s",
             MAX_NUMBER_OF_ITERATIONS, obj.size(), k);
-
-    // std::cout << "F" << std::endl;
-
+    
     return groups;
 }
 
@@ -275,13 +258,9 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
 
     while (nodes.size() > CARDINAL_OF_BOX_GROUP) {
 
-        // std::cout << "AAA " << nodes.size() << " > " << CARDINAL_OF_BOX_GROUP << std::endl;
-
         const unsigned int k = 1 + nodes.size() / CARDINAL_OF_BOX_GROUP;
 
         const std::vector<std::vector<element>> groups = k_means(nodes, k);
-
-        // std::cout << "A" << std::endl;
 
         std::vector<const bounding*> new_bd_nodes;
         
@@ -376,7 +355,7 @@ void display_hierarchy_properties(const bounding* bd0) {
         /* Computing min, max and average arity of the nodes on the stack
            If one node is terminal, its arity counts as zero. */
         unsigned int terminal_nodes = 0;
-        unsigned int min = -1;
+        unsigned int min = static_cast<unsigned int>(-1);
         unsigned int max = 0;
         unsigned int total = 0;
         const unsigned int number_of_nodes = bds.get_size();
