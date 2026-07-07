@@ -24,12 +24,12 @@ class hit {
         orientation_type orientation;
 
     public:
-        hit(const ray* generator, const rt::vector& point, const rt::vector& normal, const object* hit_object)
-            : generator(generator), point(point), normal(normal), hit_object(hit_object),
-            orientation (((generator->direction | normal) <= 0.0f) ? orientation_type::Inward : orientation_type::Outward) {}
-
         hit(const ray* generator, const rt::vector& point, const rt::vector& normal, const object* hit_object, const orientation_type orientation)
             : generator(generator), point(point), normal(normal), hit_object(hit_object), orientation(orientation) {}
+
+        using enum orientation_type;
+        hit(const ray* generator, const rt::vector& point, const rt::vector& normal, const object* hit_object)
+            : hit(generator, point, normal, hit_object, (generator->direction | normal) <= 0.0f ? Inward : Outward) {}
 
         inline const rt::vector& get_point() const {
             return point;

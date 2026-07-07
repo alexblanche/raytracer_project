@@ -210,47 +210,35 @@ requires (requires (T x) { { x.get_min_max_coord() } -> std::same_as<min_max_coo
             return new bounding({ set[0] });
     }
 
-    rt::vector max = min_max_coord::max_empty;
-    rt::vector min = min_max_coord::min_empty;
-
     /* Computation of the dimensions of the object set */
-    for(const T* p : set) {
-        p->get_min_max_coord().update_min_max_coord(min, max);
-    }
+    const auto [ min, max ] = compute_bounding_vectors(set);
 
     static_assert(std::is_same_v<bounding::box_type, box>
         || std::is_same_v<bounding::box_type, aabb>);
 
-    if constexpr (std::is_same_v<bounding::box_type, box>) {
+    /* Creation of the bounding object depending on the type of box and type of AABB */
 
-        const rt::vector center = (max + min) / 2.0_r;
-        const auto [ l1, l2, l3 ] = max - min;
+    const rt::vector& corner = min;
+    const rt::vector center = (max + min) / 2.0_r;
+    const rt::vector dims = max - min;
+    const auto [ l1, l2, l3 ] = dims;
 
+    if constexpr (std::is_same_v<bounding::box_type, box>)
         return new bounding(
             std::forward<std::vector<const T*>>(set),
             std::make_unique<box>(center, RIGHT, UP, l1, l2, l3)
         );
-    }
     else if constexpr (std::is_same_v<bounding::box_type, aabb>) {
-
-        if constexpr (aabb::type == aabb::type::Corner) {
-            const rt::vector& corner = min;
-            const rt::vector dims = max - min;
-
+        if constexpr (aabb::type == aabb::type::Corner)
             return new bounding(
                 std::forward<std::vector<const T*>>(set),
                 std::make_unique<aabb>(corner, dims)
             );
-        }
-        else if constexpr (aabb::type == aabb::type::Center) {
-            const rt::vector& center = (max + min) / 2.0_r;;
-            const rt::vector dims = max - min;
-
+        else if constexpr (aabb::type == aabb::type::Center)
             return new bounding(
                 std::forward<std::vector<const T*>>(set),
                 std::make_unique<aabb>(center, dims)
             );
-        }
     }
 }
 

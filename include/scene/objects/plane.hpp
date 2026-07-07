@@ -3,8 +3,8 @@
 #include "scene/objects/object.hpp"
 
 struct plane_orientation {
-    rt::vector right_dir   = rt::vector(1, 0,  0);
-    rt::vector down_dir    = rt::vector(0, 0, -1);
+    rt::vector right_dir   = RIGHT;
+    rt::vector down_dir    = FORWARD;
     real inv_texture_scale = 1.0_r;
 };
 

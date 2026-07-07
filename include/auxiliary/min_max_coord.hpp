@@ -3,10 +3,13 @@
 #include "parameters.hpp"
 #include "light/vector.hpp"
 
+#include <vector>
+#include <tuple>
+
 struct min_max_coord {
     real min_x, max_x, min_y, max_y, min_z, max_z;
 
-    void update_min_max_coord(rt::vector& min, rt::vector& max) {
+    void update(rt::vector& min, rt::vector& max) {
 
         min = {
             std::min(min.x, min_x),
@@ -48,4 +51,19 @@ constexpr min_max_coord build_min_max_coord(const rt::vector& min, const rt::vec
         .min_z = min.z,
         .max_z = max.z
     };
+}
+
+/* Returns two vectors [ min, max ]
+   The set of objects are contained within min and min + max */
+template<typename T>
+requires (requires (T x) { { x.get_min_max_coord() } -> std::same_as<min_max_coord>; })
+std::pair<rt::vector, rt::vector> compute_bounding_vectors(const std::vector<const T*>& set) {
+    
+    rt::vector max = min_max_coord::max_empty;
+    rt::vector min = min_max_coord::min_empty;
+
+    for (const T* p : set)
+        p->get_min_max_coord().update(min, max);
+    
+    return { min, max };
 }
