@@ -12,9 +12,6 @@
 #include <stdexcept>
 #include <filesystem>
 
-#include <sstream>
-#include <limits>
-
 #include "auxiliary/timer.hpp"
 
 static constexpr bool DISPLAY_HIERARCHY = false;
@@ -26,10 +23,9 @@ split the quad into two triangles, to solve some visual glitches */
 /* History: for the stool, 1.0E-6 is sufficient, but leaves visible glitches on the "Porsche 2016" test model. 1.0E-7 removes them. */
 static constexpr real QUAD_SPLIT_THRESHOLD = 1.0e-7_r;
 
-// static constexpr unsigned int MAX_NAME_LENGTH     = 64;
-// static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
+static constexpr unsigned int MAX_NAME_LENGTH     = 64;
+static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
 
-constexpr std::streamsize MAX_LINE_SIZE = std::numeric_limits<std::streamsize>::max();
 
 struct sets {
     const std::vector<rt::vector>&   vertex_set;
@@ -181,7 +177,7 @@ static inline void add_polygon(const sets& sets, const bool bounding_enabled,
 
 /* Auxiliary function that subdivides a polygon with more than 5 sides into triangles, and adds all of them */
 template<normal normal_option = normal::Enabled>
-static void add_subdivided_polygon_template(std::istringstream& stream, const sets& sets,
+static void add_subdivided_polygon_template(const file& f, const sets& sets,
     const bool bounding_enabled, unsigned int& number_of_polygons, unsigned int& number_of_triangles,
     const rt::vector& shift, const real scale,
     index_array<5>&& v, index_array<5>&& vt, index_array<5>&& vn,
@@ -189,7 +185,7 @@ static void add_subdivided_polygon_template(std::istringstream& stream, const se
     texturing texturing_option) {
 
     constexpr bool normal_enabled = normal_option == normal::Enabled;
-    const bool apply_texture = texturing_option == texturing::Enabled;
+    bool apply_texture = texturing_option == texturing::Enabled;
 
     const std::string error_message = "Error in parsing of polygons of at least 5 sides ("
         + std::string(normal_enabled ? "with" : "without") + "normal)\n";
@@ -213,18 +209,25 @@ static void add_subdivided_polygon_template(std::istringstream& stream, const se
     unsigned int cpt = 5;
 
     // Reading triplets until the end of the line
-    
-    while ((not stream.eof()) && ((stream.peek()) != '\n')) {
+    char c;
+    while ((not f.eof()) && ((c = f.peek_next()) != '\n')) {
 
         int vi, vti, vni;
-        stream >> vi;
-        if (stream.peek() == '/') {
-            stream.get(); // '/'
-            if (apply_texture)
-                stream >> vti;
-            char d; // receives '/'
-            if constexpr (normal_enabled)
-                stream >> d >> vni;
+        const int ret = (normal_enabled) ?
+              f.scanf_count(" %d/%d/%d", vi, vti, vni)
+            : f.scanf_count(" %d/%d",    vi, vti);
+
+        if (ret < 1)
+            throw std::runtime_error(error_message.c_str());
+        
+        if (ret == 1) {
+            if constexpr (normal_enabled) {
+                const int ret2 = f.scanf_count("/%d", vni);
+                if (ret2 != 1)
+                    throw std::runtime_error((error_message + " [2]\n").c_str());
+            }
+            texturing_option = texturing::Disabled;
+            apply_texture = false;
         }
 
         correct(vi, vertex_set.size() - 1);
@@ -423,27 +426,24 @@ exit_status parse_obj_file(const std::string& file_name,
         }
     };
 
-    auto add_subdivided_polygon = [&] (std::istringstream& stream,
-        index_array<5>&& v, index_array<5>&& vt, index_array<5>&& vn,
+    auto add_subdivided_polygon = [&] (index_array<5>&& v, index_array<5>&& vt, index_array<5>&& vn,
         const texturing texturing_option, const normal normal_option = normal::Enabled) {
         
         if (normal_option == normal::Enabled)
-            add_subdivided_polygon_template<normal::Enabled>(stream, sets, bounding_enabled,
+            add_subdivided_polygon_template<normal::Enabled>(f, sets, bounding_enabled,
                 number_of_polygons, number_of_triangles,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
                 current_texture_index, current_material_index, texturing_option
             );
         else
-            add_subdivided_polygon_template<normal::Disabled>(stream, sets, bounding_enabled,
+            add_subdivided_polygon_template<normal::Disabled>(f, sets, bounding_enabled,
                 number_of_polygons, number_of_triangles,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
                 current_texture_index, current_material_index, texturing_option
             );
     };
 
-    // nb should be 3 (for triangle), 4 (for quad) or 5 (for polygon with 5 vertices or more)
-    auto add_geometry = [&] (std::istringstream& stream,
-        const int nb, const texturing texturing_option, const normal normal_option,
+    auto add_geometry = [&] (const int nb, const texturing texturing_option, const normal normal_option,
         index_array<5>&& v, index_array<5>&& vt, index_array<5>&& vn) {
 
         if (nb < 3 || nb > 5)
@@ -473,7 +473,7 @@ exit_status parse_obj_file(const std::string& file_name,
                 ); break;
             default:
                 /* Polygons with more than 4 sides */
-                add_subdivided_polygon(stream,
+                add_subdivided_polygon(
                     { v1, v2, v3, v4, v5 }, { vt1, vt2, vt3, vt4, vt5 }, { vn1, vn2, vn3, vn4, vn5 },
                     texturing_option, normal_option
                 ); break;
@@ -486,15 +486,11 @@ exit_status parse_obj_file(const std::string& file_name,
 
     try {
 
-        const std::vector<unsigned char> buffer = f.extract_from();
-        f.close();
-
-        std::istringstream stream(reinterpret_cast<const char*>(buffer.data()));
-        std::istringstream line_stream;
-        std::string arg, line;
-
         /* Parsing loop */
-        while (stream >> arg) {
+        while (not f.eof()) {
+
+            // longest items are usemtl, mtllib
+            const std::string arg = f.read_string(6);
             
             /* New group definition
                 If bounding_enabled is true, the current content vector of polygons
@@ -513,33 +509,26 @@ exit_status parse_obj_file(const std::string& file_name,
             /* Commented line, or ignored command */
             if (arg.starts_with("#") || belongs_to(arg, { "s", "l", "g", "o", "vp" })) {
 
-                stream.ignore(MAX_LINE_SIZE, '\n');
+                f.skip_line();
                 continue;
             }
 
             if (arg == "v") {
                 /* Vertex definition */
-                double x, y, z;
-                stream >> x >> y >> z;
-
-                // std::cout << "v " << x << " " << y << " " << z << std::endl;
-                
+                const auto [ x, y, z ] = f.scan<double, 3>();
                 vertex_set.emplace_back(x, y, z);
                 number_of_vertices++;
 
                 /* Updating max dimensions */
-                min = rt::min(min, vertex_set.back());
-                max = rt::max(max, vertex_set.back());
+                min = { std::min(min.x, x), std::min(min.y, y), std::min(min.z, z) };
+                max = { std::max(max.x, x), std::max(max.y, y), std::max(max.z, z) };
 
                 continue;
             }
             
             if (arg == "vt") {
                 /* Texture UV-coordinates definition */
-                double u, v;
-                stream >> u >> v;
-
-                // std::cout << "vt " << u << " " << v << std::endl;
+                const auto [ u, v ] = f.scan<double, 2>();
                 
                 if (is_between_zero_and_one(u) && is_between_zero_and_one(v)) [[likely]] {
                     
@@ -558,9 +547,7 @@ exit_status parse_obj_file(const std::string& file_name,
 
             if (arg == "vn") {
                 /* Vertex normal definition */
-                double x, y, z;
-                stream >> x >> y >> z;
-
+                const auto [ x, y, z ] = f.scan<double, 3>();
                 normal_set.emplace_back(x, y, z);
                 number_of_normals++;
 
@@ -569,8 +556,7 @@ exit_status parse_obj_file(const std::string& file_name,
 
             if (arg == "usemtl") {
                 /* Using a new material */
-                std::string m_name;
-                stream >> m_name;
+                const std::string m_name = f.read_string(MAX_NAME_LENGTH);
 
                 /* Looking up the material name in the vector of already declared material names */
                 const std::optional<unsigned int> vindex = wrapper<material>::find_element(material_wrapper_set, m_name);
@@ -591,8 +577,7 @@ exit_status parse_obj_file(const std::string& file_name,
             }
             
             if (arg == "mtllib") {
-                std::string mtl_file_name;
-                stream >> mtl_file_name;
+                const std::string mtl_file_name = f.read_string(MAX_FILENAME_LENGTH);
 
                 const exit_status mtl_parsing_successful =
                 parse_mtl_file(path, mtl_file_name, material_wrapper_set,
@@ -603,6 +588,7 @@ exit_status parse_obj_file(const std::string& file_name,
             }
 
             if (arg == "f") {
+                /* Face declaration */
 
                 if (first) {
                     timer.stop();
@@ -612,67 +598,69 @@ exit_status parse_obj_file(const std::string& file_name,
                     timer.start();
                 }
 
-                /* Face declaration */
+                /* 3 or 4 vertices will be parsed */
+                int v1, vt1, vn1, v2, vt2, vn2, v3, vt3, vn3, v4, vt4, vn4, v5, vt5, vn5;
+                const int ret = f.scanf_count("%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d",
+                    v1, vt1, vn1, v2, vt2, vn2, v3, vt3, vn3, v4, vt4, vn4, v5, vt5, vn5);
 
-                std::getline(stream, line, '\n');
-                line_stream = std::istringstream(std::move(line));
+                int nb = 0;
+                texturing this_texturing_option = texturing_option;
+                normal this_normal_option = normal::Enabled;
 
-                std::array<int, 5> v, vt, vn;
-                line_stream >> v[0];
-
-                enum class face_type {
-                    Full, NoTexture, NoNormal, NoTextureNoNormal
-                };
-                using enum face_type;
-
-                face_type face_type = Full;
-
-                int nb = 1;
-                if (line_stream.peek() == ' ') {
-                    face_type = NoTextureNoNormal;
-                    while (nb < 5 && line_stream >> v[nb])
-                        nb++;
-                }
-                else {
-                    char d1, d2; // receive '/'
-                    line_stream.get(); // '/'
-                    if (line_stream.peek() == '/') {
-                        face_type = NoTexture;
-                        line_stream >> d1 >> vn[0];
-                        while (nb < 5 && line_stream >> v[nb] >> d1 >> d2 >> vn[nb])
-                            nb++;
+                switch (ret) {
+                    case 9:
+                    case 12:
+                    case 15: {
+                        nb = ret / 3;
+                        break;
                     }
-                    else {
-                        line_stream >> vt[0];
-                        if (line_stream.peek() == '/') {
-                            face_type = Full;
-                            line_stream >> d1 >> vn[0];
-                            while (nb < 5 && line_stream >> v[nb] >> d1 >> vt[nb] >> d2 >> vn[nb])
-                                nb++;
+                    case 1: {
+                        /* Neither texture coordinates nor the vertex normals are specified */
+                        const char c = f.getc();
+                        if (c == ' ') {
+                            // f v1 v2 v3 ...
+                            const int ret2 = f.scanf_count("%d %d %d %d", v2, v3, v4, v5);
+
+                            // Polygon with no texture and no normal
+                            nb = ret2 + 1;
+                            this_texturing_option = texturing::Disabled;
+                            this_normal_option = normal::Disabled;
                         }
                         else {
-                            face_type = NoNormal;
-                            while (nb < 5 && line_stream >> v[nb] >> d1 >> vt[nb])
-                                nb++;
+                            // By elimination: c = '/'
+                            // f v1//vn1 v2//vn2 ...
+                            const int ret2 = f.scanf_count("%d %d//%d %d//%d %d//%d %d//%d",
+                                vn1, v2, vn2, v3, vn3, v4, vn4, v5, vn5);
+                            
+                            // Untextured polygon
+                            nb = (ret2 % 2 == 1) ? 1 + (ret2 / 2) : 0;
+                            this_texturing_option = texturing::Disabled;
                         }
+                        break;
                     }
-                }
-                
-                const texturing this_texturing_option = belongs_to(face_type, { NoTexture, NoTextureNoNormal }) ?
-                      texturing::Disabled
-                    : texturing_option;
-                
-                const normal this_normal_option = belongs_to(face_type, { NoNormal, NoTextureNoNormal }) ?
-                      normal::Disabled
-                    : normal::Enabled;
+                    case 2: {
+                        // f v1/vt1 v2/vt2 ...
+                        const int ret2 = f.scanf_count("%d/%d %d/%d %d/%d %d/%d",
+                            v2, vt2, v3, vt3, v4, vt4, v5, vt5);
 
-                add_geometry(line_stream, nb, this_texturing_option, this_normal_option,
-                    std::move(v), std::move(vt), std::move(vn)
+                        // Polygon with texture and no normal
+                        nb = (ret2 % 2 == 0) ? 1 + (ret2 / 2) : 0;
+                        this_normal_option = normal::Disabled;
+                        break;
+                    }
+                    default:
+                        throw std::runtime_error("Unexpected syntax");
+                }
+
+                add_geometry(nb, this_texturing_option, this_normal_option,
+                    { v1, v2, v3, v4, v5 }, { vt1, vt2, vt3, vt4, vt5 }, { vn1, vn2, vn3, vn4, vn5 }
                 );
 
                 continue;
             }
         }
+        
+        f.close();
         
         if (bounding_enabled) {
             /* Placing the last group into a bounding */
@@ -699,7 +687,7 @@ exit_status parse_obj_file(const std::string& file_name,
             printf("Rescaled/shifted dimensions: (x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf])\n",
                 scaled_min.x, scaled_max.x, scaled_min.y, scaled_max.y, scaled_min.z, scaled_max.z);
         }
-                
+
         timer.stop();
         std::cout << "faces: " << std::endl;
         timer.print();
