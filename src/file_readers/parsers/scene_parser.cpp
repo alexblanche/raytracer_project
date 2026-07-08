@@ -22,6 +22,8 @@
 #include <filesystem>
 #include <stdexcept>
 
+#include "auxiliary/timer.hpp"
+
 static constexpr unsigned int MAX_NAME_LENGTH     = 64;
 static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
 
@@ -687,6 +689,9 @@ static void parse_objects(const file& f, const object_type type, const std::stri
 
 std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
+    timer_ms timer;
+    timer.start();
+
     std::optional<scene> scene_opt;
 
     try {
@@ -977,6 +982,9 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         printf("Scene creation failed\n");
     }
     catch (...) {}
+
+    timer.stop();
+    timer.print();
 
     return scene_opt;
 }
