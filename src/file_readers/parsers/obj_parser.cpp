@@ -14,8 +14,7 @@
 
 #include <sstream>
 #include <limits>
-
-#include "auxiliary/timer.hpp"
+#include <charconv>
 
 static constexpr bool DISPLAY_HIERARCHY = false;
 
@@ -48,7 +47,7 @@ static inline int correct(int& v, const int n) {
     return (v += (v < 0 ? n + 1 : 0));
 }
 
-static inline  std::pair<rt::vector, rt::vector> compute_normals(
+static inline std::pair<rt::vector, rt::vector> compute_normals(
     const std::vector<rt::vector>& vertex_set, const index_array<4>& vi) {
 
     const auto& [ v1, v2, v3, v4 ] = vi;
@@ -56,6 +55,20 @@ static inline  std::pair<rt::vector, rt::vector> compute_normals(
         ((vertex_set[v2] - vertex_set[v1]) ^ (vertex_set[v3] - vertex_set[v1])).unit(),
         ((vertex_set[v3] - vertex_set[v1]) ^ (vertex_set[v4] - vertex_set[v1])).unit()
     };
+}
+
+/* Parses and returns size values of type T, and modifies the buffer variable to the next position */
+template<typename T, int size>
+requires std::is_arithmetic_v<T>
+static std::array<T, size> parse(const char *& buffer, unsigned int max_length) {
+    std::array<T, size> v;
+    const char * pt = buffer;
+    for (int i = 0; i < size; i++) {
+        const auto [ p, _ ] = std::from_chars(pt, pt + max_length, v[i]);
+        pt = p + 1;
+    }
+    buffer = pt;
+    return v;
 }
 
 /* Wavefront .obj file parser */
@@ -292,6 +305,56 @@ static void add_subdivided_polygon_template(std::istringstream& stream, const se
     );
 }
 
+enum class face_type {
+    Full, NoTexture, NoNormal, NoTextureNoNormal
+};
+
+bool parse_face(std::istringstream& stream,
+    const int nb, const face_type face_type,
+    index_array<5>& v, index_array<5>& vt, index_array<5>& vn) {
+    
+    std::string line;
+    std::getline(stream, line);
+    const char* pt = line.data() + 2; // skip "f "
+
+    using enum face_type;
+    switch (face_type) {
+        case Full:
+            for (int i = 0; i < nb; i++) {
+                const auto [ vi, vti, vni ] = parse<int, 3>(pt, line.size());
+                v[i]  = vi;
+                vt[i] = vti;
+                vn[i] = vni;
+            }
+            break;
+
+        case NoTexture:
+            for (int i = 0; i < nb; i++) {
+                const auto [ vi, _, vni ] = parse<int, 3>(pt, line.size());
+                v[i]  = vi;
+                vn[i] = vni;
+            }
+            break;
+
+        case NoNormal:
+            for (int i = 0; i < nb; i++) {
+                const auto [ vi, vti ] = parse<int, 2>(pt, line.size());
+                v[i]  = vi;
+                vt[i] = vti;
+            }
+            break;
+        
+        case NoTextureNoNormal:
+            for (int i = 0; i < nb; i++) {
+                const auto [ p, _ ] = std::from_chars(pt, pt + line.size(), v[i]);
+                pt = p + 1;
+            }
+            break;
+    }
+
+    return true;
+}
+
 /* Parses .obj file file_name. Triangles and quads are added to obj_set,
 with material indices (defined with the keyword usemtl) found in material_names
 
@@ -444,7 +507,7 @@ exit_status parse_obj_file(const std::string& file_name,
     // nb should be 3 (for triangle), 4 (for quad) or 5 (for polygon with 5 vertices or more)
     auto add_geometry = [&] (std::istringstream& stream,
         const int nb, const texturing texturing_option, const normal normal_option,
-        index_array<5>&& v, index_array<5>&& vt, index_array<5>&& vn) {
+        index_array<5>& v, index_array<5>& vt, index_array<5>& vn) {
 
         if (nb < 3 || nb > 5)
             throw std::runtime_error((std::string("add_geometry: Incorrect parameter nb = ") + std::to_string(nb)).c_str());
@@ -479,10 +542,6 @@ exit_status parse_obj_file(const std::string& file_name,
                 ); break;
         }    
     };
-
-    timer_ms timer;
-    bool first = true;
-    timer.start();
 
     try {
 
@@ -519,10 +578,10 @@ exit_status parse_obj_file(const std::string& file_name,
 
             if (arg == "v") {
                 /* Vertex definition */
-                double x, y, z;
-                stream >> x >> y >> z;
 
-                // std::cout << "v " << x << " " << y << " " << z << std::endl;
+                std::getline(stream, line);
+                const char * buffer = line.data() + 1;
+                const auto [ x, y, z ] = parse<double, 3>(buffer, line.size());
                 
                 vertex_set.emplace_back(x, y, z);
                 number_of_vertices++;
@@ -536,10 +595,10 @@ exit_status parse_obj_file(const std::string& file_name,
             
             if (arg == "vt") {
                 /* Texture UV-coordinates definition */
-                double u, v;
-                stream >> u >> v;
 
-                // std::cout << "vt " << u << " " << v << std::endl;
+                std::getline(stream, line);
+                const char * buffer = line.data() + 1;
+                const auto [ u, v ] = parse<double, 2>(buffer, line.size());
                 
                 if (is_between_zero_and_one(u) && is_between_zero_and_one(v)) [[likely]] {
                     
@@ -558,9 +617,10 @@ exit_status parse_obj_file(const std::string& file_name,
 
             if (arg == "vn") {
                 /* Vertex normal definition */
-                double x, y, z;
-                stream >> x >> y >> z;
-
+                std::getline(stream, line);
+                const char * buffer = line.data() + 1;
+                const auto [ x, y, z ] = parse<double, 3>(buffer, line.size());
+                
                 normal_set.emplace_back(x, y, z);
                 number_of_normals++;
 
@@ -604,25 +664,14 @@ exit_status parse_obj_file(const std::string& file_name,
 
             if (arg == "f") {
 
-                if (first) {
-                    timer.stop();
-                    std::cout << "vertices: " << std::endl;
-                    timer.print();
-                    first = false;
-                    timer.start();
-                }
-
                 /* Face declaration */
 
                 std::getline(stream, line, '\n');
                 line_stream = std::istringstream(std::move(line));
 
-                std::array<int, 5> v, vt, vn;
+                index_array<5> v, vt, vn;
                 line_stream >> v[0];
 
-                enum class face_type {
-                    Full, NoTexture, NoNormal, NoTextureNoNormal
-                };
                 using enum face_type;
 
                 face_type face_type = Full;
@@ -666,9 +715,11 @@ exit_status parse_obj_file(const std::string& file_name,
                       normal::Disabled
                     : normal::Enabled;
 
-                add_geometry(line_stream, nb, this_texturing_option, this_normal_option,
-                    std::move(v), std::move(vt), std::move(vn)
-                );
+                add_geometry(line_stream, nb, this_texturing_option, this_normal_option, v, vt, vn);
+
+                while ((not stream.eof()) && (stream.peek() == 'f') && parse_face(stream, nb, face_type, v, vt, vn)) {
+                    add_geometry(line_stream, nb, this_texturing_option, this_normal_option, v, vt, vn);
+                }
 
                 continue;
             }
@@ -699,10 +750,6 @@ exit_status parse_obj_file(const std::string& file_name,
             printf("Rescaled/shifted dimensions: (x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf])\n",
                 scaled_min.x, scaled_max.x, scaled_min.y, scaled_max.y, scaled_min.z, scaled_max.z);
         }
-                
-        timer.stop();
-        std::cout << "faces: " << std::endl;
-        timer.print();
 
         return exit_status::Success;
     }
