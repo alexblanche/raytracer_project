@@ -117,7 +117,7 @@ class camera {
             int width, int height,
             real focal_length = -1.0_r, real aperture = -1.0_r);
 
-        camera(camera&&)                    = default;
+        camera(camera&&) noexcept           = default;
 
         camera(const camera&)               = delete;
         camera& operator=(const camera&)    = delete;

@@ -18,10 +18,10 @@ namespace rt  {
 		constexpr color(const real r, const real g, const real b)
 			: red(r), green(g), blue(b) {}
 
-		constexpr color(const color&) 	 = default;
-		constexpr color(color&&) 		 = default;
-		color& operator=(const color& c) = default;
-		color& operator=(color&&)		 = default;
+		constexpr color(const color&) 	 noexcept = default;
+		constexpr color(color&&) 		 noexcept = default;
+		color& operator=(const color& c) noexcept = default;
+		color& operator=(color&&)		 noexcept = default;
 
 
 		inline real get_average() const {

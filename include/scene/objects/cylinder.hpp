@@ -15,6 +15,11 @@ class cylinder : public object {
             real radius, real length,
             unsigned int material_index);
 
+        cylinder(cylinder&&) noexcept        = default;
+        cylinder(const cylinder&)            = delete;
+        cylinder& operator=(const cylinder&) = delete;
+        cylinder& operator=(cylinder&&)      = delete;
+
         inline rt::vector get_origin() const {
             return position;
         }

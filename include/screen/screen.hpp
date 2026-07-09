@@ -23,6 +23,12 @@ namespace rt {
 			
 		public:
 			screen(image& image, tone_mapping_parameters::mode mode = Disabled);
+			
+			screen(screen&&) 		          = delete;
+			screen(const screen&)             = delete;
+			screen& operator=(const screen&)  = delete;
+			screen& operator=(screen&&)       = delete;
+
 			~screen() noexcept;
 
 			void set_pixel(int x, int y, const color& c) const;

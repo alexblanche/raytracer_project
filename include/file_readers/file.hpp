@@ -130,6 +130,11 @@ class file {
             }
         }
 
+        file(file&&)                 = delete;
+        file& operator=(file&&)      = delete;
+        file(const file&)            = delete;
+        file& operator=(const file&) = delete;
+
         void close() noexcept {
             if (f != nullptr)
                 fclose(f);

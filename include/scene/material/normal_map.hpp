@@ -26,8 +26,8 @@ class normal_map {
            Writes true in parsing_successful if the operation was successful */
         normal_map(const std::string& file_name, bool& parsing_successful);
 
-        normal_map(normal_map&&)                    = default;
-        normal_map& operator=(normal_map&&)         = default;
+        normal_map(normal_map&&)            noexcept = default;
+        normal_map& operator=(normal_map&&) noexcept = default;
 
         normal_map(const normal_map&)               = delete;
         normal_map& operator=(const normal_map&)    = delete;

@@ -12,8 +12,12 @@ namespace rt {
 		real x, y ,z;
 	
 		constexpr vector() : x(0), y(0), z(0) {}
-		
 		constexpr vector(real a, real b, real c) : x(a), y(b), z(c) {}
+
+		vector(vector&&)                 noexcept = default;
+        vector(const vector&)            noexcept = default;
+        vector& operator=(vector&&)      noexcept = default;
+        vector& operator=(const vector&) noexcept = default;
 
 		inline bool operator==(const vector& other) const {
 			return (other.x == x && other.y == y && other.z == z);

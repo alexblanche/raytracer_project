@@ -77,9 +77,9 @@ class material {
             real ni, real d, unsigned int illum, real gamma);
 
 
-        material(material&&)                 = default;
-        material& operator=(material&&)      = default;
-        material(const material&)            = default;
+        material(material&&)            noexcept = default;
+        material& operator=(material&&) noexcept = default;
+        material(const material&)       noexcept = default;
 
         material& operator=(const material&) = delete;
 

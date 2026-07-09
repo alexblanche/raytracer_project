@@ -25,6 +25,11 @@ struct element {
    element(const bounding* b) :
       type(type::Bounding), content(std::in_place_type_t<const bounding*>(), b) {}
 
+   element(element&&)        noexcept = default;
+   element(const element&)   noexcept = default;
+   element& operator=(const element&) = delete;
+   element& operator=(element&&)      = delete;
+
    inline const object* get_object() const {
       return std::get<const object*>(content);
    }

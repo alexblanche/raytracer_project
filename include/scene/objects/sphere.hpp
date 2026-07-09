@@ -24,6 +24,10 @@ class sphere : public object {
         sphere(const rt::vector& center, const real radius, unsigned int material_index,
             unsigned int texture_info_index, const rt::vector& forward_dir, const rt::vector& right_dir);
 
+        sphere(sphere&&) noexcept        = default;
+        sphere(const sphere&)            = delete;
+        sphere& operator=(const sphere&) = delete;
+        sphere& operator=(sphere&&)      = delete;
         
         /* Intersection determination */
 

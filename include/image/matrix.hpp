@@ -27,8 +27,8 @@ class matrix {
             : data(height * width),
               width(width), height(height) {}
 
-        matrix(matrix&&)                 = default;
-        matrix& operator=(matrix&&)      = default;
+        matrix(matrix&&)                 noexcept = default;
+        matrix& operator=(matrix&&)      noexcept = default;
         matrix(const matrix&)            = delete;
         matrix& operator=(const matrix&) = delete;
 

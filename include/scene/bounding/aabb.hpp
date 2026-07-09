@@ -31,6 +31,11 @@ class aabb {
             cpt++;
         }
 
+        aabb(aabb&&)                 = delete;
+        aabb(const aabb&)            = delete;
+        aabb& operator=(const aabb&) = delete;
+        aabb& operator=(aabb&&)      = delete;
+
         static constexpr aabb infinite_box() {
             return aabb(ZERO, rt::vector(infinity, infinity, infinity));
         }

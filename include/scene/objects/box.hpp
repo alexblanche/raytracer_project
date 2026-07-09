@@ -25,6 +25,11 @@ class box : public object {
         /* Constructor used for bounding boxes: no material and no index */
         box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
             real l1, real l2, real l3);
+
+        box(box&&) noexcept        = default;
+        box(const box&)            = delete;
+        box& operator=(const box&) = delete;
+        box& operator=(box&&)      = delete;
         
         inline rt::vector get_l() const {
             return rt::vector(l1, l2, l3);

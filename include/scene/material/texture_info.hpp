@@ -44,6 +44,11 @@ class texture_info {
             //std::initializer_list<double>&& uv_coordinates
             std::array<real, 8>&& uv_coords); // parsing requires double type, then converted to real
 
+        texture_info(texture_info&&) noexcept        = default;
+        texture_info(const texture_info&)            = delete;
+        texture_info& operator=(texture_info&&)      = delete;
+        texture_info& operator=(const texture_info&) = delete;
+
         /* Sets the tangent and bitangent vectors */
         void set_tangent_space(const rt::vector& t, const rt::vector& b);
 

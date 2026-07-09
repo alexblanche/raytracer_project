@@ -31,6 +31,11 @@ class hit {
         hit(const ray* generator, const rt::vector& point, const rt::vector& normal, const object* hit_object)
             : hit(generator, point, normal, hit_object, (generator->direction | normal) <= 0.0f ? Inward : Outward) {}
 
+        hit(hit&&) noexcept        = default;
+        hit(const hit&)            = delete;
+        hit& operator=(const hit&) = delete;
+        hit& operator=(hit&&)      = delete;
+
         inline const rt::vector& get_point() const {
             return point;
         }

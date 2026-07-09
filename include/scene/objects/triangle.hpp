@@ -56,6 +56,11 @@ class triangle : public object {
             unsigned int material_index, unsigned int texture_info_index,
             texture_info& info);
 
+        triangle(triangle&&) noexcept        = default;
+        triangle(const triangle&)            = delete;
+        triangle& operator=(const triangle&) = delete;
+        triangle& operator=(triangle&&)      = delete;
+
         /* Returns the barycenter of the triangle */
         rt::vector get_barycenter() const;
 

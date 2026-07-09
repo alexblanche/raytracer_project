@@ -50,6 +50,11 @@ class custom_stack {
             data     = alloc::allocate(allocator, capacity);
         }
 
+        custom_stack(custom_stack&&)                 = delete;
+        custom_stack& operator=(custom_stack&&)      = delete;
+        custom_stack(const custom_stack&)            = delete;
+        custom_stack& operator=(const custom_stack&) = delete;
+
         inline ~custom_stack() noexcept {
             alloc::deallocate(allocator, data, capacity);
             size     = 0;

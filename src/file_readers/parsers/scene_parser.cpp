@@ -639,21 +639,18 @@ static void parse_objects(const file& f, const object_type type, const std::stri
     throw_if_null(m_index, "material definition error");
 
     const object* obj = nullptr;
-    std::optional<texture_info> info;
 
     if (belongs_to(type, { Box, Cylinder })) {
         switch (type) {
             case Box: {
                 const auto& [ center, x_axis, y_axis, l ] = parameters.box;
                 const auto [ lx, ly, lz ] = l;
-                //obj = new box(center, x_axis, y_axis, lx, ly, lz, m_index.value());
                 box_set.emplace_back(center, x_axis, y_axis, lx, ly, lz, m_index.value());
                 obj = &box_set.back();
                 break;
             }
             case Cylinder: {
                 const auto& [ origin, direction, radius, length ] = parameters.cylinder;
-                //obj = new cylinder(origin, direction, radius, length, m_index.value());
                 cylinder_set.emplace_back(origin, direction, radius, length, m_index.value());
                 obj = &cylinder_set.back();
                 break;
@@ -662,106 +659,95 @@ static void parse_objects(const file& f, const object_type type, const std::stri
         }
     }
     else {
-        info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, type);
-    }
+        std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, type);
+    
+        if (info.has_value()) {
 
-    if (info.has_value()) {
+            const bool normal_mapping = info.value().has_normal_information();
 
-        const bool normal_mapping = info.value().has_normal_information();
+            switch (type) {
 
-        switch (type) {
+                case Sphere: {
+                    const auto& [ fx, fy, fz, rx, ry, rz, _, _ ] = info.value().uv_coordinates;
+                    const rt::vector forward(fx, fy, fz);
+                    const rt::vector right  (rx, ry, rz);
+                    const auto& [ center, radius ] = parameters.sphere;
+                    sphere_set.emplace_back(center, radius, m_index.value(), texture_info_set.size(), forward, right);
+                    obj = &sphere_set.back();
+                    break;
+                }
 
-            case Sphere: {
-                const auto& [ fx, fy, fz, rx, ry, rz, _, _ ] = info.value().uv_coordinates;
-                const rt::vector forward(fx, fy, fz);
-                const rt::vector right  (rx, ry, rz);
-                const auto& [ center, radius ] = parameters.sphere;
-                //obj = new sphere(center, radius, m_index.value(), texture_info_set.size(), forward, right);
-                sphere_set.emplace_back(center, radius, m_index.value(), texture_info_set.size(), forward, right);
-                obj = &sphere_set.back();
-                break;
+                case Plane: {
+                    const auto& [ rx, ry, rz, scale, _, _, _, _ ] = info.value().uv_coordinates;
+                    const rt::vector right(rx, ry, rz);
+                    const auto& [ position, normal ] = parameters.plane;
+                    plane_set.emplace_back(normal.x, normal.y, normal.z, position, m_index.value(), texture_info_set.size(), right, scale);
+                    obj = &plane_set.back();
+                    break;
+                }
+
+                case Triangle: {
+                    const auto& [ v ] = parameters.triangle;
+                    if (normal_mapping)
+                        triangle_set.emplace_back(v[0], v[1], v[2], m_index.value(), texture_info_set.size(), info.value());
+                    else
+                        triangle_set.emplace_back(v[0], v[1], v[2], m_index.value(), texture_info_set.size());
+                    obj = &triangle_set.back();
+                    break;
+                }
+
+                case Quad: {
+                    const auto& [ v ] = parameters.quad;
+                    if (normal_mapping)
+                        quad_set.emplace_back(v[0], v[1], v[2], v[3], m_index.value(), texture_info_set.size(), info.value());
+                    else
+                        quad_set.emplace_back(v[0], v[1], v[2], v[3], m_index.value(), texture_info_set.size());
+                    obj = &quad_set.back();
+                    break;
+                }
+
+                default:
+                    throw;
             }
 
-            case Plane: {
-                const auto& [ rx, ry, rz, scale, _, _, _, _ ] = info.value().uv_coordinates;
-                const rt::vector right(rx, ry, rz);
-                const auto& [ position, normal ] = parameters.plane;
-                //obj = new plane(normal.x, normal.y, normal.z, position, m_index.value(), texture_info_set.size(), right, scale);
-                plane_set.emplace_back(normal.x, normal.y, normal.z, position, m_index.value(), texture_info_set.size(), right, scale);
-                obj = &plane_set.back();
-                break;
-            }
-
-            case Triangle: {
-                const auto& [ v ] = parameters.triangle;
-                // obj = normal_mapping ?
-                //       new triangle(v[0], v[1], v[2], m_index.value(), texture_info_set.size(), info.value())
-                //     : new triangle(v[0], v[1], v[2], m_index.value(), texture_info_set.size());
-                if (normal_mapping)
-                    triangle_set.emplace_back(v[0], v[1], v[2], m_index.value(), texture_info_set.size(), info.value());
-                else
-                    triangle_set.emplace_back(v[0], v[1], v[2], m_index.value(), texture_info_set.size());
-                obj = &triangle_set.back();
-                break;
-            }
-
-            case Quad: {
-                const auto& [ v ] = parameters.quad;
-                // obj = normal_mapping ?
-                //       new quad(v[0], v[1], v[2], v[3], m_index.value(), texture_info_set.size(), info.value())
-                //     : new quad(v[0], v[1], v[2], v[3], m_index.value(), texture_info_set.size());
-                if (normal_mapping)
-                    quad_set.emplace_back(v[0], v[1], v[2], v[3], m_index.value(), texture_info_set.size(), info.value());
-                else
-                    quad_set.emplace_back(v[0], v[1], v[2], v[3], m_index.value(), texture_info_set.size());
-                obj = &quad_set.back();
-                break;
-            }
-
-            default:
-                throw;
+            texture_info_set.emplace_back(std::move(info.value()));
         }
+        else {
 
-        texture_info_set.push_back(info.value());
-    }
-    else {
+            switch (type) {
 
-        switch (type) {
+                case Sphere: {
+                    const auto& [ center, radius ] = parameters.sphere;
+                    //obj = new sphere(center, radius, m_index.value());
+                    sphere_set.emplace_back(center, radius, m_index.value());
+                    obj = &sphere_set.back();
+                    break;
+                }
+                
+                case Plane: {
+                    const auto& [ position, normal ] = parameters.plane;
+                    plane_set.emplace_back(normal.x, normal.y, normal.z, position, m_index.value());
+                    obj = &plane_set.back();
+                    break;
+                }
 
-            case Sphere: {
-                const auto& [ center, radius ] = parameters.sphere;
-                //obj = new sphere(center, radius, m_index.value());
-                sphere_set.emplace_back(center, radius, m_index.value());
-                obj = &sphere_set.back();
-                break;
+                case Triangle: {
+                    const auto& [ v ] = parameters.triangle;
+                    triangle_set.emplace_back(v[0], v[1], v[2], m_index.value());
+                    obj = &triangle_set.back();
+                    break;
+                }
+
+                case Quad: {
+                    const auto& [ v ] = parameters.quad;
+                    quad_set.emplace_back(v[0], v[1], v[2], v[3], m_index.value());
+                    obj = &quad_set.back();
+                    break;
+                }
+
+                default:
+                    break;
             }
-            
-            case Plane: {
-                const auto& [ position, normal ] = parameters.plane;
-                //obj = new plane(normal.x, normal.y, normal.z, position, m_index.value());
-                plane_set.emplace_back(normal.x, normal.y, normal.z, position, m_index.value());
-                obj = &plane_set.back();
-                break;
-            }
-
-            case Triangle: {
-                const auto& [ v ] = parameters.triangle;
-                //obj = new triangle(v[0], v[1], v[2], m_index.value());
-                triangle_set.emplace_back(v[0], v[1], v[2], m_index.value());
-                obj = &triangle_set.back();
-                break;
-            }
-
-            case Quad: {
-                const auto& [ v ] = parameters.quad;
-                //obj = new quad(v[0], v[1], v[2], v[3], m_index.value());
-                quad_set.emplace_back(v[0], v[1], v[2], v[3], m_index.value());
-                obj = &quad_set.back();
-                break;
-            }
-
-            default:
-                break;
         }
     }
 

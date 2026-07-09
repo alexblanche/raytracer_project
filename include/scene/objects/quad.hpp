@@ -42,6 +42,11 @@ class quad : public object {
             unsigned int material_index, unsigned int texture_info_index,
             texture_info& info);
 
+        quad(quad&&) noexcept        = default;
+        quad(const quad&)            = delete;
+        quad& operator=(const quad&) = delete;
+        quad& operator=(quad&&)      = delete;
+
         /* Returns barycenter of the quad */
         rt::vector get_barycenter() const;
 

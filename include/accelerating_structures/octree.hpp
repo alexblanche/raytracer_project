@@ -27,6 +27,11 @@ struct search_tree {
     search_tree(const std::vector<rt::vector>& means)
         : means(means) {}
 
+    search_tree(search_tree&&)                 = delete;
+    search_tree(const search_tree&)            = delete;
+    search_tree& operator=(const search_tree&) = delete;
+    search_tree& operator=(search_tree&&)      = delete;
+
     private:
         void resize_containers(unsigned int n) {
             const unsigned int previous_size = terminal_state.size();

@@ -30,9 +30,10 @@ struct ray {
             )
             /* , abs_inv_dir(rt::abs(inv_dir)) */ {}
 
-        ray& operator=(ray&&)      = default;
-        ray(ray&&)                 = default;
-        ray(const ray&)            = default;
+        
+        ray(ray&&)                 noexcept = default;
+        ray(const ray&)            noexcept = default;
+        ray& operator=(ray&&)      noexcept = default;
         ray& operator=(const ray&) = delete;
 
         inline rt::vector extend(const real t) const {

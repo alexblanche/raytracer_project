@@ -29,8 +29,8 @@ class object {
         constexpr object(const rt::vector& position, unsigned int material_index, unsigned int texture_info_index = EMPTY_INDEX)
             : position(position), material_index(material_index), texture_information_index(texture_info_index) {}
 
+        object(object&&) noexcept        = default;
         object(const object&)            = delete;
-        object(object&&)                 = default;
         object& operator=(const object&) = delete;
         object& operator=(object&&)      = delete;
     

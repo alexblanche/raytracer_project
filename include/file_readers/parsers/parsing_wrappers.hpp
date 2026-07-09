@@ -38,12 +38,12 @@ class wrapper {
         wrapper(const T& t, const std::string& name)
             : content(t), name(name), index(counter++) {}
 
-        wrapper(wrapper&&)                  = default;
-        wrapper& operator=(wrapper&&)       = default;
+        wrapper(wrapper&&)            noexcept = default;
+        wrapper& operator=(wrapper&&) noexcept = default;
 
-        wrapper()                           = delete;
-        wrapper(const wrapper&)             = delete;
-        wrapper& operator=(const wrapper&)  = delete;
+        wrapper()                              = delete;
+        wrapper(const wrapper&)                = delete;
+        wrapper& operator=(const wrapper&)     = delete;
 
         /* type = "material", "texture", "normal map" */
         static std::optional<unsigned int> find_element(const std::span<const wrapper> wrapper_set, const std::string& vname, bool silent = false) {

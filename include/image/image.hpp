@@ -14,7 +14,7 @@ class image {
         image(matrix&& matrix, real gamma = 1.0f)
             : data(std::move(matrix)), gamma(gamma), number_of_samples(1) {}
 
-        image(image&&)                 = default;
+        image(image&&) noexcept        = default;
         image(const image&)            = delete;
         image& operator=(image&&)      = delete;
         image& operator=(const image&) = delete;

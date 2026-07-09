@@ -32,6 +32,10 @@ class plane : public object {
             unsigned int material_index,
             unsigned int texture_info_index, const rt::vector& right, real scale);
 
+        plane(plane&&) noexcept        = default;
+        plane(const plane&)            = delete;
+        plane& operator=(const plane&) = delete;
+        plane& operator=(plane&&)      = delete;
 
         inline const rt::vector& get_normal() const {
             return normal;

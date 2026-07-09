@@ -107,7 +107,7 @@ class scene {
             real gamma
         );
 
-        scene(scene&&) = default;
+        scene(scene&&) noexcept         = default;
 
         scene(const scene&)             = delete;
         scene& operator=(const scene&)  = delete;
