@@ -9,8 +9,8 @@
 #include <filesystem>
 
 constexpr unsigned int EXPORT_INTERVAL = 1000;
-constexpr std::string DEFAULT_OUTPUT_FILE_NAME       = "image";
-constexpr std::string DEFAULT_OUTPUT_FINAL_FILE_NAME = "image_final";
+static const std::string DEFAULT_OUTPUT_FILE_NAME       = "image";
+static const std::string DEFAULT_OUTPUT_FINAL_FILE_NAME = "image_final";
 
 static bool is_number(const std::string& s) {
     try {
@@ -46,7 +46,7 @@ struct arg_pair {
 
 static cli_argument match(const std::string& input) {
     using enum cli_argument;
-    static constexpr std::array<arg_pair, 7> keywords = {
+    static const std::array<arg_pair, 7> keywords = {
         arg_pair { "-time",        Time            },
         arg_pair { "all",          TimeAll         },
         arg_pair { "-rays",        Rays            },
@@ -83,7 +83,7 @@ exit_status menu::parse_aux(const std::span<const std::string> args) {
             }
 
             case Rays: {
-                runtime_parameters.program.mode = program_parameters::mode::Offline;
+                runtime_parameters.program.p_mode = program_parameters::mode::Offline;
 
                 if (i + 1 >= size || not is_number(args[i + 1])) {
                     printf("Error, -rays option expects 1 argument\n");
@@ -95,7 +95,7 @@ exit_status menu::parse_aux(const std::span<const std::string> args) {
             }
 
             case Multisample: {
-                runtime_parameters.sampling.mode = sampling_parameters::mode::MultiSample;
+                runtime_parameters.sampling.s_mode = sampling_parameters::mode::MultiSample;
 
                 if (i + 1 >= size || not is_number(args[i + 1])) {
                     printf("Error, -multisample option expects 1 argument\n");
@@ -177,6 +177,7 @@ exit_status menu::parse_arguments(const std::span<const std::string> args) {
     switch (runtime_parameters.tone_mapping.tm_mode) {
         case Reinhardt:
             printf("Reinhardt local tone mapping enabled\n");
+            [[fallthrough]];
         case Gamma:
             printf("Gamma correction: %.1f\n", (1.0f / runtime_parameters.tone_mapping.gamma_value));
             break;
@@ -217,7 +218,7 @@ static inline void render_simple(image& image, const scene& scene,
     const unsigned int ms_samples = runtime_parameters.sampling.multisample_number_of_samples;
 
     using enum sampling_parameters::mode;
-    switch (runtime_parameters.sampling.mode) {
+    switch (runtime_parameters.sampling.s_mode) {
         case MultiSample:
             render_loop_parallel_multisample(image, scene, depth, ms_samples);
             break;
@@ -370,11 +371,13 @@ exit_status menu::run(const scene& scene) const {
     const file_handler file_handler;
 
     using enum program_parameters::mode;
-    switch (runtime_parameters.program.mode) {
+    switch (runtime_parameters.program.p_mode) {
         case Offline:
             return run_offline(runtime_parameters, image, scene, file_handler);
         
         case Interactive:
             return run_interactive(runtime_parameters, image, scene, file_handler);
+
+        default: throw;
     }
 }

@@ -282,14 +282,14 @@ class file {
 
         void skip_char(char ch, unsigned int count = INFINITE) const {
             if (eof()) return;
-            char c;
+            char c = '\0';
             while (!eof() && (c = getc()) == ch && ((count--) != 0));
             ungetc(c);
         }
 
         void skip_until_char(char ch, unsigned int count = INFINITE) const {
             if (eof()) return;
-            char c;
+            char c = '\0';
             while (!eof() && (c = getc()) != ch && ((count--) != 0));
             ungetc(c);
         }

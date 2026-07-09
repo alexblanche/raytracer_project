@@ -54,6 +54,8 @@ struct element {
                  bd->b->get_position()
                : bd->get_content()[0]->get_position();
          }
+         
+         default:throw;
       }
    }
 

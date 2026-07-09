@@ -72,29 +72,22 @@ class random_ratio_gen {
             :   engine(timer_ms::get_time()),
                 unif_ratio(0, 1),
                 unif_int(0, max_index) {}
-                
+        
         random_ratio_gen(uint64_t seed, int max_index)
             :   engine(seed),
                 unif_ratio(0, 1),
                 unif_int(0, max_index) {}
-
-        template<typename T>
-        T random() const = delete;
-        template<typename T>
-        T random(T) const = delete;
         
-        template<>
-        Float random<Float>() const {
-            return unif_ratio(engine);
+        template<typename T>
+        requires std::is_same_v<T, Float> || std::is_same_v<T, int>
+        T random() const {
+            if constexpr (std::is_same_v<T, Float>)
+                return unif_ratio(engine);
+            else
+                return unif_int(engine);
         }
 
-        template<>
-        Float random<Float>(Float m) const {
+        Float random(Float m) const {
             return m * random<Float>();
-        }
-
-        template<>
-        int random<int>() const {
-            return unif_int(engine);
         }
 };

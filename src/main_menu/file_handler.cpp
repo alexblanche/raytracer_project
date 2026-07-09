@@ -35,6 +35,7 @@ exit_status file_handler::export_file(const type file_type, const std::string& f
         case Raw:
             status = raw_data::export_data(file_path, image);
             break;
+        default: throw;
     }
 
     switch (status) {
@@ -47,6 +48,8 @@ exit_status file_handler::export_file(const type file_type, const std::string& f
         case exit_status::Failure:
             printf("Save failed\n");
             break;
+
+        default: throw;
     }
     return status;
 }

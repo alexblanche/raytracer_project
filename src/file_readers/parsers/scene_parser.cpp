@@ -406,7 +406,7 @@ static std::optional<texture_info> parse_texture_info(const file& f,
     const std::vector<wrapper<texture>>& texture_wrapper_set,
     const std::vector<wrapper<normal_map>>& normal_map_wrapper_set,
     // const std::vector<wrapper<roughness_map>>& roughness_map_wrapper_set,
-    const object_type object_type) {
+    const object_type object_type_) {
 
     const exit_status status_t = f.scanf_rewind_if_failure("texture");
 
@@ -444,7 +444,7 @@ static std::optional<texture_info> parse_texture_info(const file& f,
     */
     
     using enum object_type;
-    switch (object_type) {
+    switch (object_type_) {
         case Triangle: {
 
             const exit_status status = f.scanf(" (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
@@ -613,6 +613,8 @@ static void parse_objects(const file& f, const object_type type, const std::stri
             };
             break;
         }
+
+        default: throw;
     }
 
     throw_if_failure(status, "parsing error in scene constructor (" + arg + " declaration)");
@@ -706,8 +708,7 @@ static void parse_objects(const file& f, const object_type type, const std::stri
                     break;
                 }
 
-                default:
-                    throw;
+                default: throw;
             }
 
             texture_info_set.emplace_back(std::move(info.value()));

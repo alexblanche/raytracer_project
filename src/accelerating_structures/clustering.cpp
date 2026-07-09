@@ -75,6 +75,7 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
         switch (search_type) {
             case Linear:        return linear_search(means, v);
             case Accelerated:   return tree.search(v);
+            default: throw;
         }
     };
 
@@ -381,6 +382,8 @@ void display_hierarchy_properties(const bounding* bd0) {
                     arity = bd->get_content().size();
                     break;
                 }
+
+                default: throw;
             }
             
             if      (arity > max) { max = arity; }

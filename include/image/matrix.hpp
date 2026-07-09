@@ -92,6 +92,8 @@ class matrix {
             iterator& operator=(iterator&&)      noexcept = default;
             iterator& operator=(const iterator&) noexcept = default;
 
+            ~iterator() = default;
+
             value_type operator*() const {
                 return (*mat)[j];
             }
@@ -194,6 +196,8 @@ class matrix {
             input_iterator& operator=(input_iterator&& it)   noexcept = default;
             input_iterator(const input_iterator&)            = delete;
             input_iterator& operator=(const input_iterator&) = delete;
+
+            ~input_iterator() = default;
             
             value_type operator*() const {
                 return (*mat)[j];

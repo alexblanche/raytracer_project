@@ -377,7 +377,7 @@ enum class face_type {
 };
 
 bool parse_face(std::istringstream& stream,
-    const int nb, const face_type face_type,
+    const int nb, const face_type face_type_,
     index_array<5>& v, index_array<5>& vt, index_array<5>& vn) {
     
     std::string line;
@@ -385,7 +385,7 @@ bool parse_face(std::istringstream& stream,
     const char* pt = line.data() + 2; // skip "f "
 
     using enum face_type;
-    switch (face_type) {
+    switch (face_type_) {
         case Full:
             for (int i = 0; i < nb; i++) {
                 const auto [ vi, vti, vni ] = parse<int, 3>(pt, line.size());
@@ -765,11 +765,11 @@ exit_status parse_obj_file(const std::string& file_name,
 
                 using enum face_type;
 
-                face_type face_type = Full;
+                face_type type = Full;
 
                 int nb = 1;
                 if (line_stream.peek() == ' ') {
-                    face_type = NoTextureNoNormal;
+                    type = NoTextureNoNormal;
                     while (nb < 5 && line_stream >> v[nb])
                         nb++;
                 }
@@ -777,7 +777,7 @@ exit_status parse_obj_file(const std::string& file_name,
                     char d1, d2; // receive '/'
                     line_stream.get(); // '/'
                     if (line_stream.peek() == '/') {
-                        face_type = NoTexture;
+                        type = NoTexture;
                         line_stream >> d1 >> vn[0];
                         while (nb < 5 && line_stream >> v[nb] >> d1 >> d2 >> vn[nb])
                             nb++;
@@ -785,30 +785,30 @@ exit_status parse_obj_file(const std::string& file_name,
                     else {
                         line_stream >> vt[0];
                         if (line_stream.peek() == '/') {
-                            face_type = Full;
+                            type = Full;
                             line_stream >> d1 >> vn[0];
                             while (nb < 5 && line_stream >> v[nb] >> d1 >> vt[nb] >> d2 >> vn[nb])
                                 nb++;
                         }
                         else {
-                            face_type = NoNormal;
+                            type = NoNormal;
                             while (nb < 5 && line_stream >> v[nb] >> d1 >> vt[nb])
                                 nb++;
                         }
                     }
                 }
                 
-                const texturing this_texturing_option = belongs_to(face_type, { NoTexture, NoTextureNoNormal }) ?
+                const texturing this_texturing_option = belongs_to(type, { NoTexture, NoTextureNoNormal }) ?
                       texturing::Disabled
                     : texturing_option;
                 
-                const normal this_normal_option = belongs_to(face_type, { NoNormal, NoTextureNoNormal }) ?
+                const normal this_normal_option = belongs_to(type, { NoNormal, NoTextureNoNormal }) ?
                       normal::Disabled
                     : normal::Enabled;
 
                 add_geometry(line_stream, nb, this_texturing_option, this_normal_option, v, vt, vn);
 
-                while ((not stream.eof()) && (stream.peek() == 'f') && parse_face(stream, nb, face_type, v, vt, vn)) {
+                while ((not stream.eof()) && (stream.peek() == 'f') && parse_face(stream, nb, type, v, vt, vn)) {
                     add_geometry(line_stream, nb, this_texturing_option, this_normal_option, v, vt, vn);
                 }
 

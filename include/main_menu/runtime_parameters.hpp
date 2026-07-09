@@ -4,7 +4,7 @@ struct program_parameters {
     enum class mode {
         Interactive, Offline
     };
-    mode mode;
+    mode p_mode;
     unsigned int target_number_of_rays;
 };
 
@@ -12,7 +12,7 @@ struct sampling_parameters {
     enum class mode {
         UniSample, MultiSample
     };
-    mode mode;
+    mode s_mode;
     unsigned int multisample_number_of_samples;
 };
 

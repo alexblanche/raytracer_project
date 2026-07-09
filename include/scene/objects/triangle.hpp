@@ -9,10 +9,10 @@ enum class det_case {
 inline real compute_det_2d(const rt::vector& v1, const rt::vector& v2, det_case case_det) {
     using enum det_case;
     switch (case_det) {
-        case XY:    return v1.x * v2.y - v1.y * v2.x;
-        case XZ:    return v1.x * v2.z - v1.z * v2.x;
-        case YZ:    return v1.y * v2.z - v1.z * v2.y;
-        case Error: return 0.0_r;
+        case XY: return v1.x * v2.y - v1.y * v2.x;
+        case XZ: return v1.x * v2.z - v1.z * v2.x;
+        case YZ: return v1.y * v2.z - v1.z * v2.y;
+        default: return 0.0_r; 
     }
 }
 

@@ -131,6 +131,7 @@ class scene {
                     return find_closest_object_bounding(r);
                 case Disabled:
                     return find_closest_object(r);
+                default: throw;
             }
         }
 

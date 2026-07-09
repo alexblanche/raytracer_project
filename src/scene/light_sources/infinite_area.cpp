@@ -165,7 +165,7 @@ light_map_sample alias_table::sample_light_map(const random_ratio_gen<Float>& rg
     const unsigned int min_y = static_cast<unsigned int>(ratio_y *  lr_y);
     const unsigned int max_y = static_cast<unsigned int>(ratio_y * (lr_y + 1.0f));
 
-    const unsigned int x = min_x + rg.random<Float>(max_x - min_x);
-    const unsigned int y = min_y + rg.random<Float>(max_y - min_y);
+    const unsigned int x = min_x + rg.random(max_x - min_x);
+    const unsigned int y = min_y + rg.random(max_y - min_y);
     return { x, y };
 }

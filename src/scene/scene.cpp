@@ -165,6 +165,7 @@ std::optional<hit> scene::find_closest_object(const ray& r) const {
         case Plane:    return static_cast<const plane*>   (closest_pt)->compute_intersection(r, distance_to_closest);
         case Box:      return static_cast<const box*>     (closest_pt)->compute_intersection(r, distance_to_closest);
         case Cylinder: return static_cast<const cylinder*>(closest_pt)->compute_intersection(r, distance_to_closest);
+        default: throw;
     }
 }
 

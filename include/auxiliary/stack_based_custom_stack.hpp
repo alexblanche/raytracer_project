@@ -16,7 +16,7 @@ enum class allocation_type {
 template <
     typename T,
     std::size_t first_buffer_size = stack_based::DEFAULT_INIT_SIZE,
-    allocation_type allocation_type = allocation_type::Dynamic
+    allocation_type allocation_type_ = allocation_type::Dynamic
 >
 requires (sizeof(T) <= stack_based::MAX_ELEMENT_SIZE) // Not so important, can be lifted if needed
     && std::is_trivially_copy_constructible_v<T> // Because of std::memcpy for push of span
@@ -48,7 +48,7 @@ class stack_based_custom_stack {
 
         inline void check_capacity() {
             if (size >= capacity) {
-                if constexpr (allocation_type == Static) {
+                if constexpr (allocation_type_ == Static) {
                     throw std::runtime_error("Static stack-based stack capacity exceeded");
                 }
 
@@ -58,7 +58,7 @@ class stack_based_custom_stack {
 
         inline void reserve(const std::size_t target) {
             if (capacity < target) {
-                if constexpr (allocation_type == Static) {
+                if constexpr (allocation_type_ == Static) {
                     throw std::runtime_error("Static stack-based stack capacity exceeded");
                 }
                 increase_capacity(std::max(target, 2 * capacity));
@@ -71,9 +71,8 @@ class stack_based_custom_stack {
             size     = 0;
             capacity = init_size;
             if (init_size > first_buffer_size) {
-                if constexpr (allocation_type == Static) {
+                if constexpr (allocation_type_ == Static)
                     throw std::runtime_error("Static stack-based stack capacity exceeded");
-                }
                 dynamic_buffer_allocated = true;
                 data = alloc::allocate(allocator, capacity);
             }
@@ -108,7 +107,7 @@ class stack_based_custom_stack {
 
         inline T pop() {
             size--;
-            if constexpr (allocation_type == Dynamic) {
+            if constexpr (allocation_type_ == Dynamic) {
                 return data[size];
             }
             else {
@@ -117,7 +116,7 @@ class stack_based_custom_stack {
         }
 
         [[nodiscard]] inline const T& top() const {
-            if constexpr (allocation_type == Dynamic) {
+            if constexpr (allocation_type_ == Dynamic) {
                 return data[size - 1];;
             }
             else {
@@ -126,7 +125,7 @@ class stack_based_custom_stack {
         }
 
         [[nodiscard]] inline T& top() {
-            if constexpr (allocation_type == Dynamic) {
+            if constexpr (allocation_type_ == Dynamic) {
                 return data[size - 1];;
             }
             else {
@@ -139,7 +138,7 @@ class stack_based_custom_stack {
         inline void emplace(Args&&... args) {
             check_capacity();
 
-            if constexpr (allocation_type == Static) {
+            if constexpr (allocation_type_ == Static) {
                 first_buffer[size] = T(std::forward<Args>(args)...);
             }
             else {

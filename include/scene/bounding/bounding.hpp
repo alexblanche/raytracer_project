@@ -48,7 +48,7 @@ class bounding {
             ~node() {}
         };
     
-        node node;
+        node node_;
 
         // Helper method
         inline void update_closest_from_objects(const ray& r,
@@ -59,7 +59,7 @@ class bounding {
             real d_closest       = distance_to_closest;
             const object* cl_obj = closest_object;
             
-            for (const object* const obj : node.content) {
+            for (const object* const obj : node_.content) {
                 const real d = obj->measure_distance(r);
                 if (d < d_closest) {
                     d_closest = d;
@@ -78,11 +78,11 @@ class bounding {
         /* Constructor for terminal nodes: container node (for first-level non-triangle objects) if no box provided,
            or terminal node with a bounding box, containing triangles */
         bounding(std::vector<const object*>&& content, std::unique_ptr<box_type>&& b = nullptr)
-            : type(TerminalNode), b(std::move(b)), node(std::move(content)) { cpt++; }
+            : type(TerminalNode), b(std::move(b)), node_(std::move(content)) { cpt++; }
 
         /* Internal node constructor */
         bounding(std::vector<const bounding*>&& children, std::unique_ptr<box_type>&& b)
-            : type(InternalNode), b(std::move(b)), node(std::move(children)) { cpt++; }
+            : type(InternalNode), b(std::move(b)), node_(std::move(children)) { cpt++; }
 
         bounding(const bounding&)            = delete;
         bounding(bounding&&)                 = delete;
@@ -96,13 +96,14 @@ class bounding {
                 case InternalNode:
                     throw std::runtime_error("Getting content of a non-terminal bounding");
                 case TerminalNode:
-                    return node.content;
+                    return node_.content;
+                default: throw;
             }
         }
 
         inline const std::span<const bounding * const> get_children() const {
             return (type == InternalNode) ?
-                  node.children
+                  node_.children
                 : std::span<const bounding * const> {};
         }
 
@@ -141,7 +142,7 @@ class bounding {
             switch (type) {
                 
                 case InternalNode:
-                    bounding_stack.push(node.children);
+                    bounding_stack.push(node_.children);
                     break;
 
                 case TerminalNode:
@@ -177,9 +178,9 @@ class bounding {
             switch (type) {
 
                 case InternalNode: {
-                    const unsigned int last_index = node.children.size() - 1;
-                    bounding_stack.push(std::span(node.children).first(last_index));
-                    next_bounding = node.children[last_index];
+                    const unsigned int last_index = node_.children.size() - 1;
+                    bounding_stack.push(std::span(node_.children).first(last_index));
+                    next_bounding = node_.children[last_index];
                     bd_stored = true;
                     break;
                 }

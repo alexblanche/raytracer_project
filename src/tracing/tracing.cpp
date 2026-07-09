@@ -279,6 +279,8 @@ rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg
                     
                     case Outward:
                         return (not refr_stack.empty()) ? refr_stack.pop() : 1.0_r;
+
+                    default: throw;
                 }
             };
 

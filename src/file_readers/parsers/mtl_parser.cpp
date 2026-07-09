@@ -25,7 +25,7 @@ exit_status parse_mtl_file(const std::filesystem::path& path, const std::string&
     std::vector<wrapper<texture>>& texture_wrapper_set,
     std::map<unsigned int, unsigned int>& mt_assoc, const real gamma) {
 
-    file f(path / file_name);
+    file f((path / file_name).generic_string());
 
     try {
 
@@ -130,7 +130,8 @@ exit_status parse_mtl_file(const std::filesystem::path& path, const std::string&
 
                     // Texture loading
                     bool parsing_successful;
-                    texture_wrapper_set.emplace_back(texture(path / tfile_name, parsing_successful));
+                    const std::string full_name = (path / tfile_name).generic_string();
+                    texture_wrapper_set.emplace_back(texture(full_name, parsing_successful));
                     mt_assoc[m_i] = texture_wrapper_set.back().index;
 
                     if (not parsing_successful)
