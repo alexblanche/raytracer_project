@@ -53,7 +53,8 @@ class bounding {
         // Helper method
         inline void update_closest_from_objects(const ray& r,
             // Out parameters
-            real& distance_to_closest, const object*& closest_object) const {
+            real& distance_to_closest,
+            const object*& closest_object) const {
 
             real d_closest       = distance_to_closest;
             const object* cl_obj = closest_object;
@@ -121,7 +122,6 @@ class bounding {
                 custom_stack<const bounding*>& bounding_stack,
                 // out parameters
                 real& distance_to_closest, const object*& closest_object
-                
             ) const {
 
             static_assert(std::is_same_v<bounding::box_type, box>
@@ -153,13 +153,13 @@ class bounding {
         /* Same as check_box, but the last child is stored in a pointer to avoid pushing and
         immediately popping on the stack */
         void check_box_next(const ray& r,
-            custom_stack<const bounding*>& bounding_stack,
-            // out parameters
-            real& distance_to_closest, const object*& closest_object,
-            bool& bd_stored, const bounding*& next_bounding) const {
+                custom_stack<const bounding*>& bounding_stack,
+                // out parameters
+                real& distance_to_closest, const object*& closest_object,
+                bool& bd_stored, const bounding*& next_bounding
+            ) const {
 
             bd_stored = false;
-
 
             static_assert(std::is_same_v<bounding::box_type, box> || std::is_same_v<bounding::box_type, aabb>);
 

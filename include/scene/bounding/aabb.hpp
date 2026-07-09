@@ -21,7 +21,7 @@ class aabb {
         inline static unsigned int cpt = 0;
 
         aabb(const rt::vector& position, const rt::vector& dims_)
-            :   position(position) {
+            : position(position) {
                 
             if constexpr (type == Corner)
                 dims = dims_;

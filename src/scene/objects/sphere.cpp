@@ -49,7 +49,6 @@ real sphere::measure_distance(const ray& r) const {
     if (is_negative(delta))
         return infinity;
 
-    
     /* Two solutions: t1 = dv - sqrt(delta) and t2 = dv + sqrt(delta),
         If t1 >= 0, this means the ray originates from outside the sphere
         and the sphere is in front of the origin, and thus t1 is returned,
@@ -59,10 +58,11 @@ real sphere::measure_distance(const ray& r) const {
     
     const real sqrtdelta = sqrt(delta);
     const real t1 = dv - sqrtdelta;
+    real t2;
     
-    return (is_positive(t1))          ? t1
-        :  (t1 >= -2.0_r * sqrtdelta) ? dv + sqrtdelta
-        :                               infinity;
+    return (is_positive(t1))                ? t1
+        :  ((t2 = dv + sqrtdelta) >= 0.0_r) ? t2
+        :                                     infinity;
 }
 
 /* Returns the hit corresponding with the given intersection value t */

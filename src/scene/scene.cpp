@@ -73,7 +73,8 @@ scene::~scene() {
 /*** Ray-scene intersection ***/
 
 /* Linear search through the objects of the scene */
-std::optional<hit> scene::find_closest_object(const ray& r) const {
+/*
+std::optional<hit> scene::find_closest_object__OLD(const ray& r) const {
     
     real distance_to_closest = infinity;
     unsigned int closest_obj_index = EMPTY_INDEX;
@@ -83,8 +84,8 @@ std::optional<hit> scene::find_closest_object(const ray& r) const {
         
         const real d = obj->measure_distance(r);
         
-        /* d is the distance between the origin of the ray and the
-           intersection point with the object */
+        // d is the distance between the origin of the ray and the
+           intersection point with the object
 
         if (d < distance_to_closest) {
             distance_to_closest = d;
@@ -97,6 +98,74 @@ std::optional<hit> scene::find_closest_object(const ray& r) const {
     return (closest_obj_index != EMPTY_INDEX) ?
           std::optional<hit>(object_set[closest_obj_index]->compute_intersection(r, distance_to_closest))
         : std::nullopt;
+}
+*/
+
+template<typename T>
+concept Object =
+       std::is_same_v<T, triangle>
+    || std::is_same_v<T, quad>
+    || std::is_same_v<T, sphere>
+    || std::is_same_v<T, plane>
+    || std::is_same_v<T, box>
+    || std::is_same_v<T, cylinder>;
+
+template<Object Obj>
+consteval object_type object_type_of() {
+
+    using enum object_type;
+
+         if constexpr (std::is_same_v<Obj, triangle>) return Triangle;
+    else if constexpr (std::is_same_v<Obj, quad>)     return Quad;
+    else if constexpr (std::is_same_v<Obj, sphere>)   return Sphere;
+    else if constexpr (std::is_same_v<Obj, plane>)    return Plane;
+    else if constexpr (std::is_same_v<Obj, box>)      return Box;
+    else                                              return Cylinder;
+}
+
+template<Object Obj>
+inline void search_closest(const std::vector<Obj>& object_type_set, const ray& r,
+    real& distance_to_closest, const object*& closest_pt, object_type& closest_obj_type) {
+
+    for (const Obj& obj : object_type_set) {
+
+        const real d = obj.measure_distance(r);
+
+        if (d < distance_to_closest) {
+            distance_to_closest = d;
+            closest_pt = &obj;
+            closest_obj_type = object_type_of<Obj>();
+        }
+    }
+}
+
+/* Linear search through the objects of the scene */
+std::optional<hit> scene::find_closest_object(const ray& r) const {
+
+    using enum object_type;
+    
+    real distance_to_closest = infinity;
+    const object* closest_pt = nullptr;
+    object_type closest_obj_type;
+
+    search_closest<triangle>(triangle_set, r, distance_to_closest, closest_pt, closest_obj_type);
+    search_closest<quad>    (quad_set,     r, distance_to_closest, closest_pt, closest_obj_type);
+    search_closest<sphere>  (sphere_set,   r, distance_to_closest, closest_pt, closest_obj_type);
+    search_closest<plane>   (plane_set,    r, distance_to_closest, closest_pt, closest_obj_type);
+    search_closest<box>     (box_set,      r, distance_to_closest, closest_pt, closest_obj_type);
+    search_closest<cylinder>(cylinder_set, r, distance_to_closest, closest_pt, closest_obj_type);
+
+    if (closest_pt == nullptr)
+        return std::nullopt;
+
+    switch (closest_obj_type) {
+        case Triangle: return static_cast<const triangle*>(closest_pt)->compute_intersection(r, distance_to_closest);
+        case Quad:     return static_cast<const quad*>    (closest_pt)->compute_intersection(r, distance_to_closest);
+        case Sphere:   return static_cast<const sphere*>  (closest_pt)->compute_intersection(r, distance_to_closest);
+        case Plane:    return static_cast<const plane*>   (closest_pt)->compute_intersection(r, distance_to_closest);
+        case Box:      return static_cast<const box*>     (closest_pt)->compute_intersection(r, distance_to_closest);
+        case Cylinder: return static_cast<const cylinder*>(closest_pt)->compute_intersection(r, distance_to_closest);
+    }
 }
 
 /* Tree-search through the bounding boxes */
