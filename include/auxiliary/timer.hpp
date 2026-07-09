@@ -50,13 +50,13 @@ class timer {
 class timer_ms {
     private:
 
-        enum class state {
+        enum class timer_state {
             Stopped, Running  
         };
 
         uint64_t time_start = 0;
         uint64_t time_end   = 0;
-        state state;
+        timer_state state;
 
     public:
 
@@ -67,7 +67,7 @@ class timer_ms {
             ).count();
         }
 
-        using enum state;
+        using enum timer_state;
 
         void start() {
             time_start = get_time();

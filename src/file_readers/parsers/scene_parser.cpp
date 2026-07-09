@@ -22,7 +22,7 @@ static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
 
     pre_parsing_info ppi;
 
-    constexpr std::array<std::string, 8> keywords_array = {
+    const std::array<std::string, 8> keywords_array = {
         "triangle", "quad", "sphere", "plane", "box", "cylinder",
         "material", "load_texture"
     };

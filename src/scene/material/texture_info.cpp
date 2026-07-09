@@ -44,6 +44,7 @@ uvcoord texture_info::get_barycenter(const barycentric_info& bary) const {
                 break;
             }
             // else: same as Triangle case
+            [[fallthrough]];
         case Triangle: {
                 // Triangles or Quads with (u0, v0), (u1, v1), (u2, v2) considered
                 const real l0 = 1.0_r - l1 - l2;

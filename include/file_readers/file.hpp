@@ -100,7 +100,7 @@ class file {
 
     private:
         FILE *f;
-        mode mode;
+        mode mode_;
 
         // Helper function to scan
         template<Arithm T, std::size_t count>
@@ -118,12 +118,12 @@ class file {
         };
 
         file(const std::string& filename, const std::string& mode_s = "r") :
-            f(fopen(filename.c_str(), mode_s.c_str())), mode(string(mode_s)) {
+            f(fopen(filename.c_str(), mode_s.c_str())), mode_(string(mode_s)) {
 
             if (f == nullptr) {
                 using enum mode;
                 using enum error;
-                const bool read = mode == R || mode == RB;
+                const bool read = mode_ == R || mode_ == RB;
                 const std::string message = read ? "not found" : "could not be created";
                 std::printf("\rFile %s %s\n", filename.c_str(), message.c_str());
                 throw read ? FileNotFound : FileCouldNotBeCreated;

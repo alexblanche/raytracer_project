@@ -3,6 +3,8 @@
 #include "light/ray.hpp"
 #include "auxiliary/randomgen.hpp"
 
+#include <utility>
+
 // Sampling modes
 enum class camera_mode_option : unsigned int {
     Cam_Default         = 0,

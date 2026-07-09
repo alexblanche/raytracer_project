@@ -87,10 +87,10 @@ class matrix {
             iterator()
                 : j(0), mat(nullptr) {}
 
-            iterator(iterator&&)                 = default;
-            iterator(const iterator&)            = default;
-            iterator& operator=(iterator&&)      = default;
-            iterator& operator=(const iterator&) = default;
+            iterator(iterator&&)                 noexcept = default;
+            iterator(const iterator&)            noexcept = default;
+            iterator& operator=(iterator&&)      noexcept = default;
+            iterator& operator=(const iterator&) noexcept = default;
 
             value_type operator*() const {
                 return (*mat)[j];
@@ -190,8 +190,8 @@ class matrix {
             input_iterator(int j = 0, const matrix* p_mat = nullptr)
                 : j(j) { mat = p_mat; }
 
-            input_iterator(input_iterator&&)                 = default;
-            input_iterator& operator=(input_iterator&& it)   = default;
+            input_iterator(input_iterator&&)                 noexcept = default;
+            input_iterator& operator=(input_iterator&& it)   noexcept = default;
             input_iterator(const input_iterator&)            = delete;
             input_iterator& operator=(const input_iterator&) = delete;
             
@@ -205,7 +205,7 @@ class matrix {
             }
 
             void operator++(int) {
-                ++*this;
+                ++(*this);
             }
 
             bool operator==(std::default_sentinel_t) const {

@@ -277,7 +277,8 @@ int main(int argc, char** argv) {
                 case SDL_KEYDOWN:
                     if (event.key.keysym.scancode != SDL_SCANCODE_ESCAPE)
                         break;
-                    // else quit
+                    //else: quit
+                    [[fallthrough]];
                 case SDL_QUIT: {
                         const uint64_t curr_time = get_time();
                         const float fps = (1000.0f * static_cast<float>(frame_cpt)) / static_cast<float>(curr_time - time_init);

@@ -5,6 +5,8 @@
 #include <optional>
 #include <stdexcept>
 #include <cstdlib>
+#include <memory>
+#include <cstring>
 
 using enum raw_data::format;
 using enum file_reader::error;

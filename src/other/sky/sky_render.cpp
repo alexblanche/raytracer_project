@@ -1,5 +1,7 @@
 #include "other/sky/sky_render.hpp"
 
+#include <cstring>
+
 static constexpr float tan_reset_threshold = 1.0f;
 static constexpr float tan_reset_threshold_phi = 40.0f;
 

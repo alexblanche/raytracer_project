@@ -5,6 +5,7 @@
 
 #include <optional>
 #include <vector>
+#include <cstdint>
 
 struct dimensions {
    int width, height;

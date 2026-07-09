@@ -6,12 +6,12 @@
 
 namespace rt {
 
-	static constexpr std::string DEFAULT_TITLE = "Raytracer_project";
+	static const std::string DEFAULT_TITLE = "Raytracer_project";
 
 	using enum sdl::window::flag;
 	
 	screen::screen(image& image, tone_mapping_parameters::mode mode)
-		: 	window(DEFAULT_TITLE, { 10, 10, image.width(), image.height() }, { AllowHighDPI, Resizable }),
+		: 	window(DEFAULT_TITLE, sdl::rect(10, 10, image.width(), image.height()), { AllowHighDPI, Resizable }),
 			renderer(window, image.width(), image.height(), { sdl::renderer::flag::Accelerated }, sdl::renderer::vsync_option::Disabled),
 			srcrect(0, 0, image.width(), image.height()),
 			dstrect(0, 0, image.width(), image.height()),

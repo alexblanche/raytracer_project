@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <stdexcept>
+#include <cstring>
 
 using enum file_reader::error;
 

@@ -1,5 +1,6 @@
 #include "file_readers/file.hpp"
 
+#include <string>
 #include <cassert>
 
 int main() {

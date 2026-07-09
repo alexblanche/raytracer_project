@@ -16,14 +16,14 @@ struct element {
    enum class type {
       Object, Bounding
    };
-   type type;
+   type type_;
    std::variant<const object*, const bounding*> content;
 
    element(const object* o) :
-      type(type::Object),   content(std::in_place_type_t<const object*>(),   o) {}
+      type_(type::Object),   content(std::in_place_type_t<const object*>(),   o) {}
 
    element(const bounding* b) :
-      type(type::Bounding), content(std::in_place_type_t<const bounding*>(), b) {}
+      type_(type::Bounding), content(std::in_place_type_t<const bounding*>(), b) {}
 
    element(element&&)        noexcept = default;
    element(const element&)   noexcept = default;
@@ -44,7 +44,7 @@ struct element {
 
    inline rt::vector get_position() const {
       using enum type;
-      switch (type) {
+      switch (type_) {
          case Object:
             return std::get<const object*>(content)->get_position();
          
