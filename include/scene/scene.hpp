@@ -1,6 +1,12 @@
 #pragma once
 
-#include "scene/objects/object.hpp"
+#include "scene/objects/triangle.hpp"
+#include "scene/objects/quad.hpp"
+#include "scene/objects/sphere.hpp"
+#include "scene/objects/plane.hpp"
+#include "scene/objects/box.hpp"
+#include "scene/objects/cylinder.hpp"
+
 #include "scene/bounding/bounding.hpp"
 #include "scene/material/texture.hpp"
 #include "auxiliary/randomgen.hpp"
@@ -38,6 +44,15 @@ class scene {
            to be executed instead of the base (object) one */
         std::vector<const object*> object_set;
 
+        /* Objects */
+        std::vector<triangle> triangle_set;
+        std::vector<quad>     quad_set;
+        std::vector<sphere>   sphere_set;
+        std::vector<plane>    plane_set;
+        std::vector<box>      box_set;
+        std::vector<cylinder> cylinder_set;
+
+
         /* Set of the first-level bounding boxes */
         std::vector<const bounding*> bounding_set;
 
@@ -72,13 +87,21 @@ class scene {
         /* Constructor with background texture and optional background color */
         scene(
             std::vector<const object*>&& object_set,
+
+            std::vector<triangle>&& triangle_set,
+            std::vector<quad>&&     quad_set,
+            std::vector<sphere>&&   sphere_set,
+            std::vector<plane>&&    plane_set,
+            std::vector<box>&&      box_set,
+            std::vector<cylinder>&& cylinder_set,
+
             std::vector<const bounding*>&& bounding_set,
-            std::vector<texture>&& texture_set,
-            std::vector<normal_map>&& normal_map_set,
-            std::vector<material>&& material_set,
-            std::vector<texture_info>&& texture_info_set,
-            background_container&& background,
-            camera&& cam,
+            std::vector<texture>&&         texture_set,
+            std::vector<normal_map>&&      normal_map_set,
+            std::vector<material>&&        material_set,
+            std::vector<texture_info>&&    texture_info_set,
+            background_container&&         background,
+            camera&&                       cam,
             int width, int height,
             unsigned int polygons_per_bounding,
             real gamma

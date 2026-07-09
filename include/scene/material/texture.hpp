@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <string>
 
-
 /* Class representing texture data
 
    All textures from a scene are stored in the static vector texture::set,

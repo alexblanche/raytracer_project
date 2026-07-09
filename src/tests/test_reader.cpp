@@ -2,6 +2,7 @@
 #include "file_readers/image_files/hdr_reader.hpp"
 #include "file_readers/image_files/raw_data.hpp"
 #include "file_readers/parsers/obj_parser.hpp"
+#include "file_readers/parsers/scene_parser.hpp"
 
 #include "screen/screen.hpp"
 #include "auxiliary/timer.hpp"
@@ -142,11 +143,55 @@ static void test_obj() {
     const std::string& filename_obj = OBJ_FILE_NAME;
     constexpr int NB_ITERATIONS = 5;
 
+    pre_parsing_info pre_parsing_info;
+    const auto& [ _, obj_triangles, obj_quads ] = pre_parse_obj(filename_obj);
+    pre_parsing_info.triangles += obj_triangles;
+    pre_parsing_info.quads     += obj_quads;
+    pre_parsing_info.objects   += obj_triangles + obj_quads;
+
     std::vector<const object*>       object_set;
+    object_set.reserve(pre_parsing_info.objects);
+
+    std::vector<const object*>       other_content;
+    other_content.reserve(
+        pre_parsing_info.spheres + pre_parsing_info.planes + pre_parsing_info.boxes + pre_parsing_info.cylinders
+    );
+
     std::vector<wrapper<material>>   material_wrapper_set;
     std::vector<wrapper<texture>>    texture_wrapper_set;
     std::vector<wrapper<normal_map>> normal_map_wrapper_set;
     std::vector<texture_info>        texture_info_set;
+
+    std::vector<triangle> triangle_set;
+    std::vector<quad>     quad_set;
+    std::vector<sphere>   sphere_set;
+    std::vector<plane>    plane_set;
+    std::vector<box>      box_set;
+    std::vector<cylinder> cylinder_set;
+
+    triangle_set.reserve(pre_parsing_info.triangles + 2 * pre_parsing_info.quads);
+    quad_set    .reserve(pre_parsing_info.quads);
+    sphere_set  .reserve(pre_parsing_info.spheres);
+    plane_set   .reserve(pre_parsing_info.planes);
+    box_set     .reserve(pre_parsing_info.boxes);
+    cylinder_set.reserve(pre_parsing_info.cylinders);
+
+    containers containers = {
+        object_set,
+        other_content,
+
+        triangle_set,
+        quad_set,
+        sphere_set,
+        plane_set,
+        box_set,
+        cylinder_set,
+
+        material_wrapper_set,
+        texture_wrapper_set,
+        normal_map_wrapper_set,
+        texture_info_set
+    };
 
     uint64_t total_time = 0;
 
@@ -156,8 +201,7 @@ static void test_obj() {
         timer.start();
         
         const bounding* output_bd = nullptr;
-        const exit_status status = parse_obj_file(filename_obj, std::nullopt, object_set,
-            material_wrapper_set, texture_wrapper_set, texture_info_set, 2.0_r, rt::vector(1, 1, 1), false, 0, output_bd, 1.0_r);
+        const exit_status status = parse_obj_file(filename_obj, std::nullopt, containers, 2.0_r, rt::vector(1, 1, 1), false, 0, output_bd, 1.0_r);
         assert(status == exit_status::Success);
 
         timer.stop();

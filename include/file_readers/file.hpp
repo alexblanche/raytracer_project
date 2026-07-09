@@ -234,6 +234,28 @@ class file {
             return out;
         }
 
+        // Returns the next line as a string
+        [[nodiscard]] std::string read_line() const {
+            
+            constexpr std::size_t LENGTH = MAX_STRING_LENGTH + 1;
+            std::array<char, LENGTH> t = make_array<char, LENGTH>('\0');
+
+            skip_whitespace();
+
+            const std::size_t pos = position();
+
+            fgets(t.data(), LENGTH, f);
+            std::string out(t.data());
+                
+            const std::size_t n = std::min(out.find_first_of('\r'), out.find_first_of('\n'));
+            if (n != std::string::npos) {
+                out.resize(n);
+                seek(pos + n + 1);
+            }
+            
+            return out;
+        }
+
         int getc() const {
             return fgetc(f);
         }

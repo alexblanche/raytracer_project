@@ -1,17 +1,20 @@
 #pragma once
 
-#include "scene/objects/object.hpp"
-#include "scene/bounding/bounding.hpp"
-#include "scene/material/material.hpp"
-#include "scene/material/texture.hpp"
-#include "scene/material/texture_info.hpp"
-
 #include "file_readers/parsers/parsing_wrappers.hpp"
+#include "file_readers/parsers/scene_parser.hpp"
 
 #include "auxiliary/exit_status.hpp"
 
 #include <string>
 #include <optional>
+
+struct pre_parsing_info_obj {
+    unsigned int faces      = 0;
+    unsigned int triangles  = 0;
+    unsigned int quads      = 0;
+};
+
+pre_parsing_info_obj pre_parse_obj(const std::string filename);
 
 /* Wavefront .obj file parser */
 /* Only handles .obj files made up of triangles and quads, for now.
@@ -26,14 +29,9 @@
    - If bounding_enabled, a bounding containing the whole object is placed in output_bd.
      It contains a hierarchy of bounding boxes, such that the terminal ones contain at most
      polygons_per_bounding polygons.
-   
-   Returns true if the operation was successful
 */
 exit_status parse_obj_file(const std::string& file_name, const std::optional<unsigned int> default_texture_index,
-   std::vector<const object*>& obj_set,
-   std::vector<wrapper<material>>& material_wrapper_set,
-   std::vector<wrapper<texture>>& texture_wrapper_set,
-   std::vector<texture_info>& texture_info_set,
+   containers& containers,
    real scale, const rt::vector& shift,
    bool bounding_enabled, unsigned int polygons_per_bounding,
    const bounding*& output_bd, real gamma);

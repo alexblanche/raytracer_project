@@ -9,18 +9,35 @@ static constexpr unsigned int DEFAULT_STACK_SIZE = 200;
 
 scene::scene(
     std::vector<const object*>&& object_set,
+
+    std::vector<triangle>&& triangle_set,
+    std::vector<quad>&&     quad_set,
+    std::vector<sphere>&&   sphere_set,
+    std::vector<plane>&&    plane_set,
+    std::vector<box>&&      box_set,
+    std::vector<cylinder>&& cylinder_set,
+
     std::vector<const bounding*>&& bounding_set,
-    std::vector<texture>&& texture_set,
-    std::vector<normal_map>&& normal_map_set,
-    std::vector<material>&& material_set,
-    std::vector<texture_info>&& texture_info_set,
-    background_container&& background,
-    camera&& cam,
+    std::vector<texture>&&         texture_set,
+    std::vector<normal_map>&&      normal_map_set,
+    std::vector<material>&&        material_set,
+    std::vector<texture_info>&&    texture_info_set,
+    background_container&&         background,
+    camera&&                       cam,
+
     const int width, const int height,
     const unsigned int polygons_per_bounding,
     const real gamma)
     :
     object_set       (std::move(object_set)),
+
+    triangle_set     (std::move(triangle_set)),
+    quad_set         (std::move(quad_set)),
+    sphere_set       (std::move(sphere_set)),
+    plane_set        (std::move(plane_set)),
+    box_set          (std::move(box_set)),
+    cylinder_set     (std::move(cylinder_set)),
+
     bounding_set     (std::move(bounding_set)),
     texture_set      (std::move(texture_set)),
     normal_map_set   (std::move(normal_map_set)),
@@ -36,9 +53,9 @@ scene::scene(
 scene::~scene() {
 
     /* Destruction of the objects located on the heap */
-    for (const object* obj : object_set) {
-        delete obj;
-    }
+    // for (const object* obj : object_set) {
+    //     delete obj;
+    // }
 
     /* Destruction of the boundings with a breadth-first search */
     custom_stack<const bounding*> bd_stack(DEFAULT_STACK_SIZE);

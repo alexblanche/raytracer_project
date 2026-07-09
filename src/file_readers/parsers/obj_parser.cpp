@@ -1,8 +1,5 @@
 #include "file_readers/parsers/obj_parser.hpp"
 
-#include "scene/objects/triangle.hpp"
-#include "scene/objects/quad.hpp"
-
 #include "accelerating_structures/clustering.hpp"
 #include "file_readers/parsers/mtl_parser.hpp"
 #include "file_readers/file.hpp"
@@ -15,6 +12,9 @@
 #include <sstream>
 #include <limits>
 #include <charconv>
+
+// #include <ranges>
+#include <algorithm>
 
 static constexpr bool DISPLAY_HIERARCHY = false;
 
@@ -29,6 +29,64 @@ static constexpr real QUAD_SPLIT_THRESHOLD = 1.0e-7_r;
 // static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
 
 constexpr std::streamsize MAX_LINE_SIZE = std::numeric_limits<std::streamsize>::max();
+
+/**************************************************************************************/
+
+pre_parsing_info_obj pre_parse_obj(const std::string filename) {
+
+    file f(filename);
+    const std::vector<unsigned char> content = f.extract();
+    f.close();
+
+    pre_parsing_info_obj out;
+    auto& [ faces, triangles, quads ] = out;
+
+    unsigned int i = 0;
+    const unsigned int length = content.size();
+    
+    auto skip_line = [&] {
+        while (i < length && content[i] != '\n')
+            i++;
+        i++;
+    };
+
+    auto count_spaces_in_line = [&] {
+        int cpt = 0;
+        unsigned char ch;
+        while (i < length && ((ch = content[i]) != '\n')) {
+            cpt += (ch == ' ');
+            i++;
+        }
+        i++;
+        return cpt;
+    };
+
+    while (i < length) {
+        if (content[i] == 'f') {
+            const int nb = count_spaces_in_line();
+            switch (nb) {
+                case 3:  triangles++;     break;
+                case 4:  quads++;         break;
+                default: triangles += nb; break;
+            }
+            faces++;
+        }
+        else
+            skip_line();
+    }
+
+    /*
+    std::cout << "pre_parse_info_obj:"
+        << "\nfaces:     " << faces
+        << "\ntriangles: " << triangles
+        << "\nquads:     " << quads       << std::endl;
+    */
+    
+    return out;
+}
+
+
+/**************************************************************************************/
 
 struct sets {
     const std::vector<rt::vector>&   vertex_set;
@@ -130,9 +188,11 @@ static inline void new_texture_info(std::vector<texture_info>& texture_info_set,
 template<Polygon polygon, int size, normal normal_option = normal::Enabled>
 requires size_fits_type<polygon, size>
 static inline const polygon* build_polygon(
+    std::vector<polygon>& polygon_set,
     const std::vector<rt::vector>& vertex_set, const rt::vector shift, const real scale,
     const std::vector<rt::vector>& normal_set,
-    const unsigned int current_material_index, const texturing texturing_option, const unsigned int current_texture_info_set_index,
+    const unsigned int current_material_index, const texturing texturing_option,
+    const unsigned int current_texture_info_set_index,
     const index_array<size>& v, const index_array<size>& vn,
     const rt::vector& final_v = rt::vector(), const rt::vector& final_vn = rt::vector()) {
 
@@ -148,16 +208,18 @@ static inline const polygon* build_polygon(
 
     if constexpr (normal_option == normal::Enabled) {
         if constexpr (size >= 3)
-            return new polygon(vert_i..., norm_i..., current_material_index, texture_info_index);
+            polygon_set.emplace_back(vert_i..., norm_i..., current_material_index, texture_info_index);
         else
-            return new polygon(vert_i..., final_v, norm_i..., final_vn, current_material_index, texture_info_index);
+            polygon_set.emplace_back(vert_i..., final_v, norm_i..., final_vn, current_material_index, texture_info_index);
     }
     else {
         if constexpr (size >= 3)
-            return new polygon(vert_i..., current_material_index, texture_info_index);
+            polygon_set.emplace_back(vert_i..., current_material_index, texture_info_index);
         else
-            return new polygon(vert_i..., final_v, current_material_index, texture_info_index);
+            polygon_set.emplace_back(vert_i..., final_v, current_material_index, texture_info_index);
     }
+
+    return &polygon_set.back();
 }
 
 template<
@@ -167,6 +229,7 @@ template<
     unsigned int size = size<polygon, subdiv_option>
 >
 static inline void add_polygon(const sets& sets, const bool bounding_enabled,
+    std::vector<polygon>& polygon_set,
     unsigned int& number_of_polygons, unsigned int& number_of__type__,
     const rt::vector& shift, const real scale,
     index_array<size>&& v, index_array<size>&& vt, index_array<size>&& vn,
@@ -179,6 +242,7 @@ static inline void add_polygon(const sets& sets, const bool bounding_enabled,
         new_texture_info<size>(texture_info_set, uv_coord_set, current_texture_index, vt, final_vt);
 
     const polygon* poly = build_polygon<polygon, size, normal_option>(
+        polygon_set,
         vertex_set, shift, scale, normal_set,
         current_material_index, texturing_option, texture_info_set.size() - 1,
         v, vn, final_v, final_vn
@@ -194,8 +258,9 @@ static inline void add_polygon(const sets& sets, const bool bounding_enabled,
 
 /* Auxiliary function that subdivides a polygon with more than 5 sides into triangles, and adds all of them */
 template<normal normal_option = normal::Enabled>
-static void add_subdivided_polygon_template(std::istringstream& stream, const sets& sets,
-    const bool bounding_enabled, unsigned int& number_of_polygons, unsigned int& number_of_triangles,
+static void add_subdivided_polygon_template(std::istringstream& stream,
+    const sets& sets, const bool bounding_enabled,
+    std::vector<triangle>& triangle_set, unsigned int& number_of_polygons, unsigned int& number_of_triangles,
     const rt::vector& shift, const real scale,
     index_array<5>&& v, index_array<5>&& vt, index_array<5>&& vn,
     const unsigned int current_texture_index, const unsigned int current_material_index,
@@ -289,7 +354,8 @@ static void add_subdivided_polygon_template(std::istringstream& stream, const se
         const int vnj = normal_enabled ? vn_stack.top() : 0;
 
         add_polygon<triangle, normal_option, subdivision::Enabled>(
-            sets, bounding_enabled, number_of_polygons, number_of_triangles,
+            sets, bounding_enabled,
+            triangle_set, number_of_polygons, number_of_triangles,
             shift, scale, { vj, vi }, { vtj, vti }, { vnj, vni },
             current_texture_index, current_material_index, texturing_option,
             final_v, final_vt, final_vn
@@ -298,7 +364,8 @@ static void add_subdivided_polygon_template(std::istringstream& stream, const se
     
     // Adding the last triangle
     add_polygon<triangle, normal_option, subdivision::Enabled>(
-        sets, bounding_enabled, number_of_polygons, number_of_triangles,
+        sets, bounding_enabled,
+        triangle_set, number_of_polygons, number_of_triangles,
         shift, scale, { last_v, v[0] }, { last_vt, vt[0] }, { last_vn, vn[0] },
         current_texture_index, current_material_index, texturing_option,
         final_v, final_vt, final_vn
@@ -370,24 +437,39 @@ with material indices (defined with the keyword usemtl) found in material_names
 
 exit_status parse_obj_file(const std::string& file_name,
     const std::optional<unsigned int> default_texture_index,
-    std::vector<const object*>& obj_set,
-    std::vector<wrapper<material>>& material_wrapper_set,
-    std::vector<wrapper<texture>>& texture_wrapper_set,
-    std::vector<texture_info>& texture_info_set,
+    containers& containers,
     const real scale, const rt::vector& shift,
     const bool bounding_enabled, const unsigned int polygons_per_bounding,
     const bounding*& output_bd, const real gamma) {
 
     printf("Parsing obj file... ");
     fflush(stdout);
+    
+    auto& [
+        object_set,
+        other_content,
 
-    file f(file_name);
+        triangle_set,
+        quad_set,
+        sphere_set,
+        plane_set,
+        box_set,
+        cylinder_set,
+
+        material_wrapper_set,
+        texture_wrapper_set,
+        normal_map_wrapper_set,
+        texture_info_set
+    ]
+    = containers;
 
     /* Extraction of the path to the .obj file, to be appended to relative paths of mtl and texture files */
     const std::filesystem::path path = std::filesystem::path(file_name).parent_path();
 
     /* Storage */
     /* All indices start at 1, so for simplicity we add an unused first vector */
+
+    const unsigned int expected_size = 2 * triangle_set.capacity() / 3;
 
     /* Vertices of the object */
     std::vector<rt::vector> vertex_set  (1);
@@ -397,6 +479,10 @@ exit_status parse_obj_file(const std::string& file_name,
 
     /* Vertex normals */
     std::vector<rt::vector> normal_set  (1);
+
+    vertex_set  .reserve(expected_size);
+    uv_coord_set.reserve(expected_size);
+    normal_set  .reserve(expected_size);
 
     /* Material -> texture association table */
     std::map<unsigned int, unsigned int> mt_assoc;
@@ -426,7 +512,7 @@ exit_status parse_obj_file(const std::string& file_name,
     std::vector<const object*> content;
     std::vector<const bounding*> children;
 
-    sets sets { vertex_set, uv_coord_set, normal_set, obj_set, content, texture_info_set };
+    sets sets { vertex_set, uv_coord_set, normal_set, object_set, content, texture_info_set };
 
     auto add_triangle = [&] (index_array<3>&& v, index_array<3>&& vt, index_array<3>&& vn,
         const texturing texturing_option, const normal normal_option = normal::Enabled) {
@@ -436,13 +522,15 @@ exit_status parse_obj_file(const std::string& file_name,
 
         if (normal_option == normal::Enabled)
             add_polygon<triangle, normal::Enabled, subdiv_disable, size>(
-                sets, bounding_enabled, number_of_polygons, number_of_triangles,
+                sets, bounding_enabled,
+                triangle_set, number_of_polygons, number_of_triangles,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
                 current_texture_index, current_material_index, texturing_option
             );
         else
             add_polygon<triangle, normal::Disabled, subdiv_disable, size>(
-                sets, bounding_enabled, number_of_polygons, number_of_triangles,
+                sets, bounding_enabled,
+                triangle_set, number_of_polygons, number_of_triangles,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
                 current_texture_index, current_material_index, texturing_option
             );
@@ -456,13 +544,15 @@ exit_status parse_obj_file(const std::string& file_name,
 
         if (normal_option == normal::Enabled)
             add_polygon<quad, normal::Enabled, subdiv_disable, size>(
-                sets, bounding_enabled, number_of_polygons, number_of_quads,
+                sets, bounding_enabled,
+                quad_set, number_of_polygons, number_of_quads,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
                 current_texture_index, current_material_index, texturing_option
             );
         else
             add_polygon<quad, normal::Disabled, subdiv_disable, size>(
-                sets, bounding_enabled, number_of_polygons, number_of_quads,
+                sets, bounding_enabled,
+                quad_set, number_of_polygons, number_of_quads,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
                 current_texture_index, current_material_index, texturing_option
             );
@@ -492,13 +582,13 @@ exit_status parse_obj_file(const std::string& file_name,
         
         if (normal_option == normal::Enabled)
             add_subdivided_polygon_template<normal::Enabled>(stream, sets, bounding_enabled,
-                number_of_polygons, number_of_triangles,
+                triangle_set, number_of_polygons, number_of_triangles,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
                 current_texture_index, current_material_index, texturing_option
             );
         else
             add_subdivided_polygon_template<normal::Disabled>(stream, sets, bounding_enabled,
-                number_of_polygons, number_of_triangles,
+                triangle_set, number_of_polygons, number_of_triangles,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
                 current_texture_index, current_material_index, texturing_option
             );
@@ -545,7 +635,8 @@ exit_status parse_obj_file(const std::string& file_name,
 
     try {
 
-        const std::vector<unsigned char> buffer = f.extract_from();
+        file f(file_name);
+        const std::vector<unsigned char> buffer = f.extract();
         f.close();
 
         std::istringstream stream(reinterpret_cast<const char*>(buffer.data()));
