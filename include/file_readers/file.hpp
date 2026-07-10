@@ -1,13 +1,13 @@
 #pragma once
 
 #include "auxiliary/exit_status.hpp"
+#include "parameters.hpp"
 
 #include <iostream>
 #include <span>
 #include <stdexcept>
 #include <vector>
 #include <array>
-
 #include <optional>
 
 constexpr unsigned int INFINITE = static_cast<unsigned int>(-1);
@@ -36,7 +36,7 @@ static consteval inline std::array<T, count> make_array(T value) {
 template<typename T>
 concept Arithm = std::is_arithmetic_v<T>;
 
-#if defined(__APPLE__) && defined(__clang__)
+#if APPLE_CLANG
     // Auxiliary
     template<std::size_t count, std::size_t... i>
     static consteval inline std::string string_concat_aux_(const std::string& value, std::index_sequence<i...>) {

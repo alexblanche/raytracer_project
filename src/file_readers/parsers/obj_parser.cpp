@@ -661,7 +661,7 @@ exit_status parse_obj_file(const std::string& file_name,
             }
 
             /* Commented line, or ignored command */
-            if (arg.starts_with("#") || belongs_to<std::string, 5>(arg, { "s", "l", "g", "o", "vp" })) {
+            if (arg.starts_with("#") || (arg == "s" || arg == "l" || arg == "g" || arg == "o" || arg == "vp")) {
 
                 stream.ignore(MAX_LINE_SIZE, '\n');
                 continue;
@@ -798,11 +798,11 @@ exit_status parse_obj_file(const std::string& file_name,
                     }
                 }
                 
-                const texturing this_texturing_option = belongs_to<face_type, 2>(type, { NoTexture, NoTextureNoNormal }) ?
+                const texturing this_texturing_option = type == NoTexture || type == NoTextureNoNormal ?
                       texturing::Disabled
                     : texturing_option;
                 
-                const normal this_normal_option = belongs_to<face_type, 2>(type, { NoNormal, NoTextureNoNormal }) ?
+                const normal this_normal_option = type == NoNormal || type == NoTextureNoNormal ?
                       normal::Disabled
                     : normal::Enabled;
 

@@ -646,7 +646,7 @@ static void parse_objects(const file& f, const object_type type, const std::stri
 
     const object* obj = nullptr;
 
-    if (belongs_to<object_type, 2>(type, { Box, Cylinder })) {
+    if (type == Box || type == Cylinder) {
         switch (type) {
             case Box: {
                 const auto& [ center, x_axis, y_axis, l ] = parameters.box;
@@ -959,7 +959,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             }
             
             /* BMP file loading */
-            if (belongs_to<std::string, 2>(arg, { "load_texture", "load_normal_map" })) {
+            if (arg == "load_texture" || arg == "load_normal_map") {
 
                 const bool is_texture = arg == "load_texture";
                 const std::string type = is_texture ? "texture" : "normal map";

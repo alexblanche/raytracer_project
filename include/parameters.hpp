@@ -39,3 +39,10 @@ enum class parallelism {
     Enabled, Disabled
 };
 constexpr parallelism PARALLELISM = parallelism::Enabled;
+
+// Compiler check
+#if (defined(__APPLE__) && defined(__clang__))
+    #define APPLE_CLANG 1
+#else
+    #define APPLE_CLANG 0
+#endif

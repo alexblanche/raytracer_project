@@ -11,7 +11,7 @@ namespace rt {
 
 	using enum sdl::window::flag;
 	
-#if defined(__APPLE__) && defined(__clang__)
+#if APPLE_CLANG
 	screen::screen(image& image, tone_mapping_parameters::mode mode)
 		: 	window(DEFAULT_TITLE, sdl::rect(10, 10, image.width(), image.height()), { AllowHighDPI, Resizable }),
 			renderer(window, image.width(), image.height(), { sdl::renderer::flag::Accelerated }, sdl::renderer::vsync_option::Disabled),
