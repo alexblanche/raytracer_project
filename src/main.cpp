@@ -1,5 +1,6 @@
 #include "main_menu/menu.hpp"
 
+#include <SDL2/SDL.h>
 #include <iostream>
 
 /** Loop keys:

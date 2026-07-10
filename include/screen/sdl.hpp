@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <span>
 #include <utility>
+#include <string>
 
 // Function that applies bitwise OR to a list of flags
 template<class T, typename UInt = uint32_t>

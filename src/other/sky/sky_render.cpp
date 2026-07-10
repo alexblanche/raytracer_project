@@ -1,5 +1,6 @@
 #include "other/sky/sky_render.hpp"
 
+#include <iostream>
 #include <cstring>
 
 static constexpr float tan_reset_threshold = 1.0f;
@@ -188,6 +189,7 @@ void print_ptb(phi_test_bounds ptb) {
         case NeverTest  : printf("NeverTest\n"  ); break;
         case TestBetween: printf("TestBetween\n"); break;
         case TestOutside: printf("TestOutside\n"); break;
+        default: throw;
     }
 }
 

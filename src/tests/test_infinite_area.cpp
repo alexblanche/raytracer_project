@@ -16,7 +16,7 @@
 // printf("\n");
 
 ///// Testing low res infinite area
-int main() {
+int main(int, char**) {
 
     const std::string file_name =
         //  "../../../raytracer_project/sky/dome/garden_8k.hdr";

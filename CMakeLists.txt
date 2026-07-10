@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 4.0)
 project(raytracer VERSION "0.8.1")
 
-set(CMAKE_CXX_STANDARD 26)
 add_compile_options(-std=c++26)
 add_compile_options(-Wall -Wextra -Werror -Wpedantic -pedantic-errors)
 add_compile_options(-fdiagnostics-color)
@@ -13,9 +12,15 @@ include_directories(include/)
 set(SDL2_NO_MWINDOWS 1)
 
 find_package(SDL2 REQUIRED)
-# message("SDL2_INCLUDE_DIRS : ${SDL2_INCLUDE_DIRS}")
-# message("SDL2_LIBRARIES : ${SDL2_LIBRARIES}")
+# message("SDL2_INCLUDE_DIRS: ${SDL2_INCLUDE_DIRS}")
+# message("SDL2_LIBRARIES: ${SDL2_LIBRARIES}")
 include_directories(${SDL2_INCLUDE_DIRS})
+
+# if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+# 	message("Clang")
+# elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+# 	message("GNU")
+# endif()
 
 ##################################################################
 ### Source bundles
@@ -96,19 +101,14 @@ set(MENU_SOURCES
 # Main executable
 set(main_name main)
 add_executable(${main_name}
+	${IMAGE_SOURCES}
+	${SCENE_SOURCES}
+	${PARSERS_SOURCES}
+	${TRACING_SOURCES}
+	${AUXILIARY_ALGORITHMS_SOURCES}
+	${MENU_SOURCES}
+	src/parallel/parallel.cpp
 	src/main.cpp
-)
-
-target_sources(${main_name}
-	PUBLIC
-		${IMAGE_SOURCES}
-		${SCENE_SOURCES}
-		${PARSERS_SOURCES}
-		${TRACING_SOURCES}
-		${AUXILIARY_ALGORITHMS_SOURCES}
-		${MENU_SOURCES}
-		
-		src/parallel/parallel.cpp
 )
 
 target_link_libraries(${main_name}
@@ -119,7 +119,6 @@ target_include_directories(${main_name}
 	PUBLIC
 		${SDL2_INCLUDE_DIRS}
 )
-
 ##################################################################
 ### Merger and postprocess
 ##################################################################
