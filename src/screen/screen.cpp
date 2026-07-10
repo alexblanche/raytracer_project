@@ -3,6 +3,7 @@
 #include <cmath>
 #include <vector>
 #include <string>
+#include <array>
 
 namespace rt {
 
@@ -10,6 +11,7 @@ namespace rt {
 
 	using enum sdl::window::flag;
 	
+#if defined(__APPLE__) && defined(__clang__)
 	screen::screen(image& image, tone_mapping_parameters::mode mode)
 		: 	window(DEFAULT_TITLE, sdl::rect(10, 10, image.width(), image.height()), { AllowHighDPI, Resizable }),
 			renderer(window, image.width(), image.height(), { sdl::renderer::flag::Accelerated }, sdl::renderer::vsync_option::Disabled),
@@ -20,6 +22,18 @@ namespace rt {
 
 		sdl::init({ sdl::Init::Video });
 	}
+#else
+	screen::screen(image& image, tone_mapping_parameters::mode mode)
+		: 	window(DEFAULT_TITLE, sdl::rect(10, 10, image.width(), image.height()), std::array<sdl::window::flag, 2>{ AllowHighDPI, Resizable }),
+			renderer(window, image.width(), image.height(), std::array<sdl::renderer::flag, 1>{ sdl::renderer::flag::Accelerated }, sdl::renderer::vsync_option::Disabled),
+			srcrect(0, 0, image.width(), image.height()),
+			dstrect(0, 0, image.width(), image.height()),
+			texture(renderer, sdl::texture::PixelFormat::RGB24, sdl::texture::Access::Streaming, image.width(), image.height()),
+			img(image), tone_mapping_mode(mode) {
+
+		sdl::init(std::array<sdl::Init, 1>{ sdl::Init::Video });
+	}
+#endif
 
 	// screen::screen(image& image, tone_mapping_parameters::mode mode)
 	// 	: screen(image.data, mode, image.gamma) {}

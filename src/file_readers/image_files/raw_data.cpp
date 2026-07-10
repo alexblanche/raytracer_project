@@ -37,7 +37,7 @@ exit_status raw_data::export_data(const std::string& file_name, const image& ima
                 break;
             case Binary: {
                 const std::size_t buffer_size = image.width() * image.height();
-                const std::unique_ptr<rt::color> buffer_container(new rt::color[buffer_size]);
+                const std::unique_ptr<rt::color[]> buffer_container(new rt::color[buffer_size]);
                 rt::color* buffer_start = buffer_container.get();
 
                 std::size_t index = 0;

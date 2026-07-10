@@ -44,25 +44,67 @@ inline bool is_negative_not_zero(real x) {
 
 ///////////////////////////////////////////////////
 
+#if (defined(__APPLE__) && defined(__clang__))
+    #define APPLE_CLANG 1
+#else
+    #define APPLE_CLANG 0
+#endif
 
-// Returns the index of x in the given set of values if it is present, otherwise std::nullopt
-template<typename T, std::size_t extent>
-requires (requires (T x, T y) { x == y; })
-std::optional<unsigned int> index_of(const T& x, const std::span<const T, extent> values) {
-    for (unsigned int i = 0; const T& y : values) {
-        if (x == y)
-            return i;
-        i++;
+#if APPLE_CLANG
+
+    // Returns the index of x in the given set of values if it is present, otherwise std::nullopt
+    template<typename T, std::size_t extent>
+    requires (requires (T x, T y) { x == y; })
+    std::optional<unsigned int> index_of(const T& x, const std::span<const T, extent> values) {
+        for (unsigned int i = 0; const T& y : values) {
+            if (x == y)
+                return i;
+            i++;
+        }
+        return std::nullopt;
     }
-    return std::nullopt;
-}
 
-// Returns true if x belongs to the given values
-template<typename T>
-requires (requires (T x, T y) { x == y; })
-bool belongs_to(const T& x, const std::span<const T> values) {
-    return index_of(x, values).has_value();
-}
+    // Returns true if x belongs to the given values
+    template<typename T>
+    requires (requires (T x, T y) { x == y; })
+    bool belongs_to(const T& x, const std::span<const T> values) {
+        return index_of(x, values).has_value();
+    }
+
+#else
+
+    #include <array>
+
+    // Returns the index of x in the given set of values if it is present, otherwise std::nullopt
+    template<typename T, std::size_t extent>
+    requires (requires (T x, T y) { x == y; })
+    std::optional<unsigned int> index_of(const T& x, const std::array<T, extent>& values) {
+        for (unsigned int i = 0; const T& y : values) {
+            if (x == y)
+                return i;
+            i++;
+        }
+        return std::nullopt;
+    }
+
+    template<typename T, std::size_t extent>
+    requires (requires (T x, T y) { x == y; })
+    std::optional<unsigned int> index_of(const T& x, std::array<T, extent>&& values) {
+        for (unsigned int i = 0; const T& y : values) {
+            if (x == y)
+                return i;
+            i++;
+        }
+        return std::nullopt;
+    }
+
+    // Returns true if x belongs to the given values
+    template<typename T, std::size_t extent>
+    requires (requires (T x, T y) { x == y; })
+    bool belongs_to(const T& x, std::array<T, extent>&& values) {
+        return index_of(x, std::move(values)).has_value();
+    }
+#endif
 
 ///////////////////////////////////////////////////
 

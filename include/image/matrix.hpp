@@ -178,19 +178,18 @@ class matrix {
     iterator end() {
         return iterator(height, &(*this));
     }
-
     
     class input_iterator {
         private:
             std::size_t j;
-            inline static const matrix* mat;
+            const matrix* mat;
 
         public:
             using difference_type = int;
             using value_type = const_row;
 
             input_iterator(int j = 0, const matrix* p_mat = nullptr)
-                : j(j) { mat = p_mat; }
+                : j(j), mat(p_mat) {}
 
             input_iterator(input_iterator&&)                 noexcept = default;
             input_iterator& operator=(input_iterator&& it)   noexcept = default;

@@ -26,7 +26,11 @@ static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
         "triangle", "quad", "sphere", "plane", "box", "cylinder",
         "material", "load_texture"
     };
+#if APPLE_CLANG
     const std::span keywords(keywords_array);
+#else
+    const auto& keywords = keywords_array;
+#endif
 
     std::string arg;
     while (not f.eof()) {
@@ -642,7 +646,7 @@ static void parse_objects(const file& f, const object_type type, const std::stri
 
     const object* obj = nullptr;
 
-    if (belongs_to(type, { Box, Cylinder })) {
+    if (belongs_to<object_type, 2>(type, { Box, Cylinder })) {
         switch (type) {
             case Box: {
                 const auto& [ center, x_axis, y_axis, l ] = parameters.box;
@@ -955,7 +959,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             }
             
             /* BMP file loading */
-            if (belongs_to(arg, { "load_texture", "load_normal_map" })) {
+            if (belongs_to<std::string, 2>(arg, { "load_texture", "load_normal_map" })) {
 
                 const bool is_texture = arg == "load_texture";
                 const std::string type = is_texture ? "texture" : "normal map";
@@ -987,10 +991,19 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             /* Objects declaration */
             {
                 using enum object_type;
+                
+#if APPLE_CLANG
                 constexpr std::array<std::string, 6> object_type_names_array = {
                     "triangle", "quad", "sphere", "plane", "box", "cylinder"
                 };
                 const std::span object_type_names(object_type_names_array);
+#else
+                static const std::array<std::string, 6> object_type_names_array = {
+                    "triangle", "quad", "sphere", "plane", "box", "cylinder"
+                };
+                const auto& object_type_names = object_type_names_array;
+#endif
+
                 constexpr std::array object_types = {
                     Triangle, Quad, Sphere, Plane, Box, Cylinder
                 };
