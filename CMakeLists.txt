@@ -167,7 +167,6 @@ target_include_directories(${legacy}
 set(sky_name sky)
 add_executable(${sky_name}
 	src/other/sky/bmp_reader.cpp
-	src/other/sky/image.cpp
 	src/other/sky/screen.cpp
 	src/other/sky/sky_render.cpp
 	src/other/sky/test_sky.cpp
