@@ -69,10 +69,11 @@ template <orientation_type ray_orientation, orientation_type bias_orientation>
 
 /* Auxiliary function that handles the specular reflective case */
 // Run-time
-[[nodiscard]] static inline ray specular_reflective_case(const hit& h, const randomgen& rg, const real smoothness,
-    const rt::vector& local_normal, const orientation_type ray_orientation) {
+[[nodiscard]] static inline ray specular_reflective_case(const randomgen& rg,
+    const hit& h, const rt::vector& direction, const real smoothness, const rt::vector& local_normal,
+    const orientation_type ray_orientation) {
 
-    const rt::vector central_dir = direction::central_reflected(h, local_normal, smoothness, ray_orientation);
+    const rt::vector central_dir = direction::central_reflected(direction, local_normal, smoothness, ray_orientation);
                     
     /* Direction according to Lambert's cosine law */
     using enum direction::angle;
@@ -90,10 +91,10 @@ template <orientation_type ray_orientation, orientation_type bias_orientation>
 
 // Compile-time
 template<orientation_type ray_orientation>
-[[nodiscard]] static inline ray specular_reflective_case(const hit& h, const randomgen& rg, const real smoothness,
-    const rt::vector& local_normal) {
+[[nodiscard]] static inline ray specular_reflective_case(const randomgen& rg,
+    const hit& h, const rt::vector& direction, const real smoothness, const rt::vector& local_normal) {
 
-    const rt::vector central_dir = direction::central_reflected<ray_orientation>(h, local_normal, smoothness);
+    const rt::vector central_dir = direction::central_reflected<ray_orientation>(direction, local_normal, smoothness);
 
     /* Direction according to Lambert's cosine law */
     using enum direction::angle;
@@ -250,7 +251,7 @@ rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg
                 const bool is_specular_bounce = rg.random_ratio() <= m.get_reflectivity();
                 const real specular_smoothness = is_specular_bounce ? smoothness : 0.0_r;
                 
-                r = specular_reflective_case(h, rg, specular_smoothness, normal, ray_orientation);
+                r = specular_reflective_case(rg, h, r.direction, specular_smoothness, normal, ray_orientation);
 
                 /* We update color_materials only if the material reflects colors (like a christmas tree ball),
                 otherwise the reflection has the original color (like a tomato) */
@@ -288,7 +289,7 @@ rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg
 
             const auto is_fresnel_reflection = [&] {
 
-                const real fresnel = direction::get_schlick(h, normal, refr_index, next_refr_i);
+                const real fresnel = direction::get_schlick(r.direction, normal, refr_index, next_refr_i);
                 return rg.random_ratio() * m.get_transparency() <= fresnel;
             };
 
@@ -297,7 +298,7 @@ rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg
                 /* The ray is reflected */
                 
                 /* Is it a pure specular or a mix of specular and diffuse just like in the previous case? */
-                r = specular_reflective_case<Inward>(h, rg, smoothness, normal);
+                r = specular_reflective_case<Inward>(rg, h, r.direction, smoothness, normal);
             }
             else {
 
@@ -309,7 +310,7 @@ rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg
                 if (sin_theta_2_sq >= 1.0_r) {
                     /* Total internal reflection */
 
-                    r = specular_reflective_case(h, rg, smoothness, normal, ray_orientation);
+                    r = specular_reflective_case(rg, h, r.direction, smoothness, normal, ray_orientation);
                 }
                 else {
                     /* Transmission */

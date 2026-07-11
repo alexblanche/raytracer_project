@@ -25,7 +25,7 @@ class plane : public object {
 
         /* Intersection determination */
 
-        std::optional<real> measure_distance(const ray& r) const;
+        std::optional<real> measure_distance(const ray& r) const final;
         
-        hit compute_intersection(ray& r, real t) const;
+        hit compute_intersection(ray& r, real t) const final;
 };

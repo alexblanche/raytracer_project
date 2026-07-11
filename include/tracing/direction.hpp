@@ -13,19 +13,18 @@ class direction {
         template<orientation_type ray_orientation>
         /* Returns the interpolated direction between the normal and the reflected direction */
         /* inward = ((direction | normal) <= 0) */
-        static rt::vector central_reflected(const hit& h, const rt::vector& normal, const real smoothness) {
+        static rt::vector central_reflected(const rt::vector& direction, const rt::vector& normal, const real smoothness) {
             constexpr real correcting_factor = (ray_orientation == orientation_type::Inward) ? 1.0_r : -1.0_r;
             constexpr real two_corr_f = -2.0_r * correcting_factor;
 
-            const rt::vector& u = h.get_generator_ray()->direction;
-            const real two_cos = two_corr_f * (u | normal);
+            const real two_cos = two_corr_f * (direction | normal);
             //return (smoothness * (2.0_r * cos - 1.0_r) + 1.0_r) * right_normal + smoothness * u;
-            return fma(u, smoothness, ((smoothness * (two_cos - 1.0_r) + 1.0_r) * correcting_factor) * normal);
+            return fma(direction, smoothness, ((smoothness * (two_cos - 1.0_r) + 1.0_r) * correcting_factor) * normal);
         }
 
         /* Returns the interpolated direction between the normal and the reflected direction */
         /* inward = ((direction | normal) <= 0) */
-        static rt::vector central_reflected(const hit& h, const rt::vector& normal, real reflectivity, orientation_type ray_orientation);
+        static rt::vector central_reflected(const rt::vector& direction, const rt::vector& normal, real reflectivity, orientation_type ray_orientation);
 
         enum class angle {
             Pi, Pi_over_2
@@ -124,8 +123,8 @@ class direction {
         }
 
         /* Computes the Fresnel coefficient Kr */
-        static real get_fresnel(const hit& h, const rt::vector& normal, real sin_theta_2_sq, real refr_1, real refr_2);
+        static real get_fresnel(const rt::vector& direction, const rt::vector& normal, real sin_theta_2_sq, real refr_1, real refr_2);
 
         /* Compute Schlick's approximation of Fresnel coefficient Kr */
-        static real get_schlick(const hit& h, const rt::vector& normal, real refr_1, real refr_2);
+        static real get_schlick(const rt::vector& direction, const rt::vector& normal, real refr_1, real refr_2);
 };

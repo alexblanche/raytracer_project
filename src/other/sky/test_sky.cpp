@@ -13,11 +13,6 @@ uint64_t get_time() {
     ).count();
 }
 
-// inline float absf(const float x) {
-//     return std::signbit(x) ? -x : x;
-// }
-
-
 /* Struct containing the spherical coordinates controlled by the mouse */
 struct mouse_pos {
     const float invwidth;

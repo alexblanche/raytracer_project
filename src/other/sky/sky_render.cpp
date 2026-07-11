@@ -23,7 +23,7 @@ struct loop_version {
 
 
 template<loop_version::theta vtheta, loop_version::phi vphi, loop_version::limit vlim>
-inline void segment_loop(const render_parameters& param, segment_loop_parameters& sl_param,
+static inline void segment_loop(const render_parameters& param, segment_loop_parameters& sl_param,
     const int bound, const float const_theta) {
 
     using enum loop_version::theta;
@@ -102,6 +102,11 @@ inline void segment_loop(const render_parameters& param, segment_loop_parameters
 
         const int index_src_1 = (param.img_height - static_cast<int>(sl_param.phi * param.img_scale_y)) * param.img_width + static_cast<int>(sl_param.theta * param.img_scale_x);
         const int index_src = std::max(0, index_src_1 * 3);
+
+        // if (param.texture_pixels + sl_param.index) {
+        //     std::cout << "Overflow" << std::endl;
+        // }
+
         std::memcpy(param.texture_pixels + sl_param.index, param.orig_pixels + index_src, 3);
 
         // if constexpr (vphi == TestPhi) {
@@ -122,7 +127,7 @@ inline void segment_loop(const render_parameters& param, segment_loop_parameters
     sl_param.index_loop = i;
 }
 
-void compute_bounds_theta_update(int& k1_io, int& k2_io,
+static void compute_bounds_theta_update(int& k1_io, int& k2_io,
     const sky::vector& v, const sky::vector& dv) {
 
     // Computations of the solutions of abs(dx) = threshold
@@ -182,7 +187,7 @@ enum class phi_test_bounds {
 };
 
 
-void print_ptb(phi_test_bounds ptb) {
+[[maybe_unused]] static void print_ptb(phi_test_bounds ptb) {
     using enum phi_test_bounds;
     switch (ptb) {
         case AlwaysTest : printf("AlwaysTest\n" ); break;
@@ -195,7 +200,7 @@ void print_ptb(phi_test_bounds ptb) {
 
 // Returns true if a non-empty test of phi has to be done, between k1 and k2
 // False if no solution was found
-phi_test_bounds compute_bounds_phi_update(int& k1_io, int& k2_io,
+static phi_test_bounds compute_bounds_phi_update(int& k1_io, int& k2_io,
     const sky::vector& v, const sky::vector& dv) {
 
     using enum phi_test_bounds;
@@ -833,7 +838,6 @@ void render(const render_parameters& param) {
 #endif
 #endif
     }
-    //printf("atan per pixel : %f pcts\n", 100 * static_cast<float>(atan_cpt) / (width * height * 2));
     SDL_UnlockTexture(param.txt);
     SDL_RenderClear(param.scr.renderer);
     SDL_RenderCopy(param.scr.renderer, param.txt, &param.scr.srcrect, &param.scr.dstrect);
