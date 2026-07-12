@@ -139,6 +139,7 @@ int main(int argc, char** argv) {
     }
     const int dwidth  = dims.value().width;
     const int dheight = dims.value().height;
+    // std::cout << "dwidth = " << dwidth << "; dheight = " << dheight << std::endl;
 
 //#define TIME_READ
 
@@ -240,6 +241,7 @@ int main(int argc, char** argv) {
     param.orig_pixels = static_cast<char*>(surface->pixels);
     param.img_width  = dwidth;
     param.img_height = dheight;
+    param.img_buffer_max_index = param.img_width * param.img_height - 1;
 
     constexpr float x_step = fov_x * Pi / half_scr_width;
     constexpr float y_step = fov_y * Pi / half_scr_height;

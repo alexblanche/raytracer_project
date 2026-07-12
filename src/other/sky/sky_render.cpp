@@ -6,7 +6,7 @@
 static constexpr float tan_reset_threshold = 1.0f;
 static constexpr float tan_reset_threshold_phi = 40.0f;
 
-struct loop_version {
+namespace loop_version {
 
     enum class theta {
         UpdateThetaDerivative, UpdateThetaTestPhi,
@@ -100,21 +100,16 @@ static inline void segment_loop(const render_parameters& param, segment_loop_par
             }
         }
 
-        const int index_src_1 = (param.img_height - static_cast<int>(sl_param.phi * param.img_scale_y)) * param.img_width + static_cast<int>(sl_param.theta * param.img_scale_x);
-        const int index_src = std::max(0, index_src_1 * 3);
+        const int index_src = (param.img_height - static_cast<int>(sl_param.phi * param.img_scale_y)) * param.img_width + static_cast<int>(sl_param.theta * param.img_scale_x);
+        int byte_src = std::min(std::max(0, index_src), param.img_buffer_max_index) * 3;
 
-        // if (param.texture_pixels + sl_param.index) {
-        //     std::cout << "Overflow" << std::endl;
-        // }
-
-        std::memcpy(param.texture_pixels + sl_param.index, param.orig_pixels + index_src, 3);
+        std::memcpy(param.texture_pixels + sl_param.index, param.orig_pixels + byte_src, 3);
 
         // if constexpr (vphi == TestPhi) {
         //     const bool needs_reset_phi = std::abs(dy) > tan_reset_threshold;
-        //     if (needs_reset_phi) {
-        //         texture_pixels[index + 1] = 255;
-        //     }
-        //     texture_pixels[index + 2] = 255;
+        //     if (needs_reset_phi)
+        //         texture_pixels[index + 1] = '\255';
+        //     texture_pixels[index + 2] = '\255';
         // }
 
         sl_param.index += 3;
@@ -225,16 +220,10 @@ static phi_test_bounds compute_bounds_phi_update(int& k1_io, int& k2_io,
     return (a > 0.0f) ? TestBetween : TestOutside;
 }
 
-
-// void render(SDL_Texture* txt, char*& texture_pixels, int& texture_pitch, char* orig_pixels,
-//     const int width, const int height, const int img_width,
-//     const sky::vector& scaled_x_axis, const sky::vector& scaled_y_axis, const sky::vector& axes_center,
-//     const int half_scr_width, const int half_scr_height,
-//     sky::screen& scr, SDL_Rect& srcrect, SDL_Rect& dstrect,
-//     const float img_scale_x, const float img_scale_y) {
 void render(const render_parameters& param) {
 
     SDL_LockTexture(param.txt, nullptr, reinterpret_cast<void**>(&param.texture_pixels), &param.texture_pitch);
+
     segment_loop_parameters sl_param;
     sl_param.index = 0;
 
@@ -298,12 +287,11 @@ void render(const render_parameters& param) {
         const float init_cartx = fma(param.scaled_x_axis.x, -half_scr_width, pre_cartesian.x);
         const bool starts_pos = init_cartx >= 0.0f;
         const float const_before = starts_pos ? 3.0f * (Pi / 2.0f) : (Pi / 2.0f);
-        const float const_after = (2.0f * Pi) - const_before;
+        [[maybe_unused]] const float const_after = (2.0f * Pi) - const_before;
         sl_param.lim_int = static_cast<int>(lim);
         const int last_first_loop = !lim_pos ?
-            width
-            :
-            std::max(0, std::min(sl_param.lim_int + (!need_limit_case), width));
+              width
+            : std::max(0, std::min(sl_param.lim_int + (!need_limit_case), width));
         
         sl_param.cartesian = fma(param.scaled_x_axis, (-1) - half_scr_width, pre_cartesian);
         
@@ -321,8 +309,7 @@ void render(const render_parameters& param) {
         compute_bounds_theta_update(k1_theta, k2_theta, sl_param.cartesian, param.scaled_x_axis);
 
         int k1_phi, k2_phi;
-        phi_test_bounds ptb = compute_bounds_phi_update(k1_phi, k2_phi, sl_param.cartesian, param.scaled_x_axis);
-        (void) ptb; // Sometimes unused
+        [[maybe_unused]] phi_test_bounds ptb = compute_bounds_phi_update(k1_phi, k2_phi, sl_param.cartesian, param.scaled_x_axis);
 
         using enum loop_version::theta;
         using enum loop_version::phi;
@@ -341,37 +328,42 @@ void render(const render_parameters& param) {
             int i;
             for (i = 0; i < b1; i++) {
                 // deriv
-                param.texture_pixels[sl_param.index] = 0;
+                // Red
+                param.texture_pixels[sl_param.index]     = 0;
                 param.texture_pixels[sl_param.index + 1] = 0;
-                param.texture_pixels[sl_param.index + 2] = 255; // Red
+                param.texture_pixels[sl_param.index + 2] = '\255';
                 sl_param.index += 3;
             }
             for (; i < b2; i++) {
                 // tan (before)
-                param.texture_pixels[sl_param.index] = 255;
+                // Blue
+                param.texture_pixels[sl_param.index]     = '\255';
                 param.texture_pixels[sl_param.index + 1] = 0;
-                param.texture_pixels[sl_param.index + 2] = 0; // Blue
+                param.texture_pixels[sl_param.index + 2] = 0;
                 sl_param.index += 3;
             }
             if (need_limit_case) {
-                param.texture_pixels[sl_param.index] = 255;
-                param.texture_pixels[sl_param.index + 1] = 255;
-                param.texture_pixels[sl_param.index + 2] = 255; // White
+                // White
+                param.texture_pixels[sl_param.index]     = '\255';
+                param.texture_pixels[sl_param.index + 1] = '\255';
+                param.texture_pixels[sl_param.index + 2] = '\255';
                 sl_param.index += 3;
                 i++;
             }
             for (; i < b3; i++) {
                 // tan (after)
-                param.texture_pixels[sl_param.index] = 0;
-                param.texture_pixels[sl_param.index + 1] = 255;
-                param.texture_pixels[sl_param.index + 2] = 0; // Green
+                // Green
+                param.texture_pixels[sl_param.index]     = 0;
+                param.texture_pixels[sl_param.index + 1] = '\255';
+                param.texture_pixels[sl_param.index + 2] = 0;
                 sl_param.index += 3;
             }
             for (; i < width; i++) {
                 // deriv
-                param.texture_pixels[sl_param.index] = 0;
-                param.texture_pixels[sl_param.index + 1] = 255;
-                param.texture_pixels[sl_param.index + 2] = 255; // Yellow
+                // Yellow
+                param.texture_pixels[sl_param.index]     = 0;
+                param.texture_pixels[sl_param.index + 1] = '\255';
+                param.texture_pixels[sl_param.index + 2] = '\255';
                 sl_param.index += 3;
             }
             continue;
@@ -461,8 +453,8 @@ void render(const render_parameters& param) {
 
                 // if (i == i0 || i == b2 - 1) {
                 //     texture_pixels[index]     = 0;
-                //     texture_pixels[index + 1] = 255;
-                //     texture_pixels[index + 2] = 255;
+                //     texture_pixels[index + 1] = '\255';
+                //     texture_pixels[index + 2] = '\255';
                 // }
 
                 sl_param.index += 3;
@@ -486,7 +478,7 @@ void render(const render_parameters& param) {
 
                 // texture_pixels[index]     = 0;
                 // texture_pixels[index + 1] = 0;
-                // texture_pixels[index + 2] = 255;
+                // texture_pixels[index + 2] = '\255';
 
                 sl_param.index += 3;
                 i = sl_param.lim_int + 1;
@@ -517,10 +509,10 @@ void render(const render_parameters& param) {
                 // if (i == b2 || i == b2 + 1 || i == b3 - 1) {
                 //     texture_pixels[index]     = 0;
                 //     texture_pixels[index + 1] = 0;
-                //     texture_pixels[index + 2] = 255;
+                //     texture_pixels[index + 2] = '\255';
                 // }
                 // if (blue) {
-                //     texture_pixels[index] = 255;
+                //     texture_pixels[index] = '\255';
                 // }
 
                 sl_param.index += 3;
@@ -592,9 +584,9 @@ void render(const render_parameters& param) {
                 std::memcpy(param.texture_pixels + sl_param.index, param.orig_pixels + index_src, 3);
 
                 // if (starts_pos) {
-                //     texture_pixels[index] = 255;
+                //     texture_pixels[index] = '\255';
                 // }
-                // texture_pixels[index + 2] = 255;
+                // texture_pixels[index + 2] = '\255';
                 
 #define DRAW_RESET
 #ifdef DRAW_RESET
@@ -609,8 +601,8 @@ void render(const render_parameters& param) {
 #ifdef SHOULD_BE_POLY
                 // if (needs_reset_theta) {
                 //     texture_pixels[index]     = 0;
-                //     texture_pixels[index + 1] = 128;
-                //     texture_pixels[index + 2] = 255;
+                //     texture_pixels[index + 1] = '\128';
+                //     texture_pixels[index + 2] = '\255';
                 // }
 #endif
 
@@ -665,7 +657,7 @@ void render(const render_parameters& param) {
                 //     for (int k = 0; k < cpt; k += 3) {
                 //         texture_pixels[init_index + k]     = 0;
                 //         texture_pixels[init_index + k + 1] = 0;
-                //         texture_pixels[init_index + k + 2] = 255;
+                //         texture_pixels[init_index + k + 2] = '\255';
                 //     }
                 // }
                 // else {
@@ -690,8 +682,8 @@ void render(const render_parameters& param) {
 #ifdef SHOULD_BE_POLY
             if (needs_reset_theta) {
                 param.texture_pixels[index]     = 0;
-                param.texture_pixels[index + 1] = 128;
-                param.texture_pixels[index + 2] = 255;
+                param.texture_pixels[index + 1] = '\128';
+                param.texture_pixels[index + 2] = '\255';
             }
 #endif
 
@@ -727,7 +719,7 @@ void render(const render_parameters& param) {
                     //     for (int k = 0; k < cpt; k += 3) {
                     //         texture_pixels[init_index + k]     = 0;
                     //         texture_pixels[init_index + k + 1] = 0;
-                    //         texture_pixels[init_index + k + 2] = 255;
+                    //         texture_pixels[init_index + k + 2] = '\255';
                     //     }
                     // }
                     // else {
@@ -745,13 +737,13 @@ void render(const render_parameters& param) {
                 if (needs_reset_phi) {
                     param.texture_pixels[index]     = 0;
                     param.texture_pixels[index + 1] = 0;
-                    param.texture_pixels[index + 2] = 255;
+                    param.texture_pixels[index + 2] = '\255';
                 }
 #endif
 #ifdef SHOULD_BE_POLY
                 param.texture_pixels[index]     = 0;
-                param.texture_pixels[index + 1] = 128;
-                param.texture_pixels[index + 2] = 255;
+                param.texture_pixels[index + 1] = '\128';
+                param.texture_pixels[index + 2] = '\255';
 #endif
 
                 sl_param.index += 3;
@@ -798,7 +790,7 @@ void render(const render_parameters& param) {
                     //     for (int k = 0; k < cpt; k += 3) {
                     //         texture_pixels[init_index + k]     = 0;
                     //         texture_pixels[init_index + k + 1] = 0;
-                    //         texture_pixels[init_index + k + 2] = 255;
+                    //         texture_pixels[init_index + k + 2] = '\255';
                     //     }
                     // }
                     // else {
@@ -822,8 +814,8 @@ void render(const render_parameters& param) {
 #ifdef SHOULD_BE_POLY
                 if (needs_reset_theta) {
                     texture_pixels[index]     = 0;
-                    texture_pixels[index + 1] = 128;
-                    texture_pixels[index + 2] = 255;
+                    texture_pixels[index + 1] = '\128';
+                    texture_pixels[index + 2] = '\255';
                 }
 #endif
 

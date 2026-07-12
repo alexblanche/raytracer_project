@@ -11,6 +11,7 @@ struct render_parameters {
     mutable int texture_pitch;
     int img_width;
     int img_height;
+    int img_buffer_max_index; // = img_width * img_height - 1
     sky::vector scaled_x_axis;
     sky::vector scaled_y_axis;
     sky::vector axes_center;
