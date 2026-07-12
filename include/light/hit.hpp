@@ -15,21 +15,25 @@ enum class orientation_type {
     Inward, Outward
 };
 
+static inline orientation_type get_orientation(const rt::vector& direction, const rt::vector& normal) {
+    using enum orientation_type;
+    return (direction | normal) <= 0.0f ? Inward : Outward;
+}
+
 class hit {
     private:
-        const ray* generator;
         rt::vector point;
         rt::vector normal;
         const object* hit_object;
         orientation_type orientation;
 
     public:
-        hit(const ray* generator, const rt::vector& point, const rt::vector& normal, const object* hit_object, const orientation_type orientation)
-            : generator(generator), point(point), normal(normal), hit_object(hit_object), orientation(orientation) {}
+        hit(const rt::vector& point, const rt::vector& normal, const object* hit_object, const orientation_type orientation)
+            : point(point), normal(normal), hit_object(hit_object), orientation(orientation) {}
 
         using enum orientation_type;
-        hit(const ray* generator, const rt::vector& point, const rt::vector& normal, const object* hit_object)
-            : hit(generator, point, normal, hit_object, (generator->direction | normal) <= 0.0f ? Inward : Outward) {}
+        hit(const rt::vector& direction, const rt::vector& point, const rt::vector& normal, const object* hit_object)
+            : hit(point, normal, hit_object, get_orientation(direction, normal)) {}
 
         hit(hit&&) noexcept        = default;
         hit(const hit&)            = delete;
@@ -50,9 +54,5 @@ class hit {
 
         inline orientation_type is_inward() const {
             return orientation;
-        }
-
-        inline const ray* get_generator_ray() const {
-            return generator;
         }
 };

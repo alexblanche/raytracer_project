@@ -72,14 +72,12 @@ real plane::measure_distance(const ray& r) const {
 hit plane::compute_intersection(const ray& r, const real t) const {
 
     // Intersection point
-    //const rt::vector p = r.origin + t * r.direction;
     const rt::vector p = r.extend(t);
 
     // The normal vector (a, b, c) is assumed to be a unit vector
 
     const object* pt_obj = this;
-    const ray* pt_ray = &r;
-    return hit(pt_ray, p, normal, pt_obj);
+    return hit(r.direction, p, normal, pt_obj);
 }
 
 /* Returns the barycentric info (tiles according to texture_scale) */

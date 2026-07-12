@@ -67,18 +67,17 @@ class direction {
 
         /* Returns sin(theta_2) squared, where theta_2 is the refracted angle
             Is precomputed to determine whether the ray is refracted or internally reflected */
-        static inline sin_refracted_output get_sin_refracted(const hit& h, const rt::vector& normal,
+        static inline sin_refracted_output get_sin_refracted(const rt::vector& direction, const rt::vector& normal,
             const real current_refr_i, const real surface_refr_i) {
 
             sin_refracted_output out;
 
             /* See get_refracted_direction below */
-            const rt::vector& dir = h.get_generator_ray()->direction;
             /* It should be (current_refr_i / surface_refr_i) * ((((-1)*(dir | right_normal)) * right_normal) + dir)
             where right_normal = inward ? normal : (-1) * normal,
             but the next line is equivalent */
             //const rt::vector vx = (current_refr_i / surface_refr_i) * ((((-1.0_r) * (dir | normal)) * normal) + dir);
-            out.vx = (current_refr_i / surface_refr_i) * fma(normal, (-1.0_r) * (dir | normal), dir);
+            out.vx = (current_refr_i / surface_refr_i) * fma(normal, (-1.0_r) * (direction | normal), direction);
             out.sin_theta_2_sq = out.vx.normsq();
             return out;
         }

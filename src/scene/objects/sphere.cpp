@@ -72,7 +72,7 @@ hit sphere::compute_intersection(const ray& r, const real t) const {
     const rt::vector p = r.extend(t);
     // Normal at intersection point
     const rt::vector n = (p - position) / radius;
-    return hit(&r, p, n, this);
+    return hit(r.direction, p, n, this);
 }
 
 

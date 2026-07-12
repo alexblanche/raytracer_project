@@ -170,7 +170,6 @@ hit triangle::compute_intersection(const ray& r, const real t) const {
     
     const rt::vector p = r.extend(t);
     const object* pt_obj = this;
-    const ray* pt_ray = &r;
     
     if constexpr (SHADING == shading::SmoothShading) {
     
@@ -181,11 +180,11 @@ hit triangle::compute_intersection(const ray& r, const real t) const {
         using enum orientation_type;
         const orientation_type ray_orientation = is_negative(r.direction | normal) ? Inward : Outward;
 
-        return hit(pt_ray, p, get_interpolated_normal(bary), pt_obj, ray_orientation);
+        return hit(p, get_interpolated_normal(bary), pt_obj, ray_orientation);
     }
     else { // Flat shading
         
-        return hit(pt_ray, p, normal, pt_obj);
+        return hit(r.direction, p, normal, pt_obj);
     }
 }
 

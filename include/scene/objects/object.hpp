@@ -36,7 +36,7 @@ class object {
     
     public:
 
-        virtual ~object() noexcept       = default;
+        virtual ~object() noexcept = default;
 
         inline const rt::vector& get_position() const {
             return position;

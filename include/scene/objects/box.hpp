@@ -16,15 +16,11 @@ class box : public object {
 
     public:
 
-        inline static unsigned int cpt = 0;
-
         /* Main constructor */
-        box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
-            real l1, real l2, real l3, unsigned int material_index);
+        constexpr box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
+            real l1, real l2, real l3, unsigned int material_index = EMPTY_INDEX)
 
-        /* Constructor used for bounding boxes: no material and no index */
-        box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
-            real l1, real l2, real l3);
+            : object(center, material_index), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1 / 2), l2(l2 / 2), l3(l3 / 2) {}
 
         box(box&&) noexcept        = default;
         box(const box&)            = delete;
@@ -35,7 +31,7 @@ class box : public object {
             return rt::vector(l1, l2, l3);
         }
 
-        static constexpr box infinite_box() {
+        static inline box infinite_box() {
             return box(ZERO, RIGHT, UP, infinity, infinity, infinity, EMPTY_INDEX);
         }
 

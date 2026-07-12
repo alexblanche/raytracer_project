@@ -194,16 +194,15 @@ hit cylinder::compute_intersection(const ray& r, const real t) const {
         ((pmpos - (length * direction)).normsq() >= rr);
     
     const object* pt_obj = this;
-    const ray* pt_ray = &r;
 
     if (hits_side) {
         // We compute the s value (such that (p - (o + s.d) | d) = 0)
         // const real s = (pmpos | direction);
         // const rt::vector n = (p - (position + s * d)) / radius
-        return hit(pt_ray, p, (pmpos - ((pmpos | direction) * direction)) / radius, pt_obj);
+        return hit(r.direction, p, (pmpos - ((pmpos | direction) * direction)) / radius, pt_obj);
     }
     else {
-        return hit(pt_ray, p, not_on_bottom_disk ? direction : ((-1) * direction), pt_obj);
+        return hit(r.direction, p, not_on_bottom_disk ? direction : ((-1.0_r) * direction), pt_obj);
     }
 
     

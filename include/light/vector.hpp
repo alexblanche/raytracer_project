@@ -37,7 +37,7 @@ namespace rt {
 		}
 
 		/* Cross product */
-		inline vector operator^(const vector& other) const {
+		inline constexpr vector operator^(const vector& other) const {
 			return
 				vector(
 					y * other.z - z * other.y,

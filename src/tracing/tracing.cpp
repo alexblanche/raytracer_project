@@ -303,7 +303,7 @@ rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg
             else {
 
                 /* Pre-computation of the refracted direction */
-                const auto sin_refr = direction::get_sin_refracted(h, normal, refr_index, next_refr_i);
+                const auto sin_refr = direction::get_sin_refracted(r.direction, normal, refr_index, next_refr_i);
                 const auto& [ _, sin_theta_2_sq ] = sin_refr;
 
                 /* Determination of whether the ray is transmitted (refracted) or in total interal reflection */

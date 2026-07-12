@@ -59,5 +59,4 @@ class plane : public object {
         rt::vector sample(const randomgen& rg) const final;
         
         rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const final;
-
 };

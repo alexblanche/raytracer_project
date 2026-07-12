@@ -8,19 +8,6 @@
 #include <optional>
 #include <stdexcept>
 
-/* The vector n3 is taken as the cross product of n1 and n2 */
-box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
-            const real l1, const real l2, const real l3, const unsigned int material_index)
-    
-    : object(center, material_index), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1 / 2), l2(l2 / 2), l3(l3 / 2) {cpt++;}
-
-/* The vector n3 is taken as the cross product of n1 and n2 */
-box::box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
-            const real l1, const real l2, const real l3)
-    
-    : object(center, EMPTY_INDEX), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1 / 2), l2(l2 / 2), l3(l3 / 2) {cpt++;}
-
-
 
 /* Intersection determination */
 
@@ -103,29 +90,28 @@ hit box::compute_intersection(const ray& r, const real t) const {
     // Shifting the position a little bit, to avoid the ray hitting the object itself again
     const rt::vector v = p - position;
     const object* pt_obj = this;
-    const ray* pt_ray = &r;
 
     constexpr real EPSILON = 0.0000001_r;
 
     const real pdt1 = (v | n1);
     if (std::abs(pdt1 - l1) < EPSILON)
-        return hit(pt_ray, p, n1, pt_obj);
+        return hit(r.direction, p, n1, pt_obj);
     
     if (std::abs(pdt1 + l1) < EPSILON)
-        return hit(pt_ray, p, (-1.0_r) * n1, pt_obj);
+        return hit(r.direction, p, (-1.0_r) * n1, pt_obj);
     
     const real pdt2 = (v | n2);
     if (std::abs(pdt2 - l2) < EPSILON)
-        return hit(pt_ray, p, n2, pt_obj);
+        return hit(r.direction, p, n2, pt_obj);
     
     if (std::abs(pdt2 + l2) < EPSILON)
-        return hit(pt_ray, p, (-1.0_r) * n2, pt_obj);
+        return hit(r.direction, p, (-1.0_r) * n2, pt_obj);
     
     const real pdt3 = (v | n3);
     if (std::abs(pdt3 - l3) < EPSILON)
-        return hit(pt_ray, p, n3, pt_obj);
+        return hit(r.direction, p, n3, pt_obj);
 
-    return hit(pt_ray, p, (-1.0_r) * n3, pt_obj);
+    return hit(r.direction, p, (-1.0_r) * n3, pt_obj);
 }
 
 /* Minimum and maximum coordinates */
@@ -214,6 +200,7 @@ real box::is_hit_with_distance(const ray& r) const {
 
 /* Returns the barycentric info (the faces behave like quads) [to be implemented] */
 barycentric_info box::get_barycentric(const rt::vector&) const {
+
     return barycentric_info(0.0_r, 0.0_r, object_type::Box);
 }
 

@@ -50,5 +50,4 @@ class sphere : public object {
 
         /* Uniformly samples a point on the sphere that is visible from pt */
         rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const final;
-
 };
