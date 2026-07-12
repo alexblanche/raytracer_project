@@ -8,6 +8,8 @@
  * this point and a pointer to the object hit.
 */
 
+static constexpr real BIAS_NORM = 1.0E-3_r;
+
 /* Forward-declaring the object class, to solve mutual recursivity between the hit and object classes */
 class object;
 
@@ -40,19 +42,35 @@ class hit {
         hit& operator=(const hit&) = delete;
         hit& operator=(hit&&)      = delete;
 
-        inline const rt::vector& get_point() const {
+        [[nodiscard]] inline const rt::vector& get_point() const {
             return point;
         }
         
-        inline const rt::vector& get_normal() const {
+        [[nodiscard]] inline const rt::vector& get_normal() const {
             return normal;
         }
 
-        inline const object* get_object() const {
+        [[nodiscard]] inline const object* get_object() const {
             return hit_object;
         }
 
-        inline orientation_type is_inward() const {
+        [[nodiscard]] inline orientation_type is_inward() const {
             return orientation;
+        }
+
+        /* Auxiliary function that applies a bias of 1.0E-3 times the normal to the ray position,
+        outward the surface contact point if outward_bias is true (so in the direction of the normal),
+        inward otherwise (in the opposite direction to the normal) */
+        [[nodiscard]] inline rt::vector biased_point(const orientation_type bias_orientation) const {
+
+            const real bias_norm = (orientation != bias_orientation) ? BIAS_NORM : (-BIAS_NORM);
+            return fma(normal, bias_norm, point);
+        }
+
+        template <orientation_type ray_orientation, orientation_type bias_orientation>
+        [[nodiscard]] inline rt::vector biased_point() const {
+
+            constexpr real bias_norm = (ray_orientation != bias_orientation ? 1.0_r : -1.0_r) * BIAS_NORM;
+            return fma(normal, bias_norm, point);
         }
 };

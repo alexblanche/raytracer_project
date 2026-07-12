@@ -6,37 +6,25 @@ struct ray {
     
     public:
         rt::vector origin;
-
         rt::vector direction;
 
-        /* Pre-computed values */
-
-        // Inverse of the direction
+        /* Precomputed: inverse of the direction's components */
         rt::vector inv_dir;
-
-        // Absolute values of each component
-        // rt::vector abs_inv_dir;
-
-        ray() = delete;
         
-        ray(const rt::vector& origin, const rt::vector& dir)
-            :
-            origin(origin),
-            direction(dir),
+        ray(const rt::vector& origin, const rt::vector& dir) :
+            origin(origin), direction(dir),
             inv_dir(
                 1.0_r / direction.x,
                 1.0_r / direction.y,
                 1.0_r / direction.z
-            )
-            /* , abs_inv_dir(rt::abs(inv_dir)) */ {}
-
+            ) {}
         
         ray(ray&&)                 noexcept = default;
         ray(const ray&)            noexcept = default;
         ray& operator=(ray&&)      noexcept = default;
         ray& operator=(const ray&) = delete;
 
-        inline rt::vector extend(const real t) const {
+        [[nodiscard]] inline rt::vector extend(const real t) const {
             return fma(direction, t, origin);
         }
 };

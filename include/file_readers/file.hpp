@@ -11,6 +11,7 @@
 #include <optional>
 
 constexpr unsigned int INFINITE = static_cast<unsigned int>(-1);
+constexpr unsigned int MAX_STRING_LENGTH = 1000;
 
 // Used to ignore unused indices from std::index_sequence
 template<typename T>
@@ -20,13 +21,13 @@ static consteval T id(std::size_t, T value) {
 
 // Auxiliary
 template<typename T, std::size_t... i>
-static consteval inline std::array<T, sizeof...(i)> make_array_aux_(T value, std::index_sequence<i...>) {
+static consteval std::array<T, sizeof...(i)> make_array_aux_(T value, std::index_sequence<i...>) {
     return { id(i, value)... };
 }
 
 // Returns an array with all the elements initialized to value
 template<typename T, std::size_t count>
-static consteval inline std::array<T, count> make_array(T value) {
+static consteval std::array<T, count> make_array(T value) {
     return make_array_aux_<T>(value, std::make_index_sequence<count>());
 }
 
@@ -37,53 +38,24 @@ template<typename T>
 concept Arithm = std::is_arithmetic_v<T>;
 
 #if APPLE_CLANG
-    // Auxiliary
+
+    // Auxiliary function
     template<std::size_t count, std::size_t... i>
-    static consteval inline std::string string_concat_aux_(const std::string& value, std::index_sequence<i...>) {
+    static consteval std::string string_concat_aux_(const std::string& value, std::index_sequence<i...>) {
         return (id(i, value) + ...);
     }
 
     // Returns a string made up of the string value repeated count times
     template<std::size_t count>
-    static consteval inline std::string string_concat(const std::string& value) {
+    static consteval std::string string_concat(const std::string& value) {
         return string_concat_aux_<count>(value, std::make_index_sequence<count>());
     }
 
-    // Returns the printf/scanf format for data type T
-    template<Arithm T>
-    static consteval std::string data_format() {
-        if constexpr (sizeof(T) == 1)
-            return "%c";
-        else if constexpr (std::is_floating_point_v<T>) {
-            constexpr std::string prefix =
-                std::is_same_v<T, float>  ? ""  :
-                std::is_same_v<T, double> ? "l" : "ll";
-            return "%" + prefix + "f";
-        }
-        else {
-            constexpr std::string prefix =
-                sizeof(T) <= sizeof(int)             ? ""  :
-                std::is_same_v<long, T>
-                || std::is_same_v<unsigned long, T> ? "l" : "ll";
-            constexpr std::string suffix = std::is_unsigned_v<T> ? "u" : "d";
-            return "%" + prefix + suffix;
-        }
-    }
-
-    // Returns the format string for printf/scanf for the given types
-    template<Arithm... T>
-    static consteval std::string build_format_string() {
-        return (data_format<T>() + ...);
-    }
-
-    template<Arithm... T>
-    static consteval std::string build_format_string_space() {
-        return ((data_format<T>() + " ") + ...);
-    }
-
     #define CONSTEXPR constexpr
+    #define CONSTEVAL consteval
 
 #else
+
     // Returns a string made up of the string value repeated count times
     static inline std::string string_concat(std::size_t count, const std::string& value) {
         std::string out;
@@ -92,43 +64,44 @@ concept Arithm = std::is_arithmetic_v<T>;
         return out;
     }
 
-    // Returns the printf/scanf format for data type T
-    template<Arithm T>
-    static std::string data_format() {
-        if constexpr (sizeof(T) == 1)
-            return "%c";
-        else if constexpr (std::is_floating_point_v<T>) {
-            const std::string prefix =
-                std::is_same_v<T, float>  ? ""  :
-                std::is_same_v<T, double> ? "l" : "ll";
-            return "%" + prefix + "f";
-        }
-        else {
-            const std::string prefix =
-                sizeof(T) <= sizeof(int)            ? ""  :
-                std::is_same_v<long, T>
-                || std::is_same_v<unsigned long, T> ? "l" : "ll";
-            const std::string suffix = std::is_unsigned_v<T> ? "u" : "d";
-            return "%" + prefix + suffix;
-        }
-    }
-
-    // Returns the format string for printf/scanf for the given types
-    template<Arithm... T>
-    static std::string build_format_string() {
-        return (data_format<T>() + ...);
-    }
-
-    template<Arithm... T>
-    static std::string build_format_string_space() {
-        return ((data_format<T>() + " ") + ...);
-    }
-
     #define CONSTEXPR const
+    #define CONSTEVAL inline
 
 #endif
 
-constexpr unsigned int MAX_STRING_LENGTH = 1000;
+// Returns the printf/scanf format for data type T
+template<Arithm T>
+static CONSTEVAL std::string data_format() {
+    if constexpr (sizeof(T) == 1)
+        return "%c";
+    else if constexpr (std::is_floating_point_v<T>) {
+        CONSTEXPR std::string prefix =
+            std::is_same_v<T, float>  ? ""  :
+            std::is_same_v<T, double> ? "l" : "ll";
+        return "%" + prefix + "f";
+    }
+    else {
+        CONSTEXPR std::string prefix =
+            sizeof(T) <= sizeof(int)             ? ""  :
+            std::is_same_v<long, T>
+            || std::is_same_v<unsigned long, T> ? "l" : "ll";
+        CONSTEXPR std::string suffix = std::is_unsigned_v<T> ? "u" : "d";
+        return "%" + prefix + suffix;
+    }
+}
+
+// Returns the format string for printf/scanf for the given types
+template<Arithm... T>
+static CONSTEVAL std::string build_format_string() {
+    return (data_format<T>() + ...);
+}
+
+template<Arithm... T>
+static CONSTEVAL std::string build_format_string_space() {
+    return ((data_format<T>() + " ") + ...);
+}
+
+
 
 class file {
     
@@ -434,13 +407,14 @@ class file {
         template<Arithm T, std::size_t count>
         std::array<T, count> scan() const {
 
-#if APPLE_CLANG
-            constexpr std::string df = data_format<T>();
+            CONSTEXPR std::string df = data_format<T>();
+
+#if APPLE_CLANG 
             constexpr std::string format = string_concat<count>(df);
 #else
-            const std::string df = data_format<T>();
             const std::string format = string_concat(count, df);
 #endif
+
             std::array<T, count> t;
             const exit_status status = scanf_array_(format, t);
             throw_if_failure(status, file::error::ScanError);

@@ -11,19 +11,11 @@
 using enum orientation_type;
 
 struct accumulators {
-    rt::color color_materials;
-    rt::color emitted_colors;
-
-    constexpr accumulators() :
-        color_materials(rt::WHITE),
-        emitted_colors(rt::BLACK) {}
-
+    rt::color color_materials = rt::WHITE;
+    rt::color emitted_colors  = rt::BLACK;
 
     [[nodiscard]] inline rt::color combine(const rt::color& color) const {
-        return fma(
-            color_materials,
-            color,
-            emitted_colors);
+        return fma(color_materials, color, emitted_colors);
     }
 
     inline void update_emitted_col(const material& m) {
@@ -37,36 +29,6 @@ struct accumulators {
 
 /** Auxiliary functions **/
 
-static constexpr real BIAS_NORM = 1.0E-3_r;
-
-// Direct bias when the orientations of the ray and the bias are opposite (bias along the normal)
-// Inverted otherwise
-enum class bias_type {
-    Direct, Inverted
-};
-
-/* Auxiliary function that applies a bias of 1.0E-3 times the normal to the ray position,
-   outward the surface contact point if outward_bias is true (so in the direction of the normal),
-   inward otherwise (in the opposite direction to the normal) */
-[[nodiscard]] static inline rt::vector get_bias(const rt::vector& hit_point, const rt::vector& normal,
-    const orientation_type ray_orientation, const orientation_type bias_orientation) {
-
-    return
-        fma(
-            normal,
-            (ray_orientation != bias_orientation) ? BIAS_NORM : (-BIAS_NORM),
-            hit_point
-        );
-}
-
-template <orientation_type ray_orientation, orientation_type bias_orientation>
-[[nodiscard]] static inline rt::vector get_bias(const rt::vector& hit_point, const rt::vector& normal) {
-
-    constexpr real right_bias = (ray_orientation != bias_orientation ? 1.0_r : -1.0_r) * BIAS_NORM;
-    return fma(normal, right_bias, hit_point);
-}
-
-
 /* Auxiliary function that handles the specular reflective case */
 // Run-time
 [[nodiscard]] static inline ray specular_reflective_case(const randomgen& rg,
@@ -74,7 +36,7 @@ template <orientation_type ray_orientation, orientation_type bias_orientation>
     const orientation_type ray_orientation) {
 
     const rt::vector central_dir = direction::central_reflected(direction, local_normal, smoothness, ray_orientation);
-                    
+    
     /* Direction according to Lambert's cosine law */
     using enum direction::angle;
     const rt::vector dir = (smoothness >= 1.0_r) ?
@@ -84,7 +46,7 @@ template <orientation_type ray_orientation, orientation_type bias_orientation>
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
     /* Apply the bias outward the surface */
-    const rt::vector origin = get_bias(h.get_point(), h.get_normal(), ray_orientation, Outward);
+    const rt::vector origin = h.biased_point(Outward);
 
     return ray(origin, dir);
 }
@@ -105,7 +67,7 @@ template<orientation_type ray_orientation>
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
     /* Apply the bias outward the surface */
-    const rt::vector origin = get_bias<ray_orientation, Outward>(h.get_point(), h.get_normal());
+    const rt::vector origin = h.biased_point<ray_orientation, Outward>();
     return ray(origin, dir);
 }
 
@@ -124,7 +86,7 @@ template<orientation_type ray_orientation>
     // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
     /* Apply the bias outward the surface */
-    const rt::vector origin = get_bias(h.get_point(), h.get_normal(), ray_orientation, Outward);
+    const rt::vector origin = h.biased_point(Outward);
     return ray(origin, dir);
 }
 
@@ -146,7 +108,7 @@ template<orientation_type ray_orientation>
     refr_index = next_refr_i;
 
     /* Apply the bias inward the surface */
-    const rt::vector origin = get_bias(h.get_point(), h.get_normal(), ray_orientation, Inward);
+    const rt::vector origin = h.biased_point(Inward);
     return ray(origin, dir);
 }
 
@@ -198,7 +160,7 @@ rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg
 
         if (not opt_h.has_value()) /* No object hit: background color or background texture */
             return background_case(scene, r, acc);
-            
+        
         const hit& h = opt_h.value();
         const object* const obj = h.get_object();
         const material& m = scene.material_set[obj->get_material_index()];
@@ -207,9 +169,8 @@ rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg
         if (m.is_emissive() && m.get_emission_intensity() >= 1.0_r) {
 
             const rt::color& color = obj->is_textured() ?
-                scene.sample_texture(obj->get_texture_info_index(), obj->get_barycentric(h.get_point()))
-                :
-                m.get_color();
+                  scene.sample_texture(obj->get_texture_info_index(), obj->get_barycentric(h.get_point()))
+                : m.get_color();
 
             return acc.combine(color * m.get_emission_intensity());
         }
@@ -222,19 +183,14 @@ rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg
 
         // Contains the material local color, the local normal and (soon) the reflectivity and displacement
         const map_sample ms = (obj->is_textured()) ?
-            scene.sample_maps(obj->get_texture_info_index(), obj->get_barycentric(h.get_point()),
+              scene.sample_maps(
+                obj->get_texture_info_index(), obj->get_barycentric(h.get_point()),
                 m.get_color(), h.get_normal(), m.get_smoothness())
-            :
-            map_sample(m.get_color(), h.get_normal()); // reflectivity, displacement);
+            : map_sample(m.get_color(), h.get_normal()); // reflectivity, displacement);
 
         const rt::vector normal = (obj->is_textured() && scene.get_texture_info(obj).has_normal_information()) ?
-            obj->compute_normal_from_map(
-                ms.normal_map_vector,
-                h.get_normal(),
-                scene.get_texture_info(obj)
-            )
-            :
-            h.get_normal();
+              obj->compute_normal_from_map(ms.normal_map_vector, h.get_normal(), scene.get_texture_info(obj))
+            : h.get_normal();
 
         const rt::color& color = ms.texture_color;
         const real smoothness = m.get_smoothness(); // ms.smoothness;
@@ -333,15 +289,8 @@ rt::color pathtrace(const ray& init_ray, const scene& scene, const randomgen& rg
                 acc.color_materials /= avg;
             }
         }
-        
     }
 
     /* Maximum number of bounces reached: the final color is black */
     return acc.emitted_colors;
 }
-
-
-
-
-
-
