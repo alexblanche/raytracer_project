@@ -125,10 +125,8 @@ int main(int argc, char** argv) {
 
     /* Skydome texture */
     const char* file_name =
-        (argc == 2) ?
-        argv[1]
-        :
-        "../../../assets/cobblestone_street_night.bmp";
+        (argc == 2) ? argv[1]
+        : "../../../assets/cobblestone_street_night.bmp";
     
     print_bmp_info(file_name);
 

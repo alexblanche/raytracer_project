@@ -32,27 +32,25 @@ class direction {
 
         /* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
         template <angle theta_max>
+        requires (theta_max == angle::Pi || theta_max == angle::Pi_over_2)
         static rt::vector random(const randomgen& rg, const rt::vector& central_dir = ZERO) {
 
             using enum angle;
-            if constexpr (theta_max == Pi || theta_max == Pi_over_2) {
-                const real cos_theta = 2.0_r * rg.random_ratio() - 1.0_r;
-                const real sin_theta = sqrt(1.0_r - cos_theta * cos_theta);
-                const real phi = rg.random_angle();
-                
-                const rt::vector v(
-                    cos(phi) * sin_theta,
-                    sin(phi) * sin_theta,
-                    cos_theta
-                );
+            
+            const real cos_theta = 2.0_r * rg.random_ratio() - 1.0_r;
+            const real sin_theta = sqrt(1.0_r - cos_theta * cos_theta);
+            const real phi = rg.random_angle();
+            
+            const rt::vector v(
+                cos(phi) * sin_theta,
+                sin(phi) * sin_theta,
+                cos_theta
+            );
 
-                if constexpr (theta_max == Pi) {
-                    return v;
-                }
-                else {
-                    return std::signbit(v | central_dir) ? (-1.0_r) * v : v;
-                }
-            }
+            if constexpr (theta_max == Pi)
+                return v;
+            else
+                return std::signbit(v | central_dir) ? (-1.0_r) * v : v;
         }
 
         // Run-time

@@ -7,10 +7,14 @@
 
 [[maybe_unused]]
 static void parallel_for_aux(const unsigned int nb_elements,
-                  const std::function<void (int start, int end)>& functor) {
+    const std::function<void (int start, int end)>& functor,
+    int wanted_nb_threads = 0) {
     
     const unsigned int nb_threads_hint = std::thread::hardware_concurrency();
-    const unsigned int nb_threads = nb_threads_hint != 0 ? nb_threads_hint : 8;
+    const unsigned int nb_threads =
+          wanted_nb_threads != 0 ? wanted_nb_threads
+        : nb_threads_hint   != 0 ? nb_threads_hint
+        : 8;
 
     const unsigned int batch_size = nb_elements / nb_threads;
     
@@ -45,10 +49,10 @@ void parallel_for(int nb_elements, const std::function<void (int i)>& functor) {
     }
 }
 
-void parallel_for(int nb_elements, const std::function<void (int start, int end)>& functor) {
+void parallel_for(int nb_elements, const std::function<void (int start, int end)>& functor, int nb_threads) {
 
     if constexpr (PARALLELISM == parallelism::Enabled) {
-        parallel_for_aux(nb_elements, functor);
+        parallel_for_aux(nb_elements, functor, nb_threads);
     }
     else {
         functor(0, nb_elements);

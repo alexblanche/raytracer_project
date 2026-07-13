@@ -4,4 +4,4 @@
 
 void parallel_for(int nb_elements, const std::function<void (int i)>& functor);
 
-void parallel_for(int nb_elements, const std::function<void (int start, int end)>& functor);
+void parallel_for(int nb_elements, const std::function<void (int start, int end)>& functor, int nb_threads = 0);

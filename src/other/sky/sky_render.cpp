@@ -545,7 +545,7 @@ void render(const render_parameters& param) {
 #endif
         }
         else {
-            // one loop
+            // one segment
 #ifdef TEMPLATE_LOOPS
             ptb =  (ptb == NeverTest)
                 || ((!(ptb == AlwaysTest))

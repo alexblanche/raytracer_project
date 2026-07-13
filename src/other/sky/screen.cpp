@@ -19,7 +19,7 @@ namespace sky {
 
 		window = SDL_CreateWindow("Sky_test", 10, 10, width, height, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
 		renderer = SDL_CreateRenderer(window, (-1), SDL_RENDERER_ACCELERATED);
-		SDL_RenderSetVSync(renderer, VSync::Disable);
+		SDL_RenderSetVSync(renderer, VSync::Enable);
 		SDL_RenderSetLogicalSize(renderer, width, height);
 	}
 

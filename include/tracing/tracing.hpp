@@ -68,7 +68,7 @@ class worker {
             using enum direction::angle;
 
             const rt::vector central_dir = direction::central_reflected<ray_orientation>(direction, local_normal, smoothness);
-            return ray( 
+            return ray(
                 /* origin */
                 h.biased_point<ray_orientation, Outward>(),
 

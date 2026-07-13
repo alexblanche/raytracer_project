@@ -9,13 +9,13 @@
 /* *************************** Path tracing *************************** */
 
 using enum orientation_type;
+using enum direction::angle;
 
 /** Auxiliary functions **/
 
 /* Auxiliary function that handles the diffuse reflective case */
 [[nodiscard]] inline ray worker::diffuse_case(const hit& h, const rt::vector& local_normal) const {
 
-    using enum direction::angle;
     const rt::vector dir(
         ((h.get_orientation() == Inward ? local_normal : (-1.0_r) * local_normal)
           + direction::random<Pi>(rg)
@@ -35,7 +35,6 @@ using enum orientation_type;
     const real smoothness, const rt::vector& local_normal) const {
 
     /* Direction according to Lambert's cosine law */
-    using enum direction::angle;
 
     const rt::vector central_dir = direction::central_reflected(direction, local_normal, smoothness, h.get_orientation());
     return ray( 
@@ -77,6 +76,13 @@ using enum orientation_type;
 
     return acc.combine(color);
 }
+
+
+
+struct bounce_vectors {
+    const rt::vector& direction;
+    const rt::vector& normal;
+};
 
 
 void worker::process_bounce(const bounce_parameters& param, path_parameters& out) const {
@@ -195,7 +201,7 @@ rt::color worker::pathtrace(const ray& init_ray) const {
 
     path_parameters path_param = {
         .r = init_ray,
-        .acc = accumulators{},
+        .acc = {},
         .refr_index = init_refr_index
     };
     auto& [ r, acc, refr_index ] = path_param;
@@ -209,6 +215,7 @@ rt::color worker::pathtrace(const ray& init_ray) const {
             return background_case(r.direction, acc);
         
         
+        /* Object hit */
 
         const hit&          h   = opt_h.value();
         const object* const obj = h.get_object();
@@ -219,13 +226,12 @@ rt::color worker::pathtrace(const ray& init_ray) const {
             return full_intensity_case(acc, obj, h.get_point(), m);
 
         
-        
         /* The ray can either be transmitted (and refracted) through the surface,
             or reflected in three ways: specularly, diffusely, or in the case of total internal reflection,
             when the ray hits a surface of lower refraction index at an angle greater than the critical angle.
         */
 
-        // Contains the material local color, the local normal and (soon) the reflectivity and displacement
+        // map_sample contains the material local color, the local normal and (soon) the reflectivity and displacement
         const map_sample ms = (obj->is_textured()) ?
               scene_.sample_maps(
                 obj->get_texture_info_index(), obj->get_barycentric(h.get_point()),

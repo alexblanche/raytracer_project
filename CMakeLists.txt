@@ -168,7 +168,8 @@ set(sky_name sky)
 add_executable(${sky_name}
 	src/other/sky/bmp_reader.cpp
 	src/other/sky/screen.cpp
-	src/other/sky/sky_render.cpp
+	src/parallel/parallel.cpp
+	src/other/sky/sky_render_parallel.cpp
 	src/other/sky/test_sky.cpp
 )
 target_link_libraries(${sky_name}
