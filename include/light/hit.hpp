@@ -17,7 +17,7 @@ enum class orientation_type {
     Inward, Outward
 };
 
-static inline orientation_type get_orientation(const rt::vector& direction, const rt::vector& normal) {
+static inline orientation_type get_orientation_from(const rt::vector& direction, const rt::vector& normal) {
     using enum orientation_type;
     return (direction | normal) <= 0.0f ? Inward : Outward;
 }
@@ -35,7 +35,7 @@ class hit {
 
         using enum orientation_type;
         hit(const rt::vector& direction, const rt::vector& point, const rt::vector& normal, const object* hit_object)
-            : hit(point, normal, hit_object, get_orientation(direction, normal)) {}
+            : hit(point, normal, hit_object, get_orientation_from(direction, normal)) {}
 
         hit(hit&&) noexcept        = default;
         hit(const hit&)            = delete;
@@ -54,7 +54,7 @@ class hit {
             return hit_object;
         }
 
-        [[nodiscard]] inline orientation_type is_inward() const {
+        [[nodiscard]] inline orientation_type get_orientation() const {
             return orientation;
         }
 

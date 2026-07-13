@@ -15,12 +15,14 @@ void render_loop_seq(image& image, const scene& scene, const unsigned int number
     const randomgen rg;
     constexpr camera::aa_shift NO_SHIFT = { 0.0_r, 0.0_r };
 
+    const worker worker_(scene, rg, number_of_bounces, russian_roulette);
+
     for (int j = image.height() - 1; const matrix::row row : image.data) {
 
         for (int i = 0; rt::color& col : row) {
 
             const ray r = scene.cam.gen_ray(i, j, rg, 0, NO_SHIFT);
-            const rt::color pixel_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette);
+            const rt::color pixel_col = worker_.pathtrace(r);
             col += pixel_col;
             i++;
         }
@@ -86,17 +88,21 @@ void render_loop_parallel(image& image, const scene& scene, const unsigned int n
     static const randomgen rg0;
     const camera::aa_shift shift = camera::generate_shift(rg0);
     
-    parallel_for(scene.height, [&, number_of_bounces] (int j) {
+    parallel_for(scene.height, [&, number_of_bounces] (int j_start, int j_end) {
 
-        static thread_local const randomgen rg;
+        const randomgen rg;
+        const worker worker_(scene, rg, number_of_bounces, russian_roulette);
 
-        const matrix::row row = image.data[image.height() - 1 - j];
-        for (int i = 0; rt::color& color : row) {
+        for (int j = j_start; j < j_end; j++) {
 
-            const ray init_ray = scene.cam.gen_ray(i, j, rg, image.number_of_samples, shift);
-            const rt::color new_color = pathtrace(init_ray, scene, rg, number_of_bounces, russian_roulette);
-            color += new_color;
-            i++;
+            const matrix::row row = image.data[image.height() - 1 - j];
+            for (int i = 0; rt::color& color : row) {
+
+                const ray init_ray = scene.cam.gen_ray(i, j, rg, image.number_of_samples, shift);
+                const rt::color new_color = worker_.pathtrace(init_ray);
+                color += new_color;
+                i++;
+            }
         }
 
         if constexpr (time_all) {
@@ -138,23 +144,6 @@ void render_loop_time(image& image, const scene& scene, const unsigned int numbe
 }
 
 // /* After the first hit, several bouncing rays are cast */
-// void render_loop_parallel_multisample(image& image, const scene& scene, const unsigned int number_of_bounces, const unsigned int number_of_samples) {
-
-//     parallel_for(scene.height, [&, number_of_bounces, number_of_samples] (int j) {
-
-//         static thread_local const randomgen rg;
-
-//         const matrix::row row = image.data[image.height() - 1 - j];
-//         for (int i = 0; rt::color& col : row) {
-
-//             const ray r = scene.cam.gen_ray(i, j, rg, 0);
-//             const rt::color new_col = pathtrace_multisample(r, scene, rg, number_of_bounces, number_of_samples);
-//             col += new_col;
-//             i++;
-//         }
-        
-//     });
-// }
 void render_loop_parallel_multisample(image&, const scene&, const unsigned int, const unsigned int) {
     printf("Multisample has been temporarily disabled\n");
     exit(EXIT_FAILURE);
@@ -172,21 +161,22 @@ void render_loop_parallel_all_at_once(image& image, const scene& scene, const un
     static const randomgen rg0;
     const camera::aa_shift shift = camera::generate_shift(rg0);
 
-    parallel_for(scene.height, [&, number_of_bounces, russian_roulette, target] (int jstart, int jend) {
+    parallel_for(scene.height, [&, number_of_bounces, russian_roulette, target] (int j_start, int j_end) {
 
         timer_ms timer;
         timer.start();
         
-        static thread_local const randomgen rg;
+        const randomgen rg;
+        const worker worker_(scene, rg, number_of_bounces, russian_roulette);
 
-        for (int j = jstart; j < jend; j++) {
+        for (int j = j_start; j < j_end; j++) {
             const matrix::row row = image.data[image.height() - 1 - j];
 
             for (int i = 0; rt::color& color : row) {
 
                 for (int k = 0; k < target; k++) {
                     ray r = scene.cam.gen_ray(i, j, rg, image.number_of_samples + k, shift);
-                    const rt::color new_col = pathtrace(r, scene, rg, number_of_bounces, russian_roulette);
+                    const rt::color new_col = worker_.pathtrace(r);
                     color += new_col;
                 }
                 i++;
