@@ -57,7 +57,7 @@ static void test_write_bmp() {
     timer.start();
     for (int k = 0; k < NB_ITERATIONS; k++) {
         const std::string output_filename = output_filename_bmp_base + std::to_string(k) + ".bmp";
-        const exit_status status = bmp::export_data(output_filename, img);
+        [[maybe_unused]] const exit_status status = bmp::export_data(output_filename, img);
         assert(status == exit_status::Success);
     }
     timer.stop();
@@ -83,7 +83,7 @@ static void test_write_raw() {
     timer.start();
     for (int k = 0; k < NB_ITERATIONS; k++) {
         const std::string output_filename = output_filename_raw_base + std::to_string(k) + ".rtdata";
-        const exit_status status = raw_data::export_data(output_filename, img);
+        [[maybe_unused]] const exit_status status = raw_data::export_data(output_filename, img);
         assert(status == exit_status::Success);
     }
     timer.stop();
@@ -201,7 +201,7 @@ static void test_obj() {
         timer.start();
         
         const bounding* output_bd = nullptr;
-        const exit_status status = parse_obj_file(filename_obj, std::nullopt, containers, 2.0_r, rt::vector(1, 1, 1), false, 0, output_bd, 1.0_r);
+        [[maybe_unused]] const exit_status status = parse_obj_file(filename_obj, std::nullopt, containers, 2.0_r, rt::vector(1, 1, 1), false, 0, output_bd, 1.0_r);
         assert(status == exit_status::Success);
 
         timer.stop();

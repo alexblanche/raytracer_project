@@ -48,7 +48,7 @@ int main() {
             exit(EXIT_FAILURE);
         printf("%.5s c = %.2s\n", t, c.value().t);
 
-        const auto [ c1, c2 ] = c.value().t;
+        [[maybe_unused]] const auto [ c1, c2 ] = c.value().t;
         assert(c1 == ('0' + ((values[2] / 10) % 10)) && c2 == ('0' + (values[2] % 10)));
     }
 
@@ -73,7 +73,7 @@ int main() {
         const file f("a.txt", "a");
         const std::string s = "Alex";
         const unsigned int n = 31;
-        const exit_status status = f.printf("My name is %s, I am %u.\n", s.c_str(), n);
+        [[maybe_unused]] const exit_status status = f.printf("My name is %s, I am %u.\n", s.c_str(), n);
         assert(status == exit_status::Success);
     }
 
@@ -101,7 +101,7 @@ int main() {
     }
 
     constexpr int intvals[] = { 2, 3, -4 };
-    const auto [ i, j, k ] = intvals;
+    [[maybe_unused]] const auto [ i, j, k ] = intvals;
     {
         file f("a.txt", "w");
         assert(exit_status::Success == f.write<int>(i, j, k));
@@ -111,7 +111,7 @@ int main() {
         file f("a.txt");
         int buffer[3] = { 0 };
         f.read<int, 3>(buffer);
-        const auto [ x, y, z ] = buffer;
+        [[maybe_unused]] const auto [ x, y, z ] = buffer;
         assert(x == i && y == j && z == k);
     }
 
