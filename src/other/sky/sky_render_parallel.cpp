@@ -5,8 +5,12 @@
 #include <iostream>
 #include <cstring>
 
+static constexpr bool RENDER_PARALLEL = true;
+static constexpr int nb_threads = 8;
+
 static constexpr float tan_reset_threshold = 1.0f;
 static constexpr float tan_reset_threshold_phi = 40.0f;
+
 
 namespace loop_version {
 
@@ -274,15 +278,17 @@ void run_render_loop(int j_start, int j_end, const render_parameters& param) {
 
 void render(const render_parameters& param) {
 
-    [[maybe_unused]] constexpr int nb_threads = 4;
-
     SDL_LockTexture(param.txt, nullptr, reinterpret_cast<void**>(&param.texture_pixels), &param.texture_pitch);
 
-    // run_render_loop(0, height, param);
-    parallel_for(height, [&] (int j_start, int j_end) {
-        run_render_loop(j_start, j_end, param);
-    },
-    nb_threads);
+    if constexpr (RENDER_PARALLEL) {
+        parallel_for(height, [&] (int j_start, int j_end) {
+            run_render_loop(j_start, j_end, param);
+        },
+        nb_threads);
+    }
+    else {
+        run_render_loop(0, height, param);
+    }
 
     SDL_UnlockTexture(param.txt);
     SDL_RenderClear(param.scr.renderer);
