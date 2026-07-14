@@ -23,11 +23,13 @@ constexpr float invheight = 1.0f / height;
 struct mouse_pos {
     float theta = Pi;
     float phi   = 0.0f;
+    int x = width  / 2;
+    int y = height / 2;
 
     // xr and yr are relative positions
-    inline void set(int x, int y) {
-        float xr = static_cast<float>(x - width  / 2);
-        float yr = static_cast<float>(y - height / 2);
+    inline void set(float xr, float yr) {
+        x += xr;
+        y += yr;
 
         // Mouse to the right = decreasing theta
         theta -= xr * invwidth;
@@ -38,6 +40,11 @@ struct mouse_pos {
         // phi is capped between -PI/2 and PI/2
         theta = (std::abs(theta) > Pi)     ? theta + (std::signbit(theta) ?  2 * Pi : -2 * Pi) : theta;
         phi   = (std::abs(phi)   > Pi / 2) ?         (std::signbit(phi)   ? -Pi / 2 :  Pi / 2) : phi;
+    }
+    
+    inline void reset() {
+        x = width  / 2;
+        y = height / 2;
     }
 };
 
@@ -260,10 +267,6 @@ int main(int argc, char** argv) {
     uint64_t time_frame_start   = 0;
     uint64_t time_current_frame = 0;
 
-    /* Mouse coordinates */
-    int x = width  / 2;
-    int y = height / 2;
-
     while (true) {
         /* Event handling */
 
@@ -279,13 +282,10 @@ int main(int argc, char** argv) {
             switch (event.type) {
                 case SDL_MOUSEMOTION:
                     // std::cout << event.motion.xrel << ' ' << event.motion.yrel << std::endl;
-                    x += event.motion.xrel;
-                    y += event.motion.yrel;
-                    if (std::abs(x - width / 2) > 20 || std::abs(y - height / 2) > 20) {
-                        mouse.set(x, y);
-                        x = width  / 2;
-                        y = height / 2;
-                        SDL_WarpMouseInWindow(param.scr.window, x, y);
+                    mouse.set(event.motion.xrel, event.motion.yrel);
+                    if (std::abs(mouse.x - width / 2) > 20 || std::abs(mouse.y - height / 2) > 20) {
+                        SDL_WarpMouseInWindow(param.scr.window, width / 2, height / 2);
+                        mouse.reset();
                     }
                     break;
                 case SDL_KEYDOWN:
@@ -303,8 +303,9 @@ int main(int argc, char** argv) {
                 default:
                     break;
             }
+
             time_current_frame = get_time();
-            break_event_loop = (time_current_frame - time_frame_start >= frame_interval);
+            break_event_loop = (time_current_frame - time_frame_start > frame_interval);
         }
 
         // std::cout << time_current_frame - time_frame_start << "ms" << std::endl;
