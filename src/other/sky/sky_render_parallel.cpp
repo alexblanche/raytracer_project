@@ -274,7 +274,7 @@ void run_render_loop(int j_start, int j_end, const render_parameters& param) {
 
 void render(const render_parameters& param) {
 
-    constexpr int nb_threads = 6;
+    [[maybe_unused]] constexpr int nb_threads = 4;
 
     SDL_LockTexture(param.txt, nullptr, reinterpret_cast<void**>(&param.texture_pixels), &param.texture_pitch);
 

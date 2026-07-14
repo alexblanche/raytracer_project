@@ -3,29 +3,32 @@
 
 #include <iostream>
 #include <chrono>
+#include <cassert>
 
 /* Prototype: real-time skydome, to be cleaned-up */
 
 /* Returns the current time in milliseconds */
-uint64_t get_time() {
+inline uint64_t get_time() {
     return duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()
     ).count();
 }
 
+constexpr float invwidth  = 1.0f / width;
+constexpr float invheight = 1.0f / height;
+
 /* Struct containing the spherical coordinates controlled by the mouse */
 struct mouse_pos {
-    const float invwidth;
-    const float invheight;
-    float theta, phi;
-
-    mouse_pos(float width, float height)
-        : invwidth( 1.0f / width),
-          invheight(1.0f / height),
-          theta(Pi), phi(0.0f) {}
+    float theta = Pi;
+    float phi   = 0.0f;
+    int x = width  / 2;
+    int y = height / 2;
 
     // xr and yr are relative positions
     inline void set(float xr, float yr) {
+        x += xr;
+        y += yr;
+
         // Mouse to the right = decreasing theta
         theta -= xr * invwidth;
         // Mouse to the top = increasing phi
@@ -35,6 +38,11 @@ struct mouse_pos {
         // phi is capped between -PI/2 and PI/2
         theta = (std::abs(theta) > Pi)     ? theta + (std::signbit(theta) ?  2 * Pi : -2 * Pi) : theta;
         phi   = (std::abs(phi)   > Pi / 2) ?         (std::signbit(phi)   ? -Pi / 2 :  Pi / 2) : phi;
+    }
+
+    inline void reset() {
+        x = width  / 2;
+        y = height / 2;
     }
 };
 
@@ -248,26 +256,39 @@ int main(int argc, char** argv) {
     param.img_scale_x = (param.img_width  - 1) / (2 * Pi);
     param.img_scale_y = (param.img_height - 1) / Pi;
 
-    mouse_pos mouse(width, height);
+    mouse_pos mouse;
     screen_axes axes;
 
     const uint64_t time_init = get_time();
     unsigned int frame_cpt = 0;
+    
+    uint64_t time_frame_start   = 0;
+    uint64_t time_current_frame = 0;
 
     while (true) {
         /* Event handling */
 
-        // int cpt_mouse = 0;
+        constexpr unsigned int target_fps = 60;
+        constexpr uint64_t frame_interval = 1000u / target_fps;
+
+        bool break_event_loop = false;
 
         SDL_Event event;
-        while (SDL_PollEvent(&event)) {
+        while (not break_event_loop) {
+
+            time_current_frame = get_time();
+            break_event_loop = (time_current_frame - time_frame_start > frame_interval);
             
+            SDL_PollEvent(&event);
+
             switch (event.type) {
                 case SDL_MOUSEMOTION:
                     // std::cout << event.motion.xrel << ' ' << event.motion.yrel << std::endl;
                     mouse.set(event.motion.xrel, event.motion.yrel);
-                    // cpt_mouse++;
-                    SDL_WarpMouseInWindow(param.scr.window, width / 2, height / 2);
+                    if (std::abs(mouse.x - width / 2) > 20 || std::abs(mouse.y - height / 2) > 20) {
+                        SDL_WarpMouseInWindow(param.scr.window, width / 2, height / 2);
+                        mouse.reset();
+                    }
                     break;
                 case SDL_KEYDOWN:
                     if (event.key.keysym.scancode != SDL_SCANCODE_ESCAPE)
@@ -275,9 +296,8 @@ int main(int argc, char** argv) {
                     //else: quit
                     [[fallthrough]];
                 case SDL_QUIT: {
-                        const uint64_t curr_time = get_time();
-                        const float fps = (1000.0f * static_cast<float>(frame_cpt)) / static_cast<float>(curr_time - time_init);
-                        std::cout << "Average fps: " << fps << std::endl;
+                        const float fps = (1000.0f * static_cast<float>(frame_cpt)) / static_cast<float>(time_current_frame - time_init);
+                        printf("Average fps: %.1f\n", fps);
                         SDL_DestroyTexture(param.txt);
                         SDL_FreeSurface(surface);
                         return EXIT_SUCCESS;
@@ -286,6 +306,8 @@ int main(int argc, char** argv) {
                     break;
             }
         }
+
+        // std::cout << time_current_frame - time_frame_start << "ms" << std::endl;
 
         /* Frame rendering */
 
@@ -296,6 +318,7 @@ int main(int argc, char** argv) {
         param.scaled_x_axis = axes.screen_x_axis * x_step;
         param.scaled_y_axis = axes.screen_y_axis * y_step;
 
+        time_frame_start = get_time();
         render(param);
 
         frame_cpt++;
