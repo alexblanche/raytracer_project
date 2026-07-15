@@ -9,7 +9,7 @@
 /* Constructor from mtl parameters */
 material::material(const real ns,
     const rt::color& ka, const rt::color& kd, const rt::color& ks, const rt::color& ke,
-    const real ni, const real d, const unsigned int illum, const real gamma)
+    const real ni, const real d, const unsigned int illum, std::optional<real> gamma)
     
     : color(kd * 255), smoothness(pow(ns / 1000, 0.25)),
       //emitted_color(ke * 255),
@@ -47,11 +47,8 @@ material::material(const real ns,
         transparency = 0;
     }
 
-    if (gamma != 1.0_r) {
-        color /= 255.0_r;
-        color ^= gamma;
-        color *= 255.0_r;
-    }
+    if (gamma.has_value())
+        color.apply_gamma(gamma.value());
 }
 
 

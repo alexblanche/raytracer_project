@@ -26,4 +26,4 @@
 exit_status parse_mtl_file(const std::filesystem::path& path, const std::string& file_name,
     std::vector<wrapper<material>>& material_wrapper_set,
     std::vector<wrapper<texture>>& texture_wrapper_set,
-    std::map<unsigned int, unsigned int>& mt_assoc, real gamma);
+    std::map<unsigned int, unsigned int>& mt_assoc, std::optional<real> gamma = std::nullopt);

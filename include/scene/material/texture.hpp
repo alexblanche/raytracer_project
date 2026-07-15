@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <string>
+#include <optional>
 
 /* Class representing texture data
 
@@ -31,7 +32,7 @@ class texture {
 
         /* Constructor from a .bmp or .hdr file
            Writes true in parsing_successful if the operation was successful */
-        texture(const std::string& file_name, bool& parsing_successful, real gamma = 1.0_r);
+        texture(const std::string& file_name, bool& parsing_successful, std::optional<real> gamma = std::nullopt);
 
         /* Returns the color stored in data at UV-coordinates u, v (between 0 and 1) times width, height */
         /* Returns the color stored in data at UV-coordinates u, v (between 0 and 1) times width, height */

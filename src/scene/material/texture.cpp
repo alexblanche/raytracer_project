@@ -8,7 +8,7 @@
 
 /* Constructor from a .bmp or .hdr file
    Writes true in parsing_successful if the operation was successful */
-texture::texture(const std::string& file_name, bool& parsing_successful, const real gamma) {
+texture::texture(const std::string& file_name, bool& parsing_successful, std::optional<real> gamma) {
 
     const std::string extension = std::filesystem::path(file_name).extension().generic_string();
     const bool is_bmp = extension == ".bmp";
@@ -22,8 +22,8 @@ texture::texture(const std::string& file_name, bool& parsing_successful, const r
         return;
 
     data = std::move(mat_opt.value());
-    if (gamma != 1.0_r)
-        data.apply_gamma(gamma);
+    if (gamma.has_value())
+        data.apply_gamma(gamma.value());
 
     width  = data.width  - 1;
     height = data.height - 1;

@@ -2,6 +2,8 @@
 
 #include "screen/color.hpp"
 
+#include <optional>
+
 class material {
     
     private:
@@ -74,7 +76,7 @@ class material {
         /* Constructor from mtl parameters */
         material(real ns,
             const rt::color& ka, const rt::color& kd, const rt::color& ks, const rt::color& ke,
-            real ni, real d, unsigned int illum, real gamma);
+            real ni, real d, unsigned int illum, std::optional<real> gamma = std::nullopt);
 
 
         material(material&&)            noexcept = default;
