@@ -120,7 +120,22 @@ static void test_basic() {
 
 int main() {
 
-    test_basic();
+    // test_basic();
+    {
+        file f("b.txt", "w");
+        f.write("Ns 1000.000000\n");
+    }
+
+    {
+        file f("b.txt", "rb");
+        double ns = 0;
+        const exit_status st = f.scanf_rewind_if_failure("Ns %lf", ns);
+
+        if (st == exit_status::Failure)
+            std::cout << "FAILURE" << std::endl;
+        else
+            std::cout << "ns = " << ns << std::endl;
+    }
 
     return EXIT_SUCCESS;
 }

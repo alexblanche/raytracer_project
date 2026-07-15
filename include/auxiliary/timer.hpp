@@ -92,6 +92,6 @@ class timer_ms {
         }
 
         void print() const {
-            printf("Time: %llums\n", elapsed());
+            printf("%llums\n", elapsed());
         }        
 };

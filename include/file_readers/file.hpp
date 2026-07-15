@@ -119,8 +119,9 @@ class file {
         return R; // default
     }
 
-    private:
+    public:
         FILE *f;
+    private:
         mode mode_;
 
         // Helper function to scan
@@ -367,7 +368,9 @@ class file {
         template<typename... Args>
         exit_status scanf_rewind_if_failure(const std::string& format, Args&... x) const {
             
+            skip_whitespace();
             const std::size_t pos = position();
+
             const int ret = scanf_count(format, x...);
             
             if (ret == sizeof...(Args))

@@ -20,12 +20,14 @@ static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
 
    Returns true if the operation was successful */
 
+#include <iostream>
+
 exit_status parse_mtl_file(const std::filesystem::path& path, const std::string& file_name,
     std::vector<wrapper<material>>& material_wrapper_set,
     std::vector<wrapper<texture>>& texture_wrapper_set,
     std::map<unsigned int, unsigned int>& mt_assoc, const real gamma) {
 
-    file f((path / file_name).generic_string());
+    file f((path / file_name).generic_string(), "rb");
 
     try {
 
@@ -35,6 +37,9 @@ exit_status parse_mtl_file(const std::filesystem::path& path, const std::string&
             // longest items are newmtl
             const std::string arg = f.read_string(6);
 
+            if (arg.length() == 0)
+                break;
+            
             /* Commented line, or ignored command */
             if (arg.starts_with("#")) {
                 f.skip_line();
@@ -72,6 +77,7 @@ exit_status parse_mtl_file(const std::filesystem::path& path, const std::string&
                 map_Ns CliffRock_0014_2K_Roughness.bmp
                 map_Bump -bm 0.300000 CliffRock_0014_2K_Normal.bmp
                 */
+                
                 double ns = 0.0;
                 f.scanf_rewind_if_failure("Ns %lf\n", ns);
 

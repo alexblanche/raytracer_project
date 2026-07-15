@@ -1134,7 +1134,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
     catch (...) {}
 
     timer.stop();
-    printf("Scene parsing:\n");
+    printf("Scene parsing: ");
     timer.print();
 
     return scene_opt;

@@ -206,6 +206,12 @@ static inline const polygon* build_polygon(
     const auto& [ ...vni ]    = vn;
     const auto& [ ...norm_i ] = std::array { normal_set[vni]... };
 
+    if (polygon_set.size() == polygon_set.capacity()) {
+        printf("obj_parser Error: %s set capacity reached\n",
+            (std::is_same_v<polygon, triangle>) ? "triangle" : "quad");
+        exit(EXIT_FAILURE);
+    }
+
     if constexpr (normal_option == normal::Enabled) {
         if constexpr (size >= 3)
             polygon_set.emplace_back(vert_i..., norm_i..., current_material_index, texture_info_index);
