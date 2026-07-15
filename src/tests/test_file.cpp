@@ -3,8 +3,8 @@
 #include <string>
 #include <cassert>
 
-int main() {
-
+[[maybe_unused]]
+static void test_basic() {
     constexpr int values[] = { 12, -3, 14 };
 
     {
@@ -116,6 +116,11 @@ int main() {
     }
 
     printf("\nAll good!\n");
+}
+
+int main() {
+
+    test_basic();
 
     return EXIT_SUCCESS;
 }

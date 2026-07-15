@@ -10,12 +10,15 @@
 #include <variant>
 #include <expected>
 
+#include <cstdio>
+#include <string>
+#include <sstream>
+
 #include "light/vector.hpp"
 #include "auxiliary/utils.hpp"
 
-using real = double;
-
-void compare_sizes() {
+[[maybe_unused]]
+static void compare_sizes() {
     std::vector<real> v(8);
     std::cout << "sizeof(array<real, 8>) = " << sizeof(std::array<real, 8>) << std::endl;
     std::cout << "sizeof(v) = " << sizeof(v) << std::endl;
@@ -35,7 +38,8 @@ class Box {
             : center(center), n1(x_axis.unit()), n2(y_axis.unit()), n3(x_axis ^ y_axis), l1(l1_), l2(l2_), l3(l3_) {} 
 };
 
-void test_variant() {
+[[maybe_unused]]
+static void test_variant() {
     using T = std::variant<int, float, short>;
     T a;
 
@@ -44,7 +48,8 @@ void test_variant() {
     std::cout << sizeof(x) << std::endl;
 }
 
-void test_expected() {
+[[maybe_unused]]
+static void test_expected() {
     using U = std::pair<int, short>;
     using T = std::expected<U, error_type>;
 
@@ -54,7 +59,8 @@ void test_expected() {
     std::cout << "sizeof(std::optional<U>) = " << sizeof(std::optional<U>) << std::endl;
 }
 
-void test_unique_ptr() {
+[[maybe_unused]]
+static void test_unique_ptr() {
     std::unique_ptr<Box> pt(new Box(rt::vector(), rt::vector(), rt::vector(), 1, 1, 1));
     std::cout << "sizeof(std::unique_ptr) = " << sizeof(pt) << std::endl;
     std::cout << "sizeof(Box*) = " << sizeof(Box*) << std::endl;
@@ -63,7 +69,8 @@ void test_unique_ptr() {
     std::cout << "sizeof(std::unique_ptr) = " << sizeof(pt2) << std::endl;
 }
 
-void test_sizeof_vector() {
+[[maybe_unused]]
+static void test_sizeof_vector() {
     std::cout << "sizeof(vector) = " << sizeof(std::vector<void*>) << std::endl;
     struct array {
         std::unique_ptr<int> data;
@@ -81,12 +88,14 @@ class C {
         C() { std::cout << "size = " << size << std::endl; }
 };
 
-void test_template() {
+[[maybe_unused]]
+static void test_template() {
     C<int> c1;
     C<int, 2> c2;
 }
 
-void test_stack() {
+[[maybe_unused]]
+static void test_stack() {
     int values[] = { 1, 2, 3, 4, 5 };
     std::stack<int> st;
     
@@ -102,12 +111,8 @@ void test_stack() {
     std::cout << std::endl;
 }
 
-#include <cstdio>
-#include <string>
-#include <sstream>
-
-int main() {
-
+[[maybe_unused]]
+static void test_parsing() {
     std::string line =
         // "1/2/3 4/5/6 7/8/9";
         "1//3 4//6 7//9";
@@ -159,6 +164,11 @@ int main() {
         std::cout << v[j] << d1 << d2 << vn[j] << " ";
     }
     std::cout << std::endl;
+}
+
+int main() {
+
+    test_parsing();
 
     return EXIT_SUCCESS;
 }

@@ -774,7 +774,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
     try {
 
-        file f(file_name);
+        file f(file_name, "rb");
 
         const pre_parsing_info pre_parsing_info = pre_parse(f);
 
@@ -802,18 +802,30 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         {
             const exit_status status1 = f.scanf("resolution width:%d height:%d\n", width, height);
             throw_if_failure(status1, "parsing error in scene constructor (resolution)");
+
+            // const int pos = f.position();
+            // const std::string s = f.read_string();
+            // std::cout << "to be read (1): " << s << " (pos = " << pos << ")" << std::endl;
+            // f.rewind(pos);
+            // const int pos2 = f.position();
+            // const std::string s2 = f.read_string();
+            // std::cout << "to be read (2): " << s2 << " (pos = " << pos2 << ")" << std::endl;
+            // f.rewind(pos2);
         }
 
         {
             const int ret = f.scanf_count("camera position:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) rightdir:(%lf,%lf,%lf) fov_width:%lf distance:%lf focal_distance:%lf aperture:%lf\n",
                 posx, posy, posz, dx, dy, dz, rdx, rdy, rdz, fovw, dist, focl, apr);
-                
+            
             if (ret < 11)
                 throw std::runtime_error("parsing error in scene constructor (camera)");
             
             if (ret == 11) // Focal length and aperture omitted
                 depth_of_field_enabled = false;
         }
+
+        if (f.peek_next() == '#')
+            f.skip_line();
 
         rt::vector cam_pos(posx, posy, posz);
         rt::vector cam_dir(dx, dy, dz);
@@ -838,11 +850,17 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             if (status_background == exit_status::Success) {
                 background_color = rt::color(r, g, b);
             }
+
+            const int pos = f.position();
+            const int ret_bg_texture = f.scanf_count("background_texture %512s rotate_x:%lf rotate_y:%lf rotate_z:%lf gamma:%lf\n",
+                bg_tfile_name, rx, ry, rz, inverse_gamma);
+            
+            if (ret_bg_texture > 1 && ret_bg_texture < 4)
+                throw std::runtime_error("parsing error in scene constructor (background)");
+
+            if (ret_bg_texture == 0)
+                f.rewind(pos);
             else {
-                const int ret_bg_texture = f.scanf_count("background_texture %512s rotate_x:%lf rotate_y:%lf rotate_z:%lf gamma:%lf\n",
-                    bg_tfile_name, rx, ry, rz, inverse_gamma);
-                if (ret_bg_texture < 1)
-                    throw std::runtime_error("parsing error in scene constructor (background)");
                 if (std::abs(rx) > 2.0_r * PI || std::abs(ry) > 2.0_r * PI || std::abs(rz) > 2.0_r * PI)
                     throw std::runtime_error("incorrect background texture angles");
                 
@@ -864,6 +882,9 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 background_texture_is_set = true;
             }
         }
+
+        if (f.peek_next() == '#' || exit_status::Success == f.scanf_rewind_if_failure("background_color"))
+            f.skip_line();
         
         unsigned int polygons_per_bounding = 0;
 
@@ -980,7 +1001,8 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                     normal_map_wrapper_set.emplace_back(normal_map(tfile_name, parsing_successful), t_name);
 
                 if (parsing_successful) {
-                    printf("\r> %s %s loaded                                \n", tfile_name_short.c_str(), type.c_str());
+                    printf("\r> %s %s loaded                                                     \n",
+                        tfile_name_short.c_str(), type.c_str());
                     continue;
                 }
 

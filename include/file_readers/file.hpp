@@ -366,9 +366,10 @@ class file {
 
         template<typename... Args>
         exit_status scanf_rewind_if_failure(const std::string& format, Args&... x) const {
-            const std::size_t pos = position();
             
+            const std::size_t pos = position();
             const int ret = scanf_count(format, x...);
+            
             if (ret == sizeof...(Args))
                 return exit_status::Success;
 
