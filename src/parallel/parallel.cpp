@@ -11,10 +11,12 @@ static void parallel_for_aux(const unsigned int nb_elements,
     int wanted_nb_threads = 0) {
     
     const unsigned int nb_threads_hint = std::thread::hardware_concurrency();
+    if (nb_threads_hint != 0)
+        wanted_nb_threads = std::min(static_cast<unsigned int>(wanted_nb_threads), nb_threads_hint);
     const unsigned int nb_threads =
-          wanted_nb_threads != 0 ? wanted_nb_threads
-        : nb_threads_hint   != 0 ? nb_threads_hint
-        : 8;
+        wanted_nb_threads != 0 ?
+              wanted_nb_threads
+            : (nb_threads_hint != 0) ? nb_threads_hint : 8;
 
     const unsigned int batch_size = nb_elements / nb_threads;
     
