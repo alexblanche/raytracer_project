@@ -29,7 +29,7 @@ pre_parsing_info_obj pre_parse_obj(const std::string& filename);
      It contains a hierarchy of bounding boxes, such that the terminal ones contain at most
      polygons_per_bounding polygons.
 */
-exit_status parse_obj_file(const std::string& file_name, const std::optional<unsigned int> default_texture_index,
+exit_status parse_obj_file(const std::string& file_name, std::optional<unsigned int> default_texture_index,
    containers& containers,
    real scale, const rt::vector& shift,
    bool bounding_enabled, unsigned int polygons_per_bounding,

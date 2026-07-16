@@ -8,7 +8,7 @@ struct sphere_orientation {
     rt::vector up_dir;
 };
 
-class sphere : public object {
+class sphere final : public object {
     
     private:
 
@@ -19,9 +19,9 @@ class sphere : public object {
 
     public:
 
-        sphere(const rt::vector& center, const real radius, unsigned int material_index);
+        sphere(const rt::vector& center, real radius, unsigned int material_index);
 
-        sphere(const rt::vector& center, const real radius, unsigned int material_index,
+        sphere(const rt::vector& center, real radius, unsigned int material_index,
             unsigned int texture_info_index, const rt::vector& forward_dir, const rt::vector& right_dir);
 
         sphere(sphere&&) noexcept        = default;

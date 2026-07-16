@@ -296,7 +296,7 @@ static exit_status run_offline(const runtime_parameters& runtime_parameters, ima
     printf("\rRender complete: %u / %u\n", target, target);
     timer.print();
 
-    return file_handler.export_as(bmp(DEFAULT_OUTPUT_FILE_NAME), raw(DEFAULT_OUTPUT_FILE_NAME), image);;
+    return file_handler.export_as(bmp(DEFAULT_OUTPUT_FILE_NAME), raw(DEFAULT_OUTPUT_FILE_NAME), image);
 }
 
 // Returns an exit_status if the program has to stop, either because of a failure or because a quit event happened

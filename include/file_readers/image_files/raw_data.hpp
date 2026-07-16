@@ -45,6 +45,6 @@ class raw_data {
          and one raw data file dest_raw_name (extension .rtdata)
          Returns true if the operation was successful */
       static exit_status combine_files(const std::string& dest_bmp_name, const std::string& dest_raw_name,
-         const std::span<const std::string> source_file_names, const float gamma = 1.0f);
+         std::span<const std::string> source_file_names, float gamma = 1.0f);
 
 };

@@ -8,7 +8,7 @@ struct plane_orientation {
     real inv_texture_scale = 1.0_r;
 };
 
-class plane : public object {
+class plane final : public object {
     
     private:
 

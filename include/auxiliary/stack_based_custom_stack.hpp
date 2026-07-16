@@ -117,7 +117,7 @@ class stack_based_custom_stack {
 
         [[nodiscard]] inline const T& top() const {
             if constexpr (allocation_type_ == Dynamic) {
-                return data[size - 1];;
+                return data[size - 1];
             }
             else {
                 return first_buffer[size - 1];
@@ -126,7 +126,7 @@ class stack_based_custom_stack {
 
         [[nodiscard]] inline T& top() {
             if constexpr (allocation_type_ == Dynamic) {
-                return data[size - 1];;
+                return data[size - 1];
             }
             else {
                 return first_buffer[size - 1];

@@ -85,7 +85,7 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
 /* Returns a bounding* containing the objects of content, split into a hierarchy of boundings if their number
    exceeds MIN_NUMBER_OF_POLYGONS_FOR_BOX */
 const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
-   const unsigned int polygons_per_bounding);
+   unsigned int polygons_per_bounding);
 
 
 /** Tests **/

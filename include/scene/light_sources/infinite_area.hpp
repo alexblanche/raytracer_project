@@ -30,15 +30,15 @@ struct alias_table {
     // Constructs an alias table from a probability table
     // The width and height of the original light map and of the low res image are stored inside the alias table
     alias_table(const std::vector<Float>& prob_table,
-        const unsigned int map_width,
-        const unsigned int map_height,
-        const unsigned int pt_width,
-        const unsigned int pt_height
+        unsigned int map_width,
+        unsigned int map_height,
+        unsigned int pt_width,
+        unsigned int pt_height
     );
 
     alias_table(const matrix& matrix,
-        const unsigned int pt_width,
-        const unsigned int pt_height)
+        unsigned int pt_width,
+        unsigned int pt_height)
 
     : alias_table(compute_low_res_table(matrix), matrix.width, matrix.height, pt_width, pt_height) {}
 

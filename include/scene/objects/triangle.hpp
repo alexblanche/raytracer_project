@@ -16,7 +16,7 @@ inline real compute_det_2d(const rt::vector& v1, const rt::vector& v2, det_case 
     }
 }
 
-class triangle : public object {
+class triangle final : public object {
     
     private:
         /* A triangle is defined by a normal (unit) vector (a,b,c), and three (non-unit) vectors position, v1, v2

@@ -2,7 +2,7 @@
 
 #include "scene/objects/object.hpp"
 
-class cylinder : public object {
+class cylinder final : public object {
     
     private:
 

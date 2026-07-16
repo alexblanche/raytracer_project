@@ -56,7 +56,7 @@ class worker {
         /* Auxiliary function that handles the specular reflective case */
         // Run-time
         [[nodiscard]] ray specular_reflective_case(const hit& h, const rt::vector& direction,
-            const real smoothness, const rt::vector& local_normal) const;
+            real smoothness, const rt::vector& local_normal) const;
         
         // Compile-time
         template<orientation_type ray_orientation>
@@ -78,9 +78,9 @@ class worker {
             );
         }
 
-        [[nodiscard]] ray refractive_case(const hit& h, const real scattering,
+        [[nodiscard]] ray refractive_case(const hit& h, real scattering,
             const rt::vector& local_normal, const direction::sin_refracted_output& sin_refr,
-            real& refr_index, const real next_refr_i) const;
+            real& refr_index, real next_refr_i) const;
 
         [[nodiscard]] rt::color background_case(const rt::vector& direction, const accumulators& acc) const;
 

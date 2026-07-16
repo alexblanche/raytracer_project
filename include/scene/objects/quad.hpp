@@ -2,7 +2,7 @@
 
 #include "scene/objects/triangle.hpp"
 
-class quad : public object {
+class quad final : public object {
     
     private:
     

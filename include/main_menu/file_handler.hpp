@@ -25,7 +25,7 @@ class file_handler {
                 : filename((name.ends_with(extension) ? name : name + extension)) {}
         };
 
-        exit_status export_file(const type file_type, const std::string& filename, const image& image, bool display_sample_count = true) const;
+        exit_status export_file(type file_type, const std::string& filename, const image& image, bool display_sample_count = true) const;
 
     public:
         using bmp_filename = type_filename<Bmp>;

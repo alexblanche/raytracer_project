@@ -16,7 +16,7 @@ class menu {
         runtime_parameters runtime_parameters;
         std::string scene_descriptor_name = DEFAULT_DESCRIPTOR_FILE_NAME;
 
-        exit_status parse_arguments(const std::span<const std::string> args);
+        exit_status parse_arguments(std::span<const std::string> args);
 
         inline std::optional<scene> parse_scene_descriptor_file() const {
             return parse_scene_descriptor(scene_descriptor_name);
@@ -27,5 +27,5 @@ class menu {
         exit_status run(const scene& scene) const;
 
     private:
-        exit_status parse_aux(const std::span<const std::string> args);
+        exit_status parse_aux(std::span<const std::string> args);
 };

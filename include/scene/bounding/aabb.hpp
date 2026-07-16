@@ -49,7 +49,7 @@ class aabb {
 
         /* Minimum and maximum coordinates */
         inline min_max_coord get_min_max_coord() const {
-            if constexpr (type == type::Corner)
+            if constexpr (type == Corner)
                 return build_min_max_coord(position, position + dims);
             else if constexpr (type == Center)
                 return build_min_max_coord(position - dims, position + dims);

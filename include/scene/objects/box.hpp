@@ -2,7 +2,7 @@
 
 #include "scene/objects/object.hpp"
 
-class box : public object {
+class box final : public object {
     
     private:
     
