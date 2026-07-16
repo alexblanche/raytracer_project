@@ -24,7 +24,7 @@ namespace loop_version {
     enum class limit {
         LimitCase, NotLimitCase
     };
-};
+}
 
 
 template<loop_version::theta vtheta, loop_version::phi vphi, loop_version::limit vlim>

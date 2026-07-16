@@ -136,11 +136,12 @@ namespace sky  {
 
 	// Returns c1 * c2 + c3
 	inline color fma(const color& c1, const color& c2, const color& c3) {
+		constexpr real inv = 1.0f / 255.0f;
 		return
 			color(
-				std::fma(c1.get_red(),   c2.get_red()   / ((real) 255.0f), c3.get_red()),
-				std::fma(c1.get_green(), c2.get_green() / ((real) 255.0f), c3.get_green()),
-				std::fma(c1.get_blue(),  c2.get_blue()  / ((real) 255.0f), c3.get_blue())
+				std::fma(c1.get_red(),   c2.get_red()   * inv, c3.get_red()),
+				std::fma(c1.get_green(), c2.get_green() * inv, c3.get_green()),
+				std::fma(c1.get_blue(),  c2.get_blue()  * inv, c3.get_blue())
 			);
 	}
 }

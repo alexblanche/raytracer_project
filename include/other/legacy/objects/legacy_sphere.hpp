@@ -2,7 +2,7 @@
 
 #include "other/legacy/objects/legacy_object.hpp"
 
-class sphere : public object {
+class sphere final : public object {
     
     private:
 
@@ -19,7 +19,7 @@ class sphere : public object {
         
         /* Intersection determination */
 
-        std::optional<real> measure_distance(const ray& r) const final;
+        std::optional<real> measure_distance(const ray& r) const;
 
-        hit compute_intersection(ray& r, real t) const final;
+        hit compute_intersection(ray& r, real t) const;
 };

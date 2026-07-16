@@ -172,11 +172,11 @@ class matrix {
     };
 
     iterator begin() {
-        return iterator(0, &(*this));
+        return iterator(0, this);
     }
 
     iterator end() {
-        return iterator(height, &(*this));
+        return iterator(height, this);
     }
     
     class input_iterator {
@@ -221,11 +221,11 @@ class matrix {
     };
 
     input_iterator begin() const {
-        return input_iterator(0, &(*this));
+        return input_iterator(0, this);
     }
 
     input_iterator end() const {
-        return input_iterator(height, &(*this));
+        return input_iterator(height, this);
     }
 };
 

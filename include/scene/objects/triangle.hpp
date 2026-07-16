@@ -67,28 +67,28 @@ class triangle final : public object {
 
         /* Intersection determination */
 
-        real measure_distance(const ray& r) const final;
+        real measure_distance(const ray& r) const override;
 
         /* Returns the barycentric info (l1, l2):
            p = position + l1 * v1 + l2 * v2
            (0 <= l1, l2 <= 1)
         */
-        barycentric_info get_barycentric(const rt::vector& p) const final;
+        barycentric_info get_barycentric(const rt::vector& p) const override;
 
         rt::vector get_interpolated_normal(const barycentric_info& bary) const;
 
-        hit compute_intersection(const ray& r, real t) const final;
+        hit compute_intersection(const ray& r, real t) const override;
 
 
         /* Minimum and maximum coordinates */
-        min_max_coord get_min_max_coord() const final;
+        min_max_coord get_min_max_coord() const override;
 
         /* Prints the triangle */
         void print() const;
 
         /* Normal map vector computation at render time
         Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
-        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const final;
+        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const override;
 
         static inline rt::vector sample_triangle(const randomgen& rg, const rt::vector& v0, const rt::vector& v1, const rt::vector& v2) {
             
@@ -108,7 +108,7 @@ class triangle final : public object {
             return fma(v1, u, fma(v2, v, v0));
         }
 
-        rt::vector sample(const randomgen& rg) const final;
+        rt::vector sample(const randomgen& rg) const override;
         
-        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const final;
+        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const override;
 };

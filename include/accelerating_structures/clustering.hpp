@@ -91,4 +91,4 @@ const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
 /** Tests **/
 
 /* Displays the depth of the hierarchy, as well as the minimum, maximum and average arity of each depth */
-void display_hierarchy_properties(const bounding* bd);
+void display_hierarchy_properties(const bounding* bd0);

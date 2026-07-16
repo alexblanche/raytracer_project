@@ -37,12 +37,12 @@ class box final : public object {
 
         /* Intersection determination */
 
-        real measure_distance(const ray& r) const final;
+        real measure_distance(const ray& r) const override;
         
-        hit compute_intersection(const ray& r, real t) const final;
+        hit compute_intersection(const ray& r, real t) const override;
 
         /* Minimum and maximum coordinates */
-        min_max_coord get_min_max_coord() const final;
+        min_max_coord get_min_max_coord() const override;
 
         /* Specific to (standard) boxes: returns true if the ray r hits the box
         The box is assumed to be standard (axes are n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1)) */
@@ -52,15 +52,15 @@ class box final : public object {
         real is_hit_with_distance(const ray& r) const;
 
         /* Returns the barycentric info (the faces behave like quads) */
-        barycentric_info get_barycentric(const rt::vector& p) const final;
+        barycentric_info get_barycentric(const rt::vector& p) const override;
 
         rt::vector compute_normal_from_map(
             const rt::vector& tangent_space_normal,
             const rt::vector& local_normal,
             const texture_info& info
-        ) const final;
+        ) const override;
 
-        rt::vector sample(const randomgen& rg) const final;
+        rt::vector sample(const randomgen& rg) const override;
         
-        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const final;
+        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const override;
 };

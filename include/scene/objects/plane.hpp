@@ -43,20 +43,20 @@ class plane final : public object {
 
         /* Intersection determination */
 
-        real measure_distance(const ray& r) const final;
+        real measure_distance(const ray& r) const override;
         
-        hit compute_intersection(const ray& r, real t) const final;
+        hit compute_intersection(const ray& r, real t) const override;
 
         /* Returns the barycentric info (tiles according to texture_scale) */
-        barycentric_info get_barycentric(const rt::vector& p) const final;
+        barycentric_info get_barycentric(const rt::vector& p) const override;
 
         /* Normal map vector computation at render time */
-        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const final;
+        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const override;
 
         /* Minimum and maximum coordinates (undefined for planes )*/
-        min_max_coord get_min_max_coord() const final;
+        min_max_coord get_min_max_coord() const override;
 
-        rt::vector sample(const randomgen& rg) const final;
+        rt::vector sample(const randomgen& rg) const override;
         
-        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const final;
+        rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const override;
 };

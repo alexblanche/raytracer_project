@@ -20,9 +20,11 @@ class object {
 
         /* Constructors */
 
-        object();
+        object()
+            : color(255, 255, 255) {}
 
-        object(const rt::vector& pos, const rt::color& col);
+        object(const rt::vector& position, const rt::color& col)
+            : position(position), color(col) {}
 
         /* Accessors */
 

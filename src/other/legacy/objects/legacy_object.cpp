@@ -1,12 +1,5 @@
 #include "other/legacy/objects/legacy_object.hpp"
 
-object::object()
-    : position(), color(255, 255, 255) {}
-
-object::object(const rt::vector& position, const rt::color& col)
-    : position(position), color(col) {}
-
-
 /* Default versions: these four functions are overridden by derived classes */
 
 /* Intersection determination */

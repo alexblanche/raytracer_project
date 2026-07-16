@@ -225,12 +225,12 @@ namespace rt {
 		);
 	}
 
-	inline std::pair<rt::vector, rt::vector> min_max(const vector& v1, const vector& v2) {
+	inline std::pair<vector, vector> min_max(const vector& v1, const vector& v2) {
 		const auto& [ min_x, max_x ] = (v1.x < v2.x) ? std::pair { v1.x, v2.x } : std::pair { v2.x, v1.x };
 		const auto& [ min_y, max_y ] = (v1.y < v2.y) ? std::pair { v1.y, v2.y } : std::pair { v2.y, v1.y };
 		const auto& [ min_z, max_z ] = (v1.z < v2.z) ? std::pair { v1.z, v2.z } : std::pair { v2.z, v1.z };
 
-		return { rt::vector(min_x, min_y, min_z), rt::vector(max_x, max_y, max_z) };
+		return { vector(min_x, min_y, min_z), vector(max_x, max_y, max_z) };
 	}
 
 	inline vector abs(const vector& v) {

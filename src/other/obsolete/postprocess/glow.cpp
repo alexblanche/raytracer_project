@@ -119,11 +119,11 @@ void blur_pixel(std::vector<std::vector<pixel>>& glow_image,
 std::vector<std::vector<pixel>> generate_glow(const matrix& bright_pixels,
     const unsigned int number_of_rays, const double glow_intensity) {
     
-    const int width  = bright_pixels.width;
-    const int height = bright_pixels.height;
+    const int width  = static_cast<int>(bright_pixels.width);
+    const int height = static_cast<int>(bright_pixels.height);
     std::vector<std::vector<pixel>> glow(height, std::vector<pixel>(width));
 
-    printf("0 / %llu", width);
+    printf("0 / %d", width);
     fflush(stdout);
 
     for (int j = 0; j < height; j++) {
@@ -134,7 +134,7 @@ std::vector<std::vector<pixel>> generate_glow(const matrix& bright_pixels,
                 blur_pixel(glow, bright_pixels, i, j, nc.normalized_color, nc.intensity, glow_intensity);
             }
         }
-        printf("\r%llu / %llu", j+1, height);
+        printf("\r%d / %d", j+1, height);
         fflush(stdout);
     }
     printf("\n");
@@ -197,9 +197,8 @@ int main(int argc, char* argv[]) {
     fflush(stdout);
 
     unsigned int number_of_rays;
-    std::optional<image> image_opt = raw_data::read_file(argv[input_arg]);
+    std::expected<image, file_reader::error> image_opt = raw_data::read_file(argv[input_arg]);
 
-    
     if (not image_opt.has_value()) {
         printf("Error reading file %s\n", argv[input_arg]);
         return EXIT_FAILURE;

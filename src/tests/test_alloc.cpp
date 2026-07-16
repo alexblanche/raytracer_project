@@ -19,9 +19,9 @@ class A {
         A(int x)      : id(cpt++) { std::cout << "A(int) (x = " << x << ") (" << id << ")" << std::endl; }
 
         A()           : id(cpt++) { std::cout << "A()          (" << id << ")" << std::endl; }
-        A(A&& a)      : id(cpt++) { std::cout << "A(A&&)       (" << id << ", from " << a.id << ")" << std::endl; }
+        A(A&& a) noexcept : id(cpt++) { std::cout << "A(A&&)       (" << id << ", from " << a.id << ")" << std::endl; }
         A(const A& a) = default;//: id(cpt++) { std::cout << "A(const A&)  (" << id << ", from " << a.id << ")" << std::endl; }
-        A& operator=(A&& a)       { id = cpt++;
+        A& operator=(A&& a) noexcept { id = cpt++;
                                     std::cout << "A = A&&      (" << id << ", from " << a.id << ")" << std::endl; return *this; }
         A& operator=(const A& a) { id = cpt++;
                                 std::cout << "A = const A& (" << id << ", from " << a.id << ")" << std::endl; return *this; }

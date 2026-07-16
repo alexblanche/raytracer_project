@@ -24,7 +24,7 @@ class direction {
 
         /* Returns the interpolated direction between the normal and the reflected direction */
         /* inward = ((direction | normal) <= 0) */
-        static rt::vector central_reflected(const rt::vector& direction, const rt::vector& normal, real reflectivity, orientation_type ray_orientation);
+        static rt::vector central_reflected(const rt::vector& direction, const rt::vector& normal, real smoothness, orientation_type ray_orientation);
 
         enum class angle {
             Pi, Pi_over_2

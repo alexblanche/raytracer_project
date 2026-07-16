@@ -1,3 +1,5 @@
+#pragma once
+
 #include "light/ray.hpp"
 #include "screen/color.hpp"
 #include "scene/scene.hpp"

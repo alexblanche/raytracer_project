@@ -18,7 +18,7 @@ class normal_map {
     
     public:
 
-        normal_map() {};
+        normal_map() {}
 
         normal_map(unsigned int w, unsigned int h, vector_matrix&& data);
 
