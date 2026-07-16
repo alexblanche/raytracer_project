@@ -1,7 +1,5 @@
 #include "screen/color.hpp"
-#include "parallel/parallel.hpp"
 #include <vector>
-#include <cmath>
 
 namespace rt {
 

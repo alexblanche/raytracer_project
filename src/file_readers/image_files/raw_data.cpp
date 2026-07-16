@@ -2,7 +2,6 @@
 #include "file_readers/image_files/bmp_reader.hpp"
 #include "file_readers/file.hpp"
 
-#include <optional>
 #include <stdexcept>
 #include <cstdlib>
 #include <memory>

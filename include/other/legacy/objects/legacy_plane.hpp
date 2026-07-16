@@ -16,7 +16,7 @@ class plane : public object {
 
         plane();
         
-        plane(real sa, real sb, real sc, real sd,
+        plane(real pa, real pb, real pc, real pd,
             const rt::color& col);
         
         plane(real pa, real pb, real pc, const rt::vector& position,

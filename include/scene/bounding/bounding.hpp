@@ -4,7 +4,6 @@
 #include "scene/bounding/aabb.hpp"
 #include "auxiliary/custom_stack.hpp"
 
-#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -101,7 +100,7 @@ class bounding {
             }
         }
 
-        inline const std::span<const bounding * const> get_children() const {
+        inline std::span<const bounding * const> get_children() const {
             return (type == InternalNode) ?
                   node_.children
                 : std::span<const bounding * const> {};

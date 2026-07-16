@@ -2,10 +2,8 @@
 
 #include "light/vector.hpp"
 #include "light/hit.hpp"
-#include "scene/material/material.hpp"
 #include "auxiliary/utils.hpp"
 
-#include <optional>
 #include <stdexcept>
 
 

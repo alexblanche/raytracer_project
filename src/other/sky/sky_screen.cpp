@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <csignal>
-#include <cmath>
 
 namespace sky {
 

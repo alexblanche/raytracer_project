@@ -1,11 +1,9 @@
 #include "scene/objects/sphere.hpp"
 #include "light/vector.hpp"
-#include "scene/material/material.hpp"
 #include "tracing/direction.hpp"
 #include "auxiliary/utils.hpp"
 
 #include <cmath>
-#include <optional>
 
 sphere::sphere(const rt::vector& center, const real radius, const unsigned int material_index)
 
@@ -13,13 +11,13 @@ sphere::sphere(const rt::vector& center, const real radius, const unsigned int m
 
 // Constructor for textured spheres
 sphere::sphere(const rt::vector& center, const real radius, const unsigned int material_index,
-    const unsigned int texture_info_index, const rt::vector& forward, const rt::vector& right)
+    const unsigned int texture_info_index, const rt::vector& forward_dir, const rt::vector& right_dir)
 
     : sphere(center, radius, material_index) {
     
         texture_information_index = texture_info_index;
-        orientation.forward_dir = forward.unit();
-        orientation.right_dir   = right.unit();
+        orientation.forward_dir = forward_dir.unit();
+        orientation.right_dir   = right_dir.unit();
         orientation.up_dir = orientation.right_dir ^ orientation.forward_dir;
     }
 

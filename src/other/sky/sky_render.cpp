@@ -1,7 +1,6 @@
 #include "other/sky/sky_render.hpp"
 
 #include <iostream>
-#include <cstring>
 
 static constexpr float tan_reset_threshold = 1.0f;
 static constexpr float tan_reset_threshold_phi = 40.0f;
@@ -201,7 +200,7 @@ static phi_test_bounds compute_bounds_phi_update(int& k1_io, int& k2_io,
     using enum phi_test_bounds;
     
     // Resolution of ak^2 + bk + c < 0
-    const float m2 = tan_reset_threshold_phi * tan_reset_threshold_phi;
+    constexpr float m2 = tan_reset_threshold_phi * tan_reset_threshold_phi;
     const float a = m2 * dv.x * dv.x - dv.y * dv.y + m2 * dv.z * dv.z;
     const float b = 2.0f * (m2 * (v.x * dv.x + v.z * dv.z) - v.y * dv.y);
     const float c = m2 * (v.x * v.x + v.z * v.z) - v.y * v.y;

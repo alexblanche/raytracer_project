@@ -1,4 +1,5 @@
 #include "scene/material/background.hpp"
+
 #include "auxiliary/utils.hpp"
 
 #include <cmath>

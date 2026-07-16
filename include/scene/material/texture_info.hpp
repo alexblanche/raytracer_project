@@ -2,7 +2,6 @@
 
 #include "scene/material/barycentric.hpp"
 
-#include "scene/material/texture.hpp"
 #include "scene/material/normal_map.hpp"
 // To do :
 // #include "scene/material/roughness_map.hpp"
@@ -31,12 +30,10 @@ class texture_info {
 
         /* Index in the scene's sets */
         // -1 = none
-        int texture_index;
-        int normal_map_index;
+        int texture_index       = NONE;
+        int normal_map_index    = NONE;
         // int roughness_map_index;
         // int displacement_map_index;
-
-        texture_info();
 
         texture_info(std::optional<int> t_index,
             std::optional<int> n_index,

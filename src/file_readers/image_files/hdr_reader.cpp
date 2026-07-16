@@ -4,8 +4,6 @@
 #include "parallel/parallel.hpp"
 #include "file_readers/file.hpp"
 
-#include <cmath>
-#include <stdexcept>
 #include <cstring>
 
 using enum file_reader::error;
@@ -121,7 +119,7 @@ std::expected<matrix, file_reader::error> hdr::read_file(const std::string& file
 
         return data;
     }
-    catch(file::error e) {
+    catch(file::error) {
         return std::unexpected(file_reader::error::FileError);
     }
     catch(const std::exception& e) {

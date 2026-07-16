@@ -9,7 +9,6 @@
 
 #include <string>
 #include <cstdlib>
-#include <iostream>
 #include <cassert>
 
 static const std::string BMP_FILE_NAME = "../../../assets/cobblestone_street_night.bmp";

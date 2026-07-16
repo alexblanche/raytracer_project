@@ -4,12 +4,11 @@
 #include "light/vector.hpp"
 
 #include <vector>
-#include <tuple>
 
 struct min_max_coord {
     real min_x, max_x, min_y, max_y, min_z, max_z;
 
-    void update(rt::vector& min, rt::vector& max) {
+    void update(rt::vector& min, rt::vector& max) const {
 
         min = {
             std::min(min.x, min_x),

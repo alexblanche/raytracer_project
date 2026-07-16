@@ -223,7 +223,7 @@ const rt::color& scene::sample_texture(const unsigned int texture_info_index, co
 }
 
 map_sample scene::sample_maps(const unsigned int texture_info_index, const barycentric_info& bary,
-    const rt::color& default_color, const rt::vector& default_vector, const real /*default_smoothness*/) const {
+    const rt::color& default_color, const rt::vector& default_normal, const real /*default_smoothness*/) const {
 
     const texture_info& ti = texture_info_set[texture_info_index];
     const auto [ u, v ] = ti.get_barycenter(bary);
@@ -232,7 +232,7 @@ map_sample scene::sample_maps(const unsigned int texture_info_index, const baryc
         : default_color;
     const rt::vector& n_vec = (ti.has_normal_information()) ?
           normal_map_set[ti.normal_map_index].get_tangent_space_normal(u, v)
-        : default_vector;
+        : default_normal;
     // const real smoothness = (ti.roughness_map_index.has_value()) ?
     //       1.0f - roughness_map_set[ti.roughness_map_index.value()].get_roughness(uvc.u, uvc.v)
     //     : default_smoothness;

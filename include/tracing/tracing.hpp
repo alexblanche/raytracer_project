@@ -1,6 +1,5 @@
 #include "light/ray.hpp"
 #include "screen/color.hpp"
-#include "scene/objects/object.hpp"
 #include "scene/scene.hpp"
 #include "main_menu/runtime_parameters.hpp"
 
@@ -85,7 +84,7 @@ class worker {
 
         [[nodiscard]] rt::color background_case(const rt::vector& direction, const accumulators& acc) const;
 
-        [[nodiscard]] rt::color full_intensity_case(accumulators& acc, const object* obj,
+        [[nodiscard]] rt::color full_intensity_case(const accumulators& acc, const object* obj,
             const rt::vector& hit_point, const material& m) const;
 
         struct bounce_parameters {

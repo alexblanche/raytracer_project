@@ -1,6 +1,5 @@
 #pragma once
 
-#include "file_readers/parsers/parsing_wrappers.hpp"
 #include "file_readers/parsers/scene_parser.hpp"
 
 #include "auxiliary/exit_status.hpp"
@@ -14,7 +13,7 @@ struct pre_parsing_info_obj {
     unsigned int quads      = 0;
 };
 
-pre_parsing_info_obj pre_parse_obj(const std::string filename);
+pre_parsing_info_obj pre_parse_obj(const std::string& filename);
 
 /* Wavefront .obj file parser */
 /* Only handles .obj files made up of triangles and quads, for now.
@@ -34,4 +33,4 @@ exit_status parse_obj_file(const std::string& file_name, const std::optional<uns
    containers& containers,
    real scale, const rt::vector& shift,
    bool bounding_enabled, unsigned int polygons_per_bounding,
-   const bounding*& output_bd, real gamma);
+   const bounding*& output_bd, std::optional<real> gamma = std::nullopt);

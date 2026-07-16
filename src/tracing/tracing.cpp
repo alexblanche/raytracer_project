@@ -3,8 +3,6 @@
 #include "auxiliary/utils.hpp"
 #include "auxiliary/stack_based_custom_stack.hpp"
 
-#include <cmath>
-
 /* ******************************************************************** */
 /* *************************** Path tracing *************************** */
 
@@ -79,10 +77,11 @@ using enum direction::angle;
 
 
 
-struct bounce_vectors {
-    const rt::vector& direction;
-    const rt::vector& normal;
-};
+// struct bounce_vectors {
+//     const rt::vector& direction;
+//     const rt::vector& normal;
+//     real incidence; // = (direction | normal)
+// };
 
 
 void worker::process_bounce(const bounce_parameters& param, path_parameters& out) const {
@@ -175,7 +174,7 @@ void worker::process_bounce(const bounce_parameters& param, path_parameters& out
         acc.update_emitted_col(m);
 }
 
-[[nodiscard]] inline rt::color worker::full_intensity_case(accumulators& acc,
+[[nodiscard]] inline rt::color worker::full_intensity_case(const accumulators& acc,
     const object* obj, const rt::vector& hit_point, const material& m) const {
     
     const rt::color& color = obj->is_textured() ?

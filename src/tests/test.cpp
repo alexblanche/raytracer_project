@@ -3,7 +3,6 @@
 
 #include <array>
 #include <vector>
-#include <bit>
 #include <memory>
 #include <stack>
 

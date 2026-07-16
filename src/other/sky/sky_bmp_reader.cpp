@@ -2,7 +2,6 @@
 
 #include <cstdio>
 #include <stdexcept>
-#include <cmath>
 
 static constexpr int BYTES_PER_COLOR = 3;
 

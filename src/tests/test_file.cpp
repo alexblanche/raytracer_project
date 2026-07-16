@@ -72,7 +72,7 @@ static void test_basic() {
     {
         const file f("a.txt", "a");
         const std::string s = "Alex";
-        const unsigned int n = 31;
+        constexpr unsigned int n = 31;
         [[maybe_unused]] const exit_status status = f.printf("My name is %s, I am %u.\n", s.c_str(), n);
         assert(status == exit_status::Success);
     }
@@ -120,22 +120,24 @@ static void test_basic() {
 
 int main() {
 
-    // test_basic();
-    {
-        file f("b.txt", "w");
-        f.write("Ns 1000.000000\n");
-    }
+    // // test_basic();
+    // {
+    //     file f("b.txt", "w");
+    //     f.write("Ns 1000.000000\n");
+    // }
 
-    {
-        file f("b.txt", "rb");
-        double ns = 0;
-        const exit_status st = f.scanf_rewind_if_failure("Ns %lf", ns);
+    // {
+    //     file f("b.txt", "rb");
+    //     double ns = 0;
+    //     const exit_status st = f.scanf_rewind_if_failure("Ns %lf", ns);
 
-        if (st == exit_status::Failure)
-            std::cout << "FAILURE" << std::endl;
-        else
-            std::cout << "ns = " << ns << std::endl;
-    }
+    //     if (st == exit_status::Failure)
+    //         std::cout << "FAILURE" << std::endl;
+    //     else
+    //         std::cout << "ns = " << ns << std::endl;
+    // }
+
+    test_basic();
 
     return EXIT_SUCCESS;
 }

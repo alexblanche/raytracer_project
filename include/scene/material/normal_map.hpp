@@ -20,7 +20,7 @@ class normal_map {
 
         normal_map() {};
 
-        normal_map(unsigned int width, unsigned int height, vector_matrix&& data);
+        normal_map(unsigned int w, unsigned int h, vector_matrix&& data);
 
         /* Constructor from a .bmp file
            Writes true in parsing_successful if the operation was successful */

@@ -1,7 +1,6 @@
 
 #include "other/legacy/source/legacy_source.hpp"
 #include "other/legacy/objects/legacy_sphere.hpp"
-#include "other/legacy/objects/legacy_plane.hpp"
 
 /** The source class represents point-shaped light sources,
  * defined by their position and color.

@@ -8,7 +8,7 @@
 class timer {
     private:
         bool time_enabled;
-        unsigned long int t_init;
+        unsigned long int t_init   = 0;
         unsigned long int t_export = 0;
         unsigned long int t_end    = 0;
         unsigned long int elapsed  = 0;
@@ -18,20 +18,20 @@ class timer {
             : time_enabled(mode != time_mode::Disabled) {}
 
         inline void start() {
-            t_init = time_enabled ? time(0) : 0;
+            t_init = time_enabled ? time(nullptr) : 0;
         }
 
         inline void interrupt() {
-            t_end  = time_enabled ? time(0) : 0;
+            t_end  = time_enabled ? time(nullptr) : 0;
         }
 
         inline void resume() {
-            const unsigned long int t_export_end = time_enabled ? time(0) : 0;
+            const unsigned long int t_export_end = time_enabled ? time(nullptr) : 0;
             t_export += t_export_end - t_end;
         }
 
         inline void stop() {
-            t_end = ((not time_enabled) || t_end) ? t_end : time(0);
+            t_end = ((not time_enabled) || t_end) ? t_end : time(nullptr);
             elapsed = t_end - t_init - t_export;
         }
 
@@ -56,7 +56,7 @@ class timer_ms {
 
         uint64_t time_start = 0;
         uint64_t time_end   = 0;
-        timer_state state;
+        timer_state state = timer_state::Stopped;
 
     public:
 

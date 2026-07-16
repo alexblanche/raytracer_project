@@ -17,9 +17,6 @@ static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
 /*** Scene descriptor pre-parsing ***/
 [[maybe_unused]] static pre_parsing_info pre_parse(const file& f) {
 
-    // timer_ms timer;
-    // timer.start();
-
     pre_parsing_info ppi;
 
     const std::array<std::string, 8> keywords_array = {
@@ -49,6 +46,7 @@ static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
                 case 5: ppi.cylinders++; break;
                 case 6: ppi.materials++; break;
                 case 7: ppi.textures++;  break;
+                default: break;
             }
             if (index < 6)
                 ppi.objects++;
@@ -77,10 +75,6 @@ static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
     */
 
     f.rewind();
-
-    // timer.stop();
-    // timer.print();
-    
     return ppi;
 }
 

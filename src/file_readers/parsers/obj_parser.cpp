@@ -32,9 +32,9 @@ constexpr std::streamsize MAX_LINE_SIZE = std::numeric_limits<std::streamsize>::
 
 /**************************************************************************************/
 
-pre_parsing_info_obj pre_parse_obj(const std::string filename) {
+pre_parsing_info_obj pre_parse_obj(const std::string& filename) {
 
-    file f(filename);
+    file f(filename, "rb");
     const std::vector<unsigned char> content = f.extract();
     f.close();
 
@@ -446,7 +446,7 @@ exit_status parse_obj_file(const std::string& file_name,
     containers& containers,
     const real scale, const rt::vector& shift,
     const bool bounding_enabled, const unsigned int polygons_per_bounding,
-    const bounding*& output_bd, const real gamma) {
+    const bounding*& output_bd, const std::optional<real> gamma) {
 
     printf("Parsing obj file... ");
     fflush(stdout);
@@ -641,7 +641,7 @@ exit_status parse_obj_file(const std::string& file_name,
 
     try {
 
-        file f(file_name);
+        file f(file_name, "rb");
         const std::vector<unsigned char> buffer = f.extract();
         f.close();
 
@@ -679,7 +679,7 @@ exit_status parse_obj_file(const std::string& file_name,
                 std::getline(stream, line);
                 const char * buffer = line.data() + 1;
                 const auto [ x, y, z ] = parse<double, 3>(buffer, line.size());
-                
+
                 vertex_set.emplace_back(x, y, z);
                 number_of_vertices++;
 
@@ -696,12 +696,16 @@ exit_status parse_obj_file(const std::string& file_name,
                 std::getline(stream, line);
                 const char * buffer = line.data() + 1;
                 const auto [ u, v ] = parse<double, 2>(buffer, line.size());
-                
+
                 if (is_between_zero_and_one(u) && is_between_zero_and_one(v)) [[likely]] {
                     
                     uv_coord_set.emplace_back(u, v, 0);
                 }
                 else {
+                    // static int cpt_wrong = 0;
+                    // cpt_wrong++;
+                    // std::cout << "Wrong vt " << cpt_wrong << " / " << uv_coord_set.size() + 1 << std::endl;
+
                     // Case that happened in one obj file
                     const real nu = (u >= 0) ? 1.0_r : ((u <= (-1.0_r)) ? 0.0_r : 1.0_r + u);
                     const real nv = (v >= 0) ? 1.0_r : ((v <= (-1.0_r)) ? 0.0_r : 1.0_r + v);

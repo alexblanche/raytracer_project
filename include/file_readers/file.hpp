@@ -5,7 +5,6 @@
 
 #include <iostream>
 #include <span>
-#include <stdexcept>
 #include <vector>
 #include <array>
 #include <optional>
@@ -40,7 +39,7 @@ concept Arithm = std::is_arithmetic_v<T>;
 #if APPLE_CLANG
 
     // Auxiliary function
-    template<std::size_t count, std::size_t... i>
+    template<std::size_t... i>
     static consteval std::string string_concat_aux_(const std::string& value, std::index_sequence<i...>) {
         return (id(i, value) + ...);
     }
@@ -48,7 +47,7 @@ concept Arithm = std::is_arithmetic_v<T>;
     // Returns a string made up of the string value repeated count times
     template<std::size_t count>
     static consteval std::string string_concat(const std::string& value) {
-        return string_concat_aux_<count>(value, std::make_index_sequence<count>());
+        return string_concat_aux_(value, std::make_index_sequence<count>());
     }
 
     #define CONSTEXPR constexpr
@@ -177,7 +176,7 @@ class file {
 
         void rewind(std::size_t pos = 0) const {
             if (pos > position()) {
-                printf("file::rewind: rewind to position set ahead of current position");
+                std::printf("file::rewind: rewind to position set ahead of current position");
                 throw file::error::WrongParameter;
             }
             seek(pos);

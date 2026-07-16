@@ -2,7 +2,6 @@
 
 #include "other/sky/sky_parameters.hpp"
 
-#include <vector>
 #include <cmath>
 
 namespace sky  {

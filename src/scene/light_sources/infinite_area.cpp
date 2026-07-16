@@ -5,8 +5,6 @@
 #include <cmath>
 #include <span>
 
-#include <iostream>
-
 /* Infinite area light sample */
 
 using Float = alias_table::Float;

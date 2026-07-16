@@ -28,7 +28,7 @@ class quad : public object {
 
         // Constructor from four points with vertex normals
         quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
-            const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
+            const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
             unsigned int material_index, unsigned int texture_info_index = EMPTY_INDEX);
 
         // Constructor from four points with normal mapping enabled
@@ -38,7 +38,7 @@ class quad : public object {
 
         // Constructor from four points with vertex normals and normal mapping enabled
         quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
-            const rt::vector& vn0, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
+            const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
             unsigned int material_index, unsigned int texture_info_index,
             texture_info& info);
 

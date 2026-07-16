@@ -2,6 +2,8 @@
 
 #include "scene/material/texture.hpp"
 
+#include "light/vector.hpp"
+
 #include <cmath>
 
 constexpr bool ROTATION_MATRIX_COLUMNS = true; // true = columns, false = rows

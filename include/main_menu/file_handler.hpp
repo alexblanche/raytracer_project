@@ -1,7 +1,5 @@
 #pragma once
 
-#include "main_menu/runtime_parameters.hpp"
-#include "screen/color.hpp"
 #include "image/image.hpp"
 #include "auxiliary/exit_status.hpp"
 

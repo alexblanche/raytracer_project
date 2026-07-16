@@ -1,6 +1,5 @@
 #pragma once
 
-#include "screen/color.hpp"
 #include "auxiliary/randomgen.hpp"
 #include "image/matrix.hpp"
 

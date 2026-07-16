@@ -2,11 +2,6 @@
 
 /** Texture infos **/
 
-#include <iostream>
-
-texture_info::texture_info()
-    : uv_coordinates({}), texture_index(NONE) {}
-
 texture_info::texture_info(
     std::optional<int> t_index,
     std::optional<int> n_index,

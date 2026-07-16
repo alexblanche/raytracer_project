@@ -1,16 +1,13 @@
 #include "scene/objects/triangle.hpp"
 
-#include "scene/material/material.hpp"
 #include "auxiliary/utils.hpp"
-
-#include <optional>
 
 using enum det_case;
 
 static std::pair<real, det_case> set_up_det(const rt::vector& v1, const rt::vector& v2) {
 
-    // det(XY) = 0 => v1, v2 are colinear when projected onto the plane z = 0
-    // det(XZ) = 0 => v1, v2 are colinear when projected onto the planes y = 0 and z = 0
+    // det(XY) = 0 => v1, v2 are collinear when projected onto the plane z = 0
+    // det(XZ) = 0 => v1, v2 are collinear when projected onto the planes y = 0 and z = 0
     //    (e.g. the triangle lies in the plane x = constant)
     
     for (det_case det_case : { XY, XZ, YZ }) {
@@ -34,9 +31,9 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     normal = n.unit();
     d = - (normal | p0);
 
-    const auto [ d, case_d ] = set_up_det(v1, v2);
-    det      = d;
-    case_det = case_d;
+    const auto [ det_, case_det_ ] = set_up_det(v1, v2);
+    det      = det_;
+    case_det = case_det_;
 }
 
 // Constructor from three points with vertex normals
@@ -109,8 +106,7 @@ inline rt::vector triangle::get_barycenter() const {
 
 real triangle::measure_distance(const ray& r) const {
 
-    const rt::vector& u   = r.origin;
-    const rt::vector& dir = r.direction;
+    const auto& [ u, dir, _ ] = r;
 
     // Intersection between the ray and the triangle plane
     const real pdt  = (normal | dir);   // ax + by + cz

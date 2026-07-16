@@ -3,8 +3,6 @@
 #include "light/vector.hpp"
 
 #include <vector>
-#include <span>
-#include <cstring>
 
 // #include <iostream>
 

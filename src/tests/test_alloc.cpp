@@ -2,14 +2,12 @@
 #include <cstdlib>
 
 #include <vector>
-#include <array>
 #include <span>
 
 #include <bit>
 #include <memory>
 
 #include "auxiliary/custom_stack.hpp"
-#include "auxiliary/utils.hpp"
 
 using real = double;
 
@@ -137,7 +135,7 @@ void test_allocator() {
 
 int main() {
 
-    srand(time(0));
+    srand(time(nullptr));
     [[maybe_unused]] A a = f();
 
     B b1(A(1), A(2), A(3));    // 6 objects created

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "light/vector.hpp"
 #include "image/matrix.hpp"
 
 #include <algorithm>

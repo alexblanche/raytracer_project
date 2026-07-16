@@ -1,8 +1,6 @@
 #include "other/legacy/source/legacy_source.hpp"
 
 #include <numeric>
-#include <cstddef>
-#include <algorithm>
 
 /* Light application */
 

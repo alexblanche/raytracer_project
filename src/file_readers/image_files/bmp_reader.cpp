@@ -6,7 +6,6 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <cmath>
 
 static constexpr int DEFAULT_BYTES_PER_COLOR = 3;
 

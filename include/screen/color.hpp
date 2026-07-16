@@ -4,7 +4,6 @@
 
 #include <vector>
 #include <span>
-#include <cstdint>
 #include <cmath>
 
 namespace rt  {
@@ -133,7 +132,7 @@ namespace rt  {
 			uint8_t r, g, b;
 		};
 
-		inline uint8_color to_uint8() const {
+		[[nodiscard]] inline uint8_color to_uint8() const {
 			return {
 				static_cast<uint8_t>(red),
 				static_cast<uint8_t>(green),
@@ -141,7 +140,7 @@ namespace rt  {
 			};
 		}
 
-		inline uint8_color to_uint8_bgr() const {
+		[[nodiscard]] inline uint8_color to_uint8_bgr() const {
 			return {
 				static_cast<uint8_t>(blue),
 				static_cast<uint8_t>(green),

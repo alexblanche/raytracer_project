@@ -1,7 +1,5 @@
 #include "screen/screen.hpp"
 
-#include <cmath>
-#include <vector>
 #include <string>
 #include <array>
 

@@ -3,7 +3,6 @@
 #include "file_readers/image_files/bmp_reader.hpp"
 #include "file_readers/image_files/hdr_reader.hpp"
 
-#include <iostream>
 #include <filesystem>
 
 /* Constructor from a .bmp or .hdr file

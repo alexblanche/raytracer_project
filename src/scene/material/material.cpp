@@ -3,9 +3,6 @@
 
 #include <cmath>
 
-#include <vector>
-#include <iostream>
-
 /* Constructor from mtl parameters */
 material::material(const real ns,
     const rt::color& ka, const rt::color& kd, const rt::color& ks, const rt::color& ke,

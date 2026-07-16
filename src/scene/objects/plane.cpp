@@ -2,12 +2,10 @@
 
 #include "light/vector.hpp"
 #include "light/hit.hpp"
-#include "scene/material/material.hpp"
 #include "auxiliary/utils.hpp"
 
 #include <cmath>
 #include <stdexcept>
-#include <optional>
 
 /* Constructor of a plane of normal vector (a,b,c) and touching the point position */
 plane::plane(const real pa, const real pb, const real pc, const rt::vector& position,

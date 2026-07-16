@@ -1,7 +1,5 @@
 #include "tracing/direction.hpp"
 
-#include "auxiliary/utils.hpp"
-
 /* Returns the reflected ray at the point of contact */
 /* Unused */
 /*

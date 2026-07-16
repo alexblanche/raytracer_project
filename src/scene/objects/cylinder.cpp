@@ -1,11 +1,9 @@
 #include "scene/objects/cylinder.hpp"
 #include "light/vector.hpp"
-#include "scene/material/material.hpp"
 #include "auxiliary/utils.hpp"
 
 #include <cmath>
 #include <stdexcept>
-#include <optional>
 
 
 cylinder::cylinder(const rt::vector& origin, const rt::vector& direction,

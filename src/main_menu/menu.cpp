@@ -17,7 +17,7 @@ static bool is_number(const std::string& s) {
         std::ignore = std::stoul(s);
         return true;
     }
-    catch (std::exception& e) {
+    catch (std::exception&) {
         return false;
     }
 }
@@ -27,7 +27,7 @@ static bool is_float(const std::string& s) {
         std::ignore = std::stof(s);
         return true;
     }
-    catch (std::exception& e) {
+    catch (std::exception&) {
         return false;
     }
 }
