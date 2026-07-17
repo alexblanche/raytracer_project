@@ -81,7 +81,7 @@ static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
 /*** Scene description parsing ***/
 
 /* Auxiliary function: returns a material from a description file */
-static std::optional<material> parse_material(const file& f, const real gamma) {
+static std::optional<material> parse_material(const file& f, const std::optional<real> gamma) {
     /* color:(120, 120, 120) emitted_color:(0, 0, 0) reflectivity:1 emission:0
         specular_p:1.0 reflects_color:false transparency:0.5 scattering:0 refraction_index:1.2)
 
@@ -361,9 +361,9 @@ static std::optional<material> parse_material(const file& f, const real gamma) {
 
     rt::color mat_color(mp.r, mp.g, mp.b);
     // rt::color em_color(er, eg, eb);
-    if (gamma != 1.0_r) {
-        mat_color.apply_gamma(gamma);
-        // em_color.apply_gamma(gamma);
+    if (gamma.has_value()) {
+        mat_color.apply_gamma(gamma.value());
+        // em_color.apply_gamma(gamma.value());
     }
 
     return material(mat_color, mp.smooth, mp.em_int, mp.refl, mp.refl_color, mp.transp, mp.scattering, mp.refr_i);
@@ -372,7 +372,7 @@ static std::optional<material> parse_material(const file& f, const real gamma) {
 
 /* Auxiliary function: parses the name of a material and returns its index in material_set,
    or parses a new material, stores it in material_set and returns its index */
-static std::optional<unsigned int> get_material(const file& f, std::vector<wrapper<material>>& material_wrapper_set, const real gamma) {
+static std::optional<unsigned int> get_material(const file& f, std::vector<wrapper<material>>& material_wrapper_set, const std::optional<real> gamma) {
 
     const char firstchar = f.getc();
     
@@ -406,7 +406,7 @@ static std::optional<texture_info> parse_texture_info(const file& f,
     // const std::vector<wrapper<roughness_map>>& roughness_map_wrapper_set,
     const object_type object_type_) {
 
-    const exit_status status_t = f.scanf_rewind_if_failure("texture");
+    const exit_status status_t = f.scanf_rewind_if_failure("texture:(");
 
     if (status_t == exit_status::Failure)
         return std::nullopt;
@@ -500,7 +500,7 @@ static std::optional<texture_info> parse_texture_info(const file& f,
 }
 
 static void parse_objects(const file& f, const object_type type, const std::string& arg,
-        containers& containers, const bool bounding_enabled, double inverse_gamma) {
+        containers& containers, const bool bounding_enabled, std::optional<real> inverse_gamma) {
     
     union object_constructor_parameters {
         struct { rt::vector center; real radius; }                    sphere;
@@ -834,11 +834,12 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         bool background_texture_is_set = false;
         rt::color background_color;
         texture background_texture;
+        std::optional<real> inverse_gamma;
 
         // Setting up the background_color or texture
         double r, g, b;
         char bg_tfile_name[513];
-        double rx = 0.0, ry = 0.0, rz = 0.0, inverse_gamma = 1.0;
+        double rx = 0.0, ry = 0.0, rz = 0.0, inverse_gamma_val = 1.0;
         {
             const exit_status status_background = f.scanf_rewind_if_failure("background_color %lf %lf %lf\n", r, g, b);
             if (status_background == exit_status::Success) {
@@ -847,7 +848,10 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
             const int pos = f.position();
             const int ret_bg_texture = f.scanf_count("background_texture %512s rotate_x:%lf rotate_y:%lf rotate_z:%lf gamma:%lf\n",
-                bg_tfile_name, rx, ry, rz, inverse_gamma);
+                bg_tfile_name, rx, ry, rz, inverse_gamma_val);
+
+            if (ret_bg_texture == 5 && inverse_gamma_val != 1.0)
+                inverse_gamma = inverse_gamma_val;
             
             if (ret_bg_texture > 1 && ret_bg_texture < 4)
                 throw std::runtime_error("parsing error in scene constructor (background)");
@@ -1098,6 +1102,10 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
               background_container(std::move(background_texture), rx, ry, rz)
             : background_container(background_color);
 
+        const std::optional<real> gamma = (inverse_gamma.has_value()) ?
+              std::optional(1.0_r / inverse_gamma.value())
+            : std::nullopt;
+
         scene_opt.emplace(
             std::move(object_set),
 
@@ -1117,7 +1125,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             std::move(cam),
             width, height,
             polygons_per_bounding,
-            1.0 / inverse_gamma
+            gamma
         );
     }
     catch (const std::exception& e) {

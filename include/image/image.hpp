@@ -2,16 +2,18 @@
 
 #include "image/matrix.hpp"
 
+#include <optional>
+
 class image {
     public:
         matrix data;
-        const real gamma = 1.0f;
+        std::optional<real> gamma;
         int number_of_samples = 0;
 
-        image(int width, int height, real gamma = 1.0f)
+        image(int width, int height, std::optional<real> gamma = std::nullopt)
             : data(width, height), gamma(gamma) {}
 
-        image(matrix&& matrix, real gamma = 1.0f)
+        image(matrix&& matrix, std::optional<real> gamma = std::nullopt)
             : data(std::move(matrix)), gamma(gamma), number_of_samples(1) {}
 
         image(image&&) noexcept        = default;
@@ -41,6 +43,7 @@ class image {
 
         /* Applies gamma correction to the color data */
         void apply_gamma() {
-            data.apply_gamma(gamma);
+            if (gamma.has_value())
+                data.apply_gamma(gamma.value());
         }
 };

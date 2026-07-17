@@ -27,8 +27,8 @@ scene::scene(
 
     const int width, const int height,
     const unsigned int polygons_per_bounding,
-    const real gamma)
-    :
+    const std::optional<real> gamma) :
+    
     object_set       (std::move(object_set)),
 
     triangle_set     (std::move(triangle_set)),

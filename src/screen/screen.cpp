@@ -216,7 +216,7 @@ namespace rt {
             for (const color& pixel_col : row) {
 
 				color corrected = pixel_col * inv;
-				corrected ^= img.gamma;
+				corrected ^= img.gamma.value();
 				corrected *= 255.0_r;
 				corrected.cap();
 				const auto [ cr, cg, cb ] = corrected.to_uint8();
@@ -271,7 +271,7 @@ namespace rt {
 				const real lcorr = (1.0_r + lin * lwhitecorr) / (1.0_r + lin);
 
 				color corrected = col * (lcorr * inv);
-				corrected ^= img.gamma;
+				corrected ^= img.gamma.value();
 				corrected *= 255.0_r;
 				corrected.cap();
 

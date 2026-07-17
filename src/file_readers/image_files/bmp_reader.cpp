@@ -196,7 +196,7 @@ exit_status bmp::export_data(const std::string& file_name, const image& image) {
     std::vector<uint8_t> buffer(data_size, 0);
 
     /* Each pixel is represented as 3 bytes BGR, each line (sequence of 3*width bytes) is followed by p bytes '0' of padding */
-    const bool gamma_enabled = image.gamma != 1.0_r;
+    const bool gamma_enabled = image.gamma.has_value();
     const real invN = 1.0_r / image.number_of_samples;
 
     int index = 0;
@@ -207,7 +207,7 @@ exit_status bmp::export_data(const std::string& file_name, const image& image) {
             col.cap();
 
             if (gamma_enabled)
-                col.apply_gamma(image.gamma);
+                col.apply_gamma(image.gamma.value());
 
             const auto [ b, g, r ] = col.to_uint8_bgr();
             buffer[index]     = b;

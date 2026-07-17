@@ -81,7 +81,7 @@ class scene {
         // Triangles are grouped by the given number in the bounding box tree-search method
         unsigned int polygons_per_bounding;
 
-        real gamma;
+        std::optional<real> gamma;
         
 
         /* Constructor with background texture and optional background color */
@@ -104,7 +104,7 @@ class scene {
             camera&&                       cam,
             int width, int height,
             unsigned int polygons_per_bounding,
-            real gamma
+            std::optional<real> gamma
         );
 
         scene(scene&&) noexcept         = default;

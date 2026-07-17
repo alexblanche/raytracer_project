@@ -22,7 +22,7 @@ class menu {
             return parse_scene_descriptor(scene_descriptor_name);
         }
 
-        void update_gamma(float new_gamma);
+        void update_gamma(std::optional<real> new_gamma);
 
         exit_status run(const scene& scene) const;
 

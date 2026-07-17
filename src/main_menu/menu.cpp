@@ -191,21 +191,21 @@ exit_status menu::parse_arguments(const std::span<const std::string> args) {
     return exit_status::Success;
 }
 
-void menu::update_gamma(const float new_gamma) {
+void menu::update_gamma(const std::optional<real> new_gamma) {
 
     float& gamma = runtime_parameters.tone_mapping.gamma_value;
     using enum tone_mapping_parameters::mode;
     const bool gamma_disabled = runtime_parameters.tone_mapping.tm_mode == Disabled;
 
-    if (new_gamma != 1.0f) {
+    if (new_gamma.has_value()) {
         if ((not gamma_disabled) && new_gamma != gamma)
             printf("Warning: gamma correction value passed by command-line argument (%.1f) was overwritten by scene description (%.1f)\n",
-                (1.0f / gamma), (1.0f / new_gamma));
+                (1.0f / gamma), (1.0_r / new_gamma.value()));
 
         if (gamma_disabled)
             runtime_parameters.tone_mapping.tm_mode = Gamma;
 
-        gamma = new_gamma;
+        gamma = new_gamma.value();
         printf("Gamma correction: %.1f\n", (1.0f / gamma));
     }
 }
