@@ -5,6 +5,7 @@
 #include <vector>
 #include <span>
 #include <cmath>
+#include <cstdint>
 
 namespace rt  {
 

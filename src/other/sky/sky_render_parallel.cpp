@@ -2,6 +2,7 @@
 
 #include "parallel/parallel.hpp"
 
+#include <cstring>
 #include <iostream>
 
 static constexpr bool RENDER_PARALLEL = true;

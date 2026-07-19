@@ -1,8 +1,8 @@
 resolution width:1920 height:1080
 camera position:(2.212, 1.488, 3.4) direction:(-0.72, -0.28, -1) rightdir:(1, 0, -0.72) fov_width:1.33 distance:1.0
-background_color 190 235 255
+# background_color 190 235 255
 background_texture ../../../raytracer_project/sky/dome/urban_street.hdr rotate_x:3.14 rotate_y:5.835 rotate_z:0 gamma:2.2
-polygons_per_bounding 10
+bvh: polygons_per_bounding 10
 
 # background_texture ../../../raytracer_project/sky/dome/urban_street.bmp rotate_x:3.14 rotate_y:5.835 rotate_z:0
 
@@ -31,9 +31,10 @@ material road_mat (diffuse)
 # sphere center:(-0.5, 0, -3.5) radius:0.1 material:white_light
 # sphere center:(-3.372, 0, -1.4) radius:0.1 material:white_light
 
-load_texture asphalt ../../../raytracer_project/texture_assets/asphalt/asphalt.bmp
-load_normal_map asphaltn ../../../raytracer_project/texture_assets/asphalt/asphalt_nor.bmp
-quad (2.372, 0, 0.6) (-0.527, 0, 2.7) (-3.372, 0, -1.4) (-0.5, 0, -3.5) material:diffuse texture:(asphalt normal:asphaltn (0, 0) (0, 1) (1, 1) (1, 0))
+# load_texture asphalt ../../../raytracer_project/texture_assets/asphalt/asphalt.bmp
+# load_normal_map asphaltn ../../../raytracer_project/texture_assets/asphalt/asphalt_nor.bmp
+quad (2.372, 0, 0.6) (-0.527, 0, 2.7) (-3.272, 0, -1.47) (-0.45, 0, -3.535) material:(color:(255,100,100) emission:1)
+# material:diffuse texture:(asphalt normal:asphaltn (0, 0) (0, 1) (1, 1) (1, 0))
 
 # Model
 load_obj ../../../raytracer_project/3d_models/porsche_2016/porsche_obj.obj

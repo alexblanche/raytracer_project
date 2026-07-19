@@ -3,8 +3,7 @@
 #include "light/vector.hpp"
 
 #include <vector>
-
-// #include <iostream>
+#include <cstring>
 
 struct search_tree {
 
