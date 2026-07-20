@@ -1052,7 +1052,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 if (status == exit_status::Success) {
 
                     std::string t_name = f.read_string(MAX_NAME_LENGTH);
-                    f.scanf(" shift:(%lf,%lf,%lf) scale:%lf)\n", sx, sy, sz, scale);
+                    f.scanf("shift:(%lf,%lf,%lf) scale:%lf)\n", sx, sy, sz, scale);
                     
                     if (not t_name.starts_with("none")) {
                         if (t_name.ends_with(')'))

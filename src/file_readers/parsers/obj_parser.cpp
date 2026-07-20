@@ -23,7 +23,8 @@ superior to a certain amount depending on this constant,
 split the quad into two triangles, to solve some visual glitches */
 /* The value 1.0E-7 is chosen empirically: it seems to remove all visible glitches by splitting a small number of quads */
 /* History: for the stool, 1.0E-6 is sufficient, but leaves visible glitches on the "Porsche 2016" test model. 1.0E-7 removes them. */
-static constexpr real QUAD_SPLIT_THRESHOLD = 0.1_r; //1.0e-7_r;
+static constexpr real QUAD_SPLIT_THRESHOLD = 0.1_r;
+    //1.0e-7_r;
 
 // static constexpr unsigned int MAX_NAME_LENGTH     = 64;
 // static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
@@ -171,12 +172,12 @@ static inline void new_texture_info(std::vector<texture_info>& texture_info_set,
 
     for (int i = 0; unsigned int vti : vt) {
         uv[i++] = uv_coord_set[vti].x;
-        uv[i++] = 1 - uv_coord_set[vti].y;
+        uv[i++] = uv_coord_set[vti].y;
     }
 
     if constexpr (size == 2) {
         uv[4] = final_vt.x;
-        uv[5] = 1 - final_vt.y;
+        uv[5] = final_vt.y;
     }
 
     texture_info_set.emplace_back(
