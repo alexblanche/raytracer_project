@@ -115,3 +115,12 @@ rt::vector plane::sample(const randomgen&) const {
 rt::vector plane::sample_visible(const randomgen&, const rt::vector&) const {
     throw std::runtime_error("Sampling is unavailable for planes");
 }
+
+void plane::print() const {
+    printf("plane: ");
+    printf("normal: ");
+    normal.print();
+    printf(", position: ");
+    position.print();
+    printf("\n");
+}

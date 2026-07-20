@@ -218,3 +218,13 @@ rt::vector box::sample(const randomgen&) const {
 rt::vector box::sample_visible(const randomgen&, const rt::vector&) const {
     throw std::runtime_error("Sampling is unavailable for boxes");
 }
+
+void box::print() const {
+    printf("box: ");
+    printf("center: ");
+    position.print();
+    printf(", dimensions: ");
+    const rt::vector dims = 2 * get_l();
+    dims.print();
+    printf("\n");
+}

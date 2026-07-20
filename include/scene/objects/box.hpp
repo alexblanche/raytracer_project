@@ -63,4 +63,6 @@ class box final : public object {
         rt::vector sample(const randomgen& rg) const override;
         
         rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const override;
+
+        void print() const override;
 };

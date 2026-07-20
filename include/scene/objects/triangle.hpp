@@ -12,7 +12,7 @@ inline real compute_det_2d(const rt::vector& v1, const rt::vector& v2, det_case 
         case XY: return v1.x * v2.y - v1.y * v2.x;
         case XZ: return v1.x * v2.z - v1.z * v2.x;
         case YZ: return v1.y * v2.z - v1.z * v2.y;
-        default: return 0.0_r; 
+        default: return 0.0_r;
     }
 }
 
@@ -83,9 +83,6 @@ class triangle final : public object {
         /* Minimum and maximum coordinates */
         min_max_coord get_min_max_coord() const override;
 
-        /* Prints the triangle */
-        void print() const;
-
         /* Normal map vector computation at render time
         Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
         rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const override;
@@ -111,4 +108,6 @@ class triangle final : public object {
         rt::vector sample(const randomgen& rg) const override;
         
         rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const override;
+
+        void print() const override;
 };

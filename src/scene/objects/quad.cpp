@@ -205,17 +205,6 @@ min_max_coord quad::get_min_max_coord() const {
     return build_min_max_coord(min, max);
 }
 
-/* Prints the quad */
-void quad::print() const {
-    printf("p0 = (%lf, %lf, %lf), ", position.x, position.y, position.z);
-    const rt::vector p1 = position + v1;
-    printf("p1 = (%lf, %lf, %lf), ", p1.x, p1.y, p1.z);
-    const rt::vector p2 = position + v2;
-    printf("p2 = (%lf, %lf, %lf)\n", p2.x, p2.y, p2.z);
-    const rt::vector p3 = position + v3;
-    printf("p3 = (%lf, %lf, %lf)\n", p3.x, p3.y, p3.z);
-}
-
 /* Normal map vector computation at render time
     Local normal may be the normal of the quad (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
 rt::vector quad::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const {
@@ -257,7 +246,6 @@ rt::vector quad::compute_normal_from_map(const rt::vector& tangent_space_normal,
 
 }
 
-
 rt::vector quad::sample(const randomgen& rg) const {
 
     // Choosing lower or upper triangle with probability proportional to their area
@@ -269,4 +257,20 @@ rt::vector quad::sample(const randomgen& rg) const {
 rt::vector quad::sample_visible(const randomgen& rg, const rt::vector& /*pt*/) const {
     
     return sample(rg);
+}
+
+void quad::print() const {
+    printf("quad: ");
+    printf("p0 = ");
+    position.print();
+    const rt::vector p1 = position + v1;
+    printf(", p1 = ");
+    p1.print();
+    const rt::vector p2 = position + v2;
+    printf(", p2 = ");
+    p2.print();
+    const rt::vector p3 = position + v3;
+    printf(", p3 = ");
+    p3.print();
+    printf("\n");
 }

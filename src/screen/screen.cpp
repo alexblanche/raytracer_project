@@ -108,7 +108,7 @@ namespace rt {
 	}
 
 	template <event::polling_type type>
-	static screen::key wait_poll_keyboard_event() {
+	static screen::key wait_poll_keyboard_event(runtime_debugger& debug) {
 		
 		event event;
 		while (event.next_event<type>()) {
@@ -143,9 +143,14 @@ namespace rt {
 					}
 					break;
 				
-				case MouseButtonDown:
-					printf("\nX = %d, Y = %d", event.e.button.x, event.e.button.y);
+				case MouseButtonDown: {
+					if (debug.option_ == runtime_debugger::option::Enabled) {
+						debug.x = event.e.button.x;
+						debug.y = event.e.button.y;
+						return screen::key::Click;
+					}
 					break;
+				}
 
 				default:
 					break;
@@ -154,13 +159,13 @@ namespace rt {
 		return screen::key::Other;
 	}
 
-	screen::key screen::wait_keyboard_event() const {
-		return wait_poll_keyboard_event<Wait>();
+	screen::key screen::wait_keyboard_event(runtime_debugger& debug) const {
+		return wait_poll_keyboard_event<Wait>(debug);
 	}
 
 	/* Same as wait_keyboard_event, with poll events */
-	screen::key screen::poll_keyboard_event() const {
-		return wait_poll_keyboard_event<Poll>();
+	screen::key screen::poll_keyboard_event(runtime_debugger& debug) const {
+		return wait_poll_keyboard_event<Poll>(debug);
 	}
 
 	/****************************************************************************************************/

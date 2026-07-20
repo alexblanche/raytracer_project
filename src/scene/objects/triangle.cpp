@@ -203,15 +203,6 @@ min_max_coord triangle::get_min_max_coord() const {
     return build_min_max_coord(min, max);
 }
 
-/* Prints the triangle */
-void triangle::print() const {
-    printf("p0 = (%lf, %lf, %lf), ", position.x, position.y, position.z);
-    rt::vector p1 = position + v1;
-    printf("p1 = (%lf, %lf, %lf), ", p1.x, p1.y, p1.z);
-    rt::vector p2 = position + v2;
-    printf("p2 = (%lf, %lf, %lf)\n", p2.x, p2.y, p2.z);
-}
-
 
 /* Normal map vector computation at render time
     Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
@@ -261,4 +252,17 @@ inline rt::vector triangle::sample(const randomgen& rg) const {
 
 inline rt::vector triangle::sample_visible(const randomgen& rg, const rt::vector&) const {
     return sample(rg);
+}
+
+void triangle::print() const {
+    printf("triangle: ");
+    printf("p0 = ");
+    position.print();
+    const rt::vector p1 = position + v1;
+    printf(", p1 = ");
+    p1.print();
+    const rt::vector p2 = position + v2;
+    printf(", p2 = ");
+    p2.print();
+    printf("\n");
 }

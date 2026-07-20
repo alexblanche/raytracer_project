@@ -1,4 +1,6 @@
 #include "main_menu/menu.hpp"
+
+#include "tracing/debug.hpp"
 #include "main_menu/file_handler.hpp"
 #include "screen/screen.hpp"
 #include "render/render_loops.hpp"
@@ -36,7 +38,7 @@ static bool is_float(const std::string& s) {
 
 
 enum class cli_argument {
-    Time, TimeAll, Rays, Multisample, Gamma, Reinhardt, RussianRoulette, None
+    Time, TimeAll, Rays, Multisample, Gamma, Reinhardt, RussianRoulette, Debug, None
 };
 
 struct arg_pair {
@@ -46,14 +48,15 @@ struct arg_pair {
 
 static cli_argument match(const std::string& input) {
     using enum cli_argument;
-    static const std::array<arg_pair, 7> keywords = {
+    static const std::array<arg_pair, 8> keywords = {
         arg_pair { "-time",        Time            },
         arg_pair { "all",          TimeAll         },
         arg_pair { "-rays",        Rays            },
         arg_pair { "-multisample", Multisample     },
         arg_pair { "-gamma",       Gamma           },
         arg_pair { "-reinhardt",   Reinhardt       },
-        arg_pair { "-rr",          RussianRoulette }
+        arg_pair { "-rr",          RussianRoulette },
+        arg_pair { "-debug",       Debug           }
     };
     for (const auto& [ keyword, value ] : keywords) {
         if (input == keyword)
@@ -126,6 +129,11 @@ exit_status menu::parse_aux(const std::span<const std::string> args) {
 
             case RussianRoulette: {
                 runtime_parameters.russian_roulette = russian_roulette_mode::Enabled;
+                break;
+            }
+
+            case Debug: {
+                runtime_parameters.debug = runtime_debugger::option::Enabled;
                 break;
             }
 
@@ -300,33 +308,44 @@ static exit_status run_offline(const runtime_parameters& runtime_parameters, ima
 }
 
 // Returns an exit_status if the program has to stop, either because of a failure or because a quit event happened
-static std::optional<exit_status> process_events(const rt::screen& scr, const file_handler& file_handler, const image& image) {
+static std::optional<exit_status> process_events(const rt::screen& scr, const file_handler& file_handler,
+    const image& image, runtime_debugger& debug, const scene& scene) {
 
     using enum rt::screen::key;
-    switch (scr.poll_keyboard_event()) {
+    rt::screen::key key;
+    while ((key = scr.poll_keyboard_event(debug)) != Other) {
+        
+        switch (key) {
+            case QuitEvent: {
+                /* Esc or the window exit "X" clicked */
+                printf("\n");
+                return exit_status::Success;
+            }
+            case B: {
+                printf(" ");
+                const exit_status status = file_handler.export_as(bmp(DEFAULT_OUTPUT_FILE_NAME), image);
+                if (status == exit_status::Failure)
+                    return exit_status::Failure;
+                break;
+            }
+            case R: {
+                printf(" ");
+                const exit_status status = file_handler.export_as(raw(DEFAULT_OUTPUT_FILE_NAME), image);
+                if (status == exit_status::Failure)
+                    return exit_status::Failure;
+                break;
+            }
+            case Click: {
+                if (debug.option_ == runtime_debugger::option::Enabled) {
+                    printf("\nX = %d, Y = %d\n", debug.x, debug.y);
+                    print_hit_info(scene, debug.x, debug.y);
+                }
+                break;
+            }
 
-        case QuitEvent:
-            /* Esc or the window exit "X" clicked */
-            printf("\n");
-            return exit_status::Success;
-
-        case B: {
-            printf(" ");
-            const exit_status status = file_handler.export_as(bmp(DEFAULT_OUTPUT_FILE_NAME), image);
-            if (status == exit_status::Failure)
-                return exit_status::Failure;
-            break;
+            default:
+                break;
         }
-        case R: {
-            printf(" ");
-            const exit_status status = file_handler.export_as(raw(DEFAULT_OUTPUT_FILE_NAME), image);
-            if (status == exit_status::Failure)
-                return exit_status::Failure;
-            break;
-        }
-
-        default:
-            break;
     }
     return std::nullopt;
 }
@@ -341,6 +360,7 @@ static exit_status run_interactive(const runtime_parameters& runtime_parameters,
     render(image, scene, runtime_parameters);
 
     const rt::screen scr(image, runtime_parameters.tone_mapping.tm_mode);
+    runtime_debugger debug = { runtime_parameters.debug, 0, 0 };
 
     scr.refresh();
 
@@ -354,7 +374,7 @@ static exit_status run_interactive(const runtime_parameters& runtime_parameters,
         render(image, scene, runtime_parameters);
         scr.refresh();
 
-        const std::optional<exit_status> status = process_events(scr, file_handler, image);
+        const std::optional<exit_status> status = process_events(scr, file_handler, image, debug, scene);
         if (status.has_value())
             return status.value();
     }

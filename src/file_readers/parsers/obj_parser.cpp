@@ -705,7 +705,6 @@ exit_status parse_obj_file(const std::string& file_name,
                     // cpt_wrong++;
                     // std::cout << "Wrong vt " << cpt_wrong << " / " << uv_coord_set.size() + 1 << std::endl;
 
-                    // Case that happened in one obj file
                     const real nu = (u >= 0) ? 1.0_r : ((u <= (-1.0_r)) ? 0.0_r : 1.0_r + u);
                     const real nv = (v >= 0) ? 1.0_r : ((v <= (-1.0_r)) ? 0.0_r : 1.0_r + v);
                     uv_coord_set.emplace_back(nu, nv, 0);

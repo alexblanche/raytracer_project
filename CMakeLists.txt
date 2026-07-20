@@ -95,6 +95,7 @@ set(AUXILIARY_ALGORITHMS_SOURCES
 set(MENU_SOURCES
 	src/main_menu/file_handler.cpp
 	src/main_menu/menu.cpp
+	src/tracing/debug.cpp
 )
 
 ##################################################################

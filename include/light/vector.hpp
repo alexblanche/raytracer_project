@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 
 namespace rt {
 	
@@ -133,6 +134,10 @@ namespace rt {
 			x *= invn;
 			y *= invn;
 			z *= invn;
+		}
+
+		inline void print() const {
+			printf("(%.2lf, %.2lf, %.2lf)", x, y, z);
 		}
 	};
 

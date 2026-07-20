@@ -51,14 +51,14 @@ namespace rt {
 			quit_event is_quit_event() const;
 
 			enum class key {
-				QuitEvent, SpaceEnter, B, R, Other
+				QuitEvent, SpaceEnter, B, R, Click, Other
 			};
 
 			/* Wait indefinitely for the next keyboard or quit event */
-			key wait_keyboard_event() const;
+			key wait_keyboard_event(runtime_debugger& debug) const;
 
 			/* Same as wait_keyboard_event, with poll events */
-			key poll_keyboard_event() const;
+			key poll_keyboard_event(runtime_debugger& debug) const;
 
 			/****************************************************************************************************/
 

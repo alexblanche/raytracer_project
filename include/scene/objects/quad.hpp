@@ -68,9 +68,7 @@ class quad final : public object {
 
         /* Minimum and maximum coordinates */
         min_max_coord get_min_max_coord() const override;
-
-        /* Prints the quad */
-        void print() const;
+        
 
         /* Normal map vector computation at render time
         Local normal may be the normal of the quad (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
@@ -79,4 +77,6 @@ class quad final : public object {
         rt::vector sample(const randomgen& rg) const override;
         
         rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const override;
+
+        void print() const override;
 };

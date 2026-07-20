@@ -125,12 +125,13 @@ static void test_fastcopy() {
     image img(std::move(mat_opt.value()));
     rt::screen scr(img);
     timer_ms timer;
+    runtime_debugger debug {};
     timer.start();
     constexpr int NB_ITERATIONS = 20;
     for (int k = 0; k < NB_ITERATIONS; k++) {
         scr.fast_copy(1);
         scr.update_from_texture();
-        if (scr.poll_keyboard_event() == rt::screen::key::QuitEvent)
+        if (scr.poll_keyboard_event(debug) == rt::screen::key::QuitEvent)
             return;
     }
     timer.stop();

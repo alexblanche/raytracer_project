@@ -243,3 +243,12 @@ rt::vector cylinder::sample(const randomgen&) const {
 rt::vector cylinder::sample_visible(const randomgen&, const rt::vector&) const {
     throw std::runtime_error("Sampling is unavailable for cylinders");
 }
+
+void cylinder::print() const {
+    printf("cylinder: ");
+    printf("position: ");
+    position.print();
+    printf(", direction: ");
+    direction.print();
+    printf(", radius: %lf, length: %lf\n", radius, length);
+}

@@ -3,6 +3,7 @@
 #include "tracing/direction.hpp"
 #include "auxiliary/utils.hpp"
 
+#include <iostream>
 #include <cmath>
 
 sphere::sphere(const rt::vector& center, const real radius, const unsigned int material_index)
@@ -123,4 +124,10 @@ rt::vector sphere::sample(const randomgen& rg) const {
 /* Uniformly samples a point on the sphere that is visible from pt */
 rt::vector sphere::sample_visible(const randomgen& rg, const rt::vector& pt) const {
     return direction::random<Pi_over_2>(rg, (pt - position).unit());
+}
+
+void sphere::print() const {
+    printf("sphere: ");
+    printf("center: "); position.print();
+    printf(", radius: %lf\n", radius);
 }

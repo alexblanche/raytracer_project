@@ -38,6 +38,7 @@ int main(int, char**) {
 
     constexpr int batch_size = 10 * 100000;
     timer_ms timer;
+    runtime_debugger debug {};
     int cpt = 0;
     while (true) {
         timer.start();
@@ -47,7 +48,7 @@ int main(int, char**) {
         }
         test_scr.fast_copy(1);
         test_scr.update_from_texture();
-        if (test_scr.poll_keyboard_event() == rt::screen::key::QuitEvent)
+        if (test_scr.poll_keyboard_event(debug) == rt::screen::key::QuitEvent)
             break;
         timer.stop();
         const uint64_t elapsed = timer.elapsed();
