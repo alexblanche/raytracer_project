@@ -127,7 +127,7 @@ rt::vector sphere::sample_visible(const randomgen& rg, const rt::vector& pt) con
 }
 
 void sphere::print() const {
-    printf("sphere: ");
+    printf("Sphere: ");
     printf("center: "); position.print();
     printf(", radius: %lf\n", radius);
 }

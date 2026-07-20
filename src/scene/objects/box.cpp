@@ -220,7 +220,7 @@ rt::vector box::sample_visible(const randomgen&, const rt::vector&) const {
 }
 
 void box::print() const {
-    printf("box: ");
+    printf("Box: ");
     printf("center: ");
     position.print();
     printf(", dimensions: ");

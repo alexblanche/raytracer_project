@@ -117,7 +117,7 @@ rt::vector plane::sample_visible(const randomgen&, const rt::vector&) const {
 }
 
 void plane::print() const {
-    printf("plane: ");
+    printf("Plane: ");
     printf("normal: ");
     normal.print();
     printf(", position: ");

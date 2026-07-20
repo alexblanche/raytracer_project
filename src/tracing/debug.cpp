@@ -19,6 +19,24 @@ void print_hit_info(const scene& scene, int x, int y) {
     hit_point.print();
     printf("\n");
 
-    printf("Object: ");
     obj->print();
+
+    if (obj->is_textured()) {
+        const texture_info& ti = scene.get_texture_info(obj);
+        printf("Texture info: ");
+        const auto& [ u0, v0, u1, v1, u2, v2, u3, v3 ] = ti.uv_coordinates;
+        if (dynamic_cast<const triangle*>(obj))
+            printf("(%lf, %lf) (%lf, %lf) (%lf, %lf)\n",
+                u0, 1.0_r - v0,
+                u1, 1.0_r - v1,
+                u2, 1.0_r - v2
+            );
+        else
+            printf("(%lf, %lf) (%lf, %lf) (%lf, %lf) (%lf, %lf)\n",
+                u0, 1.0_r - v0,
+                u1, 1.0_r - v1,
+                u2, 1.0_r - v2,
+                u3, 1.0_r - v3
+            );
+    }
 }

@@ -255,7 +255,7 @@ inline rt::vector triangle::sample_visible(const randomgen& rg, const rt::vector
 }
 
 void triangle::print() const {
-    printf("triangle: ");
+    printf("Triangle: ");
     printf("p0 = ");
     position.print();
     const rt::vector p1 = position + v1;

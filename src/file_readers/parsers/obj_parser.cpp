@@ -16,13 +16,14 @@
 #include <algorithm>
 
 static constexpr bool DISPLAY_HIERARCHY = false;
+static constexpr bool PRINT_INDEX = true;
 
 /* Quad splitting threshold: when the two triangles forming a quad form an angle
 superior to a certain amount depending on this constant,
 split the quad into two triangles, to solve some visual glitches */
 /* The value 1.0E-7 is chosen empirically: it seems to remove all visible glitches by splitting a small number of quads */
 /* History: for the stool, 1.0E-6 is sufficient, but leaves visible glitches on the "Porsche 2016" test model. 1.0E-7 removes them. */
-static constexpr real QUAD_SPLIT_THRESHOLD = 1.0e-7_r;
+static constexpr real QUAD_SPLIT_THRESHOLD = 0.1_r; //1.0e-7_r;
 
 // static constexpr unsigned int MAX_NAME_LENGTH     = 64;
 // static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
@@ -108,9 +109,10 @@ static inline std::pair<rt::vector, rt::vector> compute_normals(
     const std::vector<rt::vector>& vertex_set, const index_array<4>& vi) {
 
     const auto& [ v1, v2, v3, v4 ] = vi;
+    const rt::vector dv13 = vertex_set[v3] - vertex_set[v1];
     return {
-        ((vertex_set[v2] - vertex_set[v1]) ^ (vertex_set[v3] - vertex_set[v1])).unit(),
-        ((vertex_set[v3] - vertex_set[v1]) ^ (vertex_set[v4] - vertex_set[v1])).unit()
+        ((vertex_set[v2] - vertex_set[v1]) ^ dv13).unit(),
+        (dv13 ^ (vertex_set[v4] - vertex_set[v1])).unit()
     };
 }
 
@@ -205,11 +207,15 @@ static inline const polygon* build_polygon(
     const auto& [ ...vni ]    = vn;
     const auto& [ ...norm_i ] = std::array { normal_set[vni]... };
 
+    
     if (polygon_set.size() == polygon_set.capacity()) {
-        printf("obj_parser Error: %s set capacity reached\n",
-            (std::is_same_v<polygon, triangle>) ? "triangle" : "quad");
+        const std::string type = (std::is_same_v<polygon, triangle>) ? "triangle" : "quad";
+        printf("\nobj_parser Error: %s set capacity reached\n", type.c_str());
+        printf("%zu / %zu\n", polygon_set.size(), polygon_set.capacity());
         exit(EXIT_FAILURE);
     }
+    // const std::string type = (std::is_same_v<polygon, triangle>) ? "triangle" : "quad";
+    // printf("%s %zu / %zu ", type.c_str(), polygon_set.size(), polygon_set.capacity());
 
     if constexpr (normal_option == normal::Enabled) {
         if constexpr (size >= 3)
@@ -467,6 +473,9 @@ exit_status parse_obj_file(const std::string& file_name,
         texture_info_set
     ]
     = containers;
+
+    // printf("triangle_set: size %zu, capacity %zu\n", triangle_set.size(), triangle_set.capacity());
+    // printf("quad_set: size %zu, capacity %zu\n", quad_set.size(), quad_set.capacity());
 
     /* Extraction of the path to the .obj file, to be appended to relative paths of mtl and texture files */
     const std::filesystem::path path = std::filesystem::path(file_name).parent_path();
@@ -848,6 +857,22 @@ exit_status parse_obj_file(const std::string& file_name,
             const rt::vector scaled_max = fma(max, scale, shift);
             printf("Rescaled/shifted dimensions: (x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf])\n",
                 scaled_min.x, scaled_max.x, scaled_min.y, scaled_max.y, scaled_min.z, scaled_max.z);
+        }
+
+        if constexpr (PRINT_INDEX) {
+            file f("index.txt", "w");
+            for (unsigned int i = 0; const rt::vector& v : vertex_set) {
+                f.printf("v %u (%lf, %lf, %lf)\n", i, v.x, v.y, v.z);
+                i++;
+            }
+            for (unsigned int i = 0; const rt::vector& vt : uv_coord_set) {
+                f.printf("vt %u (%lf, %lf)\n", i, vt.x, vt.y);
+                i++;
+            }
+            for (unsigned int i = 0; const rt::vector& vn : normal_set) {
+                f.printf("vn %u (%lf, %lf, %lf)\n", i, vn.x, vn.y, vn.z);
+                i++;
+            }
         }
 
         return exit_status::Success;

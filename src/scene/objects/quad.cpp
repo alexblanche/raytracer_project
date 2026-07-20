@@ -260,7 +260,7 @@ rt::vector quad::sample_visible(const randomgen& rg, const rt::vector& /*pt*/) c
 }
 
 void quad::print() const {
-    printf("quad: ");
+    printf("Quad: ");
     printf("p0 = ");
     position.print();
     const rt::vector p1 = position + v1;

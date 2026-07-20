@@ -896,7 +896,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         }
 
         std::vector<const object*> object_set;
-        object_set.reserve(pre_parsing_info.objects);
+        object_set.reserve(pre_parsing_info.objects + pre_parsing_info.quads);
 
         std::vector<triangle> triangle_set;
         std::vector<quad>     quad_set;
@@ -1051,11 +1051,12 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 exit_status status = f.scanf(" (texture:");
                 if (status == exit_status::Success) {
 
-                    const std::string t_name = f.read_string(MAX_NAME_LENGTH);
-                    exit_status status_shift_scale = f.scanf(" shift:(%lf,%lf,%lf) scale:%lf)\n", sx, sy, sz, scale);
-                    throw_if_failure(status_shift_scale, "parsing error in scene constructor (obj file loading)");
+                    std::string t_name = f.read_string(MAX_NAME_LENGTH);
+                    f.scanf(" shift:(%lf,%lf,%lf) scale:%lf)\n", sx, sy, sz, scale);
                     
                     if (not t_name.starts_with("none")) {
+                        if (t_name.ends_with(')'))
+                            t_name.resize(t_name.size() - 1);
                         t_index = wrapper<texture>::find_element(texture_wrapper_set, t_name);
                         throw_if_null(t_index, "texture not found");
                     }

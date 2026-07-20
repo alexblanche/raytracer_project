@@ -245,7 +245,7 @@ rt::vector cylinder::sample_visible(const randomgen&, const rt::vector&) const {
 }
 
 void cylinder::print() const {
-    printf("cylinder: ");
+    printf("Cylinder: ");
     printf("position: ");
     position.print();
     printf(", direction: ");

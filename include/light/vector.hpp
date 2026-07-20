@@ -137,7 +137,7 @@ namespace rt {
 		}
 
 		inline void print() const {
-			printf("(%.2lf, %.2lf, %.2lf)", x, y, z);
+			printf("(%lf, %lf, %lf)", x, y, z);
 		}
 	};
 
