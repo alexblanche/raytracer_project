@@ -37,7 +37,6 @@ material::material(const real ns,
     if (illum == 4 || illum == 6 || illum == 7 || illum == 9) {
         // Glass
         transparency = 1 - d;
-        std::cout << "transparency: " << transparency << std::endl;
         color = ka * 255; // Usually kd = black for glass
         opaque = false;
     }

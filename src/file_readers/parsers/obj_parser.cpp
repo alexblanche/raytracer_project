@@ -15,16 +15,19 @@
 
 #include <algorithm>
 
-static constexpr bool DISPLAY_HIERARCHY = false;
-static constexpr bool PRINT_INDEX = true;
+static constexpr bool DISPLAY_HIERARCHY = false; // Displays the characteristics of the 
+static constexpr bool PRINT_INDEX       = false; // Writes the v, vt, vn vectors in a file for debugging
 
 /* Quad splitting threshold: when the two triangles forming a quad form an angle
 superior to a certain amount depending on this constant,
 split the quad into two triangles, to solve some visual glitches */
 /* The value 1.0E-7 is chosen empirically: it seems to remove all visible glitches by splitting a small number of quads */
 /* History: for the stool, 1.0E-6 is sufficient, but leaves visible glitches on the "Porsche 2016" test model. 1.0E-7 removes them. */
-static constexpr real QUAD_SPLIT_THRESHOLD = 0.1_r;
-    //1.0e-7_r;
+static constexpr bool SPLIT_ALL_QUADS = true;
+static constexpr real QUAD_SPLIT_THRESHOLD =
+    //-1;   // ALWAYS SPLIT
+    //10;   // NEVER SPLIT
+    1.0e-7_r;
 
 // static constexpr unsigned int MAX_NAME_LENGTH     = 64;
 // static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
@@ -304,9 +307,10 @@ static void add_subdivided_polygon_template(std::istringstream& stream,
 
     // Reading triplets until the end of the line
     
-    while ((not stream.eof()) && ((stream.peek()) != '\n')) {
-
-        int vi, vti, vni;
+    unsigned char ch;
+    while ((not stream.eof()) && ((ch = stream.peek()) != '\n' && ch != '\r')) {
+        
+        int vi = 0, vti = 0, vni = 0;
         stream >> vi;
         if (stream.peek() == '/') {
             stream.get(); // '/'
@@ -456,6 +460,18 @@ exit_status parse_obj_file(const std::string& file_name,
 
     printf("Parsing obj file... ");
     fflush(stdout);
+
+    // auto count_spaces_in_line = [&] (const std::string& line) {
+    //     int cpt = 0;
+    //     unsigned char ch;
+    //     unsigned int i = 0;
+    //     while (i < line.length() && ((ch = line[i]) != '\n')) {
+    //         cpt += (ch == ' ');
+    //         i++;
+    //     }
+    //     i++;
+    //     return cpt;
+    // };
     
     auto& [
         object_set,
@@ -474,9 +490,6 @@ exit_status parse_obj_file(const std::string& file_name,
         texture_info_set
     ]
     = containers;
-
-    // printf("triangle_set: size %zu, capacity %zu\n", triangle_set.size(), triangle_set.capacity());
-    // printf("quad_set: size %zu, capacity %zu\n", quad_set.size(), quad_set.capacity());
 
     /* Extraction of the path to the .obj file, to be appended to relative paths of mtl and texture files */
     const std::filesystem::path path = std::filesystem::path(file_name).parent_path();
@@ -505,8 +518,9 @@ exit_status parse_obj_file(const std::string& file_name,
     unsigned int current_material_index = 0;
     unsigned int current_texture_index = default_texture_index.value_or(EMPTY_INDEX);
 
-    const bool default_texture_provided = default_texture_index.has_value();
-    texturing texturing_option = default_texture_provided ? texturing::Enabled : texturing::Disabled;
+    //const bool default_texture_provided = default_texture_index.has_value();
+    // texturing texturing_option = default_texture_provided ? texturing::Enabled : texturing::Disabled;
+    // Some obj files have vt and uv-coordinates even though no texture is used
 
     /* Counters */
     unsigned int number_of_vertices        = 0;
@@ -578,7 +592,14 @@ exit_status parse_obj_file(const std::string& file_name,
         const texturing texturing_option, const normal normal_option = normal::Enabled) {
 
         const auto [ n12, n23 ] = compute_normals(vertex_set, v);
-        const bool is_split_quad = (n12 - n23).normsq() > QUAD_SPLIT_THRESHOLD;
+        const bool is_split_quad = SPLIT_ALL_QUADS || ((n12 - n23).normsq() > QUAD_SPLIT_THRESHOLD);
+
+        // static unsigned int total = 0;
+        // static unsigned int split = 0;
+        // total++;
+        // if (is_split_quad)
+        //     split++;
+        // std::cout << split << " / " << total << std::endl;
 
         if (not is_split_quad)
             add_quad(std::move(v), std::move(vt), std::move(vn), texturing_option, normal_option);
@@ -594,7 +615,7 @@ exit_status parse_obj_file(const std::string& file_name,
     auto add_subdivided_polygon = [&] (std::istringstream& stream,
         index_array<5>&& v, index_array<5>&& vt, index_array<5>&& vn,
         const texturing texturing_option, const normal normal_option = normal::Enabled) {
-        
+
         if (normal_option == normal::Enabled)
             add_subdivided_polygon_template<normal::Enabled>(stream, sets, bounding_enabled,
                 triangle_set, number_of_polygons, number_of_triangles,
@@ -711,10 +732,6 @@ exit_status parse_obj_file(const std::string& file_name,
                     uv_coord_set.emplace_back(u, v, 0);
                 }
                 else {
-                    // static int cpt_wrong = 0;
-                    // cpt_wrong++;
-                    // std::cout << "Wrong vt " << cpt_wrong << " / " << uv_coord_set.size() + 1 << std::endl;
-
                     const real nu = (u >= 0) ? 1.0_r : ((u <= (-1.0_r)) ? 0.0_r : 1.0_r + u);
                     const real nv = (v >= 0) ? 1.0_r : ((v <= (-1.0_r)) ? 0.0_r : 1.0_r + v);
                     uv_coord_set.emplace_back(nu, nv, 0);
@@ -746,14 +763,15 @@ exit_status parse_obj_file(const std::string& file_name,
                 throw_if_null(vindex, "(material reading)");
                 
                 current_material_index = vindex.value();
+
                 if (mt_assoc.count(current_material_index) > 0) {
                     // A texture was associated with the material by an mtl file
                     current_texture_index = mt_assoc[current_material_index];
-                    texturing_option = texturing::Enabled;
+                    //texturing_option = texturing::Enabled;
                 }
                 else {
                     current_texture_index = default_texture_index.value_or(EMPTY_INDEX);
-                    texturing_option = default_texture_provided ? texturing::Enabled : texturing::Disabled;
+                    //texturing_option = default_texture_provided ? texturing::Enabled : texturing::Disabled;
                 }
                 
                 continue;
@@ -764,8 +782,8 @@ exit_status parse_obj_file(const std::string& file_name,
                 stream >> mtl_file_name;
 
                 const exit_status mtl_parsing_successful =
-                parse_mtl_file(path, mtl_file_name, material_wrapper_set,
-                    texture_wrapper_set, mt_assoc, gamma);
+                    parse_mtl_file(path, mtl_file_name, material_wrapper_set,
+                        texture_wrapper_set, mt_assoc, gamma);
                 throw_if_failure(mtl_parsing_successful, "(mtl file loading)");
 
                 continue;
@@ -818,7 +836,7 @@ exit_status parse_obj_file(const std::string& file_name,
                 
                 const texturing this_texturing_option = type == NoTexture || type == NoTextureNoNormal ?
                       texturing::Disabled
-                    : texturing_option;
+                    : texturing::Enabled;
                 
                 const normal this_normal_option = type == NoNormal || type == NoTextureNoNormal ?
                       normal::Disabled
@@ -826,9 +844,16 @@ exit_status parse_obj_file(const std::string& file_name,
 
                 add_geometry(line_stream, nb, this_texturing_option, this_normal_option, v, vt, vn);
 
-                while ((not stream.eof()) && (stream.peek() == 'f') && parse_face(stream, nb, type, v, vt, vn)) {
-                    add_geometry(line_stream, nb, this_texturing_option, this_normal_option, v, vt, vn);
-                }
+                // // unsigned int k = 0;
+                // while ((not stream.eof()) && (stream.peek() == 'f')) {
+                //     // std::cout << k << std::endl;
+                //     // k++;
+                //     std::getline(stream, line, '\n');
+                //     line_stream = std::istringstream(std::move(line));
+                //     // BUG HERE
+                //     parse_face(line_stream, nb, type, v, vt, vn);
+                //     add_geometry(stream, nb, this_texturing_option, this_normal_option, v, vt, vn);
+                // }
 
                 continue;
             }
@@ -862,18 +887,12 @@ exit_status parse_obj_file(const std::string& file_name,
 
         if constexpr (PRINT_INDEX) {
             file f("index.txt", "w");
-            for (unsigned int i = 0; const rt::vector& v : vertex_set) {
-                f.printf("v %u (%lf, %lf, %lf)\n", i, v.x, v.y, v.z);
-                i++;
-            }
-            for (unsigned int i = 0; const rt::vector& vt : uv_coord_set) {
-                f.printf("vt %u (%lf, %lf)\n", i, vt.x, vt.y);
-                i++;
-            }
-            for (unsigned int i = 0; const rt::vector& vn : normal_set) {
-                f.printf("vn %u (%lf, %lf, %lf)\n", i, vn.x, vn.y, vn.z);
-                i++;
-            }
+            for (unsigned int i = 0; const rt::vector& v : vertex_set)
+                f.printf("v %u (%lf, %lf, %lf)\n", i++, v.x, v.y, v.z);
+            for (unsigned int i = 0; const rt::vector& vt : uv_coord_set)
+                f.printf("vt %u (%lf, %lf)\n", i++, vt.x, vt.y);
+            for (unsigned int i = 0; const rt::vector& vn : normal_set)
+                f.printf("vn %u (%lf, %lf, %lf)\n", i++, vn.x, vn.y, vn.z);
         }
 
         return exit_status::Success;
