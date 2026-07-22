@@ -54,9 +54,9 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
     : quad(p0, p1, p2, p3, material_index, texture_info_index) {
     
     vn0     = vn0init.unit();
-    vn1mvn0 = (vn1.unit()) - vn0;
-    vn2mvn0 = (vn2.unit()) - vn0;
-    vn3mvn0 = (vn3.unit()) - vn0;
+    dvn1 = (vn1.unit()) - vn0;
+    dvn2 = (vn2.unit()) - vn0;
+    dvn3 = (vn3.unit()) - vn0;
 }
 
 // Constructor from four points with normal mapping enabled
@@ -88,9 +88,9 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
     : quad(p0, p1, p2, p3, material_index, texture_info_index, info) {
 
     vn0     = vn0init.unit();
-    vn1mvn0 = (vn1.unit()) - vn0;
-    vn2mvn0 = (vn2.unit()) - vn0;
-    vn3mvn0 = (vn3.unit()) - vn0;
+    dvn1 = (vn1.unit()) - vn0;
+    dvn2 = (vn2.unit()) - vn0;
+    dvn3 = (vn3.unit()) - vn0;
 }
 
 /* Returns the barycenter of the quad */
@@ -163,9 +163,9 @@ barycentric_info quad::get_barycentric(const rt::vector& p) const {
 
 inline rt::vector quad::get_interpolated_normal(const barycentric_info& bary) const {
     
-    const rt::vector& vn = (bary.triangle_side == side::LowerTriangle) ? vn1mvn0 : vn3mvn0;
+    const rt::vector& vn = (bary.triangle_side == side::LowerTriangle) ? dvn1 : dvn3;
     const auto [ l1, l2 ] = bary.l;
-    return fma(vn2mvn0, l2, fma(vn, l1, vn0));
+    return fma(dvn2, l2, fma(vn, l1, vn0));
 }
 
 hit quad::compute_intersection(const ray& r, const real t) const {

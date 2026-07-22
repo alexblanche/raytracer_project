@@ -13,8 +13,9 @@ class quad final : public object {
            The d parameter, defining the plane of equation ax+by+cz+d = 0, is stored in order to speed-up the intersection calculations.
         */
 
-        rt::vector normal, v1, v2, v3, vn0, //vn1, vn2, vn3;
-            vn1mvn0, vn2mvn0, vn3mvn0;
+        rt::vector normal, v1, v2, v3,
+            vn0,
+            dvn1, dvn2, dvn3; // dvni = vni - vn0
         real d;
         real det12, det23;
         det_case case_det;

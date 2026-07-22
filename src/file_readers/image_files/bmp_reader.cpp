@@ -32,7 +32,7 @@ std::expected<matrix, file_reader::error> bmp::read_file(const std::string& file
             _ /* file_size */,
             _ /* reserved1 */,
             _ /* reserved2 */,
-            _ /* offset */,
+            offset,
             _ /* header_size */,
             width,
             height,
@@ -45,6 +45,10 @@ std::expected<matrix, file_reader::error> bmp::read_file(const std::string& file
             _ /* colors_used */,
             _ /* important_colors */
         ] = h_opt.value();
+
+        constexpr unsigned int current_offset = sizeof(bmp::header) + 2;
+        if (offset != current_offset)
+            f.skip(offset - current_offset);
 
         const unsigned int bytes_per_pixels = bits_per_pixel / 8;
         const unsigned int row_length_bytes = bytes_per_pixels * width;
@@ -131,8 +135,11 @@ exit_status bmp::export_data(const std::string& file_name, const image& image) {
 
     /* All sizes are stored in little-endian */
 
+    constexpr unsigned int BMP_HEADER_SIZE  = 14;
+    constexpr unsigned int INFO_HEADER_SIZE = 40;
+
     const unsigned int data_size = (row_length_bytes + padding_bytes) * height;
-    const unsigned int file_size = 14 + 40 + data_size;
+    const unsigned int file_size = BMP_HEADER_SIZE + INFO_HEADER_SIZE + data_size;
 
     /** Header **/
 
@@ -152,13 +159,13 @@ exit_status bmp::export_data(const std::string& file_name, const image& image) {
         /* 4 bytes: 0 0 0 0 */
         0, 0, 0, 0,
         
-        /* 4 bytes: Offset from beginning of file to the beginning of the bitmap data = 54 */
-        54, 0, 0, 0,
+        /* 4 bytes: Offset from beginning of file to the beginning of the bitmap data (= 54) */
+        BMP_HEADER_SIZE + INFO_HEADER_SIZE, 0, 0, 0,
 
         /** InfoHeader **/
 
-        /* 4 bytes: Size of InfoHeader = 40 */
-        40, 0, 0, 0,
+        /* 4 bytes: Size of InfoHeader (= 40) */
+        INFO_HEADER_SIZE, 0, 0, 0,
         
         /* 4 bytes: Width */
         w0, w1, w2, w3,

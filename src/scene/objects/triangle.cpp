@@ -44,8 +44,8 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     : triangle(p0, p1, p2, material_index, texture_info_index) {
 
     vn0     = vn0init.unit();
-    vn1mvn0 = (vn1.unit()) - vn0;
-    vn2mvn0 = (vn2.unit()) - vn0;
+    dvn1 = (vn1.unit()) - vn0;
+    dvn2 = (vn2.unit()) - vn0;
 }
 
 // Constructor from three points with normal mapping enabled
@@ -93,8 +93,8 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     : triangle(p0, p1, p2, material_index, texture_info_index, info) {
     
     vn0     = vn0init.unit();
-    vn1mvn0 = (vn1.unit()) - vn0;
-    vn2mvn0 = (vn2.unit()) - vn0;
+    dvn1 = (vn1.unit()) - vn0;
+    dvn2 = (vn2.unit()) - vn0;
 }
 
 /* Returns the barycenter of the triangle */
@@ -159,7 +159,7 @@ barycentric_info triangle::get_barycentric(const rt::vector& p) const {
 inline rt::vector triangle::get_interpolated_normal(const barycentric_info& bary) const {
     
     const auto [ l1, l2 ] = bary.l;
-    return fma(vn2mvn0, l2, fma(vn1mvn0, l1, vn0));
+    return fma(dvn2, l2, fma(dvn1, l1, vn0));
 }
 
 hit triangle::compute_intersection(const ray& r, const real t) const {

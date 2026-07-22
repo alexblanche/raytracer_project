@@ -27,16 +27,9 @@ void print_hit_info(const scene& scene, int x, int y) {
         const auto& [ u0, v0, u1, v1, u2, v2, u3, v3 ] = ti.uv_coordinates;
         if (dynamic_cast<const triangle*>(obj))
             printf("(%lf, %lf) (%lf, %lf) (%lf, %lf)\n",
-                u0, 1.0_r - v0,
-                u1, 1.0_r - v1,
-                u2, 1.0_r - v2
-            );
+                u0, v0, u1, v1, u2, v2);
         else
             printf("(%lf, %lf) (%lf, %lf) (%lf, %lf) (%lf, %lf)\n",
-                u0, 1.0_r - v0,
-                u1, 1.0_r - v1,
-                u2, 1.0_r - v2,
-                u3, 1.0_r - v3
-            );
+                u0, v0, u1, v1, u2, v2, u3, v3);
     }
 }

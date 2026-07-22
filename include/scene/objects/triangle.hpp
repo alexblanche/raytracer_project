@@ -28,7 +28,9 @@ class triangle final : public object {
            and searched through for each ray-object intersection computation.
         */
 
-        rt::vector normal, v1, v2, vn0, vn1mvn0, vn2mvn0;
+        rt::vector normal, v1, v2,
+            vn0,
+            dvn1, dvn2; // dvni = vni - vn0
         real d;
         real det;
         det_case case_det;
