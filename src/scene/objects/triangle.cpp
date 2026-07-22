@@ -92,7 +92,7 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
 
     : triangle(p0, p1, p2, material_index, texture_info_index, info) {
     
-    vn0     = vn0init.unit();
+    vn0  = vn0init.unit();
     dvn1 = (vn1.unit()) - vn0;
     dvn2 = (vn2.unit()) - vn0;
 }
