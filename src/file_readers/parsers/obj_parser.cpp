@@ -392,7 +392,8 @@ enum class face_type {
     Full, NoTexture, NoNormal, NoTextureNoNormal
 };
 
-bool parse_face(std::istringstream& stream,
+[[maybe_unused]]
+static bool parse_face(std::istringstream& stream,
     const int nb, const face_type face_type_,
     index_array<5>& v, index_array<5>& vt, index_array<5>& vn) {
     
@@ -458,17 +459,19 @@ exit_status parse_obj_file(const std::string& file_name,
     printf("Parsing obj file... ");
     fflush(stdout);
 
-    // auto count_spaces_in_line = [&] (const std::string& line) {
-    //     int cpt = 0;
-    //     unsigned char ch;
-    //     unsigned int i = 0;
-    //     while (i < line.length() && ((ch = line[i]) != '\n')) {
-    //         cpt += (ch == ' ');
-    //         i++;
-    //     }
-    //     i++;
-    //     return cpt;
-    // };
+    /*
+    auto count_spaces_in_line = [&] (const std::string& line) {
+        int cpt = 0;
+        unsigned char ch;
+        unsigned int i = 0;
+        while (i < line.length() && ((ch = line[i]) != '\n')) {
+            cpt += (ch == ' ');
+            i++;
+        }
+        i++;
+        return cpt;
+    };
+    */
     
     auto& [
         object_set,
@@ -855,6 +858,15 @@ exit_status parse_obj_file(const std::string& file_name,
                 //     // BUG HERE
                 //     parse_face(line_stream, nb, type, v, vt, vn);
                 //     add_geometry(stream, nb, this_texturing_option, this_normal_option, v, vt, vn);
+                // }
+
+                // while ((not stream.eof()) && (stream.peek() == 'f')) {
+                //     std::getline(stream, line, '\n');
+                //     if (count_spaces_in_line(line) != nb)
+                //         break;
+                //     line_stream = std::istringstream(std::move(line));
+                //     parse_face(line_stream, nb, type, v, vt, vn);
+                //     add_geometry(stream, nb, texturing_option, normal_option, v, vt, vn);
                 // }
 
                 continue;

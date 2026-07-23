@@ -808,13 +808,38 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         }
 
         {
-            const int ret = f.scanf_count("camera position:(%lf,%lf,%lf) direction:(%lf,%lf,%lf) rightdir:(%lf,%lf,%lf) fov_width:%lf distance:%lf focal_distance:%lf aperture:%lf\n",
-                posx, posy, posz, dx, dy, dz, rdx, rdy, rdz, fovw, dist, focl, apr);
+            const exit_status st_posdir = f.scanf("camera position:(%lf,%lf,%lf) direction:(%lf,%lf,%lf)",
+                posx, posy, posz, dx, dy, dz);
+            throw_if_failure(st_posdir, "parsing error in scene constructor (camera)");
+
+            const exit_status st_r = f.scanf(" rightdir:(%lf,%lf,%lf)", rdx, rdy, rdz);
+            if (st_r == exit_status::Failure) {
+                const exit_status st_r_auto = f.scanf("auto");
+                throw_if_failure(st_r_auto, "parsing error in scene constructor (camera right direction)");
+
+                /* Automatic determination of the right direction */
+                rdy = 0.0;
+                if (dx == 0.0 && dz == 0.0) {
+                    rdx = 1.0;
+                    rdz = 0.0;
+                }
+                else {
+                    rdx = dz;
+                    rdz = -dx;
+                }
+
+                if (dy < 0.0) {
+                    rdx *= -1.0;
+                    rdz *= -1.0;
+                }
+            }
+
+            const int ret = f.scanf_count(" fov_width:%lf distance:%lf focal_distance:%lf aperture:%lf\n", fovw, dist, focl, apr);
             
-            if (ret < 11)
-                throw std::runtime_error("parsing error in scene constructor (camera)");
-            
-            if (ret == 11) // Focal length and aperture omitted
+            if (ret < 2)
+                throw std::runtime_error("parsing error in scene constructor (camera fov)");
+
+            if (ret == 2) // Focal length and aperture omitted
                 depth_of_field_enabled = false;
         }
 
