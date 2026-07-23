@@ -47,7 +47,7 @@ std::expected<matrix, file_reader::error> bmp::read_file(const std::string& file
         ] = h_opt.value();
 
         constexpr unsigned int current_offset = sizeof(bmp::header) + 2;
-        if (offset != current_offset)
+        if (offset > current_offset)
             f.skip(offset - current_offset);
 
         const unsigned int bytes_per_pixels = bits_per_pixel / 8;
@@ -57,7 +57,8 @@ std::expected<matrix, file_reader::error> bmp::read_file(const std::string& file
         const unsigned int padding_bytes = (4 - (row_length_bytes % 4)) % 4;
 
         /* Color data */
-        const unsigned int size_bytes = (row_length_bytes + padding_bytes) * height;
+        const unsigned int pitch = row_length_bytes + padding_bytes;
+        const unsigned int size_bytes = pitch * height;
         std::vector<unsigned char> buffer(size_bytes);
         const exit_status status = f.read(buffer);
         throw_if_failure(status, ReadingErrorData);
@@ -68,7 +69,7 @@ std::expected<matrix, file_reader::error> bmp::read_file(const std::string& file
         parallel_for(height, [&] (int j) {
 
             const matrix::row row = matrix[j];
-            unsigned int index = bytes_per_pixels * j * (width + padding_bytes);
+            unsigned int index = pitch * j;
             for (rt::color& color : row) {
                 const real b = buffer[index];
                 const real g = buffer[index + 1];

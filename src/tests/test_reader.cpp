@@ -10,16 +10,17 @@
 #include <string>
 #include <cstdlib>
 #include <cassert>
+#include <optional>
 
 static const std::string BMP_FILE_NAME = "../../../assets/cobblestone_street_night.bmp";
 static const std::string HDR_FILE_NAME = "../../../assets/sundowner_overlook.hdr";
 static const std::string OBJ_FILE_NAME = "../../../assets/obj/alaskan_cliff_rock/CliffRock_0014_High.obj";
 
-static void test_bmp() {
-    const std::string& filename_bmp = BMP_FILE_NAME;
+static void test_bmp(std::optional<std::string> arg = std::nullopt) {
+    const std::string& filename_bmp = arg.value_or(BMP_FILE_NAME);
     constexpr int NB_ITERATIONS = 10;
 
-    bmp::print_info(BMP_FILE_NAME);
+    bmp::print_info(filename_bmp);
 
     std::expected<matrix, file_reader::error> mat_opt;
 
@@ -40,8 +41,8 @@ static void test_bmp() {
     scr.wait_quit_event();
 }
 
-static void test_write_bmp() {
-    const std::string& filename_bmp = BMP_FILE_NAME;
+static void test_write_bmp(std::optional<std::string> arg = std::nullopt) {
+    const std::string& filename_bmp = arg.value_or(BMP_FILE_NAME);
     const std::string output_filename_bmp_base = "../output/TEST/TEST_";
     constexpr int NB_ITERATIONS = 10;
 
@@ -231,17 +232,23 @@ int main(int argc, char *argv[]) {
         return EXIT_SUCCESS;
     }
 
-    const std::string arg = argv[1];
+    const std::string cmd = argv[1];
+
+    const bool arg_provided = argc >= 3;
+    std::string arg;
+    if (arg_provided)
+        arg = argv[2];
+
     
-    if (arg == "bmp")
-        test_bmp();
-    else if (arg == "hdr")
+    if (cmd == "bmp")
+        test_bmp((arg_provided) ? std::optional(arg) : std::nullopt);
+    else if (cmd == "hdr")
         test_hdr();
-    else if (arg == "wbmp")
-        test_write_bmp();
-    else if (arg == "wraw")
+    else if (cmd == "wbmp")
+        test_write_bmp((arg_provided) ? std::optional(arg) : std::nullopt);
+    else if (cmd == "wraw")
         test_write_raw();
-    else if (arg == "obj")
+    else if (cmd == "obj")
         test_obj();
     else
         test_fastcopy();
