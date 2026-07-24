@@ -16,7 +16,7 @@
 #include <algorithm>
 
 static constexpr bool DISPLAY_HIERARCHY = false; // Displays the characteristics of the 
-static constexpr bool PRINT_INDEX       = true; // Writes the v, vt, vn vectors in a file for debugging
+static constexpr bool PRINT_INDEX       = false; // Writes the v, vt, vn vectors in a file for debugging
 
 /* Quad splitting threshold: when the two triangles forming a quad form an angle
 superior to a certain amount depending on this constant,
@@ -24,13 +24,7 @@ split the quad into two triangles, to solve some visual glitches */
 /* The value 1.0E-7 is chosen empirically: it seems to remove all visible glitches by splitting a small number of quads */
 /* History: for the stool, 1.0E-6 is sufficient, but leaves visible glitches on the "Porsche 2016" test model. 1.0E-7 removes them. */
 static constexpr bool SPLIT_ALL_QUADS = false;
-static constexpr real QUAD_SPLIT_THRESHOLD =
-    // -1;   // ALWAYS SPLIT
-    // 10;   // NEVER SPLIT
-    1.0e-7_r;
-
-// static constexpr unsigned int MAX_NAME_LENGTH     = 64;
-// static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
+static constexpr real QUAD_SPLIT_THRESHOLD = 1.0e-7_r;
 
 constexpr std::streamsize MAX_LINE_SIZE = std::numeric_limits<std::streamsize>::max();
 
@@ -135,8 +129,6 @@ static std::array<T, size> parse(const char *& buffer, unsigned int max_length) 
 }
 
 /* Wavefront .obj file parser */
-/* Only handles .obj files made up of triangles and quads, for now.
-In the future, maybe split polygons with >= 5 sides into triangles */
 
 template<typename type>
 concept Polygon = std::is_same_v<type, quad> || std::is_same_v<type, triangle>;
@@ -210,7 +202,6 @@ static inline const polygon* build_polygon(
 
     const auto& [ ...vni ]    = vn;
     const auto& [ ...norm_i ] = std::array { normal_set[vni]... };
-
     
     if (polygon_set.size() == polygon_set.capacity()) {
         const std::string type = (std::is_same_v<polygon, triangle>) ? "triangle" : "quad";
@@ -218,8 +209,6 @@ static inline const polygon* build_polygon(
         printf("%zu / %zu\n", polygon_set.size(), polygon_set.capacity());
         exit(EXIT_FAILURE);
     }
-    // const std::string type = (std::is_same_v<polygon, triangle>) ? "triangle" : "quad";
-    // printf("%s %zu / %zu ", type.c_str(), polygon_set.size(), polygon_set.capacity());
 
     if constexpr (normal_option == normal::Enabled) {
         if constexpr (size >= 3)
@@ -368,7 +357,7 @@ static void add_subdivided_polygon_template(std::istringstream& stream,
         const int vj  = v_stack.top();
         const int vtj = apply_texture  ? vt_stack.top() : 0;
         const int vnj = normal_enabled ? vn_stack.top() : 0;
-
+        
         add_polygon<triangle, normal_option, subdivision::Enabled>(
             sets, bounding_enabled,
             triangle_set, number_of_polygons, number_of_triangles,
@@ -458,20 +447,6 @@ exit_status parse_obj_file(const std::string& file_name,
 
     printf("Parsing obj file... ");
     fflush(stdout);
-
-    /*
-    auto count_spaces_in_line = [&] (const std::string& line) {
-        int cpt = 0;
-        unsigned char ch;
-        unsigned int i = 0;
-        while (i < line.length() && ((ch = line[i]) != '\n')) {
-            cpt += (ch == ' ');
-            i++;
-        }
-        i++;
-        return cpt;
-    };
-    */
     
     auto& [
         object_set,
@@ -517,10 +492,6 @@ exit_status parse_obj_file(const std::string& file_name,
 
     unsigned int current_material_index = 0;
     unsigned int current_texture_index = default_texture_index.value_or(EMPTY_INDEX);
-
-    //const bool default_texture_provided = default_texture_index.has_value();
-    // texturing texturing_option = default_texture_provided ? texturing::Enabled : texturing::Disabled;
-    // Some obj files have vt and uv-coordinates even though no texture is used
 
     /* Counters */
     unsigned int number_of_vertices        = 0;
@@ -594,31 +565,15 @@ exit_status parse_obj_file(const std::string& file_name,
         const auto [ n12, n23 ] = compute_normals(vertex_set, v);
         const bool is_split_quad = SPLIT_ALL_QUADS || ((n12 - n23).normsq() > QUAD_SPLIT_THRESHOLD);
 
-        ///////
-        // static unsigned int total = 0;
-        // static unsigned int split = 0;
-        // total++;
-        // if (is_split_quad)
-        //     split++;
-        // std::cout << split << " / " << total << std::endl;
-        ///////
-
         if (not is_split_quad) {
-            // const unsigned int cmi = current_material_index;
-            // current_material_index = rand() % 5;
             add_quad(std::move(v), std::move(vt), std::move(vn), texturing_option, normal_option);
-            // current_material_index = cmi;
         }
         else {
             const auto& [ v1,  v2,  v3,  v4  ] = v;
             const auto& [ vt1, vt2, vt3, vt4 ] = vt;
             const auto& [ vn1, vn2, vn3, vn4 ] = vn;
-            // const unsigned int cmi = current_material_index;
-            // current_material_index = 4;
             add_triangle({ v1, v2, v3 }, { vt1, vt2, vt3 }, { vn1, vn2, vn3 }, texturing_option, normal_option);
-            // current_material_index = 1;
             add_triangle({ v1, v3, v4 }, { vt1, vt3, vt4 }, { vn1, vn3, vn4 }, texturing_option, normal_option);
-            // current_material_index = cmi;
         }
     };
 
@@ -774,10 +729,10 @@ exit_status parse_obj_file(const std::string& file_name,
                 
                 current_material_index = vindex.value();
 
-                // Checking if a texture was associated with the material by an mtl file
+                /* Checking if a texture was associated with the material by an mtl file */
                 current_texture_index = (mt_assoc.count(current_material_index) > 0) ?
-                  mt_assoc[current_material_index]
-                : default_texture_index.value_or(EMPTY_INDEX);
+                      mt_assoc[current_material_index]
+                    : default_texture_index.value_or(EMPTY_INDEX);
                 
                 continue;
             }
@@ -848,26 +803,6 @@ exit_status parse_obj_file(const std::string& file_name,
                     : normal::Enabled;
 
                 add_geometry(line_stream, nb, texturing_option, normal_option, v, vt, vn);
-
-                // // unsigned int k = 0;
-                // while ((not stream.eof()) && (stream.peek() == 'f')) {
-                //     // std::cout << k << std::endl;
-                //     // k++;
-                //     std::getline(stream, line, '\n');
-                //     line_stream = std::istringstream(std::move(line));
-                //     // BUG HERE
-                //     parse_face(line_stream, nb, type, v, vt, vn);
-                //     add_geometry(stream, nb, this_texturing_option, this_normal_option, v, vt, vn);
-                // }
-
-                // while ((not stream.eof()) && (stream.peek() == 'f')) {
-                //     std::getline(stream, line, '\n');
-                //     if (count_spaces_in_line(line) != nb)
-                //         break;
-                //     line_stream = std::istringstream(std::move(line));
-                //     parse_face(line_stream, nb, type, v, vt, vn);
-                //     add_geometry(stream, nb, texturing_option, normal_option, v, vt, vn);
-                // }
 
                 continue;
             }

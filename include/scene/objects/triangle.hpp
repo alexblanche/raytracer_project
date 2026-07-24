@@ -2,6 +2,8 @@
 
 #include "scene/objects/object.hpp"
 
+constexpr real DET_EPSILON = 1.0e-10_r;
+
 enum class det_case {
     XY, XZ, YZ, Error
 };
@@ -13,6 +15,16 @@ inline real compute_det_2d(const rt::vector& v1, const rt::vector& v2, det_case 
         case XZ: return v1.x * v2.z - v1.z * v2.x;
         case YZ: return v1.y * v2.z - v1.z * v2.y;
         default: return 0.0_r;
+    }
+}
+
+inline std::string to_string(det_case dc) {
+    using enum det_case;
+    switch (dc) {
+        case XY: return "XY";
+        case XZ: return "XZ";
+        case YZ: return "YZ";
+        default: return "Other";
     }
 }
 

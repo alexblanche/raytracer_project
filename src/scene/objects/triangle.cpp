@@ -6,13 +6,20 @@ using enum det_case;
 
 static std::pair<real, det_case> set_up_det(const rt::vector& v1, const rt::vector& v2) {
 
+    // std::cout << "set_up_det" << std::endl;
+    // std::cout << "v1 = "; v1.print();
+    // std::cout << ", v2 = "; v2.print();
+    // std::cout << std::endl;
+
     // det(XY) = 0 => v1, v2 are collinear when projected onto the plane z = 0
     // det(XZ) = 0 => v1, v2 are collinear when projected onto the planes y = 0 and z = 0
     //    (e.g. the triangle lies in the plane x = constant)
     
     for (det_case det_case : { XY, XZ, YZ }) {
         const real det = compute_det_2d(v1, v2, det_case);
-        if (is_not_zero(det))
+        // std::cout << to_string(det_case) << " -> " << det << std::endl;
+        // Arbitrary bound: some determinants very close to 0 can break the computations
+        if (std::abs(det) > DET_EPSILON)
             return { det, det_case };
     }
 
@@ -29,11 +36,23 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     v2 = p2 - p0;
     const rt::vector n = (v1 ^ v2);
     normal = n.unit();
+    vn0 = normal;
     d = - (normal | p0);
 
     const auto [ det_, case_det_ ] = set_up_det(v1, v2);
     det      = det_;
     case_det = case_det_;
+
+    // std::cout << "pos = ";   position.print();   std::cout << std::endl;
+    // std::cout << "v1 = ";   v1.print();   std::cout << std::endl;
+    // std::cout << "v2 = ";   v2.print();   std::cout << std::endl;
+    // std::cout << "d  = " << d << std::endl;
+    // std::cout << "normal = "; normal.print(); std::cout << std::endl;
+    // std::cout << "vn0 = ";  vn0.print();  std::cout << std::endl;
+    // std::cout << "dvn1 = "; dvn1.print(); std::cout << std::endl;
+    // std::cout << "dvn2 = "; dvn2.print(); std::cout << std::endl;
+    // std::cout << "det = " << det << ", case_det = " << to_string(case_det) << std::endl;
+    // std::cout << std::endl;
 }
 
 // Constructor from three points with vertex normals
@@ -43,9 +62,20 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
 
     : triangle(p0, p1, p2, material_index, texture_info_index) {
 
-    vn0     = vn0init.unit();
+    vn0  = vn0init.unit();
     dvn1 = (vn1.unit()) - vn0;
     dvn2 = (vn2.unit()) - vn0;
+
+    // std::cout << "pos = ";   position.print();   std::cout << std::endl;
+    // std::cout << "v1 = ";   v1.print();   std::cout << std::endl;
+    // std::cout << "v2 = ";   v2.print();   std::cout << std::endl;
+    // std::cout << "d  = " << d << std::endl;
+    // std::cout << "normal = "; normal.print(); std::cout << std::endl;
+    // std::cout << "vn0 = ";  vn0.print();  std::cout << std::endl;
+    // std::cout << "dvn1 = "; dvn1.print(); std::cout << std::endl;
+    // std::cout << "dvn2 = "; dvn2.print(); std::cout << std::endl;
+    // std::cout << "det = " << det << ", case_det = " << to_string(case_det) << std::endl;
+    // std::cout << std::endl;
 }
 
 // Constructor from three points with normal mapping enabled
@@ -157,7 +187,14 @@ barycentric_info triangle::get_barycentric(const rt::vector& p) const {
 }
 
 inline rt::vector triangle::get_interpolated_normal(const barycentric_info& bary) const {
-    
+    // {
+    // const auto [ l1, l2 ] = bary.l;
+    // const rt::vector n = fma(dvn2, l2, fma(dvn1, l1, vn0));
+    // std::cout << "get_interpolated_normal ";
+    // n.print();
+    // std::cout << std::endl;
+    // }
+
     const auto [ l1, l2 ] = bary.l;
     return fma(dvn2, l2, fma(dvn1, l1, vn0));
 }
