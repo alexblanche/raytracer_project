@@ -2,40 +2,49 @@
 1. [Syntax of the scene descriptor file](#syntax)
 2. [Command-line arguments](#command)
 3. [Merger executable](#merger)
-4. [Postprocessing](#post)
+<!-- 4. [Postprocessing](#post) -->
 
 ## Syntax of the scene descriptor file <a name="syntax"></a>
 
-The scene to render is defined in the file ```scene.txt```, with the following syntax.
+The scene to render is defined in a file ``scene.txt``, with the following syntax.
 
 ### Initial parameters
+
+```
+resolution width:1920 height:1080
+camera position:(0, 0, 0) direction:(0, 0, 1) rightdir:(1, 0, 0) fov_width:1000 distance:400 focal_distance:500 aperture:100
+background_texture file_name.hdr rotate_x:3.14 rotate_y:0 rotate_z:0 gamma:2.2
+bvh: polygons_per_bounding 10
+```
 
 The parameters should be provided in order, without comments.  
 
 The resolution of the rendered image is defined by:  
-``resolution width:1366 height:768``
+``resolution width:1920 height:1080``
 
-The view angle of the camera is defined by the position of the camera in world space, the direction it points at, and a vector rightdir orthogonal to the direction and "to the right" (it is used to tilt the camera in any angle). The ``fov_width`` parameter designates the width of the screen in world space (used to zoom in or out of the scene). The associated parameter ``fov_height`` is defined automatically (for width/height aspect ratio). Finally, the ``distance`` parameter indicates the distance in world space between the screen and the camera.  
-``camera position:(0, 0, 0) direction:(0, 0, 1) rightdir:(1, 0, 0) fov_width:1000 distance:400``  
+The view angle of the camera is defined by the position of the camera in world space, the direction it points at, and a vector ``rightdir`` orthogonal to the direction and "to the right" (it can be used to tilt the camera in any angle). This direction can be computed automatically: ``rightdir:auto``.  
+The ``fov_width`` parameter refers to the width of the screen in world space (used to zoom in or out of the scene). The associated parameter ``fov_height`` is defined automatically (for width/height aspect ratio).  
+Finally, the ``distance`` parameter indicates the distance in world space between the screen and the camera.  
+``camera position:(0, 0, 0) direction:(0, 0, 1) rightdir:(1, 0, 0) fov_width:1000 distance:400``
 
 To enable the depth of field camera effect, the focal distance and aperture can be specified with the commands:  
 ``focal_distance:500 aperture:100``  
 on the same line as ``camera``.
 
-The background color (the "sky") is defined by:  
+The background color can be defined by:  
 ``background_color 190 235 255``
 
-Alternatively, one can define a background texture, which should be a 360 panoramic image, with the following syntax:  
+Alternatively, one can define a background texture, which should be a 360 panoramic image (HDRI), with the following syntax:  
 ``background_texture file_name.bmp rotate_x:3.14 rotate_y:0 rotate_z:0``  
 The image is projected onto a sphere that surrounds the scene (at infinite distance) and rotated around the three axes by the specified angles (each between 0 and 2π).  
 The image must be a .bmp or .hdr file. For .hdr files, the gamma value can be defined by adding ``gamma:2.2`` after the ``rotate_z`` parameter.  
 
-When polygon meshes are used (see below), the rendering can be accelerated with the [Bounding Volume Hierarchy](https://en.wikipedia.org/wiki/Bounding_volume_hierarchy) method. The polygons are placed in boxes, which are themselves recursively enclosed in larger boxes, until only one box remains. The ``polygons_per_bounding`` parameter designates the number of polygons in terminal nodes, and its optimal value for peak performance depends on the object.  
+When polygon meshes are used (see below), the rendering can be accelerated with the [Bounding Volume Hierarchy](https://en.wikipedia.org/wiki/Bounding_volume_hierarchy) (BVH) method. The polygons are placed in boxes, which are themselves recursively enclosed in larger boxes, until only one box remains. The ``polygons_per_bounding`` parameter designates the number of polygons in terminal nodes, and its optimal value for peak performance depends on the object.  
 To enable the BVH strategy, a non-zero value should be specified:  
-``polygons_per_bounding 3``
+``bvh: polygons_per_bounding 3``
 
-Specifying 0 will disable the method, and a linear search will be performed instead:  
-``polygons_per_bounding 0``
+Specifying 0 or ``bvh: disabled`` will disable the method, and a linear search will be performed instead:  
+``bvh: polygons_per_bounding 0``
 
 
 ### Material definition
@@ -52,7 +61,9 @@ Materials are defined by the following parameters:
 - ``refraction_index``: the refraction index of the material, used when the ray is be refracted according to Snell-Descartes' law. Air has 1, water 1.33, glass 1.52, and diamond 2.42.  
 
 Materials are thus defined with this syntax:  
-``material:(color:(120, 120, 120) emitted_color:(0, 0, 0) smoothness:1 emission_intensity:0 reflectivity:1.0 reflects_color:false transparency:0 refraction_scattering:0 refraction_index:1)``  
+```
+material:(color:(120, 120, 120) emitted_color:(0, 0, 0) smoothness:1 emission_intensity:0 reflectivity:1.0 reflects_color:false transparency:0 refraction_scattering:0 refraction_index:1)
+```  
 
 Some parameters can be omitted, and will be set to default values: ``smoothness:0 emission_intensity:0 reflectivity:0 reflects_color:false transparency:0 refraction_scattering:0 refraction_index:1``.
 
@@ -125,12 +136,12 @@ E.g.: ``sphere center:(...) radius:... material:(...) texture:(t1 normal:n1 forw
 ### Polygon mesh import
 The project supports polygon meshes in .obj format. Associated .mtl files are supported, but materials can also be declared beforehand, with the same name as in the associated mtl file.  
 An .obj file can be imported by specifying its file name, the texture mapped onto the object, a shifting vector and a scaling factor. The texture shall be declared beforehand and given a variable name.  
-``````
-material wood_mat (...)  // appearing in wooden_table.obj
-material metal_mat (...) // appearing in wooden_table.obj
+```
+material wood_mat (...)     # appearing in wooden_table.obj
+material metal_mat (...)    # appearing in wooden_table.obj
 load_texture wood wood_texture.bmp
 load_obj wooden_table.obj (texture:wood shift:(1,0,0) scale:2)
-``````
+```
 
 Polygon meshes do not support normal mapping yet.
 
@@ -163,18 +174,23 @@ The time taken to render each sample per pixel can be displayed with the option:
 When a single sample per pixel takes a long time, the progress and estimated time can be displayed with the option:  
 ``./main 10 -time all``
 
+To display the image with gamma correction, add the option:  
+``./main 10 -gamma 2.2``  
+Note that this parameter will be overridden by any gamma value specified in the scene descriptor file.
+
 A window appears and the generated image is updated after each sample. The user can enter an input among the following:  
-- B key: Save the generated image as ``output/image.bmp`` and continue
-- R key: Save the generated raw data as ``output/image.rtdata`` and continue
-- Esc key: Exit
+- **B** key: Save the generated image as ``output/image.bmp`` and continue
+- **R** key: Save the generated raw data as ``output/image.rtdata`` and continue
+- **Esc** key: Exit
 
 
 ### Non-interactive mode
 
 To render in the non-interactive mode, the desired number of samples of pixels needs to be specified with this syntax:  
-``./main 10 -rays 100``
+``./main 10 -rays 100 [-time]``
 
-The progress will be displayed and updated every 10 samples per pixel. The generated image is saved as ``output/image.bmp``. The directory ``output`` is created if it does not exist yet.
+The progress will be displayed and updated every 10 samples per pixel. The generated image is saved as ``output/image.bmp``. The directory ``output`` is created if it does not exist yet.  
+If the option ``-time`` is specified, the total render time will be displayed.
 
 
 ## Merger executable <a name="merger"></a>

@@ -42,7 +42,7 @@ struct runtime_debugger {
 };
 
 struct runtime_parameters {
-    unsigned int             number_of_bounces      = 2;
+    unsigned int             number_of_bounces      = 5;
     program_parameters       program                = { program_parameters::mode::Interactive,   0    };
     sampling_parameters      sampling               = { sampling_parameters::mode::UniSample,    1    };
     tone_mapping_parameters  tone_mapping           = { tone_mapping_parameters::mode::Disabled, 1.0f };
