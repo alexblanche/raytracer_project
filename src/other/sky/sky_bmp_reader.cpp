@@ -146,6 +146,7 @@ exit_status print_bmp_info(const char* file_name) {
         return exit_status::Failure;
     }
     
+    printf("%s\n", file_name);
     printf("Type:                  %.2s\n", filetype);
     header.print();
     return exit_status::Success;

@@ -12,8 +12,8 @@
 #include <cassert>
 #include <optional>
 
-static const std::string BMP_FILE_NAME = "../../../assets/cobblestone_street_night.bmp";
-static const std::string HDR_FILE_NAME = "../../../assets/sundowner_overlook.hdr";
+static const std::string BMP_FILE_NAME = "../../../assets/sky/cobblestone_street_night.bmp";
+static const std::string HDR_FILE_NAME = "../../../assets/sky/sundowner_overlook.hdr";
 static const std::string OBJ_FILE_NAME = "../../../assets/obj/alaskan_cliff_rock/CliffRock_0014_High.obj";
 
 static void test_bmp(std::optional<std::string> arg = std::nullopt) {
@@ -93,8 +93,8 @@ static void test_write_raw() {
     scr.wait_quit_event();
 }
 
-static void test_hdr() {
-    const std::string& filename_hdr = HDR_FILE_NAME;
+static void test_hdr(std::optional<std::string> arg = std::nullopt) {
+    const std::string& filename_hdr = arg.value_or(HDR_FILE_NAME);
     constexpr int NB_ITERATIONS = 10;
 
     std::expected<matrix, file_reader::error> mat_opt;
@@ -109,9 +109,10 @@ static void test_hdr() {
     printf("HDR ");
     timer.print();
 
-    image img(std::move(mat_opt.value()));
+    constexpr double gamma = 1.0 / 2.2;
+    image img(std::move(mat_opt.value()), gamma);
     rt::screen scr(img);
-    scr.fast_copy(1);
+    scr.fast_copy_gamma(1);
     scr.update_from_texture();
     scr.wait_quit_event();
 }
@@ -225,6 +226,17 @@ static void test_obj() {
     printf("Time: %llums\n", total_time);
 }
 
+static void convert_hdr_to_bmp(const std::string& filename_hdr) {
+    std::expected<matrix, file_reader::error> mat_opt = hdr::read_file(filename_hdr);
+    assert(mat_opt.has_value());
+    constexpr double gamma = 1.0 / 2.2;
+    image img(std::move(mat_opt.value()), gamma);
+    const std::string output_filename = filename_hdr.substr(0, filename_hdr.length() - 4) + ".bmp";
+    const exit_status status = bmp::export_data(output_filename, img);
+    throw_if_failure(status, "Error hdr to bmp conversion");
+    printf("File %s created\n", output_filename.c_str());
+}
+
 int main(int argc, char *argv[]) {
 
     if (argc < 2) {
@@ -239,17 +251,20 @@ int main(int argc, char *argv[]) {
     if (arg_provided)
         arg = argv[2];
 
-    
+    const std::optional<std::string> arg_opt = (arg_provided) ? std::optional(arg) : std::nullopt;
+
     if (cmd == "bmp")
-        test_bmp((arg_provided) ? std::optional(arg) : std::nullopt);
+        test_bmp(arg_opt);
     else if (cmd == "hdr")
-        test_hdr();
+        test_hdr(arg_opt);
     else if (cmd == "wbmp")
-        test_write_bmp((arg_provided) ? std::optional(arg) : std::nullopt);
+        test_write_bmp(arg_opt);
     else if (cmd == "wraw")
         test_write_raw();
     else if (cmd == "obj")
         test_obj();
+    else if (cmd == "conv" && arg_provided)
+        convert_hdr_to_bmp(arg);
     else
         test_fastcopy();
 

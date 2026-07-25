@@ -8,6 +8,8 @@ add_compile_options(-std=c++26)
 add_compile_options(-Wall -Wextra -Werror -Wpedantic -pedantic-errors)
 add_compile_options(-fdiagnostics-color)
 add_compile_options(-O3 -ffast-math -march=native)
+# add_compile_options(-g -fsanitize=address)
+# add_link_options(-g -fsanitize=address)
 
 include_directories(include/)
 

@@ -101,6 +101,8 @@ exit_status bmp::print_info(const std::string& file_name) {
     // "BM" characters
     const std::string filetype = f.read_string(2);
 
+    printf("%s\n", file_name.c_str());
+
     std::optional<bmp::header> h_opt = f.scan<bmp::header>();
 
     if (not h_opt.has_value()) {

@@ -18,15 +18,17 @@ inline real compute_det_2d(const rt::vector& v1, const rt::vector& v2, det_case 
     }
 }
 
-inline std::string to_string(det_case dc) {
+/*
+inline std::string det_case_to_string(det_case case_det) {
     using enum det_case;
-    switch (dc) {
+    switch (case_det) {
         case XY: return "XY";
         case XZ: return "XZ";
         case YZ: return "YZ";
-        default: return "Other";
+        default: return "Error";
     }
 }
+*/
 
 class triangle final : public object {
     

@@ -13,6 +13,11 @@ inline exit_status operator&&(exit_status s1, exit_status s2) {
     return (s1 == Success && s2 == Success) ? Success : Failure;
 }
 
+inline exit_status operator||(exit_status s1, exit_status s2) {
+    using enum exit_status;
+    return (s1 == Success || s2 == Success) ? Success : Failure;
+}
+
 inline exit_status exit_status_of(bool b) {
     using enum exit_status;
     return b ? Success : Failure;

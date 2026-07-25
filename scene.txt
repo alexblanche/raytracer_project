@@ -1,6 +1,6 @@
 resolution width:1920 height:1080
 camera position:(2.212, 1.488, 3.4) direction:(-0.72, -0.28, -1) rightdir:(1, 0, -0.72) fov_width:1.33 distance:1.0
-background_texture ../../../assets/urban_street.hdr rotate_x:3.14 rotate_y:5.835 rotate_z:0 gamma:2.2
+background_texture ../../../assets/sky/urban_street.hdr rotate_x:3.14 rotate_y:5.835 rotate_z:0 gamma:2.2
 bvh: polygons_per_bounding 25
 
 # background_color 190 235 255
@@ -58,4 +58,5 @@ material car_body (color:(150, 150, 150) smoothness:1 reflectivity:0.15 refracti
 
 # load_obj ../../../raytracer_project/3d_models/porsche_highres/porsche_highres.obj
 
-sphere center:(-0.5, 1.4, 1.2) radius:0.4 material:mirror
+# sphere center:(-0.5, 1.4, 1.2) radius:0.4 material:mirror
+# sphere center:(-0.5, 1.7, 0.2) radius:0.4 material:mirror

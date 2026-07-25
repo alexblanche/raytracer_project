@@ -16,14 +16,15 @@ std::expected<matrix, file_reader::error> hdr::read_file(const std::string& file
 
         {
             float gamma;
-            int p[8];
-            char format[16];
-            const exit_status status = f.scanf("#?RADIANCE\n#?RADIANCE\nGAMMA=%f\nPRIMARIES=%d %d %d %d %d %d %d %d\nFORMAT=%15s",
-                gamma, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], format);
-            if (status == exit_status::Failure) {
-                const exit_status status_format = f.scanf("FORMAT=%15s", format);
-                throw_if_failure(status_format, ReadingErrorHeader);
-            }
+            const exit_status status = f.scanf("#?RADIANCE\n");
+            f.scanf("#?RADIANCE\n"); // Sometimes repeated
+            f.scanf("GAMMA=%f\n", gamma);
+            const exit_status status_prim = f.scanf("PRIMARIES=");
+            if (status_prim == exit_status::Success)
+                f.scan<int, 8>();
+            f.scanf("FORMAT=");
+            const std::string format = f.read_string();
+            throw_if_failure(status, ReadingErrorHeader);
         }
         
         char s1, s2, l1, l2;
@@ -120,6 +121,9 @@ std::expected<matrix, file_reader::error> hdr::read_file(const std::string& file
         return data;
     }
     catch(file::error) {
+        return std::unexpected(file_reader::error::FileError);
+    }
+    catch(file_reader::error) {
         return std::unexpected(file_reader::error::FileError);
     }
     catch(const std::exception& e) {

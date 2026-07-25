@@ -512,4 +512,10 @@ class file {
         exit_status printf(const std::string& s) const {
             return printf("%s", s.c_str());
         }
+
+        void display_current() const {
+            const std::size_t pos = position();
+            std::printf("%s\n", read_line().c_str());
+            rewind(pos);
+        }
 };
