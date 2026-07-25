@@ -47,7 +47,7 @@ struct search_tree {
         // Increases the size of the containers so that wanted_index is a valide index
         void increase_size(unsigned int wanted_index) {
             const unsigned int current_size = internal_nodes.size();
-            if (current_size < wanted_index) {
+            if (current_size <= wanted_index) {
                 const unsigned int target = static_cast<unsigned int>(2.5f * current_size);
                 const unsigned int new_size = std::max(target, wanted_index + 1);
                 resize_containers(new_size);
