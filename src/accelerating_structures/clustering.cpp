@@ -14,8 +14,8 @@ static constexpr unsigned int CARDINAL_OF_BOX_GROUP          = 3;
 
 static constexpr unsigned int DEFAULT_STACK_SIZE = 8192;
 
-static constexpr bool ENABLE_PARALLELISM_FIRST      = true;
-static constexpr bool ENABLE_PARALLELISM_ITERATIONS = true;
+static constexpr bool ENABLE_PARALLELISM_FIRST      = false;
+static constexpr bool ENABLE_PARALLELISM_ITERATIONS = false;
 
 static constexpr bool DISPLAY_KMEANS = true;
 

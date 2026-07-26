@@ -4,6 +4,8 @@
 #include <stack>
 #include <span>
 
+// #include <cassert>
+
 static constexpr unsigned int MAX_ELTS_PER_LEAF = 10;
 static constexpr unsigned int NB_REGIONS = 8;
 
@@ -141,6 +143,10 @@ void build_tree(search_tree& tree) {
         new_group_size.clear();
         new_tree_indices.clear();
 
+        // assert(groups.size() == nb_non_terminal_groups
+        //     && group_size.size() == nb_non_terminal_groups
+        //     && tree_indices.size() == nb_non_terminal_groups);
+
         // Split all the groups and compute the terminal nodes
         for (unsigned int g = 0; g < nb_non_terminal_groups; g++) {
 
@@ -156,7 +162,6 @@ void build_tree(search_tree& tree) {
                 // new_regions has size 9: each of the 8 regions (0..7) is defined by the interval [new_regions[i] .. new_regions[i+1]]
                 const std::array<unsigned int, NB_REGIONS + 1> new_regions =
                     split(tree, tree_index, std::span(elts.data() + index_min, nb_elts_group), index_min);
-
 
                 // Checking for pathological case
                 for (unsigned char i = 0; i < NB_REGIONS; i++) {
@@ -182,6 +187,9 @@ void build_tree(search_tree& tree) {
                 // Compute new leaf
 
                 tree.increase_size(tree_index);
+                
+                // assert(tree.leaves.size() > tree_index);
+                // assert(tree.terminal_state.size() > tree_index);
 
                 std::vector<unsigned int>& leaf = tree.leaves[tree_index];
                 leaf.reserve(nb_elts_group);
@@ -189,7 +197,6 @@ void build_tree(search_tree& tree) {
                 leaf.insert(leaf.end(), leaf_elts.begin(), leaf_elts.end());
 
                 tree.terminal_state[tree_index] = true;
-            
             }
         }
 

@@ -37,7 +37,7 @@ struct runtime_debugger {
         Disabled, Enabled
     };
 
-    const option option_;
+    const option option_ = runtime_debugger::option::Disabled;
     int x, y;
 };
 

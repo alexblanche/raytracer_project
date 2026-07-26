@@ -1,6 +1,9 @@
 #include "tracing/debug.hpp"
 
+#include "screen/screen.hpp"
+
 #include <iostream>
+#include <array>
 
 void print_hit_info(const scene& scene, int x, int y) {
 
@@ -32,4 +35,114 @@ void print_hit_info(const scene& scene, int x, int y) {
             printf("(%lf, %lf) (%lf, %lf) (%lf, %lf) (%lf, %lf)\n",
                 u0, v0, u1, v1, u2, v2, u3, v3);
     }
+}
+
+
+////////////////////////////////////////////////////////////////////////////
+
+struct bd_depth {
+    const bounding* bd;
+    unsigned int depth;
+};
+
+static void check_box(const bounding* const bd, const unsigned int current_depth, const ray& r,
+    custom_stack<bd_depth>& bounding_stack,
+    real& distance_to_closest, unsigned int& search_depth) {
+    
+    if constexpr (std::is_same_v<bounding::box_type, box>) {
+        if (bd->b != nullptr
+            && reinterpret_cast<const box*>(bd->b.get())->is_hit_with_distance(r) >= distance_to_closest)
+            return;
+    }
+    else if constexpr (std::is_same_v<bounding::box_type, aabb>) {
+        if (bd->b != nullptr
+            && reinterpret_cast<const aabb*>(bd->b.get())->measure_distance(r) >= distance_to_closest)
+            return;
+    }
+
+    using enum bounding::node_type;
+    switch (bd->type) {
+        
+        case InternalNode: {
+            const auto& children = bd->get_children();
+            for (const bounding* bd : children) {
+                bounding_stack.push(bd_depth { bd, current_depth + 1 });
+            }
+            break;
+        }
+
+        case TerminalNode: {
+            const auto& content = bd->get_content();
+            for (const object* const obj : content) {
+                const real d = obj->measure_distance(r);
+                if (d < distance_to_closest) {
+                    distance_to_closest = d;
+                    search_depth = current_depth;
+                }
+            }
+            break;
+        }
+    }
+}
+
+static unsigned int compute_search_depth(const scene& scene, const ray& r) {
+
+    real distance_to_closest = infinity;
+    unsigned int search_depth = 0;
+    
+    static custom_stack<bd_depth> bounding_stack;
+    bounding_stack.set_empty();
+
+    /* Pass through the set of first-level bounding boxes */
+    for (const bounding* const bd : scene.bounding_set) {
+        bounding_stack.emplace(bd, 1);
+    }
+
+    while (not bounding_stack.empty()) {
+
+        const auto [ bd, depth ] = bounding_stack.pop();
+        check_box(bd, depth, r, bounding_stack, distance_to_closest, search_depth);
+    }
+
+    return search_depth;
+}
+
+void display_search_depth(const scene& scene) {
+
+    constexpr std::array depth_color = {
+        rt::BLACK,
+        rt::color(50, 50, 50),
+        rt::color(100,100,100),
+        rt::color(180,180,180),
+        rt::BLUE,
+        rt::color(128, 0, 255),
+        rt::color(255, 0, 255),
+        rt::color(255, 0, 128),
+        rt::RED,
+        rt::color(255, 128, 0),
+        rt::color(255, 255, 0),
+        rt::color(128, 255, 0),
+        rt::GREEN,
+        rt::color(128, 255, 128),
+        rt::WHITE
+    };
+
+    image img(scene.width, scene.height);
+
+    for (int j = 0; j < scene.height; j++) {
+        for (int i = 0; i < scene.width; i++) {
+            const ray r = scene.cam.gen_ray_classic(i, j, 1);
+            const unsigned int depth = compute_search_depth(scene, r);
+
+            constexpr unsigned int max_index = depth_color.size() - 1;
+            img[scene.height - j - 1, i] = depth_color[std::min(depth, max_index)];
+        }
+    }
+
+    img.increase_sample_count();
+
+    rt::screen scr(img);
+    scr.refresh();
+    runtime_debugger debug;
+    scr.wait_keyboard_event(debug);
 }

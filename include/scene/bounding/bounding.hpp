@@ -213,8 +213,10 @@ requires (requires (T x) { { x.get_min_max_coord() } -> std::same_as<min_max_coo
     /* Computation of the dimensions of the object set */
     const auto [ min, max ] = compute_bounding_vectors(set);
 
-    static_assert(std::is_same_v<bounding::box_type, box>
-        || std::is_same_v<bounding::box_type, aabb>);
+    static_assert(
+           std::is_same_v<bounding::box_type, box>
+        || std::is_same_v<bounding::box_type, aabb>
+    );
 
     /* Creation of the bounding object depending on the type of box and type of AABB */
 
