@@ -66,7 +66,7 @@ static void check_box(const bounding* const bd, const unsigned int current_depth
         case InternalNode: {
             const auto& children = bd->get_children();
             for (const bounding* bd : children) {
-                bounding_stack.push(bd_depth { bd, current_depth + 1 });
+                bounding_stack.emplace(bd, current_depth + 1);
             }
             break;
         }
@@ -107,7 +107,7 @@ static unsigned int compute_search_depth(const scene& scene, const ray& r) {
     return search_depth;
 }
 
-void display_search_depth(const scene& scene) {
+image display_search_depth(const scene& scene) {
 
     constexpr std::array depth_color = {
         rt::BLACK,
@@ -145,4 +145,67 @@ void display_search_depth(const scene& scene) {
     scr.refresh();
     runtime_debugger debug;
     scr.wait_keyboard_event(debug);
+    return img;
 }
+
+/*
+static void draw_bounding_box(const rt::screen&, const scene& scene,
+    const bounding* bd) {
+
+    if (bd->b == nullptr)
+        return;
+    
+    const auto [ min_x, max_x, min_y, max_y, min_z, max_z ] = bd->get_min_max_coord();
+
+    const std::array vertices = {
+        rt::vector(min_x, min_y, min_z),
+        rt::vector(min_x, min_y, max_z),
+        rt::vector(min_x, max_y, max_z),
+        rt::vector(min_x, max_y, min_z),
+        rt::vector(max_x, min_y, min_z),
+        rt::vector(max_x, min_y, max_z),
+        rt::vector(max_x, max_y, max_z),
+        rt::vector(max_x, max_y, min_z)
+    };
+
+    struct edge {
+        int i1, i2;
+    };
+
+    constexpr std::array edges = {
+        edge(0,1), edge(1,2), edge(2,3), edge(3,0),
+        edge(4,5), edge(5,6), edge(6,7), edge(7,4),
+        edge(0,4), edge(1,5), edge(2,6), edge(3,7),
+    };
+
+    std::array<rt::point, 8> proj;
+    for (int i = 0; const rt::vector& v : vertices)
+        proj[i++] = scene.cam.project(v);
+
+    //for (const edge e : edges) {
+
+        // scr.renderer.draw_line();
+    //}
+}
+
+void draw_bounding_boxes(const scene& scene, const unsigned int max_depth) {
+    
+    image img = display_search_depth(scene);
+    rt::screen scr(img);
+
+    custom_stack<bd_depth> bounding_stack;
+    bounding_stack.set_empty();
+
+    for (const bounding* const bd : scene.bounding_set) {
+        bounding_stack.emplace(bd, 1);
+    }
+
+    while (not bounding_stack.empty()) {
+
+        const auto [ bd, depth ] = bounding_stack.pop();
+        if (depth >= max_depth)
+            return;
+        draw_bounding_box(scr, scene, bd);
+    }
+}
+*/

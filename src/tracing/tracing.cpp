@@ -84,7 +84,7 @@ using enum direction::angle;
 // };
 
 
-void worker::process_bounce(const bounce_parameters& param, path_parameters& out) const {
+void worker::process_bounce(const bounce_parameters& param, path_parameters& out /*, bool double_bounce */) const {
     
     const auto& [ h, m, normal, color, smoothness ] = param;
     auto& [ r, acc, refr_index ] = out;
@@ -100,6 +100,8 @@ void worker::process_bounce(const bounce_parameters& param, path_parameters& out
             const real bounce_probability = (m.get_refraction_index() != 1.0_r) ?
                   direction::get_schlick(r.direction, normal, 1.0_r, m.get_refraction_index())
                 : m.get_reflectivity();
+            //if (double_bounce)
+            //   bounce_probability *= (2 - bounce_probability);
 
             const bool is_specular_bounce = rg.random_ratio() <= bounce_probability;
             const real specular_smoothness = is_specular_bounce ? smoothness : 0.0_r;
@@ -251,7 +253,9 @@ rt::color worker::pathtrace(const ray& init_ray) const {
             .smoothness = m.get_smoothness() // ms.smoothness;
         };
         
-        process_bounce(param, path_param);
+        //const bool double_bounce = (obj->get_material_index() == 13);
+
+        process_bounce(param, path_param /*, double_bounce */);
 
 
         if (russian_roulette == russian_roulette_mode::Enabled) {

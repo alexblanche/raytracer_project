@@ -1,5 +1,7 @@
 #pragma once
 
+#include "image/point.hpp"
+
 #include <SDL2/SDL.h>
 #include <span>
 #include <utility>
@@ -109,6 +111,7 @@ namespace sdl {
         friend class renderer;
     };
 
+    using point = SDL_Point;
 
     // SDL_Renderer
 
@@ -155,6 +158,20 @@ namespace sdl {
 
             void draw_point(int x, int y) const {
                 SDL_RenderDrawPoint(ren, x, y);
+            }
+
+            static_assert(sizeof(sdl::point) == sizeof(rt::point));
+
+            void draw_points(const std::span<const rt::point> points) const {
+                SDL_RenderDrawPoints(ren, reinterpret_cast<const sdl::point*>(points.data()), points.size());
+            }
+
+            void draw_line(int x1, int y1, int x2, int y2) const {
+                SDL_RenderDrawLine(ren, x1, y1, x2, y2);
+            }
+
+            void draw_lines(const std::span<const rt::point> points) const {
+                SDL_RenderDrawLines(ren, reinterpret_cast<const sdl::point*>(points.data()), points.size());
             }
 
             void render_present() const {
