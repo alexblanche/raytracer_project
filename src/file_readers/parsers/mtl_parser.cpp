@@ -158,10 +158,10 @@ exit_status parse_mtl_file(const std::filesystem::path& path, const std::string&
 
         return exit_status::Success;
     }
-    catch(file::error) {
+    catch (file::error) {
         printf("File error\n");
     }
-    catch(const std::exception& e) {
+    catch (const std::exception& e) {
         printf("Parsing error in file %s: ", file_name.c_str());
         printf("%s\n", e.what());
     }

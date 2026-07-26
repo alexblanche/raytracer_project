@@ -120,13 +120,13 @@ std::expected<matrix, file_reader::error> hdr::read_file(const std::string& file
 
         return data;
     }
-    catch(file::error) {
+    catch (file::error) {
         return std::unexpected(file_reader::error::FileError);
     }
-    catch(file_reader::error) {
+    catch (file_reader::error) {
         return std::unexpected(file_reader::error::FileError);
     }
-    catch(const std::exception& e) {
+    catch (const std::exception& e) {
         printf("%s\n", e.what());
         return std::unexpected(file_reader::error::Other);
     }

@@ -81,13 +81,13 @@ std::expected<matrix, file_reader::error> bmp::read_file(const std::string& file
 
         return matrix;
     }
-    catch(file::error) {
+    catch (file::error) {
         return std::unexpected(FileError);
     }
-    catch(file_reader::error e) {
+    catch (file_reader::error e) {
         return std::unexpected(e);
     }
-    catch(const std::exception& e) {
+    catch (const std::exception& e) {
         printf("%s\n", e.what());
         return std::unexpected(Other);
     }
@@ -241,7 +241,7 @@ exit_status bmp::export_data(const std::string& file_name, const image& image) {
         
         return exit_status::Success;
     }
-    catch(...) {
+    catch (...) {
 
         printf("Writing error in file %s\n", file_name.c_str());
         return exit_status::Failure;

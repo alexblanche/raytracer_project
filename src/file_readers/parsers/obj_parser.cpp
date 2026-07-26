@@ -15,7 +15,7 @@
 
 #include <algorithm>
 
-static constexpr bool DISPLAY_HIERARCHY = false; // Displays the characteristics of the 
+static constexpr bool DISPLAY_HIERARCHY = true; // Displays the characteristics of the 
 static constexpr bool PRINT_INDEX       = false; // Writes the v, vt, vn vectors in a file for debugging
 
 /* Quad splitting threshold: when the two triangles forming a quad form an angle
@@ -846,7 +846,7 @@ exit_status parse_obj_file(const std::string& file_name,
 
         return exit_status::Success;
     }
-    catch(const std::exception& e) {
+    catch (const std::exception& e) {
         printf("Parsing error in file %s ", file_name.c_str());
         printf("%s\n", e.what());
         return exit_status::Failure;

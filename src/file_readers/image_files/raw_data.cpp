@@ -55,7 +55,7 @@ exit_status raw_data::export_data(const std::string& file_name, const image& ima
 
         return exit_status::Success;
     }
-    catch(const std::exception& e) {
+    catch (const std::exception& e) {
         printf("%s", e.what());
         return exit_status::Failure;
     }
@@ -136,10 +136,10 @@ std::expected<image, file_reader::error> raw_data::read_file(const std::string& 
         return image;
 
     }
-    catch(file_reader::error e) {
+    catch (file_reader::error e) {
         return std::unexpected(e);
     }
-    catch(const std::exception&) {
+    catch (const std::exception&) {
         return std::unexpected(Other);
     }
 }

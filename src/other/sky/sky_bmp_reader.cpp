@@ -45,7 +45,7 @@ std::optional<dimensions> read_bmp_size(const char* file_name) {
         fclose(file);
         return dimensions(width, height);
     }
-    catch(const std::exception& e) {
+    catch (const std::exception& e) {
         printf("%s\n", e.what());
         fclose(file);
         return std::nullopt;
@@ -113,7 +113,7 @@ exit_status read_bmp(const char* file_name, std::vector<std::vector<sky::color>>
         fclose(file);
         return exit_status::Success;
     }
-    catch(const std::exception& e) {
+    catch (const std::exception& e) {
         printf("%s\n", e.what());
         fclose(file);
         return exit_status::Failure;
@@ -195,7 +195,7 @@ exit_status direct_read_bmp(const char* file_name, std::vector<char>& data) {
         fclose(file);
         return exit_status::Success;
     }
-    catch(const std::exception& e) {
+    catch (const std::exception& e) {
         printf("%s\n", e.what());
         fclose(file);
         return exit_status::Failure;
