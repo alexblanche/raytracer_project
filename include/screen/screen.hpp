@@ -33,9 +33,27 @@ namespace rt {
 
 			void set_pixel(int x, int y, const color& c) const;
 			void set_pixel(int x, int y, Uint8 r, Uint8 g, Uint8 b) const;
-			void clear() const;
-			void update() const;
-			void update_from_texture() const;
+			void draw_lines(std::span<const rt::point> points, const color& c) const;
+			
+			void clear() const {
+				renderer.set_render_draw_color(0, 0, 0);
+				renderer.clear();
+			}
+
+			void render_texture() const {
+				texture.render_copy(renderer, srcrect, dstrect);
+			}
+
+			/* Flushes the buffer to the screen */
+			void update() const {
+				renderer.render_present();
+			}
+
+			void update_from_texture() const {
+				clear();
+				render_texture();
+				update();
+			}
 
 			/****************************************************************************************************/
 			/** Event processing **/

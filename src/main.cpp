@@ -27,7 +27,8 @@ int main(int argc, char *argv[]) {
     printf("Number of objects: %zu\n", scene.object_set.size());
 
     ////
-    display_search_depth(scene);
+    // display_search_depth(scene);
+    draw_bounding_boxes(scene, 8);
     ////
     
     exit_if_failure(menu.run(scene));

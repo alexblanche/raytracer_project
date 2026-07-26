@@ -52,24 +52,11 @@ namespace rt {
 		set_pixel(x, y, r, g, b);
 	}
 
-	void screen::clear() const {
-
-		renderer.set_render_draw_color(0, 0, 0);
-		renderer.clear();
-	}
-
-
-	/* Flushes the buffer to the screen */
-	void screen::update() const {
-		renderer.render_present();
-	}
-
-	/* Same as update, but first copies the texture onto the renderer */
-	void screen::update_from_texture() const {
-
-		renderer.clear();
-		texture.render_copy(renderer, srcrect, dstrect);
-		renderer.render_present();
+	void screen::draw_lines(const std::span<const rt::point> points, const color& c) const {
+		
+		const auto [ r, g, b ] = c.to_uint8();
+		renderer.set_render_draw_color(r, g, b);
+		renderer.draw_lines(points);
 	}
 
 

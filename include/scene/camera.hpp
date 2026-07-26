@@ -2,6 +2,7 @@
 
 #include "light/ray.hpp"
 #include "auxiliary/randomgen.hpp"
+#include "image/point.hpp"
 
 #include <utility>
 
@@ -156,4 +157,6 @@ class camera {
                       gen_ray_dof(i, j, rg, iteration)
                     : gen_ray_normal(i, j, iteration, shift);
         }
+
+        rt::point project(const rt::vector& v, int width, int height) const;
 };
