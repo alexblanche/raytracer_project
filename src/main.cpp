@@ -28,7 +28,8 @@ int main(int argc, char *argv[]) {
 
     ////
     // display_search_depth(scene);
-    draw_bounding_boxes(scene, 8);
+    if (menu.runtime_parameters.program.p_mode == program_parameters::mode::Interactive)
+        draw_bounding_boxes(scene, 4);
     ////
     
     exit_if_failure(menu.run(scene));

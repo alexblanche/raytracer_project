@@ -161,6 +161,16 @@ static void draw_bounding_box(const rt::screen& scr, const scene& scene,
     
     const auto [ min_x, max_x, min_y, max_y, min_z, max_z ] = bd->get_min_max_coord();
 
+    /*
+    printf("Box: (b = %p) depth: %u, x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf]",
+            static_cast<void*>(bd->b.get()), depth, min_x, max_x, min_y, max_y, min_z, max_z);
+    printf(" (content: ");
+    if (bd->type == bounding::node_type::InternalNode)
+        printf("%zu children)\n", bd->get_children().size());
+    else
+        printf("%zu polygons)\n", bd->get_content().size());
+    */
+
     const std::array vertices = {
         rt::vector(min_x, min_y, min_z),
         rt::vector(min_x, min_y, max_z),

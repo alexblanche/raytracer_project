@@ -1121,6 +1121,10 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         std::cout << "(box type = " << (std::is_same_v<bounding::box_type, box> ? "box" : "aabb") << ")" << std::endl;
         ***********/
 
+        // for (const auto& w : material_wrapper_set)
+        //     if (w.name.has_value())
+        //         std::cout << w.index << " " << w.name.value() << std::endl;
+
         // Creation of the final structures
         auto [ material_set, texture_set, normal_map_set ] = build_sets(material_wrapper_set, texture_wrapper_set, normal_map_wrapper_set);
 

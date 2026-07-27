@@ -31,6 +31,19 @@ class aabb {
             cpt++;
         }
 
+        aabb(const min_max_coord& mmc) {
+
+            const auto& [ min_x, max_x, min_y, max_y, min_z, max_z ] = mmc;
+            const rt::vector min(min_x, min_y, min_z);
+            const rt::vector max(max_x, max_y, max_z);
+
+            if constexpr (type == Corner)
+                position = min;
+            else if constexpr (type == Center)
+                position = (max + min) * 0.5_r;
+            dims = (max - min) * 0.5_r;
+        }
+
         aabb(aabb&&)                 = delete;
         aabb(const aabb&)            = delete;
         aabb& operator=(const aabb&) = delete;

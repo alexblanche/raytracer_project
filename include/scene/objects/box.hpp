@@ -22,6 +22,20 @@ class box final : public object {
 
             : object(center, material_index), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1 / 2), l2(l2 / 2), l3(l3 / 2) {}
 
+        box(const min_max_coord& mmc)
+            : object(ZERO, EMPTY_INDEX), n1(RIGHT), n2(UP) {
+            
+            const auto& [ min_x, max_x, min_y, max_y, min_z, max_z ] = mmc;
+            const rt::vector min(min_x, min_y, min_z);
+            const rt::vector max(max_x, max_y, max_z);
+        
+            position = (max + min) / 2;
+            const rt::vector dims = (max - min) / 2;
+            l1 = dims.x;
+            l2 = dims.y;
+            l3 = dims.z;
+        }
+
         box(box&&) noexcept        = default;
         box(const box&)            = delete;
         box& operator=(const box&) = delete;

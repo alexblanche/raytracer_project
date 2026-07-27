@@ -44,7 +44,7 @@ class bounding {
             node(std::vector<const bounding*>&& children)
                 : children(std::move(children)) {}
 
-            ~node() {}
+            ~node() noexcept {}
         };
     
         node node_;
@@ -193,21 +193,23 @@ class bounding {
 };
 
 template<typename T>
-// T should be object or bounding
-requires (requires (T x) { { x.get_min_max_coord() } -> std::same_as<min_max_coord>; })
+requires (std::is_same_v<T, object> || std::is_same_v<T, bounding>)
+    && (requires (T x) { { x.get_min_max_coord() } -> std::same_as<min_max_coord>; })
 [[nodiscard]] static const bounding* containing_bounding_template(std::vector<const T*>&& set) {
 
     const std::size_t size = set.size();
 
-    if (size == 0) {
-        printf("Error: creating bounding box of empty set\n");
-        return nullptr;
-    }
-    else if (size == 1) {
+    if (size == 0)
+        throw std::runtime_error("Error: creating bounding box of empty set\n");
+    
+    if (size == 1) {
         if constexpr (std::is_same_v<T, bounding>)
             return set[0];
         else
-            return new bounding({ set[0] });
+            return new bounding(
+                { set[0] },
+                std::make_unique<bounding::box_type>(set[0]->get_min_max_coord())
+            );
     }
 
     /* Computation of the dimensions of the object set */
@@ -230,13 +232,16 @@ requires (requires (T x) { { x.get_min_max_coord() } -> std::same_as<min_max_coo
             std::forward<std::vector<const T*>>(set),
             std::make_unique<box>(center, RIGHT, UP, l1, l2, l3)
         );
+
     else if constexpr (std::is_same_v<bounding::box_type, aabb>) {
-        if constexpr (aabb::type == aabb::type::Corner)
+        using enum aabb::type;
+
+        if constexpr (aabb::type == Corner)
             return new bounding(
                 std::forward<std::vector<const T*>>(set),
                 std::make_unique<aabb>(corner, dims)
             );
-        else if constexpr (aabb::type == aabb::type::Center)
+        else if constexpr (aabb::type == Center)
             return new bounding(
                 std::forward<std::vector<const T*>>(set),
                 std::make_unique<aabb>(center, dims)

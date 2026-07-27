@@ -15,7 +15,7 @@
 
 #include <algorithm>
 
-static constexpr bool DISPLAY_HIERARCHY = true; // Displays the characteristics of the 
+static constexpr bool DISPLAY_HIERARCHY = false; // Displays the characteristics of the 
 static constexpr bool PRINT_INDEX       = false; // Writes the v, vt, vn vectors in a file for debugging
 
 /* Quad splitting threshold: when the two triangles forming a quad form an angle

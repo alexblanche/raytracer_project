@@ -23,6 +23,13 @@ struct min_max_coord {
         };
     }
 
+    void print() const {
+        std::cout
+            <<    "x: [" << min_x << "; " << max_x
+            << "]; y: [" << min_y << "; " << max_y
+            << "]; z: [" << min_z << "; " << max_z << "]";
+    }
+
     static constexpr rt::vector min_empty = rt::vector( infinity,  infinity,  infinity);
     static constexpr rt::vector max_empty = rt::vector(-infinity, -infinity, -infinity);
 };

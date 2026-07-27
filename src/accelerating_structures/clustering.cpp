@@ -14,10 +14,10 @@ static constexpr unsigned int CARDINAL_OF_BOX_GROUP          = 3;
 
 static constexpr unsigned int DEFAULT_STACK_SIZE = 8192;
 
-static constexpr bool ENABLE_PARALLELISM_FIRST      = false;
-static constexpr bool ENABLE_PARALLELISM_ITERATIONS = false;
+static constexpr bool ENABLE_PARALLELISM_FIRST      = true;
+static constexpr bool ENABLE_PARALLELISM_ITERATIONS = true;
 
-static constexpr bool DISPLAY_KMEANS = true;
+static constexpr bool DISPLAY_KMEANS = false;
 
 /** K-means clustering algorithm **/
 
@@ -192,11 +192,6 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
 
     const int bound = std::min(static_cast<unsigned int>(obj.size()), k);
 
-    // std::cout << std::endl;
-    // std::cout << "obj.size() = " << obj.size() << std::endl;
-    // std::cout << "step = " << step << ", bound = " << bound << std::endl;
-    // std::cout << "(bound - 1) * step = " << (bound - 1) * step << std::endl;
-
     for (int i = 0; i < bound; i++)
         means[i] = obj[static_cast<int>(i * step)].get_position();
     
@@ -275,7 +270,8 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
         for (const std::vector<element>& elts : groups) {
             
             if (not elts.empty()) {
-                new_bd_nodes.push_back(containing_bounding_any(element::get_content<const bounding*>(elts)));
+                const bounding* bd = containing_bounding_any(element::get_content<const bounding*>(elts));
+                new_bd_nodes.push_back(bd);
                 cpt++;
             }
         }
@@ -409,14 +405,12 @@ void display_hierarchy_properties(const bounding* bd0) {
             }
         }
         else {
-            if (number_of_nodes == 1) {
+            if (number_of_nodes == 1)
                 printf("|| Level %u: nodes: %u, arity: %u\n",
                     level, number_of_nodes, total);
-            }
-            else {
+            else
                 printf("|| Level %u: nodes: %u, terminal: %u, minimum arity: %u, maximum: %u, average: %lf\n",
                     level, number_of_nodes, terminal_nodes, min, max, static_cast<real>(total) / number_of_nodes);
-            }
         }
         
         bds.push(next_bds.get_content());

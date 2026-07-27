@@ -13,69 +13,69 @@ concept ElementContent = std::is_same_v<T, const object*> || std::is_same_v<T, c
 /* Struct containing either an object* or a bounding*, to make the clustering functions polymorphic */
 struct element {
 
-   enum class type {
-      Object, Bounding
-   };
-   type type_;
-   std::variant<const object*, const bounding*> content;
+    enum class type {
+        Object, Bounding
+    };
+    type type_;
+    std::variant<const object*, const bounding*> content;
 
-   element(const object* o) :
-      type_(type::Object),   content(std::in_place_type_t<const object*>(),   o) {}
+    element(const object* o) :
+        type_(type::Object),   content(std::in_place_type_t<const object*>(),   o) {}
 
-   element(const bounding* b) :
-      type_(type::Bounding), content(std::in_place_type_t<const bounding*>(), b) {}
+    element(const bounding* b) :
+        type_(type::Bounding), content(std::in_place_type_t<const bounding*>(), b) {}
 
-   element(element&&)        noexcept = default;
-   element(const element&)   noexcept = default;
-   element& operator=(const element&) = delete;
-   element& operator=(element&&)      = delete;
+    element(element&&)        noexcept = default;
+    element(const element&)   noexcept = default;
+    element& operator=(const element&) = delete;
+    element& operator=(element&&)      = delete;
 
-   inline const object* get_object() const {
-      return std::get<const object*>(content);
-   }
-   inline const bounding* get_bounding() const {
-      return std::get<const bounding*>(content);
-   }
+    inline const object* get_object() const {
+        return std::get<const object*>(content);
+    }
+    inline const bounding* get_bounding() const {
+        return std::get<const bounding*>(content);
+    }
 
-   template<ElementContent T>
-   inline T get_content() const {
-      return std::get<T>(content);
-   }
+    template<ElementContent T>
+    inline T get_content() const {
+        return std::get<T>(content);
+    }
 
-   inline rt::vector get_position() const {
-      using enum type;
-      switch (type_) {
-         case Object:
-            return std::get<const object*>(content)->get_position();
-         
-         case Bounding: {
-            const bounding* bd = std::get<const bounding*>(content);
-            return (bd->b != nullptr) ?
-                 bd->b->get_position()
-               : bd->get_content()[0]->get_position();
-         }
-         
-         default:throw;
-      }
-   }
+    inline rt::vector get_position() const {
+        using enum type;
+        switch (type_) {
+            case Object:
+                return std::get<const object*>(content)->get_position();
+            
+            case Bounding: {
+                const bounding* bd = std::get<const bounding*>(content);
+                return (bd->b != nullptr) ?
+                      bd->b->get_position()
+                    : bd->get_content()[0]->get_position();
+            }
+            
+            default:throw;
+        }
+    }
 
-   template<ElementContent T>
-   static std::vector<element> get_element(const std::vector<T>& v) {
-      std::vector<element> elts;
-      elts.reserve(v.size());
-      for (T x : v)
-         elts.emplace_back(x);
-      return elts;
-   }
+    template<ElementContent T>
+    static std::vector<element> get_element(const std::vector<T>& v) {
+        std::vector<element> elts;
+        elts.reserve(v.size());
+        for (T x : v)
+            elts.emplace_back(x);
+        return elts;
+    }
 
-   template<ElementContent T>
-   static std::vector<T> get_content(const std::vector<element>& elts) {
-      std::vector<T> v;
-      v.reserve(elts.size());
-      for (element const& elt : elts)
-         v.push_back(elt.get_content<T>());
-      return v;
-}
+    template<ElementContent T>
+    static std::vector<T> get_content(const std::vector<element>& elts) {
+        std::vector<T> v;
+        v.reserve(elts.size());
+        for (element const& elt : elts)
+            v.push_back(elt.get_content<T>());
+        return v;
+    }
 };
 
 /* Auxiliary function to create_bounding_hierarchy
@@ -85,7 +85,7 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
 /* Returns a bounding* containing the objects of content, split into a hierarchy of boundings if their number
    exceeds MIN_NUMBER_OF_POLYGONS_FOR_BOX */
 const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
-   unsigned int polygons_per_bounding);
+    unsigned int polygons_per_bounding);
 
 
 /** Tests **/
