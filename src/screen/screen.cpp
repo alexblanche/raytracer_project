@@ -34,6 +34,10 @@ namespace rt {
 #endif
 
 	screen::~screen() noexcept {
+		// The destructors need to be called before sdl::quit
+		texture.~texture();
+		renderer.~renderer();
+		window.~window();
 		sdl::quit();
 	}
 

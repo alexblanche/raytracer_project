@@ -7,6 +7,8 @@
 #include <utility>
 #include <string>
 
+constexpr bool FORCE_WINDOW_CLOSING = false;
+
 // Function that applies bitwise OR to a list of flags
 template<class T, typename UInt = uint32_t>
 requires std::is_enum_v<T>
@@ -58,10 +60,13 @@ namespace sdl {
         public:
             rect() {}
 
-            // Delete copy and move constructors
-
             rect(int x, int y, int w, int h)
                 : r({ x, y, w, h }) {}
+
+            rect(rect&&)                  = delete;
+            rect(const rect&)             = delete;
+            rect&& operator=(rect&&)      = delete;
+            rect&& operator=(const rect&) = delete;
 
         friend class window;
         friend class texture;
@@ -95,8 +100,17 @@ namespace sdl {
             window& operator=(const window&)  = delete;
 
             ~window() noexcept {
-                if (win != nullptr)
+                if (win != nullptr) {
                     SDL_DestroyWindow(win);
+                    
+                    /* To close the window without terminating the program.
+                        Otherwise, the window simply stays there and cannot be interacted with. */
+                    if constexpr (FORCE_WINDOW_CLOSING) {
+                        SDL_PumpEvents();
+                        SDL_Delay(250);
+                        SDL_PumpEvents();
+                    }
+                }
                 win = nullptr;
             }
 

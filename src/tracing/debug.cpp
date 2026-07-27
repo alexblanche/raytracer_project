@@ -234,8 +234,6 @@ void draw_bounding_boxes(const scene& scene, const unsigned int max_depth) {
         draw_bounding_box(scr, scene, bd, depth);
     }
 
-    // scr.draw_lines({ rt::point(10,10), rt::point(800,600) }, rt::WHITE);
-
     scr.update();
     runtime_debugger debug;
     scr.wait_keyboard_event(debug);
