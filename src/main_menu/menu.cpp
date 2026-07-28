@@ -5,6 +5,7 @@
 #include "screen/screen.hpp"
 #include "render/render_loops.hpp"
 #include "auxiliary/timer.hpp"
+#include "tracing/debug.hpp"
 
 #include <string>
 #include <span>
@@ -353,6 +354,9 @@ static std::optional<exit_status> process_events(const rt::screen& scr, const fi
 
 static exit_status run_interactive(const runtime_parameters& runtime_parameters,
     image& image, const scene& scene, const file_handler& file_handler) {
+
+    if (runtime_parameters.debug == runtime_debugger::option::Enabled)
+        draw_bounding_boxes(scene, 4);
 
     printf("Initialization complete, computing the first ray...");
     fflush(stdout);

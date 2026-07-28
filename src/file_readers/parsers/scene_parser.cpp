@@ -412,15 +412,17 @@ static std::optional<texture_info> parse_texture_info(const file& f,
         return std::nullopt;
     
     std::optional<unsigned int> nindex;
-    double u0, v0, u1, v1, u2, v2, u3, v3;
-    double x0, y0, z0, x1, y1, z1;
 
-    const std::string t_name = f.read_string(MAX_NAME_LENGTH);
+    std::string t_name = f.read_string(MAX_NAME_LENGTH);
+    if (t_name.ends_with(')'))
+        t_name = t_name.substr(0, t_name.length() - 1);
     const std::optional<unsigned int> vindex = wrapper<texture>::find_element(texture_wrapper_set, t_name);
 
     const exit_status status_n = f.scanf_rewind_if_failure("normal:");
     if (status_n == exit_status::Success) {
-        const std::string n_name = f.read_string(MAX_NAME_LENGTH);
+        std::string n_name = f.read_string(MAX_NAME_LENGTH);
+        if (n_name.ends_with(')'))
+            n_name = n_name.substr(0, n_name.length() - 1);
         nindex = wrapper<normal_map>::find_element(normal_map_wrapper_set, n_name); 
     }
     // else: no normal map information
@@ -445,6 +447,7 @@ static std::optional<texture_info> parse_texture_info(const file& f,
     switch (object_type_) {
         case Triangle: {
 
+            double u0, v0, u1, v1, u2, v2;
             const exit_status status = f.scanf(" (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
                 u0, v0, u1, v1, u2, v2);
             if (status == exit_status::Failure) {
@@ -457,11 +460,15 @@ static std::optional<texture_info> parse_texture_info(const file& f,
                     
         case Quad: {
 
+            double u0, v0, u1, v1, u2, v2, u3, v3;
             const exit_status status = f.scanf(" (%lf,%lf) (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
                 u0, v0, u1, v1, u2, v2, u3, v3);
             if (status == exit_status::Failure) {
-                printf("parsing error in parse_texture_info (quad UV-coordinates)\n");
-                return std::nullopt;
+                // Default values: (0,1) (0,0) (1,0) (1,1)
+                u0 = 0; v0 = 1;
+                u1 = 0; v1 = 0;
+                u2 = 1; v2 = 0;
+                u3 = 1; v3 = 1;
             }
 
             return texture_info(vindex, nindex, { u0, v0, u1, v1, u2, v2, u3, v3 });
@@ -469,28 +476,34 @@ static std::optional<texture_info> parse_texture_info(const file& f,
 
         case Sphere: {
 
+            double fx, fy, fz, rx, ry, rz;
             const exit_status status = f.scanf(" forward:(%lf,%lf,%lf) right:(%lf,%lf,%lf))\n",
-                x0, y0, z0, x1, y1, z1);
+                fx, fy, fz, rx, ry, rz);
             if (status == exit_status::Failure) {
-                printf("parsing error in parse_texture_info (sphere forward and right directions)\n");
-                return std::nullopt;
+                // Default values: forward = (0,0,-1), right = (1,0,0)
+                fx = 0; fy = 0; fz = -1;
+                rx = 1; ry = 0; rz = 0;
             }
 
             // texture_info is used to pass the coordinates for forward_dir and right_dir
-            return texture_info(vindex, nindex, { x0, y0, z0, x1, y1, z1 });
+            return texture_info(vindex, nindex, { fx, fy, fz, rx, ry, rz });
         }
 
         case Plane: {
 
-            const exit_status status = f.scanf(" right:(%lf,%lf,%lf) scale:%lf)\n",
-                x0, y0, z0, u0);
-            if (status == exit_status::Failure) {
-                printf("parsing error in parse_texture_info (plane right direction and scale)\n");
-                return std::nullopt;
+            double rx, ry, rz;
+            const exit_status status_right = f.scanf(" right:(%lf,%lf,%lf)",
+                rx, ry, rz);
+            if (status_right == exit_status::Failure) {
+                // Default values: right = (1, 0, 0), scale = 1
+                rx = 1; ry = 0; rz = 0;
             }
 
+            double scale = 1.0_r; // Default value
+            f.scanf(" scale:%lf)\n", scale);
+
             // texture_info is used to pass the coordinates for forward_dir and right_dir
-            return texture_info(vindex, nindex, { x0, y0, z0, u0 });
+            return texture_info(vindex, nindex, { rx, ry, rz, scale });
         }
 
         case Box:      throw std::runtime_error("box texturing not handled yet");
@@ -717,7 +730,6 @@ static void parse_objects(const file& f, const object_type type, const std::stri
 
                 case Sphere: {
                     const auto& [ center, radius ] = parameters.sphere;
-                    //obj = new sphere(center, radius, m_index.value());
                     sphere_set.emplace_back(center, radius, m_index.value());
                     obj = &sphere_set.back();
                     break;
