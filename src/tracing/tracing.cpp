@@ -29,12 +29,12 @@ using enum direction::angle;
 
 /* Auxiliary function that handles the specular reflective case */
 // Run-time
-[[nodiscard]] inline ray worker::specular_reflective_case(const hit& h, const rt::vector& direction,
-    const real smoothness, const rt::vector& local_normal) const {
+[[nodiscard]] inline ray worker::specular_reflective_case(const hit& h, const direction::bounce_vectors& bounce_v,
+    const real smoothness) const {
 
     /* Direction according to Lambert's cosine law */
 
-    const rt::vector central_dir = direction::central_reflected(direction, local_normal, smoothness, h.get_orientation());
+    const rt::vector central_dir = direction::central_reflected(bounce_v, smoothness, h.get_orientation());
     return ray( 
         /* origin */
         h.biased_point(Outward),
@@ -75,19 +75,12 @@ using enum direction::angle;
     return acc.combine(color);
 }
 
-
-
-// struct bounce_vectors {
-//     const rt::vector& direction;
-//     const rt::vector& normal;
-//     real incidence; // = (direction | normal)
-// };
-
-
-void worker::process_bounce(const bounce_parameters& param, path_parameters& out, bool /*double_bounce*/) const {
+void worker::process_bounce(const bounce_parameters& param, path_parameters& out, bool double_bounce) const {
     
     const auto& [ h, m, normal, color, smoothness ] = param;
     auto& [ r, acc, refr_index ] = out;
+
+    direction::bounce_vectors bounce_v(r.direction, normal);
 
     if (m.is_opaque()) {
         /* Diffuse or specular reflection */
@@ -97,17 +90,16 @@ void worker::process_bounce(const bounce_parameters& param, path_parameters& out
             
             /* Specular bounce */
 
-            real bounce_probability = (m.get_refraction_index() != 1.0_r) ?
-                  direction::get_schlick(r.direction, normal, 1.0_r, m.get_refraction_index())
+            real bounce_probability = m.has_fresnel() ?
+                  direction::get_schlick(bounce_v, 1.0_r, m.get_refraction_index())
                 : m.get_reflectivity();
-            // if (double_bounce)
-            //     // bounce_probability = 2 * bounce_probability / (1 + bounce_probability);   // bouncing back and forth between the two panes
-            //     // bounce_probability *= (2 - bounce_probability);                           // two attempts at bouncing
+            if (double_bounce)
+                bounce_probability = 2 * bounce_probability / (1 + bounce_probability);   // bouncing back and forth between the two panes
 
             const bool is_specular_bounce = rg.random_ratio() <= bounce_probability;
             const real specular_smoothness = is_specular_bounce ? smoothness : 0.0_r;
             
-            r = specular_reflective_case(h, r.direction, specular_smoothness, normal);
+            r = specular_reflective_case(h, bounce_v, specular_smoothness);
 
             /* We update color_materials only if the material reflects colors (like a christmas tree ball),
             otherwise the reflection has the original color (like a tomato) */
@@ -145,7 +137,7 @@ void worker::process_bounce(const bounce_parameters& param, path_parameters& out
 
         const auto is_fresnel_reflection = [&] {
 
-            const real fresnel = direction::get_schlick(r.direction, normal, refr_index, next_refr_i);
+            const real fresnel = direction::get_schlick(bounce_v, refr_index, next_refr_i);
             return rg.random_ratio() * m.get_transparency() <= fresnel;
         };
 
@@ -154,19 +146,19 @@ void worker::process_bounce(const bounce_parameters& param, path_parameters& out
             /* The ray is reflected */
             
             /* Is it a pure specular or a mix of specular and diffuse just like in the previous case? */
-            r = specular_reflective_case<Inward>(h, r.direction, smoothness, normal);
+            r = specular_reflective_case<Inward>(h, bounce_v, smoothness);
         }
         else {
 
             /* Pre-computation of the refracted direction */
-            const auto sin_refr = direction::get_sin_refracted(r.direction, normal, refr_index, next_refr_i);
+            const auto sin_refr = direction::get_sin_refracted(bounce_v, refr_index, next_refr_i);
             const auto& [ _, sin_theta_2_sq ] = sin_refr;
 
             /* Determination of whether the ray is transmitted (refracted) or in total interal reflection */
             if (sin_theta_2_sq >= 1.0_r) {
                 /* Total internal reflection */
 
-                r = specular_reflective_case(h, r.direction, smoothness, normal);
+                r = specular_reflective_case(h, bounce_v, smoothness);
             }
             else {
                 /* Transmission */
@@ -255,7 +247,7 @@ rt::color worker::pathtrace(const ray& init_ray) const {
         };
         
         ////
-        const bool double_bounce = false; // (obj->get_material_index() == 13); // Windshield of Porsche 2016
+        const bool double_bounce = (obj->get_material_index() == 12); // Windshield of Porsche 2016
         ////
 
         process_bounce(param, path_param, double_bounce);

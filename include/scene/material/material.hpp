@@ -9,69 +9,60 @@ class material {
     private:
     
         /* Color of the material */
-        rt::color color;
+        rt::color color             = rt::WHITE;
 
         /* Real between 0 and 1: 0 is a pure diffuse surface, 1 is a pure mirror */
-        real smoothness;
+        real smoothness             = 0;
 
         /* Real between 0 and 1: 0 does not emit light, 1 is maximum intensity */
-        real emission_intensity;
+        real emission_intensity     = 0;
 
         /* Probability of a specular bounce */
-        real reflectivity;
+        real reflectivity           = 0;
 
         /* Transparency: real between 0 and 1 */
-        real transparency;
+        real transparency           = 0;
         
         /* Scattering of the refracted rays (similar to glossiness for reflected rays) */
-        real refraction_scattering;
+        real refraction_scattering  = 0;
 
         /* Indice of refraction: air = 1, water = 1.3, glass = 1.5, diamond = 1.8 */
-        real refraction_index;
+        real refraction_index       = 1.0_r;
 
         /* Booleans to speed up the tracing function */
-        bool opaque;
-        bool emissive;
-        bool has_specularity;
+        bool opaque                 = true;
+        bool emissive               = false;
+        bool has_specularity        = false;
 
         /* True if the material color is reflected in specular bounces, false if it is white */
-        bool reflects_color;
+        bool reflects_color         = false;
+
+        bool has_refraction_index   = false;
 
     public:
 
-        constexpr material()
-            :   color(rt::WHITE), smoothness(0),
-                emission_intensity(0),
-                reflectivity(0),
-                transparency(0),
-                refraction_scattering(0),
-                refraction_index(1),
-                opaque(true), emissive(false), has_specularity(false),
-                reflects_color(false) {}
+        constexpr material(const rt::color& color, real smoothness) :
+            color(color), smoothness(smoothness) {}
 
-        constexpr material(const rt::color& color, real smoothness)
-            :   color(color), smoothness(smoothness),
-                emission_intensity(0),
-                reflectivity(0),
-                transparency(0),
-                refraction_scattering(0),
-                refraction_index(1),
-                opaque(true), emissive(false), has_specularity(false), 
-                reflects_color(false) {}
+        constexpr material() {}
 
         constexpr material(const rt::color& color,
             real smoothness, real emission_intensity,
             real reflectivity, bool reflects_color,
             real transparency, real refraction_scattering,
-            real refraction_index)
-                :   color(color), smoothness(smoothness),
-                    emission_intensity(emission_intensity),
-                    reflectivity(reflectivity),
-                    transparency(transparency),
-                    refraction_scattering(refraction_scattering),
-                    refraction_index(refraction_index),
-                    opaque(transparency == 0), emissive(emission_intensity != 0), has_specularity(reflectivity != 0),
-                    reflects_color(reflects_color) {}
+            real refraction_index) :
+            
+            color(color), smoothness(smoothness),
+            emission_intensity(emission_intensity),
+            reflectivity(reflectivity),
+            transparency(transparency),
+            refraction_scattering(refraction_scattering),
+            refraction_index(refraction_index),
+            opaque(transparency == 0.0_r),
+            emissive(emission_intensity != 0.0_r),
+            has_specularity(reflectivity != 0.0_r),
+            reflects_color(reflects_color),
+            has_refraction_index(refraction_index != 1.0_r) {}
 
         /* Constructor from mtl parameters */
         material(real ns,
@@ -127,6 +118,10 @@ class material {
 
         inline bool is_specular() const {
             return has_specularity;
+        }
+
+        inline bool has_fresnel() const {
+            return has_refraction_index;
         }
 };
 

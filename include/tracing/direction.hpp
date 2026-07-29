@@ -7,24 +7,34 @@
 class direction {
     public:
 
+        struct bounce_vectors {
+            const rt::vector& direction;
+            const rt::vector& normal;
+            real incidence; // = (direction | normal)
+
+            bounce_vectors(const rt::vector& direction, const rt::vector& normal) :
+                direction(direction), normal(normal), incidence(direction | normal) {}
+        };
+
         /* Returns the reflected ray at the point of contact */
         // static ray get_reflected_ray();
 
         template<orientation_type ray_orientation>
         /* Returns the interpolated direction between the normal and the reflected direction */
         /* inward = ((direction | normal) <= 0) */
-        static rt::vector central_reflected(const rt::vector& direction, const rt::vector& normal, const real smoothness) {
+        static rt::vector central_reflected(const bounce_vectors& bounce_v, const real smoothness) {
             constexpr real correcting_factor = (ray_orientation == orientation_type::Inward) ? 1.0_r : -1.0_r;
             constexpr real two_corr_f = -2.0_r * correcting_factor;
 
-            const real two_cos = two_corr_f * (direction | normal);
+            const auto& [ direction, normal, pdt ] = bounce_v;
+            const real two_cos = two_corr_f * pdt;
             //return (smoothness * (2.0_r * cos - 1.0_r) + 1.0_r) * right_normal + smoothness * u;
             return fma(direction, smoothness, ((smoothness * (two_cos - 1.0_r) + 1.0_r) * correcting_factor) * normal);
         }
 
         /* Returns the interpolated direction between the normal and the reflected direction */
         /* inward = ((direction | normal) <= 0) */
-        static rt::vector central_reflected(const rt::vector& direction, const rt::vector& normal, real smoothness, orientation_type ray_orientation);
+        static rt::vector central_reflected(const bounce_vectors& bounce_v, real smoothness, orientation_type ray_orientation);
 
         enum class angle {
             Pi, Pi_over_2
@@ -65,7 +75,7 @@ class direction {
 
         /* Returns sin(theta_2) squared, where theta_2 is the refracted angle
             Is precomputed to determine whether the ray is refracted or internally reflected */
-        static inline sin_refracted_output get_sin_refracted(const rt::vector& direction, const rt::vector& normal,
+        static inline sin_refracted_output get_sin_refracted(const bounce_vectors& bounce_v,
             const real current_refr_i, const real surface_refr_i) {
 
             sin_refracted_output out;
@@ -75,7 +85,8 @@ class direction {
             where right_normal = inward ? normal : (-1) * normal,
             but the next line is equivalent */
             //const rt::vector vx = (current_refr_i / surface_refr_i) * ((((-1.0_r) * (dir | normal)) * normal) + dir);
-            out.vx = (current_refr_i / surface_refr_i) * fma(normal, (-1.0_r) * (direction | normal), direction);
+            const auto& [ direction, normal, pdt ] = bounce_v;
+            out.vx = (current_refr_i / surface_refr_i) * fma(normal, (-1.0_r) * pdt, direction);
             out.sin_theta_2_sq = out.vx.normsq();
             return out;
         }
@@ -120,8 +131,8 @@ class direction {
         }
 
         /* Computes the Fresnel coefficient Kr */
-        static real get_fresnel(const rt::vector& direction, const rt::vector& normal, real sin_theta_2_sq, real refr_1, real refr_2);
+        static real get_fresnel(const bounce_vectors& bounce_v, real sin_theta_2_sq, real refr_1, real refr_2);
 
         /* Compute Schlick's approximation of Fresnel coefficient Kr */
-        static real get_schlick(const rt::vector& direction, const rt::vector& normal, real refr_1, real refr_2);
+        static real get_schlick(const bounce_vectors& bounce_v, real refr_1, real refr_2);
 };

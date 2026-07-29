@@ -57,18 +57,18 @@ class worker {
 
         /* Auxiliary function that handles the specular reflective case */
         // Run-time
-        [[nodiscard]] ray specular_reflective_case(const hit& h, const rt::vector& direction,
-            real smoothness, const rt::vector& local_normal) const;
+        [[nodiscard]] ray specular_reflective_case(const hit& h, const direction::bounce_vectors& bounce_v,
+            real smoothness) const;
         
         // Compile-time
         template<orientation_type ray_orientation>
-        [[nodiscard]] inline ray specular_reflective_case(const hit& h, const rt::vector& direction,
-            const real smoothness, const rt::vector& local_normal) const {
+        [[nodiscard]] inline ray specular_reflective_case(const hit& h, const direction::bounce_vectors& bounce_v,
+            const real smoothness) const {
 
             /* Direction according to Lambert's cosine law */
             using enum direction::angle;
 
-            const rt::vector central_dir = direction::central_reflected<ray_orientation>(direction, local_normal, smoothness);
+            const rt::vector central_dir = direction::central_reflected<ray_orientation>(bounce_v, smoothness);
             return ray(
                 /* origin */
                 h.biased_point<ray_orientation, Outward>(),

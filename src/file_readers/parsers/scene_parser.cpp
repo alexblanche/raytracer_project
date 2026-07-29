@@ -808,15 +808,6 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         {
             const exit_status status1 = f.scanf("resolution width:%d height:%d\n", width, height);
             throw_if_failure(status1, "parsing error in scene constructor (resolution)");
-
-            // const int pos = f.position();
-            // const std::string s = f.read_string();
-            // std::cout << "to be read (1): " << s << " (pos = " << pos << ")" << std::endl;
-            // f.rewind(pos);
-            // const int pos2 = f.position();
-            // const std::string s2 = f.read_string();
-            // std::cout << "to be read (2): " << s2 << " (pos = " << pos2 << ")" << std::endl;
-            // f.rewind(pos2);
         }
 
         {
@@ -1127,11 +1118,11 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             std::reverse(bounding_set.begin(), bounding_set.end());
         }
 
-        // ////
+        ////
         // for (const auto& w : material_wrapper_set)
         //     if (w.name.has_value())
         //         std::cout << w.index << " " << w.name.value() << std::endl;
-        // ////
+        ////
 
         // Creation of the final structures
         auto [ material_set, texture_set, normal_map_set ] = build_sets(material_wrapper_set, texture_wrapper_set, normal_map_wrapper_set);

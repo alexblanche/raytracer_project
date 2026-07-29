@@ -113,7 +113,7 @@ class scene {
         scene& operator=(const scene&)  = delete;
         scene& operator=(scene&&)       = delete;
 
-        ~scene();
+        ~scene() noexcept;
 
         /*************************************************************************************/
 

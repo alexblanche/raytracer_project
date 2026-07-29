@@ -50,13 +50,7 @@ scene::scene(
     gamma(gamma) {}
 
 
-scene::~scene() {
-
-    /* Destruction of the objects located on the heap */
-    // for (const object* obj : object_set) {
-    //     delete obj;
-    // }
-
+scene::~scene() noexcept {
     /* Destruction of the boundings with a breadth-first search */
     custom_stack<const bounding*> bd_stack(DEFAULT_STACK_SIZE);
     bd_stack.push(bounding_set);

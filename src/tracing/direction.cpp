@@ -17,7 +17,7 @@ ray directions::get_reflected_ray() {
 
 /* Returns the interpolated direction between the normal and the reflected direction */
 /* inward = ((direction | normal) <= 0) */
-rt::vector direction::central_reflected(const rt::vector& direction, const rt::vector& normal, const real smoothness, const orientation_type ray_orientation) {
+rt::vector direction::central_reflected(const bounce_vectors& bounce_v, const real smoothness, const orientation_type ray_orientation) {
     /*
     u = direction
     inward = (u | normal) <= 0;
@@ -27,8 +27,9 @@ rt::vector direction::central_reflected(const rt::vector& direction, const rt::v
     smoothness * reflected_dir + (1 - smoothness) * right_normal
         = (r * (2 * cos - 1) + 1) * right_normal + r * u
     */
+    const auto& [ direction, normal, pdt ] = bounce_v;
     const real correcting_factor = (ray_orientation == orientation_type::Inward) ? 1.0_r : -1.0_r;
-    const real cos = (-correcting_factor) * (direction | normal);
+    const real cos = (-correcting_factor) * pdt;
     //return (smoothness * (2.0_r * cos - 1.0_r) + 1.0_r) * right_normal + smoothness * u;
     return fma(direction, smoothness, ((smoothness * (2.0_r * cos - 1.0_r) + 1.0_r) * correcting_factor) * normal);
 }
@@ -45,10 +46,10 @@ rt::vector direction::random(const randomgen& rg, const rt::vector& central_dir,
 /* Refraction */
 
 /* Computes the Fresnel coefficient Kr */
-real direction::get_fresnel(const rt::vector& direction, const rt::vector& normal,
+real direction::get_fresnel(const bounce_vectors& bounce_v,
     const real sin_theta_2_sq, const real refr_1, const real refr_2) {
 
-    const real pdt = (direction | normal);
+    const auto& [ _, _, pdt ] = bounce_v;
     const real cos_theta_1 = std::abs(pdt);
     const real cos_theta_2 = sqrt(1.0_r - sin_theta_2_sq);
 
@@ -62,13 +63,18 @@ real direction::get_fresnel(const rt::vector& direction, const rt::vector& norma
     return (para * para + orth * orth) / 2.0_r;
 }
 
-/* Compute Schlick's approximation of Fresnel coefficient Kr */
-real direction::get_schlick(const rt::vector& direction, const rt::vector& normal, const real refr_1, const real refr_2) {
+static inline real pow_5(real x) {
+    const real x2 = x * x;
+    return x2 * x2 * x;
+}
 
-    const real pdt = (direction | normal);
+/* Compute Schlick's approximation of Fresnel coefficient Kr */
+real direction::get_schlick(const bounce_vectors& bounce_v, const real refr_1, const real refr_2) {
+
+    const auto& [ _, _, pdt ] = bounce_v;
     const real cos_theta_1 = std::abs(pdt);
 
     const real ratio = (refr_1 - refr_2) / (refr_1 + refr_2);
     const real r_zero = ratio * ratio;
-    return r_zero + (1.0_r - r_zero) * pow(1.0_r - cos_theta_1, 5);
+    return r_zero + (1.0_r - r_zero) * pow_5(1.0_r - cos_theta_1);
 }
