@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.0)
 project(raytracer VERSION "0.8.1")
 
-#set(CMAKE_BUILD_TYPE "Release")
+# set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_BUILD_TYPE "Debug")
 
 add_compile_options(-std=c++26)

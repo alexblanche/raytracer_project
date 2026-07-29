@@ -103,5 +103,5 @@ class worker {
             real refr_index;
         };
 
-        void process_bounce(const bounce_parameters& param, path_parameters& out) const;
+        void process_bounce(const bounce_parameters& param, path_parameters& out, bool) const;
 };

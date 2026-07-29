@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <memory>
 #include <cstring>
+#include <filesystem>
 
 using enum raw_data::format;
 using enum file_reader::error;
@@ -158,7 +159,8 @@ std::expected<image, file_reader::error> raw_data::read_file(const std::string& 
    and one raw data file dest_raw_name (extension .rtdata)
    Returns true if the operation was successful */
 exit_status raw_data::combine_files(const std::string& dest_bmp_name, const std::string& dest_raw_name,
-    const std::span<const std::string> source_file_names, float gamma) {
+    const std::span<const std::string> source_file_names, std::optional<std::string> input_dir,
+    std::optional<float> gamma_opt) {
 
     const std::size_t nb_files = source_file_names.size();
     printf("Merging %zu file%s...\n", nb_files, (nb_files > 1) ? "s" : "");
@@ -167,25 +169,30 @@ exit_status raw_data::combine_files(const std::string& dest_bmp_name, const std:
 
         /* Determination of the size of the matrix */
         unsigned int width, height;
-        file f0(source_file_names[0]);
-        [[maybe_unused]] unsigned int number_of_rays_0, format_code_0, pixel_size_0;
-        const exit_status status = f0.scanf("width:%u height:%u number_of_rays:%u format:%u pixel_size:%u",
-                width, height, number_of_rays_0, format_code_0, pixel_size_0);
-        float gamma_0;
-        const exit_status status_gamma = f0.scanf(" gamma:%f\n", gamma_0);
-        f0.close();
+        {
+            const std::string& name = source_file_names[0];
+            const std::string full_filename = input_dir.has_value() ?
+                  std::filesystem::path(input_dir.value()).append(name).generic_string()
+                : name;
+            file f0(full_filename);
+            
+            [[maybe_unused]] unsigned int number_of_rays_0, format_code_0, pixel_size_0;
+            const exit_status status = f0.scanf("width:%u height:%u number_of_rays:%u format:%u pixel_size:%u",
+                    width, height, number_of_rays_0, format_code_0, pixel_size_0);
+            float gamma_0;
+            const exit_status status_gamma = f0.scanf(" gamma:%f\n", gamma_0);
+            f0.close();
 
-        if (status == exit_status::Failure) {
-            printf("Reading error at first line of file %s\n", source_file_names[0].c_str());
-            throw ReadingErrorHeader;
-        }
+            if (status == exit_status::Failure) {
+                printf("Reading error at first line of file %s\n", name.c_str());
+                throw ReadingErrorHeader;
+            }
 
-        std::optional<real> gamma_opt = (gamma != 1.0f) ?
-            std::optional<real>(gamma) : std::nullopt;
-        if (status_gamma == exit_status::Success) {
-            if (gamma != 1.0f)
-                printf("gamma argument %f was overridden by raw data file (gamma = %f)\n", gamma, gamma_0);
-            gamma_opt = 1.0 / static_cast<double>(gamma_0);
+            if (status_gamma == exit_status::Success) {
+                if (gamma_opt.has_value())
+                    printf("gamma argument %f was overridden by raw data file (gamma = %f)\n", gamma_opt.value(), gamma_0);
+                gamma_opt = 1.0 / static_cast<double>(gamma_0);
+            }
         }
 
         image image(width, height, gamma_opt);
@@ -193,7 +200,10 @@ exit_status raw_data::combine_files(const std::string& dest_bmp_name, const std:
         /* Adding the value of each file to matrix */
         for (const std::string& name : source_file_names) {
 
-            file f(name);
+            const std::string full_filename = input_dir.has_value() ?
+                  std::filesystem::path(input_dir.value()).append(name).generic_string()
+                : name;
+            file f(full_filename);
 
             unsigned int width_k, height_k, number_of_rays_k;
             unsigned int format_code = 0;

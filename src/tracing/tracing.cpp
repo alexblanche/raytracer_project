@@ -84,7 +84,7 @@ using enum direction::angle;
 // };
 
 
-void worker::process_bounce(const bounce_parameters& param, path_parameters& out /*, bool double_bounce */) const {
+void worker::process_bounce(const bounce_parameters& param, path_parameters& out, bool /*double_bounce*/) const {
     
     const auto& [ h, m, normal, color, smoothness ] = param;
     auto& [ r, acc, refr_index ] = out;
@@ -97,11 +97,12 @@ void worker::process_bounce(const bounce_parameters& param, path_parameters& out
             
             /* Specular bounce */
 
-            const real bounce_probability = (m.get_refraction_index() != 1.0_r) ?
+            real bounce_probability = (m.get_refraction_index() != 1.0_r) ?
                   direction::get_schlick(r.direction, normal, 1.0_r, m.get_refraction_index())
                 : m.get_reflectivity();
-            //if (double_bounce)
-            //   bounce_probability *= (2 - bounce_probability);
+            // if (double_bounce)
+            //     // bounce_probability = 2 * bounce_probability / (1 + bounce_probability);   // bouncing back and forth between the two panes
+            //     // bounce_probability *= (2 - bounce_probability);                           // two attempts at bouncing
 
             const bool is_specular_bounce = rg.random_ratio() <= bounce_probability;
             const real specular_smoothness = is_specular_bounce ? smoothness : 0.0_r;
@@ -253,9 +254,11 @@ rt::color worker::pathtrace(const ray& init_ray) const {
             .smoothness = m.get_smoothness() // ms.smoothness;
         };
         
-        //const bool double_bounce = (obj->get_material_index() == 13);
+        ////
+        const bool double_bounce = false; // (obj->get_material_index() == 13); // Windshield of Porsche 2016
+        ////
 
-        process_bounce(param, path_param /*, double_bounce */);
+        process_bounce(param, path_param, double_bounce);
 
 
         if (russian_roulette == russian_roulette_mode::Enabled) {
