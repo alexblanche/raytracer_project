@@ -14,15 +14,21 @@ using enum file_reader::error;
 // format = 1: binary values written in sequence
 exit_status raw_data::export_data(const std::string& file_name, const image& image, const raw_data::format format) {
 
-    file f(file_name, "w");
-
     try {
+
+        file f(file_name, "w");
+
         const auto [ width, height ] = image.data.get_dimensions();
         
-        const exit_status status = f.printf("width:%u height:%u number_of_rays:%u format:%u pixel_size:%zu\n",
+        const exit_status status = f.printf("width:%u height:%u number_of_rays:%u format:%u pixel_size:%zu",
             width, height, image.number_of_samples, format, sizeof(rt::color));
 
-        throw_if_failure(status, "Writing error at first line of " + file_name + "\n");
+        const exit_status status_gamma =
+            (image.gamma.has_value()) ?
+              f.printf(" gamma:%lf\n", 1.0 / static_cast<double>(image.gamma.value()))
+            : f.printf("\n");
+
+        throw_if_failure(status && status_gamma, "Writing error at first line of " + file_name + "\n");
 
         switch (format) {
             case Text:
@@ -93,7 +99,7 @@ std::expected<image, file_reader::error> raw_data::read_file(const std::string& 
         unsigned int width, height, number_of_rays;
         unsigned int format_code = 0;
         std::size_t pixel_size = sizeof(rt::color);
-        const int ret = f.scanf_count("width:%u height:%u number_of_rays:%u format:%u pixel_size:%zu\n",
+        const int ret = f.scanf_count("width:%u height:%u number_of_rays:%u format:%u pixel_size:%zu",
             width, height, number_of_rays, format_code, pixel_size);
 
         if (ret < 3)
@@ -103,7 +109,11 @@ std::expected<image, file_reader::error> raw_data::read_file(const std::string& 
             
         const raw_data::format format = static_cast<raw_data::format>(format_code);
 
-        image image(width, height);
+        float gamma;
+        const exit_status status_gamma = f.scanf(" gamma:%f", gamma);
+        const std::optional gamma_opt = optional_of(status_gamma, 1.0_r / static_cast<real>(gamma));
+
+        image image(width, height, gamma_opt);
         
         switch (format) {
             case Text: {
@@ -148,7 +158,7 @@ std::expected<image, file_reader::error> raw_data::read_file(const std::string& 
    and one raw data file dest_raw_name (extension .rtdata)
    Returns true if the operation was successful */
 exit_status raw_data::combine_files(const std::string& dest_bmp_name, const std::string& dest_raw_name,
-    const std::span<const std::string> source_file_names, const float gamma) {
+    const std::span<const std::string> source_file_names, float gamma) {
 
     const std::size_t nb_files = source_file_names.size();
     printf("Merging %zu file%s...\n", nb_files, (nb_files > 1) ? "s" : "");
@@ -158,14 +168,27 @@ exit_status raw_data::combine_files(const std::string& dest_bmp_name, const std:
         /* Determination of the size of the matrix */
         unsigned int width, height;
         file f0(source_file_names[0]);
-        const exit_status status = f0.scanf("width:%u height:%u", width, height);
+        [[maybe_unused]] unsigned int number_of_rays_0, format_code_0, pixel_size_0;
+        const exit_status status = f0.scanf("width:%u height:%u number_of_rays:%u format:%u pixel_size:%u",
+                width, height, number_of_rays_0, format_code_0, pixel_size_0);
+        float gamma_0;
+        const exit_status status_gamma = f0.scanf(" gamma:%f\n", gamma_0);
+        f0.close();
 
         if (status == exit_status::Failure) {
             printf("Reading error at first line of file %s\n", source_file_names[0].c_str());
             throw ReadingErrorHeader;
         }
 
-        image image(width, height, gamma);
+        std::optional<real> gamma_opt = (gamma != 1.0f) ?
+            std::optional<real>(gamma) : std::nullopt;
+        if (status_gamma == exit_status::Success) {
+            if (gamma != 1.0f)
+                printf("gamma argument %f was overridden by raw data file (gamma = %f)\n", gamma, gamma_0);
+            gamma_opt = 1.0 / static_cast<double>(gamma_0);
+        }
+
+        image image(width, height, gamma_opt);
 
         /* Adding the value of each file to matrix */
         for (const std::string& name : source_file_names) {
@@ -175,8 +198,13 @@ exit_status raw_data::combine_files(const std::string& dest_bmp_name, const std:
             unsigned int width_k, height_k, number_of_rays_k;
             unsigned int format_code = 0;
             std::size_t pixel_size = sizeof(rt::color); // default value
-            const int ret = f.scanf_count("width:%u height:%u number_of_rays:%u format:%u pixel_size:%zu\n",
+            const int ret = f.scanf_count("width:%u height:%u number_of_rays:%u format:%u pixel_size:%zu",
                 width_k, height_k, number_of_rays_k, format_code, pixel_size);
+
+            {
+                [[maybe_unused]] float gamma_k;
+                f.scanf(" gamma:%f\n", gamma_k);
+            }
 
             const bool correct_format = format_code == 0 || format_code == 1;
             if (ret < 3 || not correct_format) {
