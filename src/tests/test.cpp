@@ -13,7 +13,7 @@
 #include <string>
 #include <sstream>
 
-#include "light/vector.hpp"
+#include "math/geometry/vector.hpp"
 #include "auxiliary/utils.hpp"
 
 [[maybe_unused]]

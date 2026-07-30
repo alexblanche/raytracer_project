@@ -28,7 +28,7 @@ static rt::vector compute_centroid(const std::vector<element>& elts) {
     if (elts.empty())
         throw std::runtime_error("Error, empty element set\n");
 
-    rt::vector sum = ZERO;
+    rt::vector sum = rt::ZERO;
     for (const element& elt : elts)
         sum += elt.get_position();
 

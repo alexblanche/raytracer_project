@@ -43,7 +43,7 @@ class direction {
         /* Returns a random unit direction in the cone of center central_dir, within solid angle theta_max */
         template <angle theta_max>
         requires (theta_max == angle::Pi || theta_max == angle::Pi_over_2)
-        static rt::vector random(const randomgen& rg, const rt::vector& central_dir = ZERO) {
+        static rt::vector random(const randomgen& rg, const rt::vector& central_dir = rt::ZERO) {
 
             using enum angle;
             

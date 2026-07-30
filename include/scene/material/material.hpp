@@ -129,11 +129,3 @@ constexpr material DIFFUSE(rt::WHITE, 0);
 constexpr material MIRROR (rt::WHITE, 1, 0, 1, false, 0,    0, 1.0 );
 constexpr material GLASS  (rt::WHITE, 1, 0, 1, false, 0.95, 0, 1.52);
 constexpr material WATER  (rt::WHITE, 1, 0, 1, false, 1,    0, 1.33);
-
-/* Specific constructors */
-
-/* Returns a diffuse material of given color */
-material diffuse_material(const rt::color& color);
-
-/* Returns a light of given color and intensity */
-material light_material(const rt::color& color, real emission_intensity);

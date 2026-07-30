@@ -1,6 +1,5 @@
 #include "scene/objects/box.hpp"
 
-#include "light/vector.hpp"
 #include "light/hit.hpp"
 #include "auxiliary/utils.hpp"
 

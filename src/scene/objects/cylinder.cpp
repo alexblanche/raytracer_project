@@ -1,5 +1,4 @@
 #include "scene/objects/cylinder.hpp"
-#include "light/vector.hpp"
 #include "auxiliary/utils.hpp"
 
 #include <cmath>
@@ -11,9 +10,6 @@ cylinder::cylinder(const rt::vector& origin, const rt::vector& direction,
 
     : object(origin, material_index),
         direction(direction), radius(radius), length(length) {}
-
-
-
 
 /* Intersection determination */
 
@@ -214,7 +210,7 @@ min_max_coord cylinder::get_min_max_coord() const {
     const rt::vector lendir = length * direction;
     const rt::vector rv(radius, radius, radius);
 
-    const auto [ min_l, max_l ] = rt::min_max(lendir, ZERO);
+    const auto [ min_l, max_l ] = rt::min_max(lendir, rt::ZERO);
 
     const rt::vector max = position + rv + max_l;
     const rt::vector min = position - rv + min_l;

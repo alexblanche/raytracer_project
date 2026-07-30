@@ -1,7 +1,5 @@
 #include "scene/objects/plane.hpp"
 
-#include "light/vector.hpp"
-#include "light/hit.hpp"
 #include "auxiliary/utils.hpp"
 
 #include <cmath>
@@ -23,10 +21,10 @@ plane::plane(const real pa, const real pb, const real pc, const real pd,
     
     : plane(pa, pb, pc,
             // position =
-              (is_not_zero(pa)) ? rt::vector(-pd/pa, 0, 0)
-            : (is_not_zero(pb)) ? rt::vector(0, -pd/pb, 0)
-            : (is_not_zero(pc)) ? rt::vector(0, 0, -pd/pc)
-            :                     rt::vector(0, 0, 0),
+              (is_not_zero(pa)) ? rt::vector(-pd / pa, 0, 0)
+            : (is_not_zero(pb)) ? rt::vector(0, -pd / pb, 0)
+            : (is_not_zero(pc)) ? rt::vector(0, 0, -pd / pc)
+            :                     rt::ZERO,
         material_index) {}
 
 // Constructor for textured planes

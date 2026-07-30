@@ -1,6 +1,6 @@
 #pragma once
 
-#include "light/vector.hpp"
+#include "math/geometry/vector.hpp"
 
 #include <string>
 #include <vector>

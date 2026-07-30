@@ -230,7 +230,7 @@ requires (std::is_same_v<T, object> || std::is_same_v<T, bounding>)
     if constexpr (std::is_same_v<bounding::box_type, box>)
         return new bounding(
             std::forward<std::vector<const T*>>(set),
-            std::make_unique<box>(center, RIGHT, UP, l1, l2, l3)
+            std::make_unique<box>(center, rt::RIGHT, rt::UP, l1, l2, l3)
         );
 
     else if constexpr (std::is_same_v<bounding::box_type, aabb>) {

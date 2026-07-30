@@ -23,7 +23,7 @@ class box final : public object {
             : object(center, material_index), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1 / 2), l2(l2 / 2), l3(l3 / 2) {}
 
         box(const min_max_coord& mmc)
-            : object(ZERO, EMPTY_INDEX), n1(RIGHT), n2(UP) {
+            : object(rt::ZERO, EMPTY_INDEX), n1(rt::RIGHT), n2(rt::UP) {
             
             const auto& [ min_x, max_x, min_y, max_y, min_z, max_z ] = mmc;
             const rt::vector min(min_x, min_y, min_z);
@@ -46,7 +46,7 @@ class box final : public object {
         }
 
         static inline box infinite_box() {
-            return box(ZERO, RIGHT, UP, infinity, infinity, infinity, EMPTY_INDEX);
+            return box(rt::ZERO, rt::RIGHT, rt::UP, infinity, infinity, infinity, EMPTY_INDEX);
         }
 
         /* Intersection determination */

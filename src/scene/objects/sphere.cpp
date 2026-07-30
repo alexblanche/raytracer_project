@@ -1,5 +1,5 @@
 #include "scene/objects/sphere.hpp"
-#include "light/vector.hpp"
+
 #include "tracing/direction.hpp"
 #include "auxiliary/utils.hpp"
 

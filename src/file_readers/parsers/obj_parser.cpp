@@ -827,7 +827,7 @@ exit_status parse_obj_file(const std::string& file_name,
             number_of_vertices, number_of_polygons, number_of_triangles, number_of_quads);
         printf("Dimensions: (x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf])\n",
             min.x, max.x, min.y, max.y, min.z, max.z);
-        if (scale != 1.0_r || not (shift == ZERO)) {
+        if (scale != 1.0_r || not (shift == rt::ZERO)) {
             const rt::vector scaled_min = fma(min, scale, shift);
             const rt::vector scaled_max = fma(max, scale, shift);
             printf("Rescaled/shifted dimensions: (x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf])\n",

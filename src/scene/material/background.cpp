@@ -7,13 +7,7 @@
 /* Returns the color of the pixel dir is pointing at, when a texture is set */
 const rt::color& background_container::get_color(const rt::vector& dir) const {
     
-    static thread_local const auto rotate = [this] (const rt::vector& d) {
-        if constexpr (ROTATION_MATRIX_COLUMNS)
-            return matprod(m1, m2, m3, d);                    // with columns
-        else
-            return rt::vector((m1 | d), (m2 | d), (m3 | d));  // with rows
-    };
-    const rt::vector dir_rotated = rotate(dir);
+    const rt::vector dir_rotated = rotation_matrix * dir;
 
     /* Determining the pixel of the background texture to display */      
     // dir is a unit vector, but due to floating-point imprecision, dir.y can be greater than 1

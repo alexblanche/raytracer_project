@@ -50,7 +50,7 @@ class aabb {
         aabb& operator=(aabb&&)      = delete;
 
         static constexpr aabb infinite_box() {
-            return aabb(ZERO, rt::vector(infinity, infinity, infinity));
+            return aabb(rt::ZERO, rt::vector(infinity, infinity, infinity));
         }
 
         /* Only measures the distance from the outside of the aabb, otherwise returns 0.0_r */

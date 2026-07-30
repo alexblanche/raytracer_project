@@ -1,7 +1,7 @@
 #pragma once
 
 #include "parameters.hpp"
-#include "light/vector.hpp"
+#include "math/geometry/vector.hpp"
 
 #include <vector>
 

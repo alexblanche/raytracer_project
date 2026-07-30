@@ -55,7 +55,7 @@ static std::array<unsigned int, NB_REGIONS + 1> split(search_tree& tree, const u
         throw std::runtime_error("split: empty elts\n");
 
     // Computing the average coordinates
-    rt::vector avg = ZERO;
+    rt::vector avg = rt::ZERO;
     for (unsigned int elt : elts)
         avg += tree.means[elt];
     avg /= static_cast<real>(nb_indices);
@@ -302,7 +302,7 @@ unsigned int search_tree::search(const rt::vector& v) const {
             // Pre-computation for distance checking
             
             const rt::vector d = v - root;
-            const unsigned char b = region_of_point(d, ZERO);
+            const unsigned char b = region_of_point(d, rt::ZERO);
             const rt::vector d2 = d * d;
 
             // Search in all neighbor regions for a point that is closer than min_dist
