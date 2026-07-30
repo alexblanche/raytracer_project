@@ -1,7 +1,6 @@
 #pragma once
 
 #include "scene/material/texture.hpp"
-
 #include "math/geometry/mat3.hpp"
 
 #include <cmath>

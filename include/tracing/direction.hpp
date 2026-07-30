@@ -3,6 +3,7 @@
 #include "light/hit.hpp"
 #include "auxiliary/randomgen.hpp"
 #include "auxiliary/utils.hpp"
+#include "math/geometry/trigonometry.hpp"
 
 class direction {
     public:
@@ -44,20 +45,10 @@ class direction {
         template <angle theta_max>
         requires (theta_max == angle::Pi || theta_max == angle::Pi_over_2)
         static rt::vector random(const randomgen& rg, const rt::vector& central_dir = rt::ZERO) {
-
-            using enum angle;
             
-            const real cos_theta = 2.0_r * rg.random_ratio() - 1.0_r;
-            const real sin_theta = sqrt(1.0_r - cos_theta * cos_theta);
-            const real phi = rg.random_angle();
+            const rt::vector v = trig::random_direction_sphere(rg);
             
-            const rt::vector v(
-                cos(phi) * sin_theta,
-                sin(phi) * sin_theta,
-                cos_theta
-            );
-
-            if constexpr (theta_max == Pi)
+            if constexpr (theta_max == angle::Pi)
                 return v;
             else
                 return std::signbit(v | central_dir) ? (-1.0_r) * v : v;
@@ -131,8 +122,8 @@ class direction {
         }
 
         /* Computes the Fresnel coefficient Kr */
-        static real get_fresnel(const bounce_vectors& bounce_v, real sin_theta_2_sq, real refr_1, real refr_2);
+        // static real get_fresnel(const bounce_vectors& bounce_v, real sin_theta_2_sq, real refr_1, real refr_2);
 
         /* Compute Schlick's approximation of Fresnel coefficient Kr */
-        static real get_schlick(const bounce_vectors& bounce_v, real refr_1, real refr_2);
+        static real get_fresnel(const bounce_vectors& bounce_v, real refr_1, real refr_2);
 };

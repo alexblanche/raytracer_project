@@ -1,20 +1,5 @@
 #include "tracing/direction.hpp"
 
-/* Returns the reflected ray at the point of contact */
-/* Unused */
-/*
-ray directions::get_reflected_ray() {
-
-    * ray::direction and hit::normal are supposed to be unit vectors
-       u is directed toward the surface, so the cos is computed with (-u),
-       and so is the reflected ray: (2*cos*normal - (-u)) *
-    const rt::vector u = generator.get_direction();
-    const real cos = (-1) * (u | normal);
-
-    return ray(point, (2*cos)*normal + u);
-}
-*/
-
 /* Returns the interpolated direction between the normal and the reflected direction */
 /* inward = ((direction | normal) <= 0) */
 rt::vector direction::central_reflected(const bounce_vectors& bounce_v, const real smoothness, const orientation_type ray_orientation) {
@@ -46,6 +31,7 @@ rt::vector direction::random(const randomgen& rg, const rt::vector& central_dir,
 /* Refraction */
 
 /* Computes the Fresnel coefficient Kr */
+/*
 real direction::get_fresnel(const bounce_vectors& bounce_v,
     const real sin_theta_2_sq, const real refr_1, const real refr_2) {
 
@@ -62,6 +48,7 @@ real direction::get_fresnel(const bounce_vectors& bounce_v,
     
     return (para * para + orth * orth) / 2.0_r;
 }
+*/
 
 static inline real pow_5(real x) {
     const real x2 = x * x;
@@ -69,7 +56,7 @@ static inline real pow_5(real x) {
 }
 
 /* Compute Schlick's approximation of Fresnel coefficient Kr */
-real direction::get_schlick(const bounce_vectors& bounce_v, const real refr_1, const real refr_2) {
+real direction::get_fresnel(const bounce_vectors& bounce_v, const real refr_1, const real refr_2) {
 
     const auto& [ _, _, pdt ] = bounce_v;
     const real cos_theta_1 = std::abs(pdt);

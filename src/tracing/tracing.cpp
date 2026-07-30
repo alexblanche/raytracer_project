@@ -91,7 +91,7 @@ void worker::process_bounce(const bounce_parameters& param, path_parameters& out
             /* Specular bounce */
 
             real bounce_probability = m.has_fresnel() ?
-                  direction::get_schlick(bounce_v, 1.0_r, m.get_refraction_index())
+                  direction::get_fresnel(bounce_v, 1.0_r, m.get_refraction_index())
                 : m.get_reflectivity();
             if (double_bounce)
                 bounce_probability = 2 * bounce_probability / (1 + bounce_probability);   // bouncing back and forth between the two panes
@@ -137,7 +137,7 @@ void worker::process_bounce(const bounce_parameters& param, path_parameters& out
 
         const auto is_fresnel_reflection = [&] {
 
-            const real fresnel = direction::get_schlick(bounce_v, refr_index, next_refr_i);
+            const real fresnel = direction::get_fresnel(bounce_v, refr_index, next_refr_i);
             return rg.random_ratio() * m.get_transparency() <= fresnel;
         };
 
