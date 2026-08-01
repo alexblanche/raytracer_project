@@ -68,10 +68,7 @@ using enum direction::angle;
 /* Determining the pixel of the background texture to display */
 [[nodiscard]] inline rt::color worker::background_case(const rt::vector& direction, const accumulators& acc) const {
 
-    const rt::color& color = scene_.mapping_containers.background.has_texture() ?
-          scene_.mapping_containers.background.get_color(direction)
-        : scene_.mapping_containers.background.get_color();
-
+    const rt::color& color = scene_.mapping_containers.background.get_color(direction);
     return acc.combine(color);
 }
 

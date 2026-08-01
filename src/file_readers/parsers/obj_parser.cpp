@@ -459,6 +459,16 @@ exit_status parse_obj_file(const std::string& file_name,
     ]
     = containers;
 
+    auto& [
+        triangle_set,
+        quad_set,
+        sphere_set,
+        plane_set,
+        box_set,
+        cylinder_set
+    ]
+    = object_containers;
+
     /* Extraction of the path to the .obj file, to be appended to relative paths of mtl and texture files */
     const std::filesystem::path path = std::filesystem::path(file_name).parent_path();
 

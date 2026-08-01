@@ -200,8 +200,11 @@ static void test_obj() {
         ////
         
         //timer.start();
-        for (auto pt : object_set)
-            delete pt;
+        
+        auto& [ triangle_set, quad_set, _, _, _, _ ] = object_containers;
+        triangle_set.clear();
+        quad_set.clear();
+
         //timer.stop();
         //timer.print();
         object_set.clear();

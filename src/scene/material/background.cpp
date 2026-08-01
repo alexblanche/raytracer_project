@@ -5,7 +5,7 @@
 #include <cmath>
 
 /* Returns the color of the pixel dir is pointing at, when a texture is set */
-const rt::color& background_container::get_color(const rt::vector& dir) const {
+const rt::color& background_container::get_texture_color(const rt::vector& dir) const {
     
     const rt::vector dir_rotated = rotation_matrix * dir;
     const auto& [ theta, phi ] = trig::get_angles(dir_rotated);
