@@ -15,9 +15,9 @@ static constexpr unsigned int MAX_NAME_LENGTH     = 64;
 static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
 
 /*** Scene descriptor pre-parsing ***/
-[[maybe_unused]] static pre_parsing_info pre_parse(const file& f) {
+[[maybe_unused]] static scene::pre_parsing_info pre_parse(const file& f) {
 
-    pre_parsing_info ppi;
+    scene::pre_parsing_info ppi;
 
     const std::array<std::string, 8> keywords_array = {
         "triangle", "quad", "sphere", "plane", "box", "cylinder",
@@ -62,17 +62,7 @@ static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
         f.skip_line();
     }
     
-    /*
-    std::cout << "pre_parse_info:"
-        << "\ntriangles: " << ppi.triangles
-        << "\nquads:     " << ppi.quads
-        << "\nspheres:   " << ppi.spheres
-        << "\nplanes:    " << ppi.planes
-        << "\nboxes:     " << ppi.boxes
-        << "\ncylinders: " << ppi.cylinders
-        << "\nmaterials: " << ppi.materials
-        << "\ntextures:  " << ppi.textures  << std::endl;
-    */
+    // ppi.print();
 
     f.rewind();
     return ppi;
@@ -633,20 +623,23 @@ static void parse_objects(const file& f, const object_type type, const std::stri
     auto& [
         object_set,
         other_content,
-
-        triangle_set,
-        quad_set,
-        sphere_set,
-        plane_set,
-        box_set,
-        cylinder_set,
-
+        object_containers,
         material_wrapper_set,
         texture_wrapper_set,
         normal_map_wrapper_set,
         texture_info_set
     ]
     = containers;
+
+    auto& [
+        triangle_set,
+        quad_set,
+        sphere_set,
+        plane_set,
+        box_set,
+        cylinder_set
+    ]
+    = object_containers;
 
     const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
     throw_if_null(m_index, "material definition error");
@@ -782,7 +775,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
         file f(file_name, "rb");
 
-        const pre_parsing_info pre_parsing_info = pre_parse(f);
+        const scene::pre_parsing_info pre_parsing_info = pre_parse(f);
 
         /* Parameters definition
 
@@ -926,19 +919,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         std::vector<const object*> object_set;
         object_set.reserve(pre_parsing_info.objects + pre_parsing_info.quads);
 
-        std::vector<triangle> triangle_set;
-        std::vector<quad>     quad_set;
-        std::vector<sphere>   sphere_set;
-        std::vector<plane>    plane_set;
-        std::vector<box>      box_set;
-        std::vector<cylinder> cylinder_set;
-        triangle_set.reserve(pre_parsing_info.triangles + 2 * pre_parsing_info.quads);
-        // triangle_set must make room for split quads
-        quad_set    .reserve(pre_parsing_info.quads);
-        sphere_set  .reserve(pre_parsing_info.spheres);
-        plane_set   .reserve(pre_parsing_info.planes);
-        box_set     .reserve(pre_parsing_info.boxes);
-        cylinder_set.reserve(pre_parsing_info.cylinders);
+        scene::containers::object object_containers(pre_parsing_info);
 
         /* Material storage */
         std::vector<wrapper<material>> material_wrapper_set;
@@ -966,12 +947,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         containers containers = {
             object_set,
             other_content,
-            triangle_set,
-            quad_set,
-            sphere_set,
-            plane_set,
-            box_set,
-            cylinder_set,
+            object_containers,
             material_wrapper_set,
             texture_wrapper_set,
             normal_map_wrapper_set,
@@ -1131,26 +1107,23 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
               background_container(std::move(background_texture), rx, ry, rz)
             : background_container(background_color);
 
+        scene::containers::mapping mapping_containers(
+            std::move(material_set),
+            std::move(texture_set),
+            std::move(normal_map_set),
+            std::move(texture_info_set),
+            std::move(background)
+        );
+
         const std::optional<real> gamma = (inverse_gamma.has_value()) ?
               std::optional(1.0_r / inverse_gamma.value())
             : std::nullopt;
 
         scene_opt.emplace(
             std::move(object_set),
-
-            std::move(triangle_set),
-            std::move(quad_set),
-            std::move(sphere_set),
-            std::move(plane_set),
-            std::move(box_set),
-            std::move(cylinder_set),
-
             std::move(bounding_set),
-            std::move(texture_set),
-            std::move(normal_map_set),
-            std::move(material_set),
-            std::move(texture_info_set),
-            std::move(background),
+            std::move(object_containers),
+            std::move(mapping_containers),
             std::move(cam),
             width, height,
             polygons_per_bounding,

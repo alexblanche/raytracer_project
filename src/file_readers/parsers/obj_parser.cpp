@@ -451,14 +451,7 @@ exit_status parse_obj_file(const std::string& file_name,
     auto& [
         object_set,
         other_content,
-
-        triangle_set,
-        quad_set,
-        sphere_set,
-        plane_set,
-        box_set,
-        cylinder_set,
-
+        object_containers,
         material_wrapper_set,
         texture_wrapper_set,
         normal_map_wrapper_set,

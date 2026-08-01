@@ -85,12 +85,15 @@ min_max_coord sphere::get_min_max_coord() const {
 /* Returns the barycentric info for the object (l1 = longitude, l2 = latitude) (both between 0 and 1) */
 barycentric_info sphere::get_barycentric(const rt::vector& p) const {
     const rt::vector v = (p - position).unit();
+
+    // mat3<Row> * v
     const real forward_component = (v | orientation.forward_dir);
     const real right_component   = (v | orientation.right_dir  );
     const real up_component      = (v | orientation.up_dir     );
 
+    // trig::get_angles(x, y, z)
     const real theta = asin(up_component);
-    const real x = acos(forward_component / cos(theta));
+    const real x = acos(forward_component / cos(theta)); // -> one atan ?
     const real phi = is_negative_not_zero(right_component) ? (-x + 2.0_r * PI) : x;
 
     return barycentric_info(

@@ -83,7 +83,6 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     const rt::vector t = r * ( y2 * v1 + -y1 * v2);
     const rt::vector b = r * (-x2 * v1 +  x1 * v2);
     info.set_tangent_space(t.unit(), b.unit());
-    
 }
 
 // Constructor from three points with vertex normals and normal mapping enabled

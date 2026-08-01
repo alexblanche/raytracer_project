@@ -2,6 +2,7 @@
 
 #include "scene/objects/object.hpp"
 
+// -> trig::mat3<Row>
 struct sphere_orientation {
     rt::vector forward_dir;
     rt::vector right_dir;

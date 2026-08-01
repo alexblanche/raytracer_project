@@ -9,42 +9,19 @@ static constexpr unsigned int DEFAULT_STACK_SIZE = 200;
 
 scene::scene(
     std::vector<const object*>&& object_set,
-
-    std::vector<triangle>&& triangle_set,
-    std::vector<quad>&&     quad_set,
-    std::vector<sphere>&&   sphere_set,
-    std::vector<plane>&&    plane_set,
-    std::vector<box>&&      box_set,
-    std::vector<cylinder>&& cylinder_set,
-
     std::vector<const bounding*>&& bounding_set,
-    std::vector<texture>&&         texture_set,
-    std::vector<normal_map>&&      normal_map_set,
-    std::vector<material>&&        material_set,
-    std::vector<texture_info>&&    texture_info_set,
-    background_container&&         background,
-    camera&&                       cam,
-
+    scene::containers::object&&    object_containers,
+    scene::containers::mapping&&   mapping_containers,
+    camera&& cam,
     const int width, const int height,
     const unsigned int polygons_per_bounding,
     const std::optional<real> gamma) :
     
-    object_set       (std::move(object_set)),
-
-    triangle_set     (std::move(triangle_set)),
-    quad_set         (std::move(quad_set)),
-    sphere_set       (std::move(sphere_set)),
-    plane_set        (std::move(plane_set)),
-    box_set          (std::move(box_set)),
-    cylinder_set     (std::move(cylinder_set)),
-
-    bounding_set     (std::move(bounding_set)),
-    texture_set      (std::move(texture_set)),
-    normal_map_set   (std::move(normal_map_set)),
-    material_set     (std::move(material_set)),
-    texture_info_set (std::move(texture_info_set)),
-    background       (std::move(background)),
-    cam              (std::move(cam)),
+    object_set         (std::move(object_set)),
+    bounding_set       (std::move(bounding_set)),
+    object_containers  (std::move(object_containers)),
+    mapping_containers (std::move(mapping_containers)),
+    cam                (std::move(cam)),
     width(width), height(height),
     polygons_per_bounding(polygons_per_bounding),
     gamma(gamma) {}
@@ -104,18 +81,16 @@ concept Object =
     || std::is_same_v<T, box>
     || std::is_same_v<T, cylinder>;
 
+using enum object_type;
+
 template<Object Obj>
-consteval object_type object_type_of() {
-
-    using enum object_type;
-
-         if constexpr (std::is_same_v<Obj, triangle>) return Triangle;
-    else if constexpr (std::is_same_v<Obj, quad>)     return Quad;
-    else if constexpr (std::is_same_v<Obj, sphere>)   return Sphere;
-    else if constexpr (std::is_same_v<Obj, plane>)    return Plane;
-    else if constexpr (std::is_same_v<Obj, box>)      return Box;
-    else                                              return Cylinder;
-}
+object_type object_type_of();
+template<> object_type object_type_of<triangle>() { return Triangle; }
+template<> object_type object_type_of<quad>    () { return Quad;     }
+template<> object_type object_type_of<sphere>  () { return Sphere;   }
+template<> object_type object_type_of<plane>   () { return Plane;    }
+template<> object_type object_type_of<box>     () { return Box;      }
+template<> object_type object_type_of<cylinder>() { return Cylinder; }
 
 template<Object Obj>
 inline void search_closest(const std::vector<Obj>& object_type_set, const ray& r,
@@ -141,6 +116,8 @@ std::optional<hit> scene::find_closest_object(const ray& r) const {
     real distance_to_closest = infinity;
     const object* closest_pt = nullptr;
     object_type closest_obj_type;
+
+    const auto& [ triangle_set, quad_set, sphere_set, plane_set, box_set, cylinder_set ] = object_containers;
 
     search_closest<triangle>(triangle_set, r, distance_to_closest, closest_pt, closest_obj_type);
     search_closest<quad>    (quad_set,     r, distance_to_closest, closest_pt, closest_obj_type);
@@ -209,9 +186,9 @@ std::optional<hit> scene::find_closest_object_bounding(const ray& r) const {
 /* Returns the color of the pixel associated with UV-coordinates u, v */
 const rt::color& scene::sample_texture(const unsigned int texture_info_index, const barycentric_info& bary) const {
     
-    const texture_info& ti = texture_info_set[texture_info_index];
+    const texture_info& ti = mapping_containers.texture_info_set[texture_info_index];
     const auto [ u, v ] = ti.get_barycenter(bary);
-    return texture_set[ti.texture_index].get_color(u, v);
+    return mapping_containers.texture_set[ti.texture_index].get_color(u, v);
 
     /* HERE: we can introduce texture filtering */
 }
@@ -219,21 +196,29 @@ const rt::color& scene::sample_texture(const unsigned int texture_info_index, co
 map_sample scene::sample_maps(const unsigned int texture_info_index, const barycentric_info& bary,
     const rt::color& default_color, const rt::vector& default_normal, const real /*default_smoothness*/) const {
 
+    const auto& [ material_set, texture_set, normal_map_set, texture_info_set, _ ] = mapping_containers;
+
     const texture_info& ti = texture_info_set[texture_info_index];
     const auto [ u, v ] = ti.get_barycenter(bary);
+
     const rt::color& t_col = (ti.has_texture_information()) ?
           texture_set[ti.texture_index].get_color(u, v)
         : default_color;
-    const rt::vector& n_vec = (ti.has_normal_information()) ?
+    
+        const rt::vector& n_vec = (ti.has_normal_information()) ?
           normal_map_set[ti.normal_map_index].get_tangent_space_normal(u, v)
         : default_normal;
+    
     // const real smoothness = (ti.roughness_map_index.has_value()) ?
     //       1.0f - roughness_map_set[ti.roughness_map_index.value()].get_roughness(uvc.u, uvc.v)
     //     : default_smoothness;
+    
     // const real displacement = displacement_map_set[ti.displacement_map_index].get_displacement(uvc.u, uvc.v);
 
-    return map_sample(t_col, n_vec//,
-        // smoothness,
+    return map_sample(
+        t_col,
+        n_vec //,
+        //smoothness,
         // displacement
     );
 }

@@ -54,9 +54,3 @@ uvcoord texture_info::get_barycenter(const barycentric_info& bary) const {
     }
     return uvc;
 }
-
-/* Sets the tangent and bitangent vectors */
-void texture_info::set_tangent_space(const rt::vector& t, const rt::vector& b) {
-    tangent   = t;
-    bitangent = b;
-}

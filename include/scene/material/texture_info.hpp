@@ -47,7 +47,10 @@ class texture_info {
         texture_info& operator=(const texture_info&) = delete;
 
         /* Sets the tangent and bitangent vectors */
-        void set_tangent_space(const rt::vector& t, const rt::vector& b);
+        inline void set_tangent_space(const rt::vector& t, const rt::vector& b) {
+            tangent   = t;
+            bitangent = b;
+        }
 
         /* Returns the UV-coordinate of the barycenter associated with the barycentric coordinates l1, l2
         In the case of quads, the boolean lower_triangle indicates that the three points to

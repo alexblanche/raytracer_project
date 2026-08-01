@@ -145,18 +145,21 @@ static void test_obj() {
     const std::string& filename_obj = OBJ_FILE_NAME;
     constexpr int NB_ITERATIONS = 5;
 
-    pre_parsing_info pre_parsing_info;
+    scene::pre_parsing_info pre_parsing_info;
     const auto& [ _, obj_triangles, obj_quads ] = pre_parse_obj(filename_obj);
     pre_parsing_info.triangles += obj_triangles;
     pre_parsing_info.quads     += obj_quads;
     pre_parsing_info.objects   += obj_triangles + obj_quads;
 
-    std::vector<const object*>       object_set;
+    std::vector<const object*> object_set;
     object_set.reserve(pre_parsing_info.objects);
 
-    std::vector<const object*>       other_content;
+    std::vector<const object*> other_content;
     other_content.reserve(
-        pre_parsing_info.spheres + pre_parsing_info.planes + pre_parsing_info.boxes + pre_parsing_info.cylinders
+          pre_parsing_info.spheres
+        + pre_parsing_info.planes
+        + pre_parsing_info.boxes
+        + pre_parsing_info.cylinders
     );
 
     std::vector<wrapper<material>>   material_wrapper_set;
@@ -164,31 +167,12 @@ static void test_obj() {
     std::vector<wrapper<normal_map>> normal_map_wrapper_set;
     std::vector<texture_info>        texture_info_set;
 
-    std::vector<triangle> triangle_set;
-    std::vector<quad>     quad_set;
-    std::vector<sphere>   sphere_set;
-    std::vector<plane>    plane_set;
-    std::vector<box>      box_set;
-    std::vector<cylinder> cylinder_set;
-
-    triangle_set.reserve(pre_parsing_info.triangles + 2 * pre_parsing_info.quads);
-    quad_set    .reserve(pre_parsing_info.quads);
-    sphere_set  .reserve(pre_parsing_info.spheres);
-    plane_set   .reserve(pre_parsing_info.planes);
-    box_set     .reserve(pre_parsing_info.boxes);
-    cylinder_set.reserve(pre_parsing_info.cylinders);
+    scene::containers::object object_containers(pre_parsing_info);
 
     containers containers = {
         object_set,
         other_content,
-
-        triangle_set,
-        quad_set,
-        sphere_set,
-        plane_set,
-        box_set,
-        cylinder_set,
-
+        object_containers,
         material_wrapper_set,
         texture_wrapper_set,
         normal_map_wrapper_set,
@@ -203,7 +187,11 @@ static void test_obj() {
         timer.start();
         
         const bounding* output_bd = nullptr;
-        [[maybe_unused]] const exit_status status = parse_obj_file(filename_obj, std::nullopt, containers, 2.0_r, rt::vector(1, 1, 1), false, 0, output_bd, 1.0_r);
+        [[maybe_unused]] const exit_status status = parse_obj_file(
+            filename_obj, std::nullopt, containers,
+            2.0_r, rt::vector(1, 1, 1),
+            false, 0, output_bd, 1.0_r
+        );
         assert(status == exit_status::Success);
 
         timer.stop();

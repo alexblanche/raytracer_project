@@ -68,9 +68,9 @@ using enum direction::angle;
 /* Determining the pixel of the background texture to display */
 [[nodiscard]] inline rt::color worker::background_case(const rt::vector& direction, const accumulators& acc) const {
 
-    const rt::color& color = scene_.background.has_texture() ?
-          scene_.background.get_color(direction)
-        : scene_.background.get_color();
+    const rt::color& color = scene_.mapping_containers.background.has_texture() ?
+          scene_.mapping_containers.background.get_color(direction)
+        : scene_.mapping_containers.background.get_color();
 
     return acc.combine(color);
 }
@@ -217,7 +217,7 @@ rt::color worker::pathtrace(const ray& init_ray) const {
 
         const hit&          h   = opt_h.value();
         const object* const obj = h.get_object();
-        const material&     m   = scene_.material_set[obj->get_material_index()];
+        const material&     m   = scene_.mapping_containers.material_set[obj->get_material_index()];
 
         /* Full-intensity light source reached */
         if (m.is_emissive() && m.get_emission_intensity() >= 1.0_r)

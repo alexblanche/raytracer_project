@@ -39,39 +39,86 @@ enum class bvh_option {
 
 class scene {
     public:
-        /* Set of all the objects in the scene */
-        /* Storing pointers allow the overridden methods send and intersect (from sphere, plane, triangle...)
-           to be executed instead of the base (object) one */
+
+        struct pre_parsing_info {
+            unsigned int objects    = 0;
+            unsigned int triangles  = 0;
+            unsigned int quads      = 0;
+            unsigned int spheres    = 0;
+            unsigned int planes     = 0;
+            unsigned int boxes      = 0;
+            unsigned int cylinders  = 0;
+            unsigned int materials  = 0;
+            unsigned int textures   = 0;
+
+            void print() const {
+                std::cout << "pre_parse_info:"
+                    << "\ntriangles: " << triangles
+                    << "\nquads:     " << quads
+                    << "\nspheres:   " << spheres
+                    << "\nplanes:    " << planes
+                    << "\nboxes:     " << boxes
+                    << "\ncylinders: " << cylinders
+                    << "\nmaterials: " << materials
+                    << "\ntextures:  " << textures
+                    << std::endl;
+            }
+        };
+
+        struct containers {
+            struct object {
+                std::vector<triangle> triangle_set;
+                std::vector<quad>     quad_set;
+                std::vector<sphere>   sphere_set;
+                std::vector<plane>    plane_set;
+                std::vector<box>      box_set;
+                std::vector<cylinder> cylinder_set;
+
+                object(const pre_parsing_info& pre_parsing_info) {
+                    const auto& [ _, nb_triangles, nb_quads, nb_spheres, nb_planes, nb_boxes, nb_cylinders, _, _ ] = pre_parsing_info;
+
+                    // triangle_set must make room for split quads
+                    triangle_set.reserve(nb_triangles + 2 * nb_quads);
+                    quad_set    .reserve(nb_quads);
+                    sphere_set  .reserve(nb_spheres);
+                    plane_set   .reserve(nb_planes);
+                    box_set     .reserve(nb_boxes);
+                    cylinder_set.reserve(nb_cylinders);
+                }
+            };
+
+            struct mapping {
+                std::vector<material>     material_set;
+                std::vector<texture>      texture_set;
+                std::vector<normal_map>   normal_map_set;
+                std::vector<texture_info> texture_info_set;
+                background_container background;
+
+                mapping(std::vector<material>&& material_set,
+                    std::vector<texture>&&      texture_set,
+                    std::vector<normal_map>&&   normal_map_set,
+                    std::vector<texture_info>&& texture_info_set,
+                    background_container&&      background) :
+
+                    material_set    (std::move(material_set)),
+                    texture_set     (std::move(texture_set)),
+                    normal_map_set  (std::move(normal_map_set)),
+                    texture_info_set(std::move(texture_info_set)),
+                    background      (std::move(background)) {}
+            };
+        };
+
+        /* Pointers to all the objects in the scene */
         std::vector<const object*> object_set;
-
-        /* Objects */
-        std::vector<triangle> triangle_set;
-        std::vector<quad>     quad_set;
-        std::vector<sphere>   sphere_set;
-        std::vector<plane>    plane_set;
-        std::vector<box>      box_set;
-        std::vector<cylinder> cylinder_set;
-
 
         /* Set of the first-level bounding boxes */
         std::vector<const bounding*> bounding_set;
 
-        /* Set containing all the textures from the scene */
-        std::vector<texture> texture_set;
+        /* Objects, materials, textures, normal_maps */
+        containers::object  object_containers;
+        containers::mapping mapping_containers;
 
-        /* Set containing all the normal maps from the scene */
-        std::vector<normal_map> normal_map_set;
-
-        /* Set containing all the materials from the scene */
-        std::vector<material> material_set;
-
-        /* Set containing all the texture_info structures for the objects */
-        std::vector<texture_info> texture_info_set;
-
-        // Color or texture of the background
-        background_container background;
-
-        // Camera parameters
+        /* Camera */
         camera cam;
 
         // Screen parameters
@@ -86,32 +133,21 @@ class scene {
 
         /* Constructor with background texture and optional background color */
         scene(
-            std::vector<const object*>&& object_set,
-
-            std::vector<triangle>&& triangle_set,
-            std::vector<quad>&&     quad_set,
-            std::vector<sphere>&&   sphere_set,
-            std::vector<plane>&&    plane_set,
-            std::vector<box>&&      box_set,
-            std::vector<cylinder>&& cylinder_set,
-
+            std::vector<const object*>&&   object_set,
             std::vector<const bounding*>&& bounding_set,
-            std::vector<texture>&&         texture_set,
-            std::vector<normal_map>&&      normal_map_set,
-            std::vector<material>&&        material_set,
-            std::vector<texture_info>&&    texture_info_set,
-            background_container&&         background,
-            camera&&                       cam,
+            scene::containers::object&&    object_containers,
+            scene::containers::mapping&&   mapping_containers,
+            camera&& cam,
             int width, int height,
             unsigned int polygons_per_bounding,
             std::optional<real> gamma
         );
 
-        scene(scene&&) noexcept         = default;
+        scene(scene&&) noexcept        = default;
 
-        scene(const scene&)             = delete;
-        scene& operator=(const scene&)  = delete;
-        scene& operator=(scene&&)       = delete;
+        scene(const scene&)            = delete;
+        scene& operator=(const scene&) = delete;
+        scene& operator=(scene&&)      = delete;
 
         ~scene() noexcept;
 
@@ -143,6 +179,6 @@ class scene {
             const rt::color& default_color, const rt::vector& default_normal, real default_reflectivity = 0.0_r) const;
 
         inline const texture_info& get_texture_info (const object* obj) const {
-            return texture_info_set[obj->get_texture_info_index()];
+            return mapping_containers.texture_info_set[obj->get_texture_info_index()];
         }
 };

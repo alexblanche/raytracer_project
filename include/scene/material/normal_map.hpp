@@ -29,8 +29,8 @@ class normal_map {
         normal_map(normal_map&&)            noexcept = default;
         normal_map& operator=(normal_map&&) noexcept = default;
 
-        normal_map(const normal_map&)               = delete;
-        normal_map& operator=(const normal_map&)    = delete;
+        normal_map(const normal_map&)            = delete;
+        normal_map& operator=(const normal_map&) = delete;
 
         /* Returns the normal in tangent space at the given UV-coordinates u, v (between 0 and 1) */
         /* Returns the local normal at the given UV-coordinates u, v (between 0 and 1) */
@@ -39,6 +39,6 @@ class normal_map {
             const int y = v * height_real;
             // Due to floating-point imprecision, some "unit" vector have a norm slightly larger than 1,
             // producing out of range coordinates
-            return data[ std::clamp(y, 0, height) ][ std::clamp(x, 0, width)]; 
+            return data[ std::clamp(y, 0, height) ][ std::clamp(x, 0, width) ]; 
         }
 };
