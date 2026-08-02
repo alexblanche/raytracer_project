@@ -2,6 +2,7 @@
 
 #include "tracing/direction.hpp"
 #include "auxiliary/utils.hpp"
+#include "math/geometry/trigonometry.hpp"
 
 #include <iostream>
 #include <cmath>
@@ -16,11 +17,15 @@ sphere::sphere(const rt::vector& center, const real radius, const unsigned int m
 
     : sphere(center, radius, material_index) {
     
-        texture_information_index = texture_info_index;
-        orientation.forward_dir = forward_dir.unit();
-        orientation.right_dir   = right_dir.unit();
-        orientation.up_dir = orientation.right_dir ^ orientation.forward_dir;
-    }
+    texture_information_index = texture_info_index;
+    const rt::vector forward = forward_dir.unit();
+    const rt::vector right   = right_dir.unit();
+    orientation.matrix = {
+        .r1 = right,
+        .r2 = right ^ forward,
+        .r3 = forward
+    };
+}
 
 
 
@@ -84,21 +89,13 @@ min_max_coord sphere::get_min_max_coord() const {
 
 /* Returns the barycentric info for the object (l1 = longitude, l2 = latitude) (both between 0 and 1) */
 barycentric_info sphere::get_barycentric(const rt::vector& p) const {
+
     const rt::vector v = (p - position).unit();
-
-    // mat3<Row> * v
-    const real forward_component = (v | orientation.forward_dir);
-    const real right_component   = (v | orientation.right_dir  );
-    const real up_component      = (v | orientation.up_dir     );
-
-    // trig::get_angles(x, y, z)
-    const real theta = asin(up_component);
-    const real x = acos(forward_component / cos(theta)); // -> one atan ?
-    const real phi = is_negative_not_zero(right_component) ? (-x + 2.0_r * PI) : x;
-
-    return barycentric_info(
-        phi   * ((1.0_r / PI) * 0.5_r),
-        theta * (1.0_r / PI) + 0.5_r,
+    const rt::vector oriented = orientation.matrix * v;
+    const auto& [ theta, phi ] = trig::get_angles(oriented);
+    return barycentric_info (
+        theta * (1 / (2 * PI)),
+        phi   * (1 / PI),
         object_type::Sphere
     );
 }
@@ -107,7 +104,8 @@ barycentric_info sphere::get_barycentric(const rt::vector& p) const {
 rt::vector sphere::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& /* info */) const {
 
     // Computation of tangent space
-    const rt::vector t = (orientation.up_dir ^ local_normal).unit();
+    const auto& [ _, up_dir, _ ] = orientation.matrix;
+    const rt::vector t = (up_dir ^ local_normal).unit();
     const rt::vector b = t ^ local_normal;
 
     // return tangent_space_normal.x * t + tangent_space_normal.y * b + tangent_space_normal.z * local_normal;

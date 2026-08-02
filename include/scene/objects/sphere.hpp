@@ -2,11 +2,12 @@
 
 #include "scene/objects/object.hpp"
 
-// -> trig::mat3<Row>
+#include "math/geometry/mat3.hpp"
+
 struct sphere_orientation {
-    rt::vector forward_dir;
-    rt::vector right_dir;
-    rt::vector up_dir;
+    
+    // Rows: right_dir, up_dir, forward_dir
+    linalg::mat3<linalg::mat_type::Row> matrix;
 };
 
 class sphere final : public object {

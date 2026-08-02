@@ -41,16 +41,18 @@ namespace trig {
 
     inline angles get_angles(const rt::vector& dir) {
 
+        const auto& [ x, y, z ] = dir;
+
         return {
-            .theta = (is_not_zero(dir.x)) ?
-                  atan(dir.z / dir.x) + (is_positive(dir.x) ? (3.0_r * PI / 2.0_r) : (PI / 2.0_r))
+            .theta = (is_not_zero(x)) ?
+                  atan(z / x) + (is_positive(x) ? (3.0_r * PI / 2.0_r) : (PI / 2.0_r))
                 : 0.0_r,
 
             /* Determining the pixel of the background texture to display */
             // dir is a unit vector, but due to floating-point imprecision, dir.y can be greater than 1
-            .phi = (not abs_less_than_one(dir.y)) ?
-                  (is_positive(dir.y) ? PI : 0.0_r)
-                : asin(dir.y) + PI / 2.0_r
+            .phi = (not abs_less_than_one(y)) ?
+                  (is_positive(y) ? PI : 0.0_r)
+                : asin(y) + PI / 2.0_r
         };
     }
 };
