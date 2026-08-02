@@ -152,18 +152,18 @@ barycentric_info quad::get_barycentric(const rt::vector& p) const {
         
         const real l2 = compute_det_2d(v1, c, case_det) / det12;
         if (is_positive(l2) && l1 + l2 <= 1.0_r)
-            return barycentric_info(l1, l2, object_type::Quad, side::LowerTriangle);
+            return barycentric_info(l1, l2, object_type::Quad, side::Triangle012);
     }
 
     const real l1a = detv2 / det23;
     const real l2a = compute_det_2d(v3, c, case_det) / det23;
     
-    return barycentric_info(l1a, l2a, object_type::Quad, side::HigherTriangle);
+    return barycentric_info(l1a, l2a, object_type::Quad, side::Triangle032);
 }
 
 inline rt::vector quad::get_interpolated_normal(const barycentric_info& bary) const {
     
-    const rt::vector& dvni = (bary.triangle_side == side::LowerTriangle) ? dvn1 : dvn3;
+    const rt::vector& dvni = (bary.triangle_side == side::Triangle012) ? dvn1 : dvn3;
     const auto [ l1, l2 ] = bary.l;
     return fma(dvn2, l2, fma(dvni, l1, vn0));
 }

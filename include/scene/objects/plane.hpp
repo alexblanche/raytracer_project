@@ -2,6 +2,7 @@
 
 #include "scene/objects/object.hpp"
 
+// Merged with sphere::mapping_info
 struct plane_orientation {
     rt::vector right_dir   = rt::RIGHT;
     rt::vector down_dir    = rt::FORWARD;

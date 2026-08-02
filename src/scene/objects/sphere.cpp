@@ -108,7 +108,6 @@ rt::vector sphere::compute_normal_from_map(const rt::vector& tangent_space_norma
     const rt::vector t = (up_dir ^ local_normal).unit();
     const rt::vector b = t ^ local_normal;
 
-    // return tangent_space_normal.x * t + tangent_space_normal.y * b + tangent_space_normal.z * local_normal;
     return matprod(t, b, local_normal, tangent_space_normal);
 }
 

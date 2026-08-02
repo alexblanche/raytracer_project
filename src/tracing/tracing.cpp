@@ -1,4 +1,5 @@
 #include "tracing/tracing.hpp"
+
 #include "tracing/direction.hpp"
 #include "auxiliary/utils.hpp"
 #include "auxiliary/stack_based_custom_stack.hpp"
@@ -171,12 +172,9 @@ void worker::process_bounce(const bounce_parameters& param, path_parameters& out
 }
 
 [[nodiscard]] inline rt::color worker::full_intensity_case(const accumulators& acc,
-    const object* obj, const rt::vector& hit_point, const material& m) const {
+    const hit& h, const material& m) const {
     
-    const rt::color& color = obj->is_textured() ?
-          scene_.sample_texture(obj->get_texture_info_index(), obj->get_barycentric(hit_point))
-        : m.get_color();
-
+    const rt::color& color = scene_.sample_color(h, m);
     return acc.combine(color * m.get_emission_intensity());
 }
 
@@ -218,7 +216,7 @@ rt::color worker::pathtrace(const ray& init_ray) const {
 
         /* Full-intensity light source reached */
         if (m.is_emissive() && m.get_emission_intensity() >= 1.0_r)
-            return full_intensity_case(acc, obj, h.get_point(), m);
+            return full_intensity_case(acc, h, m);
 
         
         /* The ray can either be transmitted (and refracted) through the surface,
@@ -226,19 +224,14 @@ rt::color worker::pathtrace(const ray& init_ray) const {
             when the ray hits a surface of lower refraction index at an angle greater than the critical angle.
         */
 
-        // map_sample contains the material local color, the local normal and (soon) the reflectivity and displacement
-        const map_sample ms = (obj->is_textured()) ?
-              scene_.sample_maps(
-                obj->get_texture_info_index(), obj->get_barycentric(h.get_point()),
-                m.get_color(), h.get_normal(), m.get_smoothness())
-            : map_sample(m.get_color(), h.get_normal()); // reflectivity, displacement);
+        // map_sample contains the local information: texture color and normal (and soon: smoothness and displacement)
+        const map_sample ms = scene_.sample_maps(h, m);
+        const rt::vector normal = scene_.compute_normal(h, ms.normal_map_vector);
 
         const bounce_parameters param = {
             .h = h,
             .m = m,
-            .normal = (obj->is_textured() && scene_.get_texture_info(obj).has_normal_information()) ?
-                  obj->compute_normal_from_map(ms.normal_map_vector, h.get_normal(), scene_.get_texture_info(obj))
-                : h.get_normal(),
+            .normal = normal,
             .color = ms.texture_color,
             .smoothness = m.get_smoothness() // ms.smoothness;
         };
@@ -248,7 +241,6 @@ rt::color worker::pathtrace(const ray& init_ray) const {
         ////
 
         process_bounce(param, path_param, double_bounce);
-
 
         if (russian_roulette == russian_roulette_mode::Enabled) {
             const real avg = acc.color_materials.get_average_ratio();

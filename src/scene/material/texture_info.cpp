@@ -31,7 +31,7 @@ uvcoord texture_info::get_barycenter(const barycentric_info& bary) const {
             v = l2;
             break;
         case Quad:
-            if (bary.triangle_side != side::LowerTriangle) {
+            if (bary.triangle_side == side::Triangle032) {
                 // Quads with (u0, v0), (u3, v3), (u2, v2) (in this order) considered
                 const auto& [ u0, v0, _, _, u2, v2, u3, v3 ] = uv_coordinates;
                 const real l0 = 1.0_r - l1 - l2;

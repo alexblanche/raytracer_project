@@ -387,9 +387,8 @@ static std::optional<unsigned int> get_material(const file& f, std::vector<wrapp
 }
 
 /* Auxiliary function: parses the texture information after a material, and if there is one,
-   returns the associated texture_info
-   is_triangle is true if the object is a triangle (in this case, 3 uv points are parsed),
-   and false if it is a quad (4 uv points are parsed) */
+   returns the associated texture_info */
+// To be replaced with union { sphere::mapping_info; plane::mapping_info; ... }
 static std::optional<texture_info> parse_texture_info(const file& f,
     const std::vector<wrapper<texture>>& texture_wrapper_set,
     const std::vector<wrapper<normal_map>>& normal_map_wrapper_set,
@@ -650,21 +649,20 @@ static void parse_objects(const file& f, const object_type type, const std::stri
         switch (type) {
             case Box: {
                 const auto& [ center, x_axis, y_axis, l ] = parameters.box;
-                const auto [ lx, ly, lz ] = l;
-                box_set.emplace_back(center, x_axis, y_axis, lx, ly, lz, m_index.value());
-                obj = &box_set.back();
+                const auto& [ lx, ly, lz ] = l;
+                obj = &box_set.emplace_back(center, x_axis, y_axis, lx, ly, lz, m_index.value());
                 break;
             }
             case Cylinder: {
                 const auto& [ origin, direction, radius, length ] = parameters.cylinder;
-                cylinder_set.emplace_back(origin, direction, radius, length, m_index.value());
-                obj = &cylinder_set.back();
+                obj = &cylinder_set.emplace_back(origin, direction, radius, length, m_index.value());
                 break;
             }
             default: throw;
         }
     }
     else {
+        // To be replaced with union { mapping_info<sphere>; mapping_info<plane>; ... }
         std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, type);
     
         if (info.has_value()) {
@@ -678,8 +676,7 @@ static void parse_objects(const file& f, const object_type type, const std::stri
                     const rt::vector forward(fx, fy, fz);
                     const rt::vector right  (rx, ry, rz);
                     const auto& [ center, radius ] = parameters.sphere;
-                    sphere_set.emplace_back(center, radius, m_index.value(), texture_info_set.size(), forward, right);
-                    obj = &sphere_set.back();
+                    obj = &sphere_set.emplace_back(center, radius, m_index.value(), texture_info_set.size(), forward, right);
                     break;
                 }
 
@@ -687,8 +684,7 @@ static void parse_objects(const file& f, const object_type type, const std::stri
                     const auto& [ rx, ry, rz, scale, _, _, _, _ ] = info.value().uv_coordinates;
                     const rt::vector right(rx, ry, rz);
                     const auto& [ position, normal ] = parameters.plane;
-                    plane_set.emplace_back(normal.x, normal.y, normal.z, position, m_index.value(), texture_info_set.size(), right, scale);
-                    obj = &plane_set.back();
+                    obj = &plane_set.emplace_back(normal.x, normal.y, normal.z, position, m_index.value(), texture_info_set.size(), right, scale);
                     break;
                 }
 
@@ -723,29 +719,25 @@ static void parse_objects(const file& f, const object_type type, const std::stri
 
                 case Sphere: {
                     const auto& [ center, radius ] = parameters.sphere;
-                    sphere_set.emplace_back(center, radius, m_index.value());
-                    obj = &sphere_set.back();
+                    obj = &sphere_set.emplace_back(center, radius, m_index.value());
                     break;
                 }
                 
                 case Plane: {
                     const auto& [ position, normal ] = parameters.plane;
-                    plane_set.emplace_back(normal.x, normal.y, normal.z, position, m_index.value());
-                    obj = &plane_set.back();
+                    obj = &plane_set.emplace_back(normal.x, normal.y, normal.z, position, m_index.value());
                     break;
                 }
 
                 case Triangle: {
                     const auto& [ v ] = parameters.triangle;
-                    triangle_set.emplace_back(v[0], v[1], v[2], m_index.value());
-                    obj = &triangle_set.back();
+                    obj = &triangle_set.emplace_back(v[0], v[1], v[2], m_index.value());
                     break;
                 }
 
                 case Quad: {
                     const auto& [ v ] = parameters.quad;
-                    quad_set.emplace_back(v[0], v[1], v[2], v[3], m_index.value());
-                    obj = &quad_set.back();
+                    obj = &quad_set.emplace_back(v[0], v[1], v[2], v[3], m_index.value());
                     break;
                 }
 

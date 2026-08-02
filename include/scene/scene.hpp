@@ -175,9 +175,24 @@ class scene {
         const rt::color& sample_texture(unsigned int texture_info_index, const barycentric_info& bary) const;
 
         /* Sampling maps */
-        map_sample sample_maps(unsigned int texture_info_index, const barycentric_info& bary,
-            const rt::color& default_color, const rt::vector& default_normal, real default_reflectivity = 0.0_r) const;
+        const rt::color& sample_color(const hit& h, const material& m) const;
+        map_sample sample_maps(const hit& h, const material& m) const;
 
+        inline rt::vector compute_normal(const hit& h, const rt::vector& tangent_space_normal) const {
+
+            const object* const obj = h.get_object();
+
+            if (not obj->is_textured())
+                return h.get_normal();
+
+            const texture_info& ti = mapping_containers.texture_info_set[obj->get_texture_info_index()];
+
+            return (ti.has_normal_information()) ?
+                  obj->compute_normal_from_map(tangent_space_normal, h.get_normal(), ti)
+                : h.get_normal();
+        }
+
+        // For debug purposes
         inline const texture_info& get_texture_info (const object* obj) const {
             return mapping_containers.texture_info_set[obj->get_texture_info_index()];
         }

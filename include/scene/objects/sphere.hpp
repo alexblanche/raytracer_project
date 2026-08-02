@@ -4,6 +4,7 @@
 
 #include "math/geometry/mat3.hpp"
 
+// Merged with sphere::mapping_info
 struct sphere_orientation {
     
     // Rows: right_dir, up_dir, forward_dir

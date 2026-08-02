@@ -86,8 +86,8 @@ class worker {
 
         [[nodiscard]] rt::color background_case(const rt::vector& direction, const accumulators& acc) const;
 
-        [[nodiscard]] rt::color full_intensity_case(const accumulators& acc, const object* obj,
-            const rt::vector& hit_point, const material& m) const;
+        [[nodiscard]] rt::color full_intensity_case(const accumulators& acc,
+            const hit& h, const material& m) const;
 
         struct bounce_parameters {
             const hit& h;

@@ -193,27 +193,50 @@ const rt::color& scene::sample_texture(const unsigned int texture_info_index, co
     /* HERE: we can introduce texture filtering */
 }
 
-map_sample scene::sample_maps(const unsigned int texture_info_index, const barycentric_info& bary,
-    const rt::color& default_color, const rt::vector& default_normal, const real /*default_smoothness*/) const {
+const rt::color& scene::sample_color(const hit& h, const material& m) const {
+
+    const auto& [ _, texture_set, _, texture_info_set, _ ] = mapping_containers;
+
+    const object* const obj = h.get_object();
+
+    if (not obj->is_textured())
+        return m.get_color();
+
+    const texture_info& ti = texture_info_set[obj->get_texture_info_index()];
+    const auto [ u, v ] = ti.get_barycenter(obj->get_barycentric(h.get_point()));
+
+    return (ti.has_texture_information()) ?
+          texture_set[ti.texture_index].get_color(u, v)
+        : m.get_color();
+}
+
+map_sample scene::sample_maps(const hit& h, const material& m) const {
 
     const auto& [ material_set, texture_set, normal_map_set, texture_info_set, _ ] = mapping_containers;
 
-    const texture_info& ti = texture_info_set[texture_info_index];
-    const auto [ u, v ] = ti.get_barycenter(bary);
+    const object* const obj = h.get_object();
+
+    if (not obj->is_textured())
+        return map_sample(m.get_color(), h.get_normal());
+
+    const texture_info& ti = texture_info_set[obj->get_texture_info_index()];
+    const auto [ u, v ] = ti.get_barycenter(obj->get_barycentric(h.get_point()));
 
     const rt::color& t_col = (ti.has_texture_information()) ?
           texture_set[ti.texture_index].get_color(u, v)
-        : default_color;
+        : m.get_color();
     
-        const rt::vector& n_vec = (ti.has_normal_information()) ?
+    const rt::vector& n_vec = (ti.has_normal_information()) ?
           normal_map_set[ti.normal_map_index].get_tangent_space_normal(u, v)
-        : default_normal;
+        : h.get_normal();
     
-    // const real smoothness = (ti.roughness_map_index.has_value()) ?
-    //       1.0f - roughness_map_set[ti.roughness_map_index.value()].get_roughness(uvc.u, uvc.v)
-    //     : default_smoothness;
+    // const real smoothness = (ti.has_roughness_map_information()) ?
+    //       1.0f - roughness_map_set[ti.roughness_map_index].get_roughness(u, v)
+    //     : m.get_smoothness();
     
-    // const real displacement = displacement_map_set[ti.displacement_map_index].get_displacement(uvc.u, uvc.v);
+    // const real displacement = (ti.has_displacement_information()) ?
+    //        displacement_map_set[ti.displacement_map_index].get_displacement(u, v)
+    //      : 0.0_r;
 
     return map_sample(
         t_col,
