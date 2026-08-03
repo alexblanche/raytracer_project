@@ -67,16 +67,14 @@ class random_ratio_gen {
         mutable std::uniform_int_distribution<>       unif_int;
 
     public:
-
-        random_ratio_gen(int max_index)
-            :   engine(timer_ms::get_time()),
-                unif_ratio(0, 1),
-                unif_int(0, max_index) {}
         
         random_ratio_gen(uint64_t seed, int max_index)
             :   engine(seed),
                 unif_ratio(0, 1),
                 unif_int(0, max_index) {}
+
+        random_ratio_gen(int max_index)
+            : random_ratio_gen(timer_ms::get_time(), max_index) {}
         
         template<typename T>
         requires std::is_same_v<T, Float> || std::is_same_v<T, int>

@@ -1001,7 +1001,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 }
 
                 printf("%s %s reading failed\n", tfile_name_short.c_str(), type.c_str());
-                throw std::runtime_error((type + " reading failed").c_str());
+                throw std::runtime_error(type + " reading failed");
             }
 
             /* Objects declaration */
@@ -1075,7 +1075,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             }
 
             /* parsing error */
-            throw std::runtime_error(("unexpected keyword " + arg).c_str());
+            throw std::runtime_error("unexpected keyword " + arg);
         }
 
         f.close();

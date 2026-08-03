@@ -515,7 +515,8 @@ class file {
 
         void display_current() const {
             const std::size_t pos = position();
-            std::printf("%s\n", read_line().c_str());
+            const std::string line = read_line();
+            std::printf("%s\n", line.c_str());
             rewind(pos);
         }
 };

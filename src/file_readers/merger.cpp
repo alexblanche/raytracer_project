@@ -8,7 +8,7 @@ static void check_directory(const std::string& dir_name, bool& dir_is_set) {
     if (exists(dir_name) && is_directory(dir_name))
         dir_is_set = true;
     else
-        throw std::runtime_error(("Error: cannot find directory " + dir_name + "\n").c_str());
+        throw std::runtime_error("Error: cannot find directory " + dir_name + "\n");
 }
 
 struct parameters {

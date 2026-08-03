@@ -103,6 +103,7 @@ class triangle final : public object {
         Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
         rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const override;
 
+        /* General function, used in triangle and quad classes */
         static inline rt::vector sample_triangle(const randomgen& rg, const rt::vector& v0, const rt::vector& v1, const rt::vector& v2) {
             
             const real x = rg.random_ratio();

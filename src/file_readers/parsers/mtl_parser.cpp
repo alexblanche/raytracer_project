@@ -139,7 +139,7 @@ exit_status parse_mtl_file(const std::filesystem::path& path, const std::string&
                     mt_assoc[m_i] = texture_wrapper_set.back().index;
 
                     if (not parsing_successful)
-                        throw std::runtime_error(("mtl_parser: " + tfile_name + " texture reading failed\n").c_str());
+                        throw std::runtime_error("mtl_parser: " + tfile_name + " texture reading failed\n");
                     
                     printf("\rmtl_parser: %s texture loaded\n", tfile_name.c_str());
                 }
@@ -153,7 +153,7 @@ exit_status parse_mtl_file(const std::filesystem::path& path, const std::string&
                 continue;
             }
 
-            throw std::runtime_error(("unexpected keyword " + arg).c_str());
+            throw std::runtime_error("unexpected keyword " + arg);
         }
 
         return exit_status::Success;

@@ -604,7 +604,7 @@ exit_status parse_obj_file(const std::string& file_name,
         index_array<5>& v, index_array<5>& vt, index_array<5>& vn) {
 
         if (nb < 3 || nb > 5)
-            throw std::runtime_error((std::string("add_geometry: Incorrect parameter nb = ") + std::to_string(nb)).c_str());
+            throw std::runtime_error("add_geometry: Incorrect parameter nb = " + std::to_string(nb));
 
         for (int i = 0; i < nb; i++) {
             correct(v[i],  number_of_vertices);

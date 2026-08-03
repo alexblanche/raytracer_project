@@ -12,7 +12,7 @@
 class material;
 class texture;
 class normal_map;
-template<typename T = void> inline constexpr std::string type_str() = delete;
+template<typename T> inline constexpr std::string type_str() = delete;
 template<> inline constexpr std::string type_str<material>  () { return "material"  ; }
 template<> inline constexpr std::string type_str<texture>   () { return "texture"   ; }
 template<> inline constexpr std::string type_str<normal_map>() { return "normal map"; }
