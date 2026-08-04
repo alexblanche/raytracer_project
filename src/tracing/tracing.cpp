@@ -237,7 +237,7 @@ rt::color worker::pathtrace(const ray& init_ray) const {
         };
         
         ////
-        const bool double_bounce = (obj->get_material_index() == 12); // Windshield of Porsche 2016
+        const bool double_bounce = false; // (obj->get_material_index() == 12); // Windshield of Porsche 2016
         ////
 
         process_bounce(param, path_param, double_bounce);

@@ -49,6 +49,7 @@ quad (2.372, 0, 0.6) (-0.527, 0, 2.7) (-3.272, 0, -1.47) (-0.45, 0, -3.535)
 
 # Model
 load_obj ../../../assets/3d_models/porsche_2016/porsche_obj.obj
+
 # Box for camera and parameters testing
 # material diffuse_red (color:(255, 5, 5))
 material car_body (color:(150, 150, 150) smoothness:1 reflectivity:0.15 refraction_index:1.45)
@@ -60,3 +61,5 @@ material car_body (color:(150, 150, 150) smoothness:1 reflectivity:0.15 refracti
 
 # sphere center:(-0.5, 1.4, 1.2) radius:0.4 material:mirror
 # sphere center:(-0.5, 1.7, 0.2) radius:0.4 material:mirror
+
+# sphere center:(-0.5, 0.5, 0.2) radius:0.4 material:(emission:200)
