@@ -1,6 +1,7 @@
 #pragma once
 
 #include "scene/objects/object.hpp"
+#include "scene/material/mapping_info.hpp"
 
 class cylinder final : public object {
     
@@ -11,9 +12,11 @@ class cylinder final : public object {
 
     public:
 
+        struct orientation : public mapping_info {}; // Unused
+
         cylinder(const rt::vector& origin, const rt::vector& direction,
-            real radius, real length,
-            unsigned int material_index);
+            real radius, real length, unsigned int material_index,
+            unsigned int orientation_info_index = EMPTY_INDEX);
 
         cylinder(cylinder&&) noexcept        = default;
         cylinder(const cylinder&)            = delete;
@@ -42,12 +45,14 @@ class cylinder final : public object {
         min_max_coord get_min_max_coord() const override;
 
         /* Returns the barycentric info (the texture is mapped onto the top, the bottom, and the curved surface) */
-        barycentric_info get_barycentric(const rt::vector& p) const override;
+        // barycentric_info get_barycentric(const rt::vector& p) const override;
+
+        uvcoord compute_uv(const rt::vector& p, const mapping_info* orientation_info) const override;
 
         rt::vector compute_normal_from_map(
             const rt::vector& tangent_space_normal,
             const rt::vector& local_normal,
-            const texture_info& info
+            const mapping_info* orientation_info
         ) const override;
 
         rt::vector sample(const randomgen& rg) const override;

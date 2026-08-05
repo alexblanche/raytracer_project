@@ -28,9 +28,9 @@ void set_up_det(const rt::vector& v1, const rt::vector& v2, const rt::vector& v3
 // Constructor from four points
 // We do not check whether the four points are coplanar
 quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3, 
-    const unsigned int material_index, const unsigned int texture_info_index)
+    const unsigned int material_index, const unsigned int orientation_info_index)
 
-    : object(p0, material_index, texture_info_index) {
+    : object(p0, material_index, orientation_info_index) {
 
     v1 = p1 - p0;
     v2 = p2 - p0;
@@ -49,9 +49,9 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
 // Constructor from four points with vertex normals
 quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
-    const unsigned int material_index, const unsigned int texture_info_index)
+    const unsigned int material_index, const unsigned int orientation_info_index)
 
-    : quad(p0, p1, p2, p3, material_index, texture_info_index) {
+    : quad(p0, p1, p2, p3, material_index, orientation_info_index) {
     
     vn0  = vn0init.unit();
     dvn1 = (vn1.unit()) - vn0;
@@ -60,38 +60,61 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
 }
 
 // Constructor from four points with normal mapping enabled
-quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
-    const unsigned int material_index, const unsigned int texture_info_index,
-    texture_info& info)
+// quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
+//     const unsigned int material_index, const unsigned int texture_info_index,
+//     texture_info& info)
 
-    : quad(p0, p1, p2, p3, material_index, texture_info_index) {
+//     : quad(p0, p1, p2, p3, material_index, texture_info_index) {
         
-    /* Same as triangle */
+//     /* Same as triangle */
 
-    const auto& [ u_0, v_0, u_1, v_1, u_2, v_2, _, _ ] = info.uv_coordinates;
+//     const auto& [ u_0, v_0, u_1, v_1, u_2, v_2, _, _ ] = info.uv_coordinates;
+//     const real x1 = u_1 - u_0;
+//     const real x2 = u_2 - u_0;
+//     const real y1 = v_1 - v_0;
+//     const real y2 = v_2 - v_0;
+//     const real r = 1.0_r / (x1 * y2 - x2 * y1);
+//     const rt::vector t = r * ( y2 * v1 + -y1 * v2);
+//     const rt::vector b = r * (-x2 * v1 +  x1 * v2);
+//     info.set_tangent_space(t.unit(), b.unit());
+// }
+
+quad::orientation::orientation(int index, composition comp, const std::array<uvcoord, 4>& uvc,
+    const rt::vector& v1, const rt::vector& v2)
+
+    : mapping_info(index, comp) {
+
+    const auto& [ uv0, uv1, uv2, uv3 ] = uvc;
+    uv[0] = uv0;
+    uv[1] = uv1;
+    uv[2] = uv2;
+    uv[3] = uv3;
+    const auto& [ u_0, v_0 ] = uv0;
+    const auto& [ u_1, v_1 ] = uv1;
+    const auto& [ u_2, v_2 ] = uv2;
+
     const real x1 = u_1 - u_0;
     const real x2 = u_2 - u_0;
     const real y1 = v_1 - v_0;
     const real y2 = v_2 - v_0;
     const real r = 1.0_r / (x1 * y2 - x2 * y1);
-    const rt::vector t = r * ( y2 * v1 + -y1 * v2);
-    const rt::vector b = r * (-x2 * v1 +  x1 * v2);
-    info.set_tangent_space(t.unit(), b.unit());
+    tangent   = r * ( y2 * v1 + -y1 * v2);
+    bitangent = r * (-x2 * v1 +  x1 * v2);
 }
 
 // Constructor from four points with vertex normals and normal mapping enabled
-quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
-    const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
-    const unsigned int material_index, const unsigned int texture_info_index,
-    texture_info& info)
+// quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
+//     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
+//     const unsigned int material_index, const unsigned int texture_info_index,
+//     texture_info& info)
 
-    : quad(p0, p1, p2, p3, material_index, texture_info_index, info) {
+//     : quad(p0, p1, p2, p3, material_index, texture_info_index, info) {
 
-    vn0  = vn0init.unit();
-    dvn1 = (vn1.unit()) - vn0;
-    dvn2 = (vn2.unit()) - vn0;
-    dvn3 = (vn3.unit()) - vn0;
-}
+//     vn0  = vn0init.unit();
+//     dvn1 = (vn1.unit()) - vn0;
+//     dvn2 = (vn2.unit()) - vn0;
+//     dvn3 = (vn3.unit()) - vn0;
+// }
 
 /* Returns the barycenter of the quad */
 inline rt::vector quad::get_barycenter() const {
@@ -141,7 +164,8 @@ real quad::measure_distance(const ray& r) const {
    or
    p = position + l1 * v3 + l2 * v2 otherwise
 */
-barycentric_info quad::get_barycentric(const rt::vector& p) const {
+
+std::pair<stcoord, quad::side> quad::compute_st(const rt::vector& p) const {
 
     const rt::vector c = p - position;
 
@@ -152,40 +176,65 @@ barycentric_info quad::get_barycentric(const rt::vector& p) const {
         
         const real l2 = compute_det_2d(v1, c, case_det) / det12;
         if (is_positive(l2) && l1 + l2 <= 1.0_r)
-            return barycentric_info(l1, l2, object_type::Quad, side::Triangle012);
+            return std::make_pair(stcoord { l1, l2 }, side::Triangle012);
     }
 
     const real l1a = detv2 / det23;
     const real l2a = compute_det_2d(v3, c, case_det) / det23;
     
-    return barycentric_info(l1a, l2a, object_type::Quad, side::Triangle032);
+    return std::make_pair(stcoord { l1a, l2a }, side::Triangle032);
 }
 
-inline rt::vector quad::get_interpolated_normal(const barycentric_info& bary) const {
+
+uvcoord quad::compute_uv(const rt::vector& p, const mapping_info* orientation_info) const {
+
+    const orientation& o = *static_cast<const orientation*>(orientation_info);
+
+    const auto& [ st, side ] = compute_st(p);
+    const auto& [ s, t ] = st;
     
-    const rt::vector& dvni = (bary.triangle_side == side::Triangle012) ? dvn1 : dvn3;
-    const auto [ l1, l2 ] = bary.l;
-    return fma(dvn2, l2, fma(dvni, l1, vn0));
+    const auto& [ u0, v0 ] = o.uv[0];
+    const auto& [ u2, v2 ] = o.uv[2];
+    const auto& [ ui, vi ] = o.uv[side == side::Triangle012 ? 1 : 3];
+
+    const real w = 1.0_r - s - t;
+    return {
+        .u = w * u0 + s * ui + t * u2,
+        .v = w * v0 + s * vi + t * v2
+    };
+}
+
+// inline rt::vector quad::get_interpolated_normal(const barycentric_info& bary) const {
+    
+//     const rt::vector& dvni = (bary.triangle_side == side::Triangle012) ? dvn1 : dvn3;
+//     const auto [ l1, l2 ] = bary.l;
+//     return fma(dvn2, l2, fma(dvni, l1, vn0));
+// }
+
+inline rt::vector quad::compute_interpolated_normal(const stcoord& st, const quad::side side_) const {
+
+    const auto& [ s, t ] = st;
+    const rt::vector& dvni = (side_ == side::Triangle012) ? dvn1 : dvn3;
+    return fma(dvn2, t, fma(dvni, s, vn0));
 }
 
 hit quad::compute_intersection(const ray& r, const real t) const {
 
     const rt::vector p = r.extend(t);
-    const object* pt_obj = this;
+
+    const ray_orientation_type ray_orientation = hit::compute_ray_orientation(r.direction, normal);
 
     if constexpr (SHADING == shading::SmoothShading) {
         
         // Computation of the interpolated normal vector
-        const barycentric_info bary = get_barycentric(p);
-        const orientation_type ray_orientation = is_negative(r.direction | normal) ?
-              orientation_type::Inward
-            : orientation_type::Outward;
+        const auto& [ st, side ] = compute_st(p);
+        const rt::vector interpolated_normal = compute_interpolated_normal(st, side);
 
-        return hit(p, get_interpolated_normal(bary), pt_obj, ray_orientation);
+        return hit(p, interpolated_normal, this, ray_orientation, object_type::Quad);
     }
     else { // Flat shading
 
-        return hit(r.direction, p, normal, pt_obj);
+        return hit(p, normal, this, ray_orientation, object_type::Quad);
     }
 }
 
@@ -207,10 +256,13 @@ min_max_coord quad::get_min_max_coord() const {
 
 /* Normal map vector computation at render time
     Local normal may be the normal of the quad (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
-rt::vector quad::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const {
+rt::vector quad::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal,
+    const mapping_info* orientation_info) const {
+
+    const orientation& o = *static_cast<const orientation*>(orientation_info);
 
     if constexpr (SHADING == shading::SmoothShading) {
-        const rt::vector& t = info.tangent;
+        const rt::vector& t = o.tangent;
         
         // Recompute the tangent space with Gram-Schmidt's method
         /*
@@ -237,8 +289,8 @@ rt::vector quad::compute_normal_from_map(const rt::vector& tangent_space_normal,
     }
     else {
         // Flat shading
-        const rt::vector& t = info.tangent;
-        const rt::vector& b = info.bitangent;
+        const rt::vector& t = o.tangent;
+        const rt::vector& b = o.bitangent;
 
         //return tangent_space_normal.x * t + tangent_space_normal.y * b + tangent_space_normal.z * local_normal;
         return matprod(t, b, local_normal, tangent_space_normal);

@@ -7,28 +7,40 @@
 #include <iostream>
 #include <cmath>
 
-sphere::sphere(const rt::vector& center, const real radius, const unsigned int material_index)
+sphere::sphere(const rt::vector& center, const real radius, const unsigned int material_index,
+    const unsigned int orientation_info_index)
 
-    : object(center, material_index), radius(radius), radius_sq(radius * radius) {}
+    : object(center, material_index, orientation_info_index), radius(radius), radius_sq(radius * radius) {}
 
 // Constructor for textured spheres
-sphere::sphere(const rt::vector& center, const real radius, const unsigned int material_index,
-    const unsigned int texture_info_index, const rt::vector& forward_dir, const rt::vector& right_dir)
+// sphere::sphere(const rt::vector& center, const real radius, const unsigned int material_index,
+//     const unsigned int texture_info_index, const rt::vector& forward_dir, const rt::vector& right_dir)
 
-    : sphere(center, radius, material_index) {
+//     : sphere(center, radius, material_index) {
     
-    texture_information_index = texture_info_index;
+//     texture_information_index = texture_info_index;
+//     const rt::vector forward = forward_dir.unit();
+//     const rt::vector right   = right_dir.unit();
+//     orientation.matrix = {
+//         .r1 = right,
+//         .r2 = right ^ forward,
+//         .r3 = forward
+//     };
+// }
+
+sphere::orientation::orientation(const int index, const composition comp,
+    const rt::vector& forward_dir, const rt::vector& right_dir)
+
+    : mapping_info(index, comp) {
+
     const rt::vector forward = forward_dir.unit();
     const rt::vector right   = right_dir.unit();
-    orientation.matrix = {
+    matrix = {
         .r1 = right,
         .r2 = right ^ forward,
         .r3 = forward
     };
 }
-
-
-
 
 /* Intersection determination */
 
@@ -76,7 +88,7 @@ hit sphere::compute_intersection(const ray& r, const real t) const {
     const rt::vector p = r.extend(t);
     // Normal at intersection point
     const rt::vector n = (p - position) / radius;
-    return hit(r.direction, p, n, this);
+    return hit(p, n, this, hit::compute_ray_orientation(r.direction, n), object_type::Sphere);
 }
 
 
@@ -87,24 +99,30 @@ min_max_coord sphere::get_min_max_coord() const {
     return build_min_max_coord(position - r, position + r);
 }
 
-/* Returns the barycentric info for the object (l1 = longitude, l2 = latitude) (both between 0 and 1) */
-barycentric_info sphere::get_barycentric(const rt::vector& p) const {
+uvcoord sphere::compute_uv(const rt::vector& p, const mapping_info* orientation_info) const {
 
-    const rt::vector v = (p - position).unit();
-    const rt::vector oriented = orientation.matrix * v;
+    const orientation& o = *static_cast<const orientation*>(orientation_info);
+
+    const rt::vector v = (p - position) / radius; // equal to normal: can it be optimized?
+    const rt::vector oriented = o.matrix * v;
     const auto& [ theta, phi ] = trig::get_angles(oriented);
-    return barycentric_info (
+    // ST-coordinates:
+    //  s = longitude, t = latitude
+    //  On spheres, identical to UV-coordinates.
+    return {
         theta * (1 / (2 * PI)),
-        phi   * (1 / PI),
-        object_type::Sphere
-    );
+        phi   * (1 / PI)
+    };
 }
 
 /* Normal map vector computation at render time */
-rt::vector sphere::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& /* info */) const {
+rt::vector sphere::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal,
+    const mapping_info* orientation_info) const {
+
+    const orientation& o = *static_cast<const orientation*>(orientation_info);
 
     // Computation of tangent space
-    const auto& [ _, up_dir, _ ] = orientation.matrix;
+    const auto& [ _, up_dir, _ ] = o.matrix;
     const rt::vector t = (up_dir ^ local_normal).unit();
     const rt::vector b = t ^ local_normal;
 

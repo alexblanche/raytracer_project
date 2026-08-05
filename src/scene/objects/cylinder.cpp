@@ -6,9 +6,10 @@
 
 
 cylinder::cylinder(const rt::vector& origin, const rt::vector& direction,
-    const real radius, const real length, const unsigned int material_index)
+    const real radius, const real length, const unsigned int material_index,
+    const unsigned int orientation_info_index)
 
-    : object(origin, material_index),
+    : object(origin, material_index, orientation_info_index),
         direction(direction), radius(radius), length(length) {}
 
 /* Intersection determination */
@@ -180,26 +181,24 @@ hit cylinder::compute_intersection(const ray& r, const real t) const {
     // Intersection point
     const rt::vector p = r.extend(t);
     const real rr = radius * radius;
-    const rt::vector pmpos = p - position;
+    const rt::vector v = p - position;
 
-    const real not_on_bottom_disk = pmpos.normsq() >= rr;
+    const real not_on_bottom_disk = v.normsq() >= rr;
     const bool hits_side = not_on_bottom_disk
         && /* Not on top disk */
-        ((pmpos - (length * direction)).normsq() >= rr);
-    
-    const object* pt_obj = this;
+        ((v - (length * direction)).normsq() >= rr);
 
-    if (hits_side) {
-        // We compute the s value (such that (p - (o + s.d) | d) = 0)
-        // const real s = (pmpos | direction);
-        // const rt::vector n = (p - (position + s * d)) / radius
-        return hit(r.direction, p, (pmpos - ((pmpos | direction) * direction)) / radius, pt_obj);
-    }
-    else {
-        return hit(r.direction, p, not_on_bottom_disk ? direction : ((-1.0_r) * direction), pt_obj);
-    }
+    const rt::vector normal = hits_side ?
+          // We compute the s value (such that (p - (o + s.d) | d) = 0)
+          // const real s = (pmpos | direction);
+          // const rt::vector n = (p - (position + s * d)) / radius
+          (v - ((v | direction) * direction)) / radius
+        : (not_on_bottom_disk ?
+            direction : ((-1.0_r) * direction));
 
-    
+    const ray_orientation_type ray_orientation = hit::compute_ray_orientation(r.direction, normal);
+
+    return hit(p, normal, this, ray_orientation, object_type::Cylinder);
 }
 
 /* Minimum and maximum coordinates */
@@ -219,14 +218,14 @@ min_max_coord cylinder::get_min_max_coord() const {
 }
 
 /* Returns the barycentric info (the texture is mapped onto the top, the bottom, and the curved surface) [to be implemented] */
-barycentric_info cylinder::get_barycentric(const rt::vector&) const {
-    throw std::runtime_error("Barycentric coordinates are unavailable for cylinders");
-}
+// barycentric_info cylinder::get_barycentric(const rt::vector&) const {
+//     throw std::runtime_error("Barycentric coordinates are unavailable for cylinders");
+// }
 
 rt::vector cylinder::compute_normal_from_map(
             const rt::vector&,
             const rt::vector&,
-            const texture_info&
+            const mapping_info*
         ) const {
 
     throw std::runtime_error("Texturing is unavailable for cylinders");

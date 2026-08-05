@@ -32,14 +32,14 @@ static unsigned int parse_parameters(parameters& param, const std::span<const st
     while (args_size > current_index && args[current_index].starts_with('-')) {
         const std::string& arg = args[current_index];
         if (int nb_args = 1;
-            (arg == "-input" || arg == "-I" || arg == "-IO")
+            (arg == "-input" || arg == "-I" || arg == "-i" || arg == "-IO" || arg == "-io")
                 && args_size > current_index + nb_args
                 && not param.input_dir_set) {
 
             param.input_dir = args[current_index + 1];
             check_directory(param.input_dir, param.input_dir_set);
 
-            if (arg == "-IO") {
+            if (arg == "-IO" || arg == "-io") {
                 param.output_dir = param.input_dir;
                 param.output_dir_set = true;
             }
@@ -47,7 +47,7 @@ static unsigned int parse_parameters(parameters& param, const std::span<const st
             current_index += nb_args + 1;
         }
         else if (int nb_args = 1;
-            (arg == "-output" || arg == "-O")
+            (arg == "-output" || arg == "-O" || arg == "-o")
                 && args_size > current_index + nb_args
                 && not param.output_dir_set) {
             
@@ -89,6 +89,8 @@ static unsigned int parse_parameters(parameters& param, const std::span<const st
             param.gamma_set = true;
             current_index += nb_args + 1;
         }
+        else
+            throw std::runtime_error("Unexpected argument " + arg + "\n");
     }
 
     if (args_size <= current_index)

@@ -20,14 +20,20 @@ class object {
         /* Position of the object (depends on the type of object) */
         rt::vector position;
 
-        /* Index of the material in the material_set vector of the scene */
+        /* Index of the material in the material_set container in the scene */
         unsigned int material_index = EMPTY_INDEX;
 
-        /* Contains a texture_info if the object is textured */
-        unsigned int texture_information_index = EMPTY_INDEX;
+        /* Index of the orientation object in the orientation container
+           The index is relative to the container associated with the object type.
+        */
+        unsigned int orientation_info_index = EMPTY_INDEX;
 
-        constexpr object(const rt::vector& position, unsigned int material_index, unsigned int texture_info_index = EMPTY_INDEX)
-            : position(position), material_index(material_index), texture_information_index(texture_info_index) {}
+        constexpr object(const rt::vector& position, unsigned int material_index,
+            unsigned int orientation_info_index = EMPTY_INDEX)
+
+            :   position(position),
+                material_index(material_index),
+                orientation_info_index(orientation_info_index) {}
 
         object(object&&) noexcept        = default;
         object(const object&)            = delete;
@@ -47,37 +53,42 @@ class object {
         }
 
         inline bool is_textured() const {
-            return texture_information_index != EMPTY_INDEX;
+            return orientation_info_index != EMPTY_INDEX;
         }
 
-        inline unsigned int get_texture_info_index() const {
-            return texture_information_index;
+        inline unsigned int get_orientation_info_index() const {
+            return orientation_info_index;
         }
 
         /* Interface */
 
         /* Intersection determination: returns infinity if no object is hit */
-        virtual real measure_distance(const ray& r) const                                   = 0;
+        virtual real measure_distance(const ray& r) const            = 0;
 
-        virtual hit compute_intersection(const ray& r, real t) const                        = 0;
+        virtual hit compute_intersection(const ray& r, real t) const = 0;
 
         /* Returns the minimum and maximum coordinates of the object along the three axes */
-        virtual min_max_coord get_min_max_coord() const                                     = 0;
+        virtual min_max_coord get_min_max_coord() const              = 0;
 
         /* Returns the barycentric info for the object (depends on the object type) */
-        virtual barycentric_info get_barycentric(const rt::vector& p) const                 = 0;
+        // virtual barycentric_info get_barycentric(const rt::vector& p) const  = 0;
+        
+        /* Returns UV-coordinates for texture mapping */
+        virtual uvcoord compute_uv(const rt::vector& p,
+            const mapping_info* orientation_info) const              = 0;
 
         virtual rt::vector compute_normal_from_map(
             const rt::vector& tangent_space_normal,
             const rt::vector& local_normal,
-            const texture_info& info
-        ) const                                                                             = 0;
+            const mapping_info* orientation_info
+        ) const                                                      = 0;
 
         /* Uniformly samples a point on the object */
-        virtual rt::vector sample(const randomgen& rg) const                                = 0;
+        virtual rt::vector sample(const randomgen& rg) const         = 0;
 
         /* Uniformly samples a point on the object that is visible from pt */
-        virtual rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const  = 0;
+        virtual rt::vector sample_visible(const randomgen& rg,
+            const rt::vector& pt) const                              = 0;
 
-        virtual void print() const                                                          = 0;
+        virtual void print() const                                   = 0;
 };

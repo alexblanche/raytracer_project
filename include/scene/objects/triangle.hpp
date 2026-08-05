@@ -1,6 +1,9 @@
 #pragma once
 
 #include "scene/objects/object.hpp"
+#include "scene/material/mapping_info.hpp"
+
+#include <array>
 
 constexpr real DET_EPSILON = 1.0e-10_r;
 
@@ -49,28 +52,36 @@ class triangle final : public object {
         real det;
         det_case case_det;
 
-
     public:
+
+        struct orientation : public mapping_info {
+            uvcoord uv[3];
+            rt::vector tangent;
+            rt::vector bitangent;
+
+            orientation(int index, composition comp, const std::array<uvcoord, 3>& uvc,
+                const rt::vector& v1, const rt::vector& v2);
+        };
         
         // Constructor from three points
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, 
-            unsigned int material_index, unsigned int texture_info_index = EMPTY_INDEX);
+            unsigned int material_index, unsigned int orientation_info_index = EMPTY_INDEX);
 
         // Constructor from three points with vertex normals
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
             const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2,
-            unsigned int material_index, unsigned int texture_info_index = EMPTY_INDEX);
+            unsigned int material_index, unsigned int orientation_info_index = EMPTY_INDEX);
 
         // Constructor from three points with normal mapping enabled
-        triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
-            unsigned int material_index, unsigned int texture_info_index,
-            texture_info& info);
+        // triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
+        //     unsigned int material_index, unsigned int texture_info_index,
+        //     texture_info& info);
 
-        // Constructor from three points with vertex normals and normal mapping enabled
-        triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
-            const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2,
-            unsigned int material_index, unsigned int texture_info_index,
-            texture_info& info);
+        // // Constructor from three points with vertex normals and normal mapping enabled
+        // triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
+        //     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2,
+        //     unsigned int material_index, unsigned int texture_info_index,
+        //     texture_info& info);
 
         triangle(triangle&&) noexcept        = default;
         triangle(const triangle&)            = delete;
@@ -85,23 +96,20 @@ class triangle final : public object {
 
         real measure_distance(const ray& r) const override;
 
-        /* Returns the barycentric info (l1, l2):
-           p = position + l1 * v1 + l2 * v2
-           (0 <= l1, l2 <= 1)
-        */
-        barycentric_info get_barycentric(const rt::vector& p) const override;
-
-        rt::vector get_interpolated_normal(const barycentric_info& bary) const;
+        uvcoord compute_uv(const rt::vector& p, const mapping_info* orientation_info) const override;
 
         hit compute_intersection(const ray& r, real t) const override;
-
 
         /* Minimum and maximum coordinates */
         min_max_coord get_min_max_coord() const override;
 
         /* Normal map vector computation at render time
         Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
-        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const override;
+        rt::vector compute_normal_from_map(
+            const rt::vector& tangent_space_normal,
+            const rt::vector& local_normal,
+            const mapping_info* orientation_info
+        ) const override;
 
         /* General function, used in triangle and quad classes */
         static inline rt::vector sample_triangle(const randomgen& rg, const rt::vector& v0, const rt::vector& v1, const rt::vector& v2) {
@@ -127,4 +135,10 @@ class triangle final : public object {
         rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const override;
 
         void print() const override;
+
+    private:
+        
+        stcoord compute_st(const rt::vector& p) const;
+
+        rt::vector compute_interpolated_normal(const stcoord& st) const;
 };

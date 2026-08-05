@@ -22,9 +22,9 @@ static std::pair<real, det_case> set_up_det(const rt::vector& v1, const rt::vect
 
 // Constructor from three points without vertex normals
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, 
-    const unsigned int material_index, const unsigned int texture_info_index)
+    const unsigned int material_index, const unsigned int orientation_info_index)
 
-    : object(p0, material_index, texture_info_index) {
+    : object(p0, material_index, orientation_info_index) {
 
     v1 = p1 - p0;
     v2 = p2 - p0;
@@ -41,9 +41,9 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
 // Constructor from three points with vertex normals
 triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2,
-    const unsigned int material_index, const unsigned int texture_info_index)
+    const unsigned int material_index, const unsigned int orientation_info_index)
 
-    : triangle(p0, p1, p2, material_index, texture_info_index) {
+    : triangle(p0, p1, p2, material_index, orientation_info_index) {
 
     vn0  = vn0init.unit();
     dvn1 = (vn1.unit()) - vn0;
@@ -51,52 +51,75 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
 }
 
 // Constructor from three points with normal mapping enabled
-triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
-    const unsigned int material_index, const unsigned int texture_info_index,
-    texture_info& info)
+// triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
+//     const unsigned int material_index, const unsigned int texture_info_index,
+//     texture_info& info)
 
-    : triangle(p0, p1, p2, material_index, texture_info_index) {
+//     : triangle(p0, p1, p2, material_index, texture_info_index) {
 
-    /*
-    Computation of tangent space
-    v1 = x1 * t + y1 * b
-    v2 = x2 * t + y2 * b
+//     /*
+//     Computation of tangent space
+//     v1 = x1 * t + y1 * b
+//     v2 = x2 * t + y2 * b
 
-    In matrix form:
-    (v1.x v1.y v1.z)   (x1 y1)(t.x t.y t.z)
-    (v2.x v2.y v2.z) = (x2 y2)(b.x b.y b.z)
+//     In matrix form:
+//     (v1.x v1.y v1.z)   (x1 y1)(t.x t.y t.z)
+//     (v2.x v2.y v2.z) = (x2 y2)(b.x b.y b.z)
 
-    So,
-    (x1 y1)-1 (v1.x v1.y v1.z)   (t.x t.y t.z)
-    (x2 y2)   (v2.x v2.y v2.z) = (b.x b.y b.z)
+//     So,
+//     (x1 y1)-1 (v1.x v1.y v1.z)   (t.x t.y t.z)
+//     (x2 y2)   (v2.x v2.y v2.z) = (b.x b.y b.z)
 
-    (x1 y1)-1                             (y2  -y1)
-    (x2 y2)   = (1 / (x1 * y2 - x2 * y1)) (-x2  x1)
-    */
+//     (x1 y1)-1                             (y2  -y1)
+//     (x2 y2)   = (1 / (x1 * y2 - x2 * y1)) (-x2  x1)
+//     */
 
-    const auto& [ u_0, v_0, u_1, v_1, u_2, v_2, _, _ ] = info.uv_coordinates;
+//     const auto& [ u_0, v_0, u_1, v_1, u_2, v_2, _, _ ] = info.uv_coordinates;
+//     const real x1 = u_1 - u_0;
+//     const real x2 = u_2 - u_0;
+//     const real y1 = v_1 - v_0;
+//     const real y2 = v_2 - v_0;
+//     const real r = 1.0_r / (x1 * y2 - x2 * y1);
+//     const rt::vector t = r * ( y2 * v1 + -y1 * v2);
+//     const rt::vector b = r * (-x2 * v1 +  x1 * v2);
+//     info.set_tangent_space(t.unit(), b.unit());
+// }
+
+triangle::orientation::orientation(const int index, const composition comp,
+    const std::array<uvcoord, 3>& uvc, const rt::vector& v1, const rt::vector& v2)
+
+    : mapping_info(index, comp) {
+
+    const auto& [ uv0, uv1, uv2 ] = uvc;
+    uv[0] = uv0;
+    uv[1] = uv1;
+    uv[2] = uv2;
+
+    const auto& [ u_0, v_0 ] = uv0;
+    const auto& [ u_1, v_1 ] = uv1;
+    const auto& [ u_2, v_2 ] = uv2;
     const real x1 = u_1 - u_0;
     const real x2 = u_2 - u_0;
     const real y1 = v_1 - v_0;
     const real y2 = v_2 - v_0;
     const real r = 1.0_r / (x1 * y2 - x2 * y1);
-    const rt::vector t = r * ( y2 * v1 + -y1 * v2);
-    const rt::vector b = r * (-x2 * v1 +  x1 * v2);
-    info.set_tangent_space(t.unit(), b.unit());
+
+    tangent   = r * ( y2 * v1 + -y1 * v2);
+    bitangent = r * (-x2 * v1 +  x1 * v2);
 }
 
 // Constructor from three points with vertex normals and normal mapping enabled
-triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
-    const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2,
-    const unsigned int material_index, const unsigned int texture_info_index,
-    texture_info& info)
+// triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
+//     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2,
+//     const unsigned int material_index, const unsigned int texture_info_index,
+//     texture_info& info)
 
-    : triangle(p0, p1, p2, material_index, texture_info_index, info) {
+//     : triangle(p0, p1, p2, material_index, texture_info_index, info) {
     
-    vn0  = vn0init.unit();
-    dvn1 = (vn1.unit()) - vn0;
-    dvn2 = (vn2.unit()) - vn0;
-}
+//     vn0  = vn0init.unit();
+//     dvn1 = (vn1.unit()) - vn0;
+//     dvn2 = (vn2.unit()) - vn0;
+// }
 
 /* Returns the barycenter of the triangle */
 inline rt::vector triangle::get_barycenter() const {
@@ -147,41 +170,65 @@ real triangle::measure_distance(const ray& r) const {
    p = position + l1 * v1 + l2 * v2
    (0 <= l1, l2 <= 1)
 */
-barycentric_info triangle::get_barycentric(const rt::vector& p) const {
+// barycentric_info triangle::get_barycentric(const rt::vector& p) const {
+//     const rt::vector c = p - position;
+//     const real l1 = compute_det_2d(c, v2, case_det) / det;
+//     const real l2 = compute_det_2d(v1, c, case_det) / det;
+//     return barycentric_info(l1, l2, object_type::Triangle);
+// }
 
+stcoord triangle::compute_st(const rt::vector& p) const {
     const rt::vector c = p - position;
-
-    const real l1 = compute_det_2d(c, v2, case_det) / det;
-    const real l2 = compute_det_2d(v1, c, case_det) / det;
-
-    return barycentric_info(l1, l2, object_type::Triangle);
+    return {
+        .s = compute_det_2d(c, v2, case_det) / det,
+        .t = compute_det_2d(v1, c, case_det) / det
+    };
 }
 
-inline rt::vector triangle::get_interpolated_normal(const barycentric_info& bary) const {
+uvcoord triangle::compute_uv(const rt::vector& p, const mapping_info* orientation_info) const {
 
-    const auto [ l1, l2 ] = bary.l;
-    return fma(dvn2, l2, fma(dvn1, l1, vn0));
+    const orientation& o = *static_cast<const orientation*>(orientation_info);
+
+    /* ST-coordinates */
+    const auto& [ s, t ] = compute_st(p);
+
+    /* UV-coordinates */
+    const auto& [ u0, v0 ] = o.uv[0];
+    const auto& [ u1, v1 ] = o.uv[1];
+    const auto& [ u2, v2 ] = o.uv[2];
+    const real w = 1.0_r - s - t;
+
+    return {
+        .u = w * u0 + s * u1 + t * u2,
+        .v = w * v0 + s * v1 + t * v2
+    };
+}
+
+inline rt::vector triangle::compute_interpolated_normal(const stcoord& st) const {
+
+    const auto& [ s, t ] = st;
+    return fma(dvn2, t, fma(dvn1, s, vn0));
 }
 
 hit triangle::compute_intersection(const ray& r, const real t) const {
     
     const rt::vector p = r.extend(t);
-    const object* pt_obj = this;
+
+    // ray_orientation uses the face normal (instead of the normal from the normal map)
+    // to avoid artefacts at the edge of the mesh
+    const ray_orientation_type ray_orientation = hit::compute_ray_orientation(r.direction, normal);
     
     if constexpr (SHADING == shading::SmoothShading) {
     
         // Computation of the interpolated normal vector
-        const barycentric_info bary = get_barycentric(p);
+        const auto [ s, t ] = compute_st(p);
+        const rt::vector interpolated_normal = fma(dvn2, t, fma(dvn1, s, vn0));
 
-        // ray_orientation uses the face normal to avoid artefacts at the edge of the mesh
-        using enum orientation_type;
-        const orientation_type ray_orientation = is_negative(r.direction | normal) ? Inward : Outward;
-
-        return hit(p, get_interpolated_normal(bary), pt_obj, ray_orientation);
+        return hit(p, interpolated_normal, this, ray_orientation, object_type::Triangle);
     }
     else { // Flat shading
         
-        return hit(r.direction, p, normal, pt_obj);
+        return hit(p, normal, this, ray_orientation, object_type::Triangle);
     }
 }
 
@@ -203,10 +250,13 @@ min_max_coord triangle::get_min_max_coord() const {
 
 /* Normal map vector computation at render time
     Local normal may be the normal of the triangle (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
-rt::vector triangle::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const {
+rt::vector triangle::compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal,
+    const mapping_info* orientation_info) const {
+
+    const orientation& o = *static_cast<const orientation*>(orientation_info);
 
     if constexpr (SHADING == shading::SmoothShading) {
-        const rt::vector& t = info.tangent;
+        const rt::vector& t = o.tangent;
         // Recompute the tangent space with Gram-Schmidt's method
         /*
         const rt::vector t2 = (t - ((t | local_normal) * local_normal)).unit();
@@ -232,8 +282,8 @@ rt::vector triangle::compute_normal_from_map(const rt::vector& tangent_space_nor
     }
     else {
         // Flat shading
-        const rt::vector& t = info.tangent;
-        const rt::vector& b = info.bitangent;
+        const rt::vector& t = o.tangent;
+        const rt::vector& b = o.bitangent;
 
         //return tangent_space_normal.x * t + tangent_space_normal.y * b + tangent_space_normal.z * local_normal;
         return matprod(t, b, local_normal, tangent_space_normal);

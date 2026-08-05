@@ -2,6 +2,9 @@
 
 #include "scene/objects/triangle.hpp"
 
+#include <array>
+#include <tuple>
+
 class quad final : public object {
     
     private:
@@ -22,26 +25,39 @@ class quad final : public object {
         real ratio; // ratio of the area of the lower triangle over the whole quad
 
     public:
+
+        struct orientation : public mapping_info {
+            uvcoord uv[4];
+            rt::vector tangent;
+            rt::vector bitangent;
+
+            orientation(int index, composition comp, const std::array<uvcoord, 4>& uvc,
+                const rt::vector& v1, const rt::vector& v2);
+        };
+
+        enum class side {
+            Triangle012, Triangle032
+        };
         
         // Constructor from four points
         quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
-            unsigned int material_index, unsigned int texture_info_index = EMPTY_INDEX);
+            unsigned int material_index, unsigned int orientation_info_index = EMPTY_INDEX);
 
         // Constructor from four points with vertex normals
         quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
             const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
-            unsigned int material_index, unsigned int texture_info_index = EMPTY_INDEX);
+            unsigned int material_index, unsigned int orientation_info_index = EMPTY_INDEX);
 
-        // Constructor from four points with normal mapping enabled
-        quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
-            unsigned int material_index, unsigned int texture_info_index,
-            texture_info& info);
+        // // Constructor from four points with normal mapping enabled
+        // quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
+        //     unsigned int material_index, unsigned int texture_info_index,
+        //     texture_info& info);
 
-        // Constructor from four points with vertex normals and normal mapping enabled
-        quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
-            const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
-            unsigned int material_index, unsigned int texture_info_index,
-            texture_info& info);
+        // // Constructor from four points with vertex normals and normal mapping enabled
+        // quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
+        //     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
+        //     unsigned int material_index, unsigned int texture_info_index,
+        //     texture_info& info);
 
         quad(quad&&) noexcept        = default;
         quad(const quad&)            = delete;
@@ -55,15 +71,7 @@ class quad final : public object {
 
         real measure_distance(const ray& r) const override;
 
-        /* Returns the barycentric info (l1, l2, lower_triangle):
-           (0 <= l1, l2 <= 1)
-           p = position + l1 * v1 + l2 * v2 if lower_triangle == true,
-           or
-           p = position + l1 * v3 + l2 * v2 otherwise
-        */
-        barycentric_info get_barycentric(const rt::vector& p) const override;
-        
-        rt::vector get_interpolated_normal(const barycentric_info& bary) const;
+        uvcoord compute_uv(const rt::vector& p, const mapping_info* orientation_info) const override;
 
         hit compute_intersection(const ray& r, real t) const override;
 
@@ -73,11 +81,21 @@ class quad final : public object {
 
         /* Normal map vector computation at render time
         Local normal may be the normal of the quad (for flat shading) or the smoothed normal, and in this case the tangent space should be reorthonormalized */
-        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const override;
+        rt::vector compute_normal_from_map(
+            const rt::vector& tangent_space_normal,
+            const rt::vector& local_normal,
+            const mapping_info* orientation_info
+        ) const override;
 
         rt::vector sample(const randomgen& rg) const override;
         
         rt::vector sample_visible(const randomgen& rg, const rt::vector& pt) const override;
 
         void print() const override;
+
+    private:
+
+        std::pair<stcoord, side> quad::compute_st(const rt::vector& p) const;
+
+        rt::vector compute_interpolated_normal(const stcoord& st, const side side_) const;
 };

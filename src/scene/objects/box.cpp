@@ -90,25 +90,29 @@ hit box::compute_intersection(const ray& r, const real t) const {
 
     constexpr real EPSILON = 0.0000001_r;
 
+    rt::vector n;
+
     const real pdt1 = (v | n1);
     if (std::abs(pdt1 - l1) < EPSILON)
-        return hit(r.direction, p, n1, pt_obj);
-    
-    if (std::abs(pdt1 + l1) < EPSILON)
-        return hit(r.direction, p, (-1.0_r) * n1, pt_obj);
-    
-    const real pdt2 = (v | n2);
-    if (std::abs(pdt2 - l2) < EPSILON)
-        return hit(r.direction, p, n2, pt_obj);
-    
-    if (std::abs(pdt2 + l2) < EPSILON)
-        return hit(r.direction, p, (-1.0_r) * n2, pt_obj);
-    
-    const real pdt3 = (v | n3);
-    if (std::abs(pdt3 - l3) < EPSILON)
-        return hit(r.direction, p, n3, pt_obj);
+        n = n1;
+    else if (std::abs(pdt1 + l1) < EPSILON)
+        n = (-1.0_r) * n1;
+    else {
 
-    return hit(r.direction, p, (-1.0_r) * n3, pt_obj);
+        const real pdt2 = (v | n2);
+        if (std::abs(pdt2 - l2) < EPSILON)
+            n = n2;
+        else if (std::abs(pdt2 + l2) < EPSILON)
+            n = (-1.0_r) * n2;
+        else {
+
+            const real pdt3 = (v | n3);
+            n = (std::abs(pdt3 - l3) < EPSILON) ?
+                n3 : (-1.0_r) * n3;
+        }
+    }
+
+    return hit(p, n, pt_obj, hit::compute_ray_orientation(r.direction, n), object_type::Box);
 }
 
 /* Minimum and maximum coordinates */
@@ -128,7 +132,7 @@ min_max_coord box::get_min_max_coord() const {
    The box is assumed to be standard (axes are n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1)) */
 bool box::is_hit_by(const ray& r) const {
     
-    const auto& [ u, dir, inv_dir /* , abs_inv_dir */ ] = r;
+    const auto& [ u, dir, inv_dir ] = r;
     const rt::vector abs_inv_dir = rt::abs(inv_dir);
 
     // See measure_distance
@@ -158,8 +162,7 @@ bool box::is_hit_by(const ray& r) const {
    The box is assumed to be standard (axes are n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1)) */
 real box::is_hit_with_distance(const ray& r) const {
     
-    const auto& [ u, dir, inv_dir /* , abs_inv_dir */ ] = r;
-    // const rt::vector abs_inv_dir = rt::abs(inv_dir);
+    const auto& [ u, dir, inv_dir ] = r;
 
     // See measure_distance
 
@@ -196,15 +199,19 @@ real box::is_hit_with_distance(const ray& r) const {
 }
 
 /* Returns the barycentric info (the faces behave like quads) [to be implemented] */
-barycentric_info box::get_barycentric(const rt::vector&) const {
+// barycentric_info box::get_barycentric(const rt::vector&) const {
+//     return barycentric_info(0.0_r, 0.0_r, object_type::Box);
+// }
 
-    return barycentric_info(0.0_r, 0.0_r, object_type::Box);
+// Texturing is unavailable for boxes
+uvcoord box::compute_uv(const rt::vector&, const mapping_info*) const {
+    return { 0, 0 };
 }
 
 rt::vector box::compute_normal_from_map(
             const rt::vector&,
             const rt::vector&,
-            const texture_info&
+            const mapping_info*
         ) const {
 
     throw std::runtime_error("Texturing is unavailable for boxes");

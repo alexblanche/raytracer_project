@@ -75,7 +75,15 @@ class scene {
                 std::vector<cylinder> cylinder_set;
 
                 object(const pre_parsing_info& pre_parsing_info) {
-                    const auto& [ _, nb_triangles, nb_quads, nb_spheres, nb_planes, nb_boxes, nb_cylinders, _, _ ] = pre_parsing_info;
+                    const auto& [ _,
+                        nb_triangles,
+                        nb_quads,
+                        nb_spheres,
+                        nb_planes,
+                        nb_boxes,
+                        nb_cylinders,
+                        _, _
+                    ] = pre_parsing_info;
 
                     // triangle_set must make room for split quads
                     triangle_set.reserve(nb_triangles + 2 * nb_quads);
@@ -91,20 +99,26 @@ class scene {
                 std::vector<material>     material_set;
                 std::vector<texture>      texture_set;
                 std::vector<normal_map>   normal_map_set;
-                std::vector<texture_info> texture_info_set;
                 background_container background;
 
                 mapping(std::vector<material>&& material_set,
                     std::vector<texture>&&      texture_set,
                     std::vector<normal_map>&&   normal_map_set,
-                    std::vector<texture_info>&& texture_info_set,
                     background_container&&      background) :
 
                     material_set    (std::move(material_set)),
                     texture_set     (std::move(texture_set)),
                     normal_map_set  (std::move(normal_map_set)),
-                    texture_info_set(std::move(texture_info_set)),
                     background      (std::move(background)) {}
+            };
+
+            struct orientation {
+                std::vector<triangle::orientation> triangle_orientation_set;
+                std::vector<quad::orientation>     quad_orientation_set;
+                std::vector<sphere::orientation>   sphere_orientation_set;
+                std::vector<plane::orientation>    plane_orientation_set;
+                std::vector<box::orientation>      box_orientation_set;
+                std::vector<cylinder::orientation> cylinder_orientation_set;
             };
         };
 
@@ -115,8 +129,9 @@ class scene {
         std::vector<const bounding*> bounding_set;
 
         /* Objects, materials, textures, normal_maps */
-        containers::object  object_containers;
-        containers::mapping mapping_containers;
+        containers::object      object_containers;
+        containers::mapping     mapping_containers;
+        containers::orientation orientation_containers;
 
         /* Camera */
         camera cam;
@@ -133,10 +148,11 @@ class scene {
 
         /* Constructor with background texture and optional background color */
         scene(
-            std::vector<const object*>&&   object_set,
-            std::vector<const bounding*>&& bounding_set,
-            scene::containers::object&&    object_containers,
-            scene::containers::mapping&&   mapping_containers,
+            std::vector<const object*>&&     object_set,
+            std::vector<const bounding*>&&   bounding_set,
+            scene::containers::object&&      object_containers,
+            scene::containers::mapping&&     mapping_containers,
+            scene::containers::orientation&& orientation_containers,
             camera&& cam,
             int width, int height,
             unsigned int polygons_per_bounding,

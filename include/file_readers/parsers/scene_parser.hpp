@@ -12,7 +12,7 @@ struct containers {
     std::vector<wrapper<material>>&   material_wrapper_set;
     std::vector<wrapper<texture>>&    texture_wrapper_set;
     std::vector<wrapper<normal_map>>& normal_map_wrapper_set;
-    std::vector<texture_info>&        texture_info_set;
+    scene::containers::orientation&   orientation_containers;
 };
 
 std::optional<scene> parse_scene_descriptor(const std::string& file_name);

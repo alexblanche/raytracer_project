@@ -1,6 +1,7 @@
 #pragma once
 
 #include "scene/objects/object.hpp"
+#include "scene/material/mapping_info.hpp"
 
 class box final : public object {
     
@@ -16,11 +17,15 @@ class box final : public object {
 
     public:
 
+        struct orientation : public mapping_info {}; // Unused
+
         /* Main constructor */
         constexpr box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,
-            real l1, real l2, real l3, unsigned int material_index = EMPTY_INDEX)
+            real l1, real l2, real l3, unsigned int material_index = EMPTY_INDEX,
+            unsigned int orientation_info_index = EMPTY_INDEX)
 
-            : object(center, material_index), n1(n1), n2(n2), n3(n1 ^ n2), l1(l1 / 2), l2(l2 / 2), l3(l3 / 2) {}
+            : object(center, material_index, orientation_info_index),
+              n1(n1), n2(n2), n3(n1 ^ n2), l1(l1 / 2), l2(l2 / 2), l3(l3 / 2) {}
 
         box(const min_max_coord& mmc)
             : object(rt::ZERO, EMPTY_INDEX), n1(rt::RIGHT), n2(rt::UP) {
@@ -66,12 +71,14 @@ class box final : public object {
         real is_hit_with_distance(const ray& r) const;
 
         /* Returns the barycentric info (the faces behave like quads) */
-        barycentric_info get_barycentric(const rt::vector& p) const override;
+        // barycentric_info get_barycentric(const rt::vector& p) const override;
+
+        uvcoord compute_uv(const rt::vector& p, const mapping_info* orientation_info) const override;
 
         rt::vector compute_normal_from_map(
             const rt::vector& tangent_space_normal,
             const rt::vector& local_normal,
-            const texture_info& info
+            const mapping_info* orientation_info
         ) const override;
 
         rt::vector sample(const randomgen& rg) const override;

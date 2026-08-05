@@ -35,7 +35,7 @@ To compile, create a folder ```build``` at the root of the project and copy the 
 ```
 $ cmake .. -G "MSYS Makefiles" -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc -DCMAKE_MAKE_PROGRAM=make -DCMAKE_PREFIX_PATH=sdl  
 $ make  
-$ main.exe 5
+$ main.exe ../scenes/scene.txt 5
 ```
 
 ### Linux
@@ -44,7 +44,7 @@ Install the SDL2 library, then create a folder ```build``` at the root, move to 
 ``````
 $ cmake ..
 $ make
-$ ./main 5
+$ ./main ../scenes/scene.txt 5
 ``````
 
 See command-line arguments and scene descriptor syntax in the [User guide](User-guide.md).  

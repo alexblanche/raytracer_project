@@ -1,13 +1,7 @@
 #pragma once
 
 #include "scene/objects/object.hpp"
-
-// Merged with sphere::mapping_info
-struct plane_orientation {
-    rt::vector right_dir   = rt::RIGHT;
-    rt::vector down_dir    = rt::FORWARD;
-    real inv_texture_scale = 1.0_r;
-};
+#include "scene/material/mapping_info.hpp"
 
 class plane final : public object {
     
@@ -16,22 +10,31 @@ class plane final : public object {
         rt::vector normal;
         real d;
         // Used to orient the texture
-        plane_orientation orientation;
+        //plane_orientation orientation;
 
         /* A plane (P) of equation (P): ax + by + cz + d = 0
          defined by 4 reals a,b,c,d, where normal = (a, b, c) */
 
     public:
 
-        plane(real pa, real pb, real pc, const rt::vector& position,
-            unsigned int material_index);
-        
-        plane(real pa, real pb, real pc, real pd,
-            unsigned int material_index);
+        struct orientation : public mapping_info {
+            rt::vector right_dir   = rt::RIGHT;
+            rt::vector down_dir    = rt::FORWARD;
+            real inv_texture_scale = 1.0_r;
+
+            orientation(int index, composition comp,
+                const rt::vector& normal, const rt::vector& right, real scale);
+        };
 
         plane(real pa, real pb, real pc, const rt::vector& position,
-            unsigned int material_index,
-            unsigned int texture_info_index, const rt::vector& right, real scale);
+            unsigned int material_index, unsigned int orientation_info_index = EMPTY_INDEX);
+        
+        plane(real pa, real pb, real pc, real pd,
+            unsigned int material_index, unsigned int orientation_info_index = EMPTY_INDEX);
+
+        // plane(real pa, real pb, real pc, const rt::vector& position,
+        //     unsigned int material_index,
+        //     unsigned int texture_info_index, const rt::vector& right, real scale);
 
         plane(plane&&) noexcept        = default;
         plane(const plane&)            = delete;
@@ -49,10 +52,16 @@ class plane final : public object {
         hit compute_intersection(const ray& r, real t) const override;
 
         /* Returns the barycentric info (tiles according to texture_scale) */
-        barycentric_info get_barycentric(const rt::vector& p) const override;
+        // barycentric_info get_barycentric(const rt::vector& p) const override;
+
+        uvcoord compute_uv(const rt::vector& p, const mapping_info* orientation_info) const override;
 
         /* Normal map vector computation at render time */
-        rt::vector compute_normal_from_map(const rt::vector& tangent_space_normal, const rt::vector& local_normal, const texture_info& info) const override;
+        rt::vector compute_normal_from_map(
+            const rt::vector& tangent_space_normal,
+            const rt::vector& local_normal,
+            const mapping_info* orientation_info
+        ) const override;
 
         /* Minimum and maximum coordinates (undefined for planes )*/
         min_max_coord get_min_max_coord() const override;

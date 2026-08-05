@@ -8,20 +8,22 @@
 static constexpr unsigned int DEFAULT_STACK_SIZE = 200;
 
 scene::scene(
-    std::vector<const object*>&& object_set,
-    std::vector<const bounding*>&& bounding_set,
-    scene::containers::object&&    object_containers,
-    scene::containers::mapping&&   mapping_containers,
+    std::vector<const object*>&&     object_set,
+    std::vector<const bounding*>&&   bounding_set,
+    scene::containers::object&&      object_containers,
+    scene::containers::mapping&&     mapping_containers,
+    scene::containers::orientation&& orientation_containers,
     camera&& cam,
     const int width, const int height,
     const unsigned int polygons_per_bounding,
     const std::optional<real> gamma) :
     
-    object_set         (std::move(object_set)),
-    bounding_set       (std::move(bounding_set)),
-    object_containers  (std::move(object_containers)),
-    mapping_containers (std::move(mapping_containers)),
-    cam                (std::move(cam)),
+    object_set              (std::move(object_set)),
+    bounding_set            (std::move(bounding_set)),
+    object_containers       (std::move(object_containers)),
+    mapping_containers      (std::move(mapping_containers)),
+    orientation_containers  (std::move(orientation_containers)),
+    cam                     (std::move(cam)),
     width(width), height(height),
     polygons_per_bounding(polygons_per_bounding),
     gamma(gamma) {}
@@ -184,58 +186,90 @@ std::optional<hit> scene::find_closest_object_bounding(const ray& r) const {
 }
 
 /* Returns the color of the pixel associated with UV-coordinates u, v */
-const rt::color& scene::sample_texture(const unsigned int texture_info_index, const barycentric_info& bary) const {
+// const rt::color& scene::sample_texture(const unsigned int texture_info_index, const barycentric_info& bary) const {
     
-    const texture_info& ti = mapping_containers.texture_info_set[texture_info_index];
-    const auto [ u, v ] = ti.get_barycenter(bary);
-    return mapping_containers.texture_set[ti.texture_index].get_color(u, v);
+//     const texture_info& ti = mapping_containers.texture_info_set[texture_info_index];
+//     const auto [ u, v ] = ti.get_barycenter(bary);
+//     return mapping_containers.texture_set[ti.texture_index].get_color(u, v);
 
-    /* HERE: we can introduce texture filtering */
-}
+//     /* HERE: we can introduce texture filtering */
+// }
 
 const rt::color& scene::sample_color(const hit& h, const material& m) const {
 
-    const auto& [ _, texture_set, _, texture_info_set, _ ] = mapping_containers;
+    const auto& [ _, texture_set, _, _ ] = mapping_containers;
 
     const object* const obj = h.get_object();
 
     if (not obj->is_textured())
         return m.get_color();
 
-    const texture_info& ti = texture_info_set[obj->get_texture_info_index()];
-    const auto [ u, v ] = ti.get_barycenter(obj->get_barycentric(h.get_point()));
-
-    return (ti.has_texture_information()) ?
-          texture_set[ti.texture_index].get_color(u, v)
+    const mapping_info* const mi = get_mapping_info(orientation_containers,
+        obj->get_orientation_info_index(), h.get_object_type());
+    
+    const auto [ u, v ] = obj->compute_uv(h.get_point(), mi); // virtual call, can be replaced with switch dispatch
+    
+    return (mi->has_texture_information()) ?
+          texture_set[mi->index].get_color(u, v)
         : m.get_color();
+}
+
+static inline const mapping_info* get_mapping_info(const scene::containers::orientation& orientation_containers,
+    const int orientation_info_index, const object_type type) {
+
+    switch (type) {
+        case Triangle: return &orientation_containers.triangle_orientation_set[orientation_info_index];
+        case Quad:     return &orientation_containers.quad_orientation_set    [orientation_info_index];
+        case Sphere:   return &orientation_containers.sphere_orientation_set  [orientation_info_index];
+        case Plane:    return &orientation_containers.plane_orientation_set   [orientation_info_index];
+        case Box:      return &orientation_containers.box_orientation_set     [orientation_info_index];
+        case Cylinder: return &orientation_containers.cylinder_orientation_set[orientation_info_index];
+        default: throw;
+    }
 }
 
 map_sample scene::sample_maps(const hit& h, const material& m) const {
 
-    const auto& [ material_set, texture_set, normal_map_set, texture_info_set, _ ] = mapping_containers;
+    const auto& [ material_set, texture_set, normal_map_set, _ ] = mapping_containers;
 
     const object* const obj = h.get_object();
 
     if (not obj->is_textured())
         return map_sample(m.get_color(), h.get_normal());
 
-    const texture_info& ti = texture_info_set[obj->get_texture_info_index()];
-    const auto [ u, v ] = ti.get_barycenter(obj->get_barycentric(h.get_point()));
+    /*
+    const auto& [
+        triangle_orientation_set,
+        quad_orientation_set,
+        sphere_orientation_set,
+        plane_orientation_set,
+        _, _
+    ] = orientation_containers;
+    */
 
-    const rt::color& t_col = (ti.has_texture_information()) ?
-          texture_set[ti.texture_index].get_color(u, v)
+    // const texture_info& ti = texture_info_set[obj->get_texture_info_index()];
+    // const auto [ u, v ] = ti.get_barycenter(obj->get_barycentric(h.get_point()));
+
+    const mapping_info* const mi = get_mapping_info(orientation_containers,
+        obj->get_orientation_info_index(), h.get_object_type());
+    
+    const auto [ u, v ] = obj->compute_uv(h.get_point(), mi); // virtual call, can be replaced with switch dispatch
+    const int index = mi->index;
+
+    const rt::color& t_col = (mi->has_texture_information()) ?
+          texture_set[index].get_color(u, v)
         : m.get_color();
     
-    const rt::vector& n_vec = (ti.has_normal_information()) ?
-          normal_map_set[ti.normal_map_index].get_tangent_space_normal(u, v)
+    const rt::vector& n_vec = (mi->has_normal_information()) ?
+          normal_map_set[index].get_tangent_space_normal(u, v)
         : h.get_normal();
     
-    // const real smoothness = (ti.has_roughness_map_information()) ?
-    //       1.0f - roughness_map_set[ti.roughness_map_index].get_roughness(u, v)
+    // const real smoothness = (mi->has_roughness_map_information()) ?
+    //       1.0f - roughness_map_set[index].get_roughness(u, v)
     //     : m.get_smoothness();
     
-    // const real displacement = (ti.has_displacement_information()) ?
-    //        displacement_map_set[ti.displacement_map_index].get_displacement(u, v)
+    // const real displacement = (mi->has_displacement_information()) ?
+    //        displacement_map_set[index].get_displacement(u, v)
     //      : 0.0_r;
 
     return map_sample(
