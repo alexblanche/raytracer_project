@@ -1,0 +1,13 @@
+- Gérer le nouveau containers : contient des texture_set, normal_map_set, etc. (plus de wrapper)
+    contient un composition_wrapper_set (pour trouver l'index à mettre dans les objets)
+
+- Placer le comp dans le wrapper_set dans parse_mapping
+
+- Adapter l'obj_parser aux containers : préparer le terrain pour les normal_map, placer des static_assert en place_holder
+
+- Refaire les fonctions sample_maps dans scene :
+        dans obj (sphere) -> orientation_index (EMPTY_INDEX = non-texturé)
+        dans sphere_orientation_set[orientation_index] -> mapping_index + infos d'orientation
+        dans composition_set[mapping_index] -> comp
+            + texture_set[mapping_index] -> texture
+            + etc.

@@ -48,8 +48,10 @@ constexpr parallelism PARALLELISM = parallelism::Enabled;
 #endif
 
 // Features to be implemented
-constexpr bool BOX_TEXTURING_DISABLED       = true;
-constexpr bool BOX_SAMPLING_DISABLED        = true;
-constexpr bool CYLINDER_TEXTURING_DISABLED  = true;
-constexpr bool CYLINDER_SAMPLING_DISABLED   = true;
-constexpr bool PLANE_SAMPLING_DISABLED      = true;
+constexpr bool TODO_BOX_TEXTURING      = true;
+constexpr bool TODO_BOX_SAMPLING       = true;
+constexpr bool TODO_CYLINDER_TEXTURING = true;
+constexpr bool TODO_CYLINDER_SAMPLING  = true;
+constexpr bool TODO_PLANE_SAMPLING     = true;
+constexpr bool TODO_ROUGHNESS_MAP      = true;
+constexpr bool TODO_DISPLACEMENT_MAP   = true;

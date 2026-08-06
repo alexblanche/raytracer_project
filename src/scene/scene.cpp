@@ -231,6 +231,9 @@ map_sample scene::sample_maps(const hit& h, const material& m) const {
     const auto [ u, v ] = obj->compute_uv(h.get_point(), mi); // virtual dispatch, can be replaced with switch
     const int index = mi->index;
 
+    // const composition& comp = composition_set[index];
+    // ... = (comp.has_texture_information) ? ... : ...;
+
     const rt::color& t_col = (mi->has_texture_information()) ?
           texture_set[index].get_color(u, v)
         : m.get_color();
@@ -243,10 +246,12 @@ map_sample scene::sample_maps(const hit& h, const material& m) const {
     // const real smoothness = (mi->has_roughness_map_information()) ?
     //       1.0f - roughness_map_set[index].get_roughness(u, v)
     //     : m.get_smoothness();
+    static_assert(TODO_ROUGHNESS_MAP);
     
     // const real displacement = (mi->has_displacement_information()) ?
     //        displacement_map_set[index].get_displacement(u, v)
     //      : 0.0_r;
+    static_assert(TODO_DISPLACEMENT_MAP);
 
     return map_sample(
         t_col,

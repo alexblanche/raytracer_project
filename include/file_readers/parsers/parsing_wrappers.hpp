@@ -12,13 +12,17 @@
 class material;
 class texture;
 class normal_map;
+class composition;
 template<typename T> inline constexpr std::string type_str() = delete;
-template<> inline constexpr std::string type_str<material>  () { return "material"  ; }
-template<> inline constexpr std::string type_str<texture>   () { return "texture"   ; }
-template<> inline constexpr std::string type_str<normal_map>() { return "normal map"; }
+template<> inline constexpr std::string type_str<material>   () { return "material";    }
+template<> inline constexpr std::string type_str<texture>    () { return "texture";     }
+template<> inline constexpr std::string type_str<normal_map> () { return "normal map";  }
+template<> inline constexpr std::string type_str<composition>() { return "composition"; }
 
 template<typename T>
-concept Wrappable = requires(T x) { type_str<T>(); };
+concept Wrappable =
+    (requires(T x) { type_str<T>(); })
+    && std::is_default_constructible_v<T>;
 
 template <Wrappable T>
 class wrapper {

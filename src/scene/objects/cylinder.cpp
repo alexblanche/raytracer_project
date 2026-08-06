@@ -218,7 +218,7 @@ min_max_coord cylinder::get_min_max_coord() const {
 }
 
 uvcoord compute_uv(const rt::vector& p, const mapping_info* orientation_info) {
-    static_assert(CYLINDER_TEXTURING_DISABLED);
+    static_assert(TODO_CYLINDER_TEXTURING);
     throw std::runtime_error("Texturing is unavailable for cylinders");
 }
 
@@ -228,17 +228,17 @@ rt::vector cylinder::compute_normal_from_map(
             const mapping_info*
         ) const {
 
-    static_assert(CYLINDER_TEXTURING_DISABLED);
+    static_assert(TODO_CYLINDER_TEXTURING);
     throw std::runtime_error("Texturing is unavailable for cylinders");
 }
 
 rt::vector cylinder::sample(const randomgen&) const {
-    static_assert(CYLINDER_SAMPLING_DISABLED);
+    static_assert(TODO_CYLINDER_SAMPLING);
     throw std::runtime_error("Sampling is unavailable for cylinders");
 }
 
 rt::vector cylinder::sample_visible(const randomgen&, const rt::vector&) const {
-    static_assert(CYLINDER_SAMPLING_DISABLED);
+    static_assert(TODO_CYLINDER_SAMPLING);
     throw std::runtime_error("Sampling is unavailable for cylinders");
 }
 

@@ -2,7 +2,7 @@
 
 /* Returns the interpolated direction between the normal and the reflected direction */
 /* inward = ((direction | normal) <= 0) */
-rt::vector direction::central_reflected(const bounce_vectors& bounce_v, const real smoothness, const orientation_type ray_orientation) {
+rt::vector direction::central_reflected(const bounce_vectors& bounce_v, const real smoothness, const ray_orientation_type ray_orientation) {
     /*
     u = direction
     inward = (u | normal) <= 0;
@@ -13,7 +13,7 @@ rt::vector direction::central_reflected(const bounce_vectors& bounce_v, const re
         = (r * (2 * cos - 1) + 1) * right_normal + r * u
     */
     const auto& [ direction, normal, pdt ] = bounce_v;
-    const real correcting_factor = (ray_orientation == orientation_type::Inward) ? 1.0_r : -1.0_r;
+    const real correcting_factor = (ray_orientation == ray_orientation_type::Inward) ? 1.0_r : -1.0_r;
     const real cos = (-correcting_factor) * pdt;
     //return (smoothness * (2.0_r * cos - 1.0_r) + 1.0_r) * right_normal + smoothness * u;
     return fma(direction, smoothness, ((smoothness * (2.0_r * cos - 1.0_r) + 1.0_r) * correcting_factor) * normal);

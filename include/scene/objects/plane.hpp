@@ -32,6 +32,9 @@ class plane final : public object {
         plane(real pa, real pb, real pc, real pd,
             unsigned int material_index, unsigned int orientation_info_index = EMPTY_INDEX);
 
+        plane(const rt::vector& normal, const rt::vector& position,
+            unsigned int material_index, unsigned int orientation_info_index = EMPTY_INDEX);
+
         // plane(real pa, real pb, real pc, const rt::vector& position,
         //     unsigned int material_index,
         //     unsigned int texture_info_index, const rt::vector& right, real scale);

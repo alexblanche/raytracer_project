@@ -28,6 +28,12 @@ plane::plane(const real pa, const real pb, const real pc, const real pd,
         ),
         material_index, orientation_info_index) {}
 
+plane::plane(const rt::vector& normal, const rt::vector& position,
+    const unsigned int material_index, const unsigned int orientation_info_index)
+
+    : object(position, material_index, orientation_info_index),
+      normal(normal.unit()), d(-(normal | position)) {}
+
 // Constructor for textured planes
 // plane::plane(const real pa, const real pb, const real pc, const rt::vector& position,
 //     const unsigned int material_index,
@@ -114,13 +120,13 @@ min_max_coord plane::get_min_max_coord() const {
 
 
 rt::vector plane::sample(const randomgen&) const {
-    static_assert(PLANE_SAMPLING_DISABLED);
+    static_assert(TODO_PLANE_SAMPLING);
     throw std::runtime_error("Sampling is unavailable for planes");
 }
 
 
 rt::vector plane::sample_visible(const randomgen&, const rt::vector&) const {
-    static_assert(PLANE_SAMPLING_DISABLED);
+    static_assert(TODO_PLANE_SAMPLING);
     throw std::runtime_error("Sampling is unavailable for planes");
 }
 

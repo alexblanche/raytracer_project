@@ -205,8 +205,8 @@ real box::is_hit_with_distance(const ray& r) const {
 
 // Texturing is unavailable for boxes
 uvcoord box::compute_uv(const rt::vector&, const mapping_info*) const {
-    static_assert(BOX_TEXTURING_DISABLED);
-    return { 0, 0 };
+    static_assert(TODO_BOX_TEXTURING);
+    throw std::runtime_error("Texturing is unavailable for boxes");
 }
 
 rt::vector box::compute_normal_from_map(
@@ -215,17 +215,17 @@ rt::vector box::compute_normal_from_map(
             const mapping_info*
         ) const {
 
-    static_assert(BOX_TEXTURING_DISABLED);
+    static_assert(TODO_BOX_TEXTURING);
     throw std::runtime_error("Texturing is unavailable for boxes");
 }
 
 rt::vector box::sample(const randomgen&) const {
-    static_assert(BOX_SAMPLING_DISABLED);
+    static_assert(TODO_BOX_SAMPLING);
     throw std::runtime_error("Sampling is unavailable for boxes");
 }
 
 rt::vector box::sample_visible(const randomgen&, const rt::vector&) const {
-    static_assert(BOX_SAMPLING_DISABLED);
+    static_assert(TODO_BOX_SAMPLING);
     throw std::runtime_error("Sampling is unavailable for boxes");
 }
 

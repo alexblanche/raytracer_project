@@ -458,6 +458,7 @@ exit_status parse_obj_file(const std::string& file_name,
         texture_info_set
     ]
     = containers;
+    static_assert(false, "containers has changed");
 
     auto& [
         triangle_set,
@@ -728,7 +729,7 @@ exit_status parse_obj_file(const std::string& file_name,
 
                 /* Looking up the material name in the vector of already declared material names */
                 const std::optional<unsigned int> vindex = wrapper<material>::find_element(material_wrapper_set, m_name);
-                throw_if_null(vindex, "(material reading)");
+                throw_if_nullopt(vindex, "(material reading)");
                 
                 current_material_index = vindex.value();
 

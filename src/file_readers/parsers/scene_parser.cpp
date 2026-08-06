@@ -15,6 +15,9 @@
 static constexpr unsigned int MAX_NAME_LENGTH     = 64;
 static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
 
+// longest item is load_normal_map, of length 15
+static constexpr unsigned int MAX_KEYWORD_LENGTH  = 17;
+
 using enum object_type;
 
 /*** Scene descriptor pre-parsing ***/
@@ -72,6 +75,175 @@ using enum object_type;
 }
 
 /*** Scene description parsing ***/
+
+/* Returns width, height */
+static std::pair<int, int> parse_resolution(const file& f) {
+
+    /* resolution width:1920 height:1080 */
+    std::pair<int, int> res;
+    auto& [ width, height ] = res;
+    const exit_status status = f.scanf("resolution width:%d height:%d\n", width, height);
+    throw_if_failure(status, "parsing error in scene constructor (resolution)");
+    return res;
+}
+
+static camera parse_camera(const file& f, const int width, const int height) {
+        
+    /* camera position:(0, 0, 0) direction:(0, 0, 1) rightdir:(1, 0, 0) fov_width:1000 distance:400 [focal_distance:500 aperture:100] (optional) */
+
+    double posx, posy, posz, dx, dy, dz;
+    bool depth_of_field_enabled = true;
+    
+    const exit_status st_posdir = f.scanf("camera position:(%lf,%lf,%lf) direction:(%lf,%lf,%lf)",
+        posx, posy, posz, dx, dy, dz);
+    throw_if_failure(st_posdir, "parsing error in scene constructor (camera)");
+
+    double rdx, rdy, rdz;
+    const exit_status st_r = f.scanf(" rightdir:(%lf,%lf,%lf)", rdx, rdy, rdz);
+    if (st_r == exit_status::Failure) {
+        const exit_status st_r_auto = f.scanf("auto");
+        throw_if_failure(st_r_auto, "parsing error in scene constructor (camera right direction)");
+
+        /* Automatic determination of the right direction */
+        rdy = 0.0;
+        if (dx == 0.0 && dz == 0.0) {
+            rdx = 1.0;
+            rdz = 0.0;
+        }
+        else {
+            rdx = dz;
+            rdz = -dx;
+        }
+
+        if (dy < 0.0) {
+            rdx *= -1.0;
+            rdz *= -1.0;
+        }
+    }
+
+    double fovw, dist, focl, apr;
+    const int ret = f.scanf_count(" fov_width:%lf distance:%lf focal_distance:%lf aperture:%lf\n",
+        fovw, dist, focl, apr);
+    
+    if (ret < 2)
+        throw std::runtime_error("parsing error in scene constructor (camera fov)");
+
+    if (ret == 2) // Focal length and aperture omitted
+        depth_of_field_enabled = false;
+
+    if (f.peek_next() == '#')
+        f.skip_line();
+
+    const rt::vector cam_pos(posx, posy, posz);
+    const rt::vector cam_dir(dx, dy, dz);
+    const rt::vector cam_right_dir(rdx, rdy, rdz);
+
+    const real fovh = fovw * static_cast<real>(height) / static_cast<real>(width);
+
+    return depth_of_field_enabled ?
+          camera(cam_pos, cam_dir, cam_right_dir, fovw, fovh, dist, width, height, focl, apr)
+        : camera(cam_pos, cam_dir, cam_right_dir, fovw, fovh, dist, width, height);
+}
+
+struct bg_parsing_result {
+    background_container bg;
+    std::optional<real> inverse_gamma;
+};
+
+static bg_parsing_result parse_background(const file& f) {
+    
+/*
+    - At least one of background_color, background_texture must be specified
+    - filename.bmp or filename.hdr should designate a panoramic image
+    - All angles must be between 0 and 2*pi
+    - The gamma correction will be applied to the whole picture, so all the non-background colors
+        (including the textures) are first corrected with the inverse gamma correction.
+        Gamma is optional.
+    - fov_height is generated automatically (for width/height aspect ratio)
+*/
+    bool background_texture_is_set = false;
+    rt::color background_color;
+    texture background_texture;
+    std::optional<real> inverse_gamma;
+
+    // Setting up the background_color or texture
+    double r, g, b;
+    char bg_tfile_name[513];
+    double rx = 0.0, ry = 0.0, rz = 0.0, inverse_gamma_val = 1.0;
+    
+    /*
+        background_color 190 235 255
+        background_texture filename.hdr rotate_x:3.14 rotate_y:5.835 rotate_z:0 gamma:2.2
+    */
+    const exit_status status_background = f.scanf_rewind_if_failure("background_color %lf %lf %lf\n", r, g, b);
+    if (status_background == exit_status::Success) {
+        background_color = rt::color(r, g, b);
+    }
+
+    const int pos = f.position();
+    const int ret_bg_texture = f.scanf_count("background_texture %512s rotate_x:%lf rotate_y:%lf rotate_z:%lf gamma:%lf\n",
+        bg_tfile_name, rx, ry, rz, inverse_gamma_val);
+
+    if (ret_bg_texture == 5 && inverse_gamma_val != 1.0)
+        inverse_gamma = inverse_gamma_val;
+    
+    if (ret_bg_texture > 1 && ret_bg_texture < 4)
+        throw std::runtime_error("parsing error in scene constructor (background)");
+
+    if (ret_bg_texture == 0)
+        f.rewind(pos);
+    else {
+        if (std::abs(rx) > 2.0_r * PI || std::abs(ry) > 2.0_r * PI || std::abs(rz) > 2.0_r * PI)
+            throw std::runtime_error("incorrect background texture angles");
+        
+        const std::string bg_tfile_name_short = std::filesystem::path(bg_tfile_name).filename().generic_string();
+
+        if (rx < 0) rx += 2.0_r * PI;
+        if (ry < 0) ry += 2.0_r * PI;
+        if (rz < 0) rz += 2.0_r * PI;
+
+        printf("Parsing %s... ", bg_tfile_name_short.c_str());
+        fflush(stdout);
+
+        bool bg_parsing_successful;
+        background_texture = texture(bg_tfile_name, bg_parsing_successful);
+        if (not bg_parsing_successful)
+            throw std::runtime_error("parsing error in scene constructor (background texture parsing)");
+        
+        printf("\r> %s texture loaded\n", bg_tfile_name_short.c_str());
+        background_texture_is_set = true;
+    }
+
+    if (f.peek_next() == '#' || exit_status::Success == f.scanf_rewind_if_failure("background_color"))
+        f.skip_line();
+
+    return {
+        .bg = (background_texture_is_set) ?
+              background_container(std::move(background_texture), rx, ry, rz)
+            : background_container(background_color),
+        .inverse_gamma = inverse_gamma
+    };
+}
+
+static unsigned int parse_bvh(const file& f) {
+    
+    /*
+        polygons_per_bounding 10 //specifying 0 will deactivate the bounding generation
+        or
+        bvh: polygons_per_bounding 10
+        or
+        bvh: disabled
+    */
+    f.scanf_rewind_if_failure("bvh: ");
+    unsigned int polygons_per_bounding = 0;
+    const exit_status status = f.scanf("polygons_per_bounding %u\n", polygons_per_bounding);
+    if (status == exit_status::Failure) {
+        throw_if_failure(f.scanf("disabled\n"),
+            "parsing error in scene constructor (BVH parameters)");
+    }
+
+    return polygons_per_bounding;
+}
 
 /* Auxiliary function: returns a material from a description file */
 static std::optional<material> parse_material(const file& f, const std::optional<real> gamma) {
@@ -389,10 +561,109 @@ static std::optional<unsigned int> get_material(const file& f, std::vector<wrapp
     }
 }
 
+static void parse_mapping(const file& f, const std::optional<real> inverse_gamma,
+    containers& containers) {
+
+    auto& [
+        _, _, _, _,
+        texture_wrapper_set,
+        normal_map_wrapper_set,
+        _
+    ]
+    = containers;
+
+    const std::string mapping_name = f.read_string(MAX_NAME_LENGTH);
+    if (mapping_name.length() == 0)
+        throw std::runtime_error("parsing error: mapping name");
+
+    composition comp;
+
+    while (not f.eof()) {
+
+        const std::size_t pos = f.position();
+        const std::string arg = f.read_string(MAX_KEYWORD_LENGTH);
+        if (arg != "texture" && arg != "normal_map") {
+            f.rewind(pos);
+            break;
+        }
+
+        enum class type {
+            Texture, Normal_map // ...
+        };
+        using enum type;
+        const auto to_string = [] (type type_) -> std::string {
+            switch (type_) {
+                case Texture:    return "texture";
+                case Normal_map: return "normal map";
+                // ...
+                default: throw;
+            }
+        };
+
+        const type type_ = (arg == "texture") ? Texture :
+            // ...
+            Normal_map;
+        static_assert(TODO_ROUGHNESS_MAP);
+        static_assert(TODO_DISPLACEMENT_MAP);
+
+        const std::string type_str = to_string(type_);
+
+        if (   (type_ == Texture    && comp.has_texture)
+            || (type_ == Normal_map && comp.has_normal_map))
+            // ...
+            throw std::runtime_error("parsing error: " + type_str + " already defined in mapping " + mapping_name + "\n");
+
+        const std::string tfile_name = f.read_string(MAX_FILENAME_LENGTH);
+        if (tfile_name.length() == 0)
+            throw std::runtime_error("parsing error in mapping definition " + type_str + ")");
+        const std::string tfile_name_short = std::filesystem::path(tfile_name).filename().generic_string();
+        
+        printf("Parsing %s...", tfile_name.c_str());
+        fflush(stdout);
+
+        bool parsing_successful;
+        switch (type_) {
+            case Texture: {
+                texture_set.emplace_back(tfile_name, parsing_successful, inverse_gamma);
+                comp.has_texture = true;
+                break;
+            }
+            case Normal_map: {
+                normal_map_set.emplace_back(tfile_name, parsing_successful);
+                comp.has_normal_map = true;
+                break;
+            }
+            // ...
+            default:
+                static_assert(TODO_ROUGHNESS_MAP);
+                static_assert(TODO_DISPLACEMENT_MAP);
+                throw;
+        }
+
+        if (parsing_successful) {
+            printf("\r> %s %s loaded                                                     \n",
+                tfile_name_short.c_str(), type_str.c_str());
+        }
+        else {
+            printf("%s %s reading failed\n", tfile_name_short.c_str(), type_str.c_str());
+            throw std::runtime_error(type_str + " reading failed");
+        }
+    }
+
+    // Complete the undefined mappings
+    if (not comp.has_texture)    texture_set.emplace_back();
+    if (not comp.has_normal_map) normal_map_set.emplace_back();
+    // ...
+    static_assert(TODO_ROUGHNESS_MAP);
+    static_assert(TODO_DISPLACEMENT_MAP);
+
+    static_assert(false, "do something with comp");
+}
+
 /* Auxiliary function: returns the common index of the texture or normal map, roughness map or displacement map
     and the composition (see mapping_info)
 */
-static std::optional<std::pair<mapping_info::index_type, mapping_info::composition>> parse_mapping_index(
+static std::optional<std::pair<mapping_info::index_type, composition>> parse_mapping_index(
     const file& f,
     const std::vector<wrapper<texture>>& texture_wrapper_set,
     const std::vector<wrapper<normal_map>>& normal_map_wrapper_set
@@ -400,12 +671,15 @@ static std::optional<std::pair<mapping_info::index_type, mapping_info::compositi
     // const std::vector<wrapper<displacement_map>>& displacement_map_wrapper_set
 ) {
 
+    static_assert(TODO_ROUGHNESS_MAP);
+    static_assert(TODO_DISPLACEMENT_MAP);
+
     const exit_status status_t = f.scanf_rewind_if_failure("texture:(");
 
     if (status_t == exit_status::Failure)
         return std::nullopt;
 
-    mapping_info::composition comp = { false, false /*, false, false */ };
+    composition comp;
 
     std::string t_name = f.read_string(MAX_NAME_LENGTH);
     if (t_name.ends_with(')'))
@@ -449,7 +723,7 @@ static std::optional<std::pair<mapping_info::index_type, mapping_info::compositi
 }
     
 static triangle::orientation parse_triangle_orientation(const file& f,
-    const unsigned int index, const mapping_info::composition comp,
+    const unsigned int index, const composition& comp,
     const rt::vector& tr_v1, const rt::vector& tr_v2) {
 
     double u0, v0, u1, v1, u2, v2;
@@ -463,7 +737,7 @@ static triangle::orientation parse_triangle_orientation(const file& f,
 }
 
 static quad::orientation parse_quad_orientation(const file& f,
-    const unsigned int index, const mapping_info::composition comp,
+    const unsigned int index, const composition& comp,
     const rt::vector& q_v1, const rt::vector& q_v2) {
 
     double u0, v0, u1, v1, u2, v2, u3, v3;
@@ -482,7 +756,7 @@ static quad::orientation parse_quad_orientation(const file& f,
 }
 
 static sphere::orientation parse_sphere_orientation(const file& f,
-    const unsigned int index, const mapping_info::composition comp) {
+    const unsigned int index, const composition& comp) {
 
     double fx, fy, fz, rx, ry, rz;
     const exit_status status = f.scanf(" forward:(%lf,%lf,%lf) right:(%lf,%lf,%lf))\n",
@@ -498,7 +772,7 @@ static sphere::orientation parse_sphere_orientation(const file& f,
 }
 
 static plane::orientation parse_plane_orientation(const file& f,
-    const unsigned int index, const mapping_info::composition comp,
+    const unsigned int index, const composition& comp,
     const rt::vector& normal) {
 
     double rx, ry, rz;
@@ -518,16 +792,16 @@ static plane::orientation parse_plane_orientation(const file& f,
 
 /*
 static box::orientation parse_box_orientation(const file& f,
-    const unsigned int index, const mapping_info::composition comp) {
+    const unsigned int index, const composition& comp) {
 
-    static_assert(BOX_TEXTURING_DISABLED);
+    static_assert(TODO_BOX_TEXTURING);
     throw std::runtime_error("box texturing not handled yet");
 }
 
 static cylinder::orientation parse_cylinder_orientation(const file& f,
-    const unsigned int index, const mapping_info::composition comp) {
+    const unsigned int index, const composition& comp) {
 
-    static_assert(CYLINDER_TEXTURING_DISABLED);
+    static_assert(TODO_CYLINDER_TEXTURING);
     throw std::runtime_error("cylinder texturing not handled yet");
 }
 */
@@ -672,12 +946,12 @@ static void parse_objects(const file& f, const object_type type, const std::stri
     = object_containers;
 
     const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
-    throw_if_null(m_index, "material definition error");
+    throw_if_nullopt(m_index, "material definition error");
 
     const object* obj = nullptr;
 
-    static_assert(BOX_TEXTURING_DISABLED);
-    static_assert(CYLINDER_TEXTURING_DISABLED);
+    static_assert(TODO_BOX_TEXTURING);
+    static_assert(TODO_CYLINDER_TEXTURING);
 
     if (type == Box || type == Cylinder) {
 
@@ -747,9 +1021,9 @@ static void parse_objects(const file& f, const object_type type, const std::stri
 
                 case Plane: {
                     const auto& [ position, normal ] = parameters.plane;
-                    plane::orientation orientation = parse_plane_orientation(f, index, comp, normal);
+                    plane::orientation orientation = parse_plane_orientation(f, index, comp, normal.unit());
                     const unsigned int orientation_index = plane_orientation_set.size();
-                    obj = &plane_set.emplace_back(normal.x, normal.y, normal.z, position, m_index.value(), orientation_index);
+                    obj = &plane_set.emplace_back(normal, position, m_index.value(), orientation_index);
                     plane_orientation_set.emplace_back(std::move(orientation));
                     break;
                 }
@@ -761,18 +1035,6 @@ static void parse_objects(const file& f, const object_type type, const std::stri
 
             switch (type) {
 
-                case Sphere: {
-                    const auto& [ center, radius ] = parameters.sphere;
-                    obj = &sphere_set.emplace_back(center, radius, m_index.value());
-                    break;
-                }
-                
-                case Plane: {
-                    const auto& [ position, normal ] = parameters.plane;
-                    obj = &plane_set.emplace_back(normal.x, normal.y, normal.z, position, m_index.value());
-                    break;
-                }
-
                 case Triangle: {
                     const auto& [ p ] = parameters.triangle;
                     obj = &triangle_set.emplace_back(p[0], p[1], p[2], m_index.value());
@@ -782,6 +1044,18 @@ static void parse_objects(const file& f, const object_type type, const std::stri
                 case Quad: {
                     const auto& [ p ] = parameters.quad;
                     obj = &quad_set.emplace_back(p[0], p[1], p[2], p[3], m_index.value());
+                    break;
+                }
+
+                case Sphere: {
+                    const auto& [ center, radius ] = parameters.sphere;
+                    obj = &sphere_set.emplace_back(center, radius, m_index.value());
+                    break;
+                }
+                
+                case Plane: {
+                    const auto& [ position, normal ] = parameters.plane;
+                    obj = &plane_set.emplace_back(normal.x, normal.y, normal.z, position, m_index.value());
                     break;
                 }
 
@@ -812,145 +1086,10 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         file f(file_name, "rb");
 
         const scene::pre_parsing_info pre_parsing_info = pre_parse(f);
-
-        /* Parameters definition
-
-        Example:
-
-        resolution width:1366 height:768
-        camera position:(0, 0, 0) direction:(0, 0, 1) rightdir:(1, 0, 0) fov_width:1000 distance:400 [focal_distance:500 aperture:100] (optional)
-        background_color 190 235 255
-        background_texture filename.bmp rotate_x:3.14 rotate_y:5.835 rotate_z:0 gamma:2.2
-        polygons_per_bounding 10 //specifying 0 will deactivate the bounding generation
-
-        - At least one of background_color, background_texture must be specified
-        - filename.bmp or filename.hdr should designate a panoramic image
-        - all angles must be between 0 and 2*pi
-        - gamma will be applied to the whole picture, so all the non-background colors (including the textures) are first corrected with the inverse gamma correction. Gamma is optional.
-
-        fov_height is generated automatically (for width/height aspect ratio)
-        */
-        int width, height;
-        double posx, posy, posz, dx, dy, dz, rdx, rdy, rdz, fovw, dist, focl, apr;
-        bool depth_of_field_enabled = true;
-
-        {
-            const exit_status status1 = f.scanf("resolution width:%d height:%d\n", width, height);
-            throw_if_failure(status1, "parsing error in scene constructor (resolution)");
-        }
-
-        {
-            const exit_status st_posdir = f.scanf("camera position:(%lf,%lf,%lf) direction:(%lf,%lf,%lf)",
-                posx, posy, posz, dx, dy, dz);
-            throw_if_failure(st_posdir, "parsing error in scene constructor (camera)");
-
-            const exit_status st_r = f.scanf(" rightdir:(%lf,%lf,%lf)", rdx, rdy, rdz);
-            if (st_r == exit_status::Failure) {
-                const exit_status st_r_auto = f.scanf("auto");
-                throw_if_failure(st_r_auto, "parsing error in scene constructor (camera right direction)");
-
-                /* Automatic determination of the right direction */
-                rdy = 0.0;
-                if (dx == 0.0 && dz == 0.0) {
-                    rdx = 1.0;
-                    rdz = 0.0;
-                }
-                else {
-                    rdx = dz;
-                    rdz = -dx;
-                }
-
-                if (dy < 0.0) {
-                    rdx *= -1.0;
-                    rdz *= -1.0;
-                }
-            }
-
-            const int ret = f.scanf_count(" fov_width:%lf distance:%lf focal_distance:%lf aperture:%lf\n", fovw, dist, focl, apr);
-            
-            if (ret < 2)
-                throw std::runtime_error("parsing error in scene constructor (camera fov)");
-
-            if (ret == 2) // Focal length and aperture omitted
-                depth_of_field_enabled = false;
-        }
-
-        if (f.peek_next() == '#')
-            f.skip_line();
-
-        rt::vector cam_pos(posx, posy, posz);
-        rt::vector cam_dir(dx, dy, dz);
-        rt::vector cam_right_dir(rdx, rdy, rdz);
-
-        const real fovh = fovw * static_cast<real>(height) / static_cast<real>(width);
-
-        camera cam = depth_of_field_enabled ?
-              camera(cam_pos, cam_dir, cam_right_dir, fovw, fovh, dist, width, height, focl, apr)
-            : camera(cam_pos, cam_dir, cam_right_dir, fovw, fovh, dist, width, height);
-
-        bool background_texture_is_set = false;
-        rt::color background_color;
-        texture background_texture;
-        std::optional<real> inverse_gamma;
-
-        // Setting up the background_color or texture
-        double r, g, b;
-        char bg_tfile_name[513];
-        double rx = 0.0, ry = 0.0, rz = 0.0, inverse_gamma_val = 1.0;
-        {
-            const exit_status status_background = f.scanf_rewind_if_failure("background_color %lf %lf %lf\n", r, g, b);
-            if (status_background == exit_status::Success) {
-                background_color = rt::color(r, g, b);
-            }
-
-            const int pos = f.position();
-            const int ret_bg_texture = f.scanf_count("background_texture %512s rotate_x:%lf rotate_y:%lf rotate_z:%lf gamma:%lf\n",
-                bg_tfile_name, rx, ry, rz, inverse_gamma_val);
-
-            if (ret_bg_texture == 5 && inverse_gamma_val != 1.0)
-                inverse_gamma = inverse_gamma_val;
-            
-            if (ret_bg_texture > 1 && ret_bg_texture < 4)
-                throw std::runtime_error("parsing error in scene constructor (background)");
-
-            if (ret_bg_texture == 0)
-                f.rewind(pos);
-            else {
-                if (std::abs(rx) > 2.0_r * PI || std::abs(ry) > 2.0_r * PI || std::abs(rz) > 2.0_r * PI)
-                    throw std::runtime_error("incorrect background texture angles");
-                
-                const std::string bg_tfile_name_short = std::filesystem::path(bg_tfile_name).filename().generic_string();
-
-                if (rx < 0) rx += 2.0_r * PI;
-                if (ry < 0) ry += 2.0_r * PI;
-                if (rz < 0) rz += 2.0_r * PI;
-
-                printf("Parsing %s... ", bg_tfile_name_short.c_str());
-                fflush(stdout);
-
-                bool bg_parsing_successful;
-                background_texture = texture(bg_tfile_name, bg_parsing_successful);
-                if (not bg_parsing_successful)
-                    throw std::runtime_error("parsing error in scene constructor (background texture parsing)");
-                
-                printf("\r> %s texture loaded\n", bg_tfile_name_short.c_str());
-                background_texture_is_set = true;
-            }
-        }
-
-        if (f.peek_next() == '#' || exit_status::Success == f.scanf_rewind_if_failure("background_color"))
-            f.skip_line();
-        
-        unsigned int polygons_per_bounding = 0;
-
-        // Optional
-        {
-            f.scanf_rewind_if_failure("bvh: ");
-            if (exit_status::Failure == f.scanf("polygons_per_bounding %u\n", polygons_per_bounding)) {
-                throw_if_failure(f.scanf("disabled\n"),
-                    "parsing error in scene constructor (BVH parameters)");
-            }
-        }
+        auto [ width, height ] = parse_resolution(f);
+        camera cam = parse_camera(f, width, height);
+        auto [ background, inverse_gamma ] = parse_background(f);
+        unsigned int polygons_per_bounding = parse_bvh(f);
 
         std::vector<const object*> object_set;
         object_set.reserve(pre_parsing_info.objects + pre_parsing_info.quads);
@@ -965,8 +1104,11 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         material_wrapper_set.emplace_back(GLASS,   "glass"  );
         material_wrapper_set.emplace_back(WATER,   "water"  );
 
-        std::vector<wrapper<texture>>    texture_wrapper_set;
-        std::vector<wrapper<normal_map>> normal_map_wrapper_set;
+        std::vector<wrapper<mapping::composition>> composition_wrapper_set;
+        // std::vector<wrapper<texture>>          texture_wrapper_set;
+        // std::vector<wrapper<normal_map>>       normal_map_wrapper_set;
+        std::vector<texture>    texture_set;
+        std::vector<normal_map> normal_map_wrapper_set;
 
         std::vector<const bounding*> bounding_set;
 
@@ -993,8 +1135,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
         while (not f.eof()) {
 
-            // longest item is load_normal_map, of length 15
-            const std::string arg = f.read_string(17);
+            const std::string arg = f.read_string(MAX_KEYWORD_LENGTH);
 
             if (f.eof())
                 break;
@@ -1010,41 +1151,17 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 const std::string m_name = f.read_string(MAX_NAME_LENGTH);
 
                 std::optional<material> m = parse_material(f, inverse_gamma);
-                throw_if_null(m, "material parsing error");
+                throw_if_nullopt(m, "material parsing error");
                 
                 material_wrapper_set.emplace_back(std::move(m.value()), m_name);
                 continue;
             }
             
             /* BMP file loading */
-            if (arg == "load_texture" || arg == "load_normal_map") {
-
-                const bool is_texture = arg == "load_texture";
-                const std::string type = is_texture ? "texture" : "normal map";
+            if (arg == "load_mapping") {
                 
-                const std::string t_name = f.read_string(MAX_NAME_LENGTH);
-                const std::string tfile_name = f.read_string(MAX_FILENAME_LENGTH);
-                throw_if_failure(exit_status_of(t_name.length() != 0 && tfile_name.length() != 0),
-                    "parsing error in scene constructor (" + type + " loading)");
+                parse_mapping(f);
                 
-                const std::string tfile_name_short = std::filesystem::path(tfile_name).filename().generic_string();
-                
-                printf("Parsing %s...", tfile_name.c_str());
-                fflush(stdout);
-                bool parsing_successful;
-                if (is_texture)
-                    texture_wrapper_set.emplace_back(texture(tfile_name, parsing_successful, inverse_gamma), t_name);
-                else
-                    normal_map_wrapper_set.emplace_back(normal_map(tfile_name, parsing_successful), t_name);
-
-                if (parsing_successful) {
-                    printf("\r> %s %s loaded                                                     \n",
-                        tfile_name_short.c_str(), type.c_str());
-                    continue;
-                }
-
-                printf("%s %s reading failed\n", tfile_name_short.c_str(), type.c_str());
-                throw std::runtime_error(type + " reading failed");
             }
 
             /* Objects declaration */
@@ -1097,7 +1214,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                         if (t_name.ends_with(')'))
                             t_name.resize(t_name.size() - 1);
                         t_index = wrapper<texture>::find_element(texture_wrapper_set, t_name);
-                        throw_if_null(t_index, "texture not found");
+                        throw_if_nullopt(t_index, "texture not found");
                     }
                 }
 
@@ -1138,10 +1255,6 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         // Creation of the final structures
         auto [ material_set, texture_set, normal_map_set ] = build_sets(material_wrapper_set, texture_wrapper_set, normal_map_wrapper_set);
 
-        background_container&& background = (background_texture_is_set) ?
-              background_container(std::move(background_texture), rx, ry, rz)
-            : background_container(background_color);
-
         scene::containers::mapping mapping_containers(
             std::move(material_set),
             std::move(texture_set),
@@ -1152,6 +1265,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         const std::optional<real> gamma = (inverse_gamma.has_value()) ?
               std::optional(1.0_r / inverse_gamma.value())
             : std::nullopt;
+        optional_of
 
         scene_opt.emplace(
             std::move(object_set),

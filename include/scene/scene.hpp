@@ -28,9 +28,12 @@ struct map_sample {
         // real displacement;
     )
     : texture_color(texture_color),
-    normal_map_vector(normal_map_vector)//,
-    //roughness(roughness), displacement(displacement)
-    {}
+      normal_map_vector(normal_map_vector)//,
+      //roughness(roughness), displacement(displacement)
+    {
+        static_assert(TODO_ROUGHNESS_MAP);
+        static_assert(TODO_DISPLACEMENT_MAP);
+    }
 };
 
 enum class bvh_option {
@@ -99,6 +102,7 @@ class scene {
                 std::vector<material>     material_set;
                 std::vector<texture>      texture_set;
                 std::vector<normal_map>   normal_map_set;
+                // ...
                 background_container background;
 
                 mapping(std::vector<material>&& material_set,
@@ -109,7 +113,12 @@ class scene {
                     material_set    (std::move(material_set)),
                     texture_set     (std::move(texture_set)),
                     normal_map_set  (std::move(normal_map_set)),
-                    background      (std::move(background)) {}
+                    // ...
+                    background      (std::move(background)) {
+
+                    static_assert(TODO_ROUGHNESS_MAP);
+                    static_assert(TODO_DISPLACEMENT_MAP);
+                }
             };
 
             struct orientation {
@@ -136,11 +145,11 @@ class scene {
                     quad_orientation_set    .reserve(nb_quads);
                     sphere_orientation_set  .reserve(nb_spheres);
                     plane_orientation_set   .reserve(nb_planes);
-                    box_orientation_set     .reserve(0);    // For now
-                    cylinder_orientation_set.reserve(0);    // For now
+                    //box_orientation_set     .reserve(nb_boxes);
+                    //cylinder_orientation_set.reserve(nb_cylinders);
 
-                    static_assert(BOX_TEXTURING_DISABLED);
-                    static_assert(CYLINDER_TEXTURING_DISABLED);
+                    static_assert(TODO_BOX_TEXTURING);
+                    static_assert(TODO_CYLINDER_TEXTURING);
                 }
 
                 inline const mapping_info* get_mapping_info(const int orientation_info_index, const object_type type) const {

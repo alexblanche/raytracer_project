@@ -20,11 +20,11 @@ class direction {
         /* Returns the reflected ray at the point of contact */
         // static ray get_reflected_ray();
 
-        template<orientation_type ray_orientation>
+        template<ray_orientation_type ray_orientation>
         /* Returns the interpolated direction between the normal and the reflected direction */
         /* inward = ((direction | normal) <= 0) */
         static rt::vector central_reflected(const bounce_vectors& bounce_v, const real smoothness) {
-            constexpr real correcting_factor = (ray_orientation == orientation_type::Inward) ? 1.0_r : -1.0_r;
+            constexpr real correcting_factor = (ray_orientation == ray_orientation_type::Inward) ? 1.0_r : -1.0_r;
             constexpr real two_corr_f = -2.0_r * correcting_factor;
 
             const auto& [ direction, normal, pdt ] = bounce_v;
@@ -35,7 +35,7 @@ class direction {
 
         /* Returns the interpolated direction between the normal and the reflected direction */
         /* inward = ((direction | normal) <= 0) */
-        static rt::vector central_reflected(const bounce_vectors& bounce_v, real smoothness, orientation_type ray_orientation);
+        static rt::vector central_reflected(const bounce_vectors& bounce_v, real smoothness, ray_orientation_type ray_orientation);
 
         enum class angle {
             Pi, Pi_over_2
@@ -84,7 +84,7 @@ class direction {
 
         /* Returns the refracted direction */
         static inline rt::vector refracted(const rt::vector& normal, const sin_refracted_output& sin_refr,
-            const orientation_type ray_orientation) {
+            const ray_orientation_type ray_orientation) {
             
             /* Factor to apply to normal to obtain the normal outward the surface of contact,
             so that (dir | a * normal) <= 0 */
@@ -106,7 +106,7 @@ class direction {
             */
 
             //return vx + sqrt(1.0_r - sin_theta_2_sq) * (inward ? (-1.0_r) * normal : normal);
-            using enum orientation_type;
+            using enum ray_orientation_type;
             const real scale = (ray_orientation == Inward ? -1.0_r : 1.0_r) * sqrt(1.0_r - sin_refr.sin_theta_2_sq);
             return fma(normal, scale, sin_refr.vx);
         }
@@ -115,7 +115,7 @@ class direction {
         static inline rt::vector random_refracted(const randomgen& rg, const real refraction_scattering,
             const rt::vector& normal,
             const sin_refracted_output& sin_refr,
-            const orientation_type ray_orientation) {
+            const ray_orientation_type ray_orientation) {
 
             const rt::vector refr_dir = refracted(normal, sin_refr, ray_orientation);
             return random(rg, refr_dir, refraction_scattering * (PI / 2.0));

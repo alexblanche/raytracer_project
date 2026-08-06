@@ -95,7 +95,7 @@ class quad final : public object {
 
     private:
 
-        std::pair<stcoord, side> quad::compute_st(const rt::vector& p) const;
+        std::pair<stcoord, side> compute_st(const rt::vector& p) const;
 
         rt::vector compute_interpolated_normal(const stcoord& st, const side side_) const;
 };

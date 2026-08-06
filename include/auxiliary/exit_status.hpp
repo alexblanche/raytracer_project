@@ -48,12 +48,12 @@ inline void throw_if_failure(exit_status s, T error) {
 }
 
 template<typename T>
-inline void throw_if_null(const std::optional<T>& opt, const std::string& error_message) {
+inline void throw_if_nullopt(const std::optional<T>& opt, const std::string& error_message) {
     throw_if_failure(exit_status_of(opt.has_value()), error_message);
 }
 
 template<typename T, typename U>
 requires std::is_scoped_enum_v<U>
-inline void throw_if_null(const std::optional<T>& opt, U error) {
+inline void throw_if_nullopt(const std::optional<T>& opt, U error) {
     throw_if_failure(exit_status_of(opt.has_value()), error);
 }
