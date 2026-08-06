@@ -81,20 +81,6 @@ hit plane::compute_intersection(const ray& r, const real t) const {
     return hit(p, normal, this, hit::compute_ray_orientation(r.direction, normal), object_type::Plane);
 }
 
-/* Returns the barycentric info (tiles according to texture_scale) */
-// barycentric_info plane::get_barycentric(const rt::vector& p) const {
-
-//     const real right_component = (p | orientation.right_dir) * orientation.inv_texture_scale;
-//     real x_value = fmod(right_component, 1.0_r);
-//     if (is_negative(x_value)) x_value += 1.0_r;
-
-//     const real down_component = (p | orientation.down_dir) * orientation.inv_texture_scale;
-//     real y_value = fmod(down_component, 1.0_r);
-//     if (is_negative(y_value)) y_value += 1.0_r;
-
-//     return barycentric_info(x_value, y_value, object_type::Plane);
-// }
-
 uvcoord plane::compute_uv(const rt::vector& p, const mapping_info* orientation_info) const {
 
     const orientation& o = *static_cast<const orientation*>(orientation_info);
@@ -128,11 +114,13 @@ min_max_coord plane::get_min_max_coord() const {
 
 
 rt::vector plane::sample(const randomgen&) const {
+    static_assert(PLANE_SAMPLING_DISABLED);
     throw std::runtime_error("Sampling is unavailable for planes");
 }
 
 
 rt::vector plane::sample_visible(const randomgen&, const rt::vector&) const {
+    static_assert(PLANE_SAMPLING_DISABLED);
     throw std::runtime_error("Sampling is unavailable for planes");
 }
 

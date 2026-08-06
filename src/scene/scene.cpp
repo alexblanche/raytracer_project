@@ -204,28 +204,15 @@ const rt::color& scene::sample_color(const hit& h, const material& m) const {
     if (not obj->is_textured())
         return m.get_color();
 
-    const mapping_info* const mi = get_mapping_info(orientation_containers,
-        obj->get_orientation_info_index(), h.get_object_type());
+    const mapping_info* const mi = orientation_containers.get_mapping_info(
+        obj->get_orientation_info_index(), h.get_object_type()
+    );
     
     const auto [ u, v ] = obj->compute_uv(h.get_point(), mi); // virtual call, can be replaced with switch dispatch
     
     return (mi->has_texture_information()) ?
           texture_set[mi->index].get_color(u, v)
         : m.get_color();
-}
-
-static inline const mapping_info* get_mapping_info(const scene::containers::orientation& orientation_containers,
-    const int orientation_info_index, const object_type type) {
-
-    switch (type) {
-        case Triangle: return &orientation_containers.triangle_orientation_set[orientation_info_index];
-        case Quad:     return &orientation_containers.quad_orientation_set    [orientation_info_index];
-        case Sphere:   return &orientation_containers.sphere_orientation_set  [orientation_info_index];
-        case Plane:    return &orientation_containers.plane_orientation_set   [orientation_info_index];
-        case Box:      return &orientation_containers.box_orientation_set     [orientation_info_index];
-        case Cylinder: return &orientation_containers.cylinder_orientation_set[orientation_info_index];
-        default: throw;
-    }
 }
 
 map_sample scene::sample_maps(const hit& h, const material& m) const {
@@ -237,29 +224,18 @@ map_sample scene::sample_maps(const hit& h, const material& m) const {
     if (not obj->is_textured())
         return map_sample(m.get_color(), h.get_normal());
 
-    /*
-    const auto& [
-        triangle_orientation_set,
-        quad_orientation_set,
-        sphere_orientation_set,
-        plane_orientation_set,
-        _, _
-    ] = orientation_containers;
-    */
-
-    // const texture_info& ti = texture_info_set[obj->get_texture_info_index()];
-    // const auto [ u, v ] = ti.get_barycenter(obj->get_barycentric(h.get_point()));
-
-    const mapping_info* const mi = get_mapping_info(orientation_containers,
-        obj->get_orientation_info_index(), h.get_object_type());
+    const mapping_info* const mi = orientation_containers.get_mapping_info(
+        obj->get_orientation_info_index(), h.get_object_type()
+    );
     
-    const auto [ u, v ] = obj->compute_uv(h.get_point(), mi); // virtual call, can be replaced with switch dispatch
+    const auto [ u, v ] = obj->compute_uv(h.get_point(), mi); // virtual dispatch, can be replaced with switch
     const int index = mi->index;
 
     const rt::color& t_col = (mi->has_texture_information()) ?
           texture_set[index].get_color(u, v)
         : m.get_color();
     
+    // Compute the world-space normal directly? Instead of doing it in two steps?
     const rt::vector& n_vec = (mi->has_normal_information()) ?
           normal_map_set[index].get_tangent_space_normal(u, v)
         : h.get_normal();

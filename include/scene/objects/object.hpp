@@ -1,10 +1,9 @@
 #pragma once
 
 #include "light/hit.hpp"
-#include "scene/material/texture_info.hpp"
-#include "scene/material/barycentric.hpp"
 #include "auxiliary/randomgen.hpp"
 #include "auxiliary/min_max_coord.hpp"
+#include "scene/material/mapping_info.hpp"
 
 #include <limits>
 #include <optional>

@@ -33,7 +33,7 @@ class worker {
 
 
     private:
-        using enum orientation_type;
+        using enum ray_orientation_type;
 
         struct accumulators {
             rt::color color_materials = rt::WHITE;
@@ -61,7 +61,7 @@ class worker {
             real smoothness) const;
         
         // Compile-time
-        template<orientation_type ray_orientation>
+        template<ray_orientation_type ray_orientation>
         [[nodiscard]] inline ray specular_reflective_case(const hit& h, const direction::bounce_vectors& bounce_v,
             const real smoothness) const {
 

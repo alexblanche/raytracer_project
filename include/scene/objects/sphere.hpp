@@ -55,7 +55,7 @@ class sphere final : public object {
             const rt::vector& tangent_space_normal,
             const rt::vector& local_normal,
             const mapping_info* orientation_info
-        ) const;
+        ) const override;
 
         /* Uniformly samples a point on the sphere */
         rt::vector sample(const randomgen& rg) const override;

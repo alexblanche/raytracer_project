@@ -22,6 +22,8 @@ class mapping_info {
 
     public:
 
+        using index_type = unsigned int;
+
         struct composition {
             bool has_texture;
             bool has_normal_map;
@@ -30,7 +32,7 @@ class mapping_info {
         };
 
         /* Common index for texture, normal_map (and in the future roughness_map, displacement map) in the sets */
-        int index;
+        index_type index;
         composition comp;
 
         inline bool has_texture_information()      const { return comp.has_texture;          }
@@ -42,7 +44,7 @@ class mapping_info {
 
     protected:
 
-        mapping_info(const int index, const composition& comp)
+        mapping_info(const index_type index, const composition& comp)
             : index(index), comp(comp) {}
 
         mapping_info(mapping_info&&) noexcept        = delete;

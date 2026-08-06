@@ -7,7 +7,7 @@
 /* ******************************************************************** */
 /* *************************** Path tracing *************************** */
 
-using enum orientation_type;
+using enum ray_orientation_type;
 using enum direction::angle;
 
 /** Auxiliary functions **/
@@ -16,7 +16,7 @@ using enum direction::angle;
 [[nodiscard]] inline ray worker::diffuse_case(const hit& h, const rt::vector& local_normal) const {
 
     const rt::vector dir(
-        ((h.get_orientation() == Inward ? local_normal : (-1.0_r) * local_normal)
+        ((h.get_ray_orientation() == Inward ? local_normal : (-1.0_r) * local_normal)
           + direction::random<Pi>(rg)
         ).unit()
     );
@@ -35,7 +35,7 @@ using enum direction::angle;
 
     /* Direction according to Lambert's cosine law */
 
-    const rt::vector central_dir = direction::central_reflected(bounce_v, smoothness, h.get_orientation());
+    const rt::vector central_dir = direction::central_reflected(bounce_v, smoothness, h.get_ray_orientation());
     return ray( 
         /* origin */
         h.biased_point(Outward),
@@ -61,8 +61,8 @@ using enum direction::angle;
 
         /* direction */
         is_not_zero(scattering) ?
-              direction::random_refracted(rg, scattering, local_normal, sin_refr, h.get_orientation())
-            : direction::refracted(local_normal, sin_refr, h.get_orientation())
+              direction::random_refracted(rg, scattering, local_normal, sin_refr, h.get_ray_orientation())
+            : direction::refracted(local_normal, sin_refr, h.get_ray_orientation())
     );
 }
 
@@ -118,7 +118,7 @@ void worker::process_bounce(const bounce_parameters& param, path_parameters& out
 
         const auto compute_next_refraction_index = [&] {
 
-            switch (h.get_orientation()) {
+            switch (h.get_ray_orientation()) {
                 case Inward:
                     if (refr_index != 1.0_r)
                         refr_stack.push(refr_index);
@@ -139,7 +139,7 @@ void worker::process_bounce(const bounce_parameters& param, path_parameters& out
             return rg.random_ratio() * m.get_transparency() <= fresnel;
         };
 
-        if ((h.get_orientation() == Inward) && is_fresnel_reflection()) {
+        if ((h.get_ray_orientation() == Inward) && is_fresnel_reflection()) {
         
             /* The ray is reflected */
             

@@ -46,3 +46,10 @@ constexpr parallelism PARALLELISM = parallelism::Enabled;
 #else
     #define APPLE_CLANG 0
 #endif
+
+// Features to be implemented
+constexpr bool BOX_TEXTURING_DISABLED       = true;
+constexpr bool BOX_SAMPLING_DISABLED        = true;
+constexpr bool CYLINDER_TEXTURING_DISABLED  = true;
+constexpr bool CYLINDER_SAMPLING_DISABLED   = true;
+constexpr bool PLANE_SAMPLING_DISABLED      = true;

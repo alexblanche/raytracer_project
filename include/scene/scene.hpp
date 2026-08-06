@@ -119,6 +119,43 @@ class scene {
                 std::vector<plane::orientation>    plane_orientation_set;
                 std::vector<box::orientation>      box_orientation_set;
                 std::vector<cylinder::orientation> cylinder_orientation_set;
+            
+                orientation(const pre_parsing_info& pre_parsing_info) {
+                    const auto& [ _,
+                        nb_triangles,
+                        nb_quads,
+                        nb_spheres,
+                        nb_planes,
+                        nb_boxes,
+                        nb_cylinders,
+                        _, _
+                    ] = pre_parsing_info;
+
+                    // triangle_set must make room for split quads
+                    triangle_orientation_set.reserve(nb_triangles + 2 * nb_quads);
+                    quad_orientation_set    .reserve(nb_quads);
+                    sphere_orientation_set  .reserve(nb_spheres);
+                    plane_orientation_set   .reserve(nb_planes);
+                    box_orientation_set     .reserve(0);    // For now
+                    cylinder_orientation_set.reserve(0);    // For now
+
+                    static_assert(BOX_TEXTURING_DISABLED);
+                    static_assert(CYLINDER_TEXTURING_DISABLED);
+                }
+
+                inline const mapping_info* get_mapping_info(const int orientation_info_index, const object_type type) const {
+
+                    using enum object_type;
+                    switch (type) {
+                        case Triangle: return &triangle_orientation_set[orientation_info_index];
+                        case Quad:     return &quad_orientation_set    [orientation_info_index];
+                        case Sphere:   return &sphere_orientation_set  [orientation_info_index];
+                        case Plane:    return &plane_orientation_set   [orientation_info_index];
+                        case Box:      return &box_orientation_set     [orientation_info_index];
+                        case Cylinder: return &cylinder_orientation_set[orientation_info_index];
+                        default: throw;
+                    }
+                }
             };
         };
 
@@ -188,7 +225,7 @@ class scene {
         }
 
         /* Returns the color of the pixel associated with UV-coordinates u, v */
-        const rt::color& sample_texture(unsigned int texture_info_index, const barycentric_info& bary) const;
+        // const rt::color& sample_texture(unsigned int texture_info_index, const barycentric_info& bary) const;
 
         /* Sampling maps */
         const rt::color& sample_color(const hit& h, const material& m) const;
@@ -201,15 +238,18 @@ class scene {
             if (not obj->is_textured())
                 return h.get_normal();
 
-            const texture_info& ti = mapping_containers.texture_info_set[obj->get_texture_info_index()];
+            // const texture_info& ti = mapping_containers.texture_info_set[obj->get_texture_info_index()];
+            const mapping_info* mi = orientation_containers.get_mapping_info(
+                obj->get_orientation_info_index(), h.get_object_type()
+            );
 
-            return (ti.has_normal_information()) ?
-                  obj->compute_normal_from_map(tangent_space_normal, h.get_normal(), ti)
+            return (mi->has_normal_information()) ?
+                  obj->compute_normal_from_map(tangent_space_normal, h.get_normal(), mi)
                 : h.get_normal();
         }
 
         // For debug purposes
-        inline const texture_info& get_texture_info (const object* obj) const {
-            return mapping_containers.texture_info_set[obj->get_texture_info_index()];
-        }
+        // inline const texture_info& get_texture_info(const object* obj) const {
+        //     return mapping_containers.texture_info_set[obj->get_texture_info_index()];
+        // }
 };

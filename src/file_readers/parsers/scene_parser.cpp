@@ -10,9 +10,12 @@
 #include <sstream>
 #include <filesystem>
 #include <stdexcept>
+#include <tuple>
 
 static constexpr unsigned int MAX_NAME_LENGTH     = 64;
 static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
+
+using enum object_type;
 
 /*** Scene descriptor pre-parsing ***/
 [[maybe_unused]] static scene::pre_parsing_info pre_parse(const file& f) {
@@ -386,130 +389,158 @@ static std::optional<unsigned int> get_material(const file& f, std::vector<wrapp
     }
 }
 
-/* Auxiliary function: parses the texture information after a material, and if there is one,
-   returns the associated texture_info */
-// To be replaced with union { sphere::mapping_info; plane::mapping_info; ... }
-static std::optional<texture_info> parse_texture_info(const file& f,
+/* Auxiliary function: returns the common index of the texture or normal map, roughness map or displacement map
+    and the composition (see mapping_info)
+*/
+static std::optional<std::pair<mapping_info::index_type, mapping_info::composition>> parse_mapping_index(
+    const file& f,
     const std::vector<wrapper<texture>>& texture_wrapper_set,
-    const std::vector<wrapper<normal_map>>& normal_map_wrapper_set,
+    const std::vector<wrapper<normal_map>>& normal_map_wrapper_set
     // const std::vector<wrapper<roughness_map>>& roughness_map_wrapper_set,
-    const object_type object_type_) {
+    // const std::vector<wrapper<displacement_map>>& displacement_map_wrapper_set
+) {
 
     const exit_status status_t = f.scanf_rewind_if_failure("texture:(");
 
     if (status_t == exit_status::Failure)
         return std::nullopt;
-    
-    std::optional<unsigned int> nindex;
+
+    mapping_info::composition comp = { false, false /*, false, false */ };
 
     std::string t_name = f.read_string(MAX_NAME_LENGTH);
     if (t_name.ends_with(')'))
         t_name = t_name.substr(0, t_name.length() - 1);
     const std::optional<unsigned int> vindex = wrapper<texture>::find_element(texture_wrapper_set, t_name);
+    comp.has_texture = vindex.has_value();
 
+    std::optional<unsigned int> nindex;
     const exit_status status_n = f.scanf_rewind_if_failure("normal:");
     if (status_n == exit_status::Success) {
         std::string n_name = f.read_string(MAX_NAME_LENGTH);
         if (n_name.ends_with(')'))
             n_name = n_name.substr(0, n_name.length() - 1);
-        nindex = wrapper<normal_map>::find_element(normal_map_wrapper_set, n_name); 
+        nindex = wrapper<normal_map>::find_element(normal_map_wrapper_set, n_name);
+        comp.has_normal_map = nindex.has_value();
+
+        if (vindex.has_value() && nindex.value() != vindex.value())
+            throw std::runtime_error("the normal map " + n_name + " does not correspond to the texture " + t_name + "\n");
     }
     // else: no normal map information
 
     /*
     // Roughness map
+    // ...
 
-    std::optional<unsigned int> rindex;
-    const std::size_t pos3 = f.position();
-    const std::string keyword_r = f.read_string(6);
-    if (keyword_r != "rough:") {
-        // No roughness info, setting the position back before the keyword
-        f.rewind(pos3);
-    }
-    else {
-        const std::string r_name = f.read_string(MAX_NAME_LENGTH);
-        rindex = wrapper<roughness_map>::find_element(roughness_map_wrapper_set, r_name);
-    }
+    // Displacement map
+    // ...
     */
-    
-    using enum object_type;
-    switch (object_type_) {
-        case Triangle: {
 
-            double u0, v0, u1, v1, u2, v2;
-            const exit_status status = f.scanf(" (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
-                u0, v0, u1, v1, u2, v2);
-            if (status == exit_status::Failure) {
-                printf("parsing error in parse_texture_info (triangle UV-coordinates)\n");
-                return std::nullopt;
-            }
+    if (vindex.has_value() || nindex.has_value() /* || rindex.has_value() || dindex.has_value() */)
+        return std::nullopt;
 
-            return texture_info(vindex, nindex, { u0, v0, u1, v1, u2, v2 });
-        }
-                    
-        case Quad: {
+    const unsigned int index =
+        vindex.has_value() ? vindex.value() :
+        nindex.value();
+        // nindex.has_value() ? nindex.value()
+        // rindex.has_value() ? rindex.value()
+        // dindex.value();
 
-            double u0, v0, u1, v1, u2, v2, u3, v3;
-            const exit_status status = f.scanf(" (%lf,%lf) (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
-                u0, v0, u1, v1, u2, v2, u3, v3);
-            if (status == exit_status::Failure) {
-                // Default values: (0,1) (0,0) (1,0) (1,1)
-                u0 = 0; v0 = 1;
-                u1 = 0; v1 = 0;
-                u2 = 1; v2 = 0;
-                u3 = 1; v3 = 1;
-            }
-
-            return texture_info(vindex, nindex, { u0, v0, u1, v1, u2, v2, u3, v3 });
-        }
-
-        case Sphere: {
-
-            double fx, fy, fz, rx, ry, rz;
-            const exit_status status = f.scanf(" forward:(%lf,%lf,%lf) right:(%lf,%lf,%lf))\n",
-                fx, fy, fz, rx, ry, rz);
-            if (status == exit_status::Failure) {
-                // Default values: forward = (0,0,-1), right = (1,0,0)
-                fx = 0; fy = 0; fz = -1;
-                rx = 1; ry = 0; rz = 0;
-            }
-
-            // texture_info is used to pass the coordinates for forward_dir and right_dir
-            return texture_info(vindex, nindex, { fx, fy, fz, rx, ry, rz });
-        }
-
-        case Plane: {
-
-            double rx, ry, rz;
-            const exit_status status_right = f.scanf(" right:(%lf,%lf,%lf)",
-                rx, ry, rz);
-            if (status_right == exit_status::Failure) {
-                // Default values: right = (1, 0, 0), scale = 1
-                rx = 1; ry = 0; rz = 0;
-            }
-
-            double scale = 1.0_r; // Default value
-            f.scanf(" scale:%lf)\n", scale);
-
-            // texture_info is used to pass the coordinates for forward_dir and right_dir
-            return texture_info(vindex, nindex, { rx, ry, rz, scale });
-        }
-
-        case Box:      throw std::runtime_error("box texturing not handled yet");
-        case Cylinder: throw std::runtime_error("cylinder texturing not handled yet");
-        default:       throw std::runtime_error("incorrect object type");
-    }
+    return std::make_pair(index, comp);
 }
+    
+static triangle::orientation parse_triangle_orientation(const file& f,
+    const unsigned int index, const mapping_info::composition comp,
+    const rt::vector& tr_v1, const rt::vector& tr_v2) {
+
+    double u0, v0, u1, v1, u2, v2;
+    const exit_status status = f.scanf(" (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
+        u0, v0, u1, v1, u2, v2);
+    
+    if (status == exit_status::Failure)
+        throw std::runtime_error("parsing error in parse_texture_info (triangle UV-coordinates)\n");
+
+    return triangle::orientation(index, comp, { u0, v0, u1, v1, u2, v2 }, tr_v1, tr_v2);
+}
+
+static quad::orientation parse_quad_orientation(const file& f,
+    const unsigned int index, const mapping_info::composition comp,
+    const rt::vector& q_v1, const rt::vector& q_v2) {
+
+    double u0, v0, u1, v1, u2, v2, u3, v3;
+    const exit_status status = f.scanf(" (%lf,%lf) (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
+        u0, v0, u1, v1, u2, v2, u3, v3);
+    
+    if (status == exit_status::Failure) {
+        // Default values: (0,1) (0,0) (1,0) (1,1)
+        u0 = 0; v0 = 1;
+        u1 = 0; v1 = 0;
+        u2 = 1; v2 = 0;
+        u3 = 1; v3 = 1;
+    }
+
+    return quad::orientation(index, comp, { u0, v0, u1, v1, u2, v2, u3, v3 }, q_v1, q_v2);
+}
+
+static sphere::orientation parse_sphere_orientation(const file& f,
+    const unsigned int index, const mapping_info::composition comp) {
+
+    double fx, fy, fz, rx, ry, rz;
+    const exit_status status = f.scanf(" forward:(%lf,%lf,%lf) right:(%lf,%lf,%lf))\n",
+        fx, fy, fz, rx, ry, rz);
+
+    if (status == exit_status::Failure) {
+        // Default values: forward = (0,0,-1), right = (1,0,0)
+        fx = 0; fy = 0; fz = -1;
+        rx = 1; ry = 0; rz = 0;
+    }
+
+    return sphere::orientation(index, comp, rt::vector(fx, fy, fz), rt::vector(rx, ry, rz));
+}
+
+static plane::orientation parse_plane_orientation(const file& f,
+    const unsigned int index, const mapping_info::composition comp,
+    const rt::vector& normal) {
+
+    double rx, ry, rz;
+    const exit_status status_right = f.scanf(" right:(%lf,%lf,%lf)",
+        rx, ry, rz);
+    
+    if (status_right == exit_status::Failure) {
+        // Default values: right = (1, 0, 0), scale = 1
+        rx = 1; ry = 0; rz = 0;
+    }
+
+    double scale = 1.0_r; // Default value
+    f.scanf(" scale:%lf)\n", scale);
+
+    return plane::orientation(index, comp, normal, rt::vector(rx, ry, rz), scale);
+}
+
+/*
+static box::orientation parse_box_orientation(const file& f,
+    const unsigned int index, const mapping_info::composition comp) {
+
+    static_assert(BOX_TEXTURING_DISABLED);
+    throw std::runtime_error("box texturing not handled yet");
+}
+
+static cylinder::orientation parse_cylinder_orientation(const file& f,
+    const unsigned int index, const mapping_info::composition comp) {
+
+    static_assert(CYLINDER_TEXTURING_DISABLED);
+    throw std::runtime_error("cylinder texturing not handled yet");
+}
+*/
 
 static void parse_objects(const file& f, const object_type type, const std::string& arg,
         containers& containers, const bool bounding_enabled, std::optional<real> inverse_gamma) {
     
     union object_constructor_parameters {
+        struct { rt::vector p[3]; }                                   triangle;
+        struct { rt::vector p[4]; }                                   quad;
         struct { rt::vector center; real radius; }                    sphere;
         struct { rt::vector position, normal; }                       plane;
         struct { rt::vector center, x_axis, y_axis; real l[3]; }      box;
-        struct { rt::vector p[3]; }                                   triangle;
-        struct { rt::vector p[4]; }                                   quad;
         struct { rt::vector origin, direction; real radius, length; } cylinder;
 
         object_constructor_parameters() {}
@@ -519,6 +550,41 @@ static void parse_objects(const file& f, const object_type type, const std::stri
 
     using enum object_type;
     switch (type) {
+
+        case Triangle: {
+
+            /* (-620, -100, 600) (-520, 100, 500) (-540, -200, 700) [material] */
+            double v0x, v0y, v0z, v1x, v1y, v1z, v2x, v2y, v2z;
+            status = f.scanf("(%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) material:",
+                v0x, v0y, v0z, v1x, v1y, v1z, v2x, v2y, v2z);
+            
+            parameters.triangle = {
+                .p = {
+                    rt::vector(v0x, v0y, v0z),
+                    rt::vector(v1x, v1y, v1z),
+                    rt::vector(v2x, v2y, v2z)
+                }
+            };
+            break;
+        }
+
+        case Quad: {
+
+            /* (-620, -100, 600) (-520, 100, 600) (-540, -200, 600) (-500, -250, 600) [material] */
+            double v0x, v0y, v0z, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z;
+            status = f.scanf("(%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) material:",
+                v0x, v0y, v0z, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z);
+            
+            parameters.quad = {
+                .p = {
+                    rt::vector(v0x, v0y, v0z),
+                    rt::vector(v1x, v1y, v1z),
+                    rt::vector(v2x, v2y, v2z),
+                    rt::vector(v3x, v3y, v3z)
+                }
+            };
+            break;
+        }
 
         case Sphere: {
 
@@ -559,41 +625,6 @@ static void parse_objects(const file& f, const object_type type, const std::stri
                 .x_axis = rt::vector(n1x, n1y, n1z).unit(),
                 .y_axis = rt::vector(n2x, n2y, n2z).unit(),
                 .l      = { lx, ly, lz }
-            };
-            break;
-        }
-
-        case Triangle: {
-
-            /* (-620, -100, 600) (-520, 100, 500) (-540, -200, 700) [material] */
-            double v0x, v0y, v0z, v1x, v1y, v1z, v2x, v2y, v2z;
-            status = f.scanf("(%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) material:",
-                v0x, v0y, v0z, v1x, v1y, v1z, v2x, v2y, v2z);
-            
-            parameters.triangle = {
-                .p = {
-                    rt::vector(v0x, v0y, v0z),
-                    rt::vector(v1x, v1y, v1z),
-                    rt::vector(v2x, v2y, v2z)
-                }
-            };
-            break;
-        }
-
-        case Quad: {
-
-            /* (-620, -100, 600) (-520, 100, 600) (-540, -200, 600) (-500, -250, 600) [material] */
-            double v0x, v0y, v0z, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z;
-            status = f.scanf("(%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) (%lf,%lf,%lf) material:",
-                v0x, v0y, v0z, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z);
-            
-            parameters.quad = {
-                .p = {
-                    rt::vector(v0x, v0y, v0z),
-                    rt::vector(v1x, v1y, v1z),
-                    rt::vector(v2x, v2y, v2z),
-                    rt::vector(v3x, v3y, v3z)
-                }
             };
             break;
         }
@@ -645,73 +676,86 @@ static void parse_objects(const file& f, const object_type type, const std::stri
 
     const object* obj = nullptr;
 
+    static_assert(BOX_TEXTURING_DISABLED);
+    static_assert(CYLINDER_TEXTURING_DISABLED);
+
     if (type == Box || type == Cylinder) {
+
         switch (type) {
+
             case Box: {
                 const auto& [ center, x_axis, y_axis, l ] = parameters.box;
                 const auto& [ lx, ly, lz ] = l;
                 obj = &box_set.emplace_back(center, x_axis, y_axis, lx, ly, lz, m_index.value());
                 break;
             }
+
             case Cylinder: {
                 const auto& [ origin, direction, radius, length ] = parameters.cylinder;
                 obj = &cylinder_set.emplace_back(origin, direction, radius, length, m_index.value());
                 break;
             }
+
             default: throw;
         }
     }
     else {
-        // To be replaced with union { mapping_info<sphere>; mapping_info<plane>; ... }
-        std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, type);
-    
-        if (info.has_value()) {
+        //std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, type);
+        const std::optional<std::pair<mapping_info::index_type, mapping_info::composition>> info_opt =
+            parse_mapping_index(f, texture_wrapper_set, normal_map_wrapper_set);
 
-            const bool normal_mapping = info.value().has_normal_information();
+        if (info_opt.has_value()) {
+
+            const auto& [ index, comp ] = info_opt.value();
+
+            auto& [
+                triangle_orientation_set,
+                quad_orientation_set,
+                sphere_orientation_set,
+                plane_orientation_set,
+                _, _
+            ] = containers.orientation_containers;
 
             switch (type) {
 
-                case Sphere: {
-                    const auto& [ fx, fy, fz, rx, ry, rz, _, _ ] = info.value().uv_coordinates;
-                    const rt::vector forward(fx, fy, fz);
-                    const rt::vector right  (rx, ry, rz);
-                    const auto& [ center, radius ] = parameters.sphere;
-                    obj = &sphere_set.emplace_back(center, radius, m_index.value(), texture_info_set.size(), forward, right);
-                    break;
-                }
-
-                case Plane: {
-                    const auto& [ rx, ry, rz, scale, _, _, _, _ ] = info.value().uv_coordinates;
-                    const rt::vector right(rx, ry, rz);
-                    const auto& [ position, normal ] = parameters.plane;
-                    obj = &plane_set.emplace_back(normal.x, normal.y, normal.z, position, m_index.value(), texture_info_set.size(), right, scale);
-                    break;
-                }
-
                 case Triangle: {
-                    const auto& [ v ] = parameters.triangle;
-                    if (normal_mapping)
-                        triangle_set.emplace_back(v[0], v[1], v[2], m_index.value(), texture_info_set.size(), info.value());
-                    else
-                        triangle_set.emplace_back(v[0], v[1], v[2], m_index.value(), texture_info_set.size());
-                    obj = &triangle_set.back();
+                    const auto& [ p ] = parameters.triangle;
+                    triangle::orientation orientation = parse_triangle_orientation(f, index, comp, p[1] - p[0], p[2] - p[0]);
+                    const unsigned int orientation_index = triangle_orientation_set.size();
+                    obj = &triangle_set.emplace_back(p[0], p[1], p[2], m_index.value(), orientation_index);
+                    triangle_orientation_set.emplace_back(std::move(orientation));
                     break;
                 }
 
                 case Quad: {
-                    const auto& [ v ] = parameters.quad;
-                    if (normal_mapping)
-                        quad_set.emplace_back(v[0], v[1], v[2], v[3], m_index.value(), texture_info_set.size(), info.value());
-                    else
-                        quad_set.emplace_back(v[0], v[1], v[2], v[3], m_index.value(), texture_info_set.size());
-                    obj = &quad_set.back();
+                    const auto& [ p ] = parameters.quad;
+                    quad::orientation orientation = parse_quad_orientation(f, index, comp, p[1] - p[0], p[2] - p[0]);
+                    const unsigned int orientation_index = quad_orientation_set.size();
+                    obj = &quad_set.emplace_back(p[0], p[1], p[2], p[3], m_index.value(), orientation_index);
+                    quad_orientation_set.emplace_back(std::move(orientation));
+                    break;
+                }
+
+                case Sphere: {
+                    const auto& [ center, radius ] = parameters.sphere;
+                    sphere::orientation orientation = parse_sphere_orientation(f, index, comp);
+                    const unsigned int orientation_index = sphere_orientation_set.size();
+                    obj = &sphere_set.emplace_back(center, radius, m_index.value(), orientation_index);
+                    sphere_orientation_set.emplace_back(std::move(orientation));
+                    break;
+                }
+
+                case Plane: {
+                    const auto& [ position, normal ] = parameters.plane;
+                    plane::orientation orientation = parse_plane_orientation(f, index, comp, normal);
+                    const unsigned int orientation_index = plane_orientation_set.size();
+                    obj = &plane_set.emplace_back(normal.x, normal.y, normal.z, position, m_index.value(), orientation_index);
+                    plane_orientation_set.emplace_back(std::move(orientation));
                     break;
                 }
 
                 default: throw;
             }
-
-            texture_info_set.emplace_back(std::move(info.value()));
         }
         else {
 
@@ -730,14 +774,14 @@ static void parse_objects(const file& f, const object_type type, const std::stri
                 }
 
                 case Triangle: {
-                    const auto& [ v ] = parameters.triangle;
-                    obj = &triangle_set.emplace_back(v[0], v[1], v[2], m_index.value());
+                    const auto& [ p ] = parameters.triangle;
+                    obj = &triangle_set.emplace_back(p[0], p[1], p[2], m_index.value());
                     break;
                 }
 
                 case Quad: {
-                    const auto& [ v ] = parameters.quad;
-                    obj = &quad_set.emplace_back(v[0], v[1], v[2], v[3], m_index.value());
+                    const auto& [ p ] = parameters.quad;
+                    obj = &quad_set.emplace_back(p[0], p[1], p[2], p[3], m_index.value());
                     break;
                 }
 
@@ -911,7 +955,8 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         std::vector<const object*> object_set;
         object_set.reserve(pre_parsing_info.objects + pre_parsing_info.quads);
 
-        scene::containers::object object_containers(pre_parsing_info);
+        scene::containers::object      object_containers     (pre_parsing_info);
+        scene::containers::orientation orientation_containers(pre_parsing_info);
 
         /* Material storage */
         std::vector<wrapper<material>> material_wrapper_set;
@@ -922,8 +967,6 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
         std::vector<wrapper<texture>>    texture_wrapper_set;
         std::vector<wrapper<normal_map>> normal_map_wrapper_set;
-        
-        std::vector<texture_info> texture_info_set;
 
         std::vector<const bounding*> bounding_set;
 
@@ -943,7 +986,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             material_wrapper_set,
             texture_wrapper_set,
             normal_map_wrapper_set,
-            texture_info_set
+            orientation_containers
         };
 
         /* Parsing loop */
@@ -1103,7 +1146,6 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             std::move(material_set),
             std::move(texture_set),
             std::move(normal_map_set),
-            std::move(texture_info_set),
             std::move(background)
         );
 
@@ -1116,6 +1158,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             std::move(bounding_set),
             std::move(object_containers),
             std::move(mapping_containers),
+            std::move(orientation_containers),
             std::move(cam),
             width, height,
             polygons_per_bounding,
