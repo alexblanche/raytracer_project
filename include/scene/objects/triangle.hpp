@@ -92,6 +92,10 @@ class triangle final : public object {
         /* Returns the barycenter of the triangle */
         rt::vector get_barycenter() const;
 
+        // Ugly, but quick fix for obj_parser (v1, v2 needed to construct orientation)
+        std::pair<const rt::vector&, const rt::vector&> get_v1_v2() const {
+            return { v1, v2 };
+        }
 
         /* Intersection determination */
 

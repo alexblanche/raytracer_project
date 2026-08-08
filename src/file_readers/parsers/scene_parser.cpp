@@ -1029,36 +1029,39 @@ static void parse_objects(const file& f, const object_type type, const std::stri
 struct parse_load_obj_result {
     std::string ofile_name;
     std::optional<mapping::index_type> m_index;
-    rt::vector shift;
-    real scale;
+    model_positioning positioning;
 };
 
 static parse_load_obj_result parse_load_obj(
     const file& f, const std::vector<wrapper<composition>>& composition_wrapper_set) {
     
     parse_load_obj_result res;
-    auto& [ ofile_name, m_index, shift, scale ] = res;
+    auto& [ ofile_name, m_index, positioning ] = res;
     
     ofile_name = f.read_string(MAX_FILENAME_LENGTH);
 
-    double sx = 0, sy = 0, sz = 0;
-
-    exit_status status = f.scanf(" (mapping:");
-    if (status == exit_status::Success) {
-
-        std::string m_name = f.read_string(MAX_NAME_LENGTH);
-        
-        if (not m_name.starts_with("none")) {
-            if (m_name.ends_with(')'))
-                m_name.resize(m_name.size() - 1);
-            m_index = wrapper<composition>::find_element(composition_wrapper_set, m_name);
-            throw_if_nullopt(m_index, "mapping not found");
-        }
-
-        f.scanf("shift:(%lf,%lf,%lf) scale:%lf)\n", sx, sy, sz, scale);
+    if (f.scanf(" (mapping:") == exit_status::Failure)
+        return res;
+    
+    std::string m_name = f.read_string(MAX_NAME_LENGTH);
+    
+    if (not m_name.starts_with("none")) {
+        if (m_name.ends_with(')'))
+            m_name.resize(m_name.size() - 1);
+        m_index = wrapper<composition>::find_element(composition_wrapper_set, m_name);
+        throw_if_nullopt(m_index, "mapping not found");
     }
 
-    shift = rt::vector(sx, sy, sz);
+    double sx, sy, sz, scale;
+    const int ret = f.scanf_count("shift:(%lf,%lf,%lf) scale:%lf)\n", sx, sy, sz, scale);
+
+    if (ret >= 3) {
+        const rt::vector shift = rt::vector(sx, sy, sz);
+        positioning = (ret == 4) ?
+              model_positioning(shift, scale)
+            : model_positioning(shift);
+    }
+
     return res;
 }
 
@@ -1187,13 +1190,12 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             /* Obj file parsing */
             if (arg == "load_obj") {
                 
-                const auto& [ ofile_name, m_index, shift, scale ] = parse_load_obj(f, composition_wrapper_set);
+                const auto& [ ofile_name, m_index, positioning ] = parse_load_obj(f, composition_wrapper_set);
 
                 const bounding* output_bd = nullptr;
                 const exit_status status_obj =
                     parse_obj_file(ofile_name, m_index,
-                        containers,
-                        scale, shift,
+                        containers, positioning,
                         bounding_enabled, polygons_per_bounding, output_bd,
                         inverse_gamma);
 

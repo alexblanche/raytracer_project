@@ -24,17 +24,18 @@ void print_hit_info(const scene& scene, int x, int y) {
 
     obj->print();
 
-    if (obj->is_textured()) {
-        const texture_info& ti = scene.get_texture_info(obj);
-        printf("Texture info: ");
-        const auto& [ u0, v0, u1, v1, u2, v2, u3, v3 ] = ti.uv_coordinates;
-        if (dynamic_cast<const triangle*>(obj))
-            printf("(%lf, %lf) (%lf, %lf) (%lf, %lf)\n",
-                u0, v0, u1, v1, u2, v2);
-        else
-            printf("(%lf, %lf) (%lf, %lf) (%lf, %lf) (%lf, %lf)\n",
-                u0, v0, u1, v1, u2, v2, u3, v3);
-    }
+    // Need to be rewritten for the new orientation classes
+    // if (obj->is_textured()) {
+    //     const texture_info& ti = scene.get_texture_info(obj);
+    //     printf("Texture info: ");
+    //     const auto& [ u0, v0, u1, v1, u2, v2, u3, v3 ] = ti.uv_coordinates;
+    //     if (dynamic_cast<const triangle*>(obj))
+    //         printf("(%lf, %lf) (%lf, %lf) (%lf, %lf)\n",
+    //             u0, v0, u1, v1, u2, v2);
+    //     else
+    //         printf("(%lf, %lf) (%lf, %lf) (%lf, %lf) (%lf, %lf)\n",
+    //             u0, v0, u1, v1, u2, v2, u3, v3);
+    // }
 }
 
 

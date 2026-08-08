@@ -157,63 +157,60 @@ constexpr unsigned int size =
     : subdiv_option == subdivision::Disabled ? 3 : 2;
 
 template<Polygon polygon, unsigned int size>
-requires (size >= 2 && size <= 4)
+requires (size_fits_type<polygon, size>)
 static inline void new_texture_info(scene::containers::orientation& orientation_containers,
+    const rt::vector& v_1, const rt::vector& v_2, // triangle/quad's v1, v2 = p1-p0, p2-p0
     const std::vector<rt::vector>& uv_coord_set,
     const mapping::index_type current_mapping_index,
     const index_array<size>& vt, const rt::vector& final_vt = rt::vector()) {
 
-    std::array<real, 8> uv {};
+    constexpr unsigned int uvc_size = (size >= 3) ? size : 3;
+    std::array<uvcoord, uvc_size> uv;
 
-    for (int i = 0; unsigned int vti : vt) {
-        uv[i++] = uv_coord_set[vti].x;
-        uv[i++] = uv_coord_set[vti].y;
-    }
+    for (int i = 0; unsigned int vti : vt)
+        uv[i] = {
+            .u = uv_coord_set[vti].x,
+            .v = uv_coord_set[vti].y
+        };
 
-    if constexpr (size == 2) {
-        uv[4] = final_vt.x;
-        uv[5] = final_vt.y;
-    }
-
-    static_assert(false, "rewrite");
-    // texture_info_set.emplace_back(
-    //     current_texture_index,
-    //     std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-    //     std::move(uv)
-    // );
-    // compute uvc, have v_1, v_2 as parameters
-    if constexpr (std::is_same_v<polygon, triangle>) {
+    if constexpr (size == 2)
+        uv[2] = { final_vt.x, final_vt.y };
+    
+    if constexpr (std::is_same_v<polygon, triangle>)
+        
         orientation_containers.triangle_orientation_set.emplace_back(
-            current_mapping_index, uvc, v_1, v_2
+            current_mapping_index, uv, v_1, v_2
         );
-    }
-    else {
+    
+    else
         orientation_containers.quad_orientation_set.emplace_back(
-            current_mapping_index, uvc, v_1, v_2
+            current_mapping_index, uv, v_1, v_2
         );
-    }
 }
 
 template<Polygon polygon, int size, normal normal_option = normal::Enabled>
-requires size_fits_type<polygon, size>
+requires (size_fits_type<polygon, size>)
 static inline const polygon* build_polygon(
     std::vector<polygon>& polygon_set,
-    const std::vector<rt::vector>& vertex_set, const rt::vector shift, const real scale,
+    const std::vector<rt::vector>& vertex_set, const model_positioning& positioning,
     const std::vector<rt::vector>& normal_set,
     const unsigned int current_material_index, const texturing texturing_option,
-    const unsigned int current_texture_info_set_index,
+    const unsigned int current_orientation_info_set_index,
     const index_array<size>& v, const index_array<size>& vn,
     const rt::vector& final_v = rt::vector(), const rt::vector& final_vn = rt::vector()) {
 
-    const unsigned int texture_info_index = texturing_option == texturing::Enabled ?
-          current_texture_info_set_index
+    const unsigned int orientation_info_index = texturing_option == texturing::Enabled ?
+          current_orientation_info_set_index
         : EMPTY_INDEX;
 
     const auto& [ ...vi ]     = v;
-    const auto  [ ...vert_i ] = std::array { fma(vertex_set[vi], scale, shift)... };
+    const auto  [ ...vert_i ] = positioning.is_not_null() ?
+          std::array { positioning.position(vertex_set[vi])... }
+        : std::array { vertex_set[vi]... };
 
     const auto& [ ...vni ]    = vn;
     const auto& [ ...norm_i ] = std::array { normal_set[vni]... };
+    static_assert(TODO_ROTATION_OF_MODELS); // rotate the normals as well
     
     if (polygon_set.size() == polygon_set.capacity()) {
         const std::string type = (std::is_same_v<polygon, triangle>) ? "triangle" : "quad";
@@ -224,15 +221,19 @@ static inline const polygon* build_polygon(
 
     if constexpr (normal_option == normal::Enabled) {
         if constexpr (size >= 3)
-            polygon_set.emplace_back(vert_i..., norm_i..., current_material_index, texture_info_index);
+            polygon_set.emplace_back(vert_i..., norm_i...,
+                current_material_index, orientation_info_index);
         else
-            polygon_set.emplace_back(vert_i..., final_v, norm_i..., final_vn, current_material_index, texture_info_index);
+            polygon_set.emplace_back(vert_i..., final_v, norm_i..., final_vn,
+                current_material_index, orientation_info_index);
     }
     else {
         if constexpr (size >= 3)
-            polygon_set.emplace_back(vert_i..., current_material_index, texture_info_index);
+            polygon_set.emplace_back(vert_i...,
+                current_material_index, orientation_info_index);
         else
-            polygon_set.emplace_back(vert_i..., final_v, current_material_index, texture_info_index);
+            polygon_set.emplace_back(vert_i..., final_v,
+                current_material_index, orientation_info_index);
     }
 
     return &polygon_set.back();
@@ -247,24 +248,33 @@ template<
 static inline void add_polygon(const sets& sets, const bool bounding_enabled,
     std::vector<polygon>& polygon_set,
     unsigned int& number_of_polygons, unsigned int& number_of__type__,
-    const rt::vector& shift, const real scale,
+    const model_positioning& positioning,
     index_array<size>&& v, index_array<size>&& vt, index_array<size>&& vn,
-    const unsigned int current_texture_index, const unsigned int current_material_index, const texturing texturing_option,
+    const mapping::index_type current_mapping_index, const unsigned int current_material_index, const texturing texturing_option,
     const rt::vector& final_v = rt::vector(), const rt::vector& final_vt = rt::vector(), const rt::vector& final_vn = rt::vector()) {
 
-    auto& [ vertex_set, uv_coord_set, normal_set, obj_set, content, texture_info_set ] = sets;
+    auto& [ vertex_set, uv_coord_set, normal_set, object_set, content, orientation_containers ] = sets;
 
-    if (texturing_option == texturing::Enabled)
-        new_texture_info<polygon, size>(texture_info_set, uv_coord_set, current_texture_index, vt, final_vt);
+    unsigned int current_orientation_info_index;
+    if constexpr (std::is_same_v<polygon, triangle>)
+        current_orientation_info_index = orientation_containers.triangle_orientation_set.size() - 1;
+    else
+        current_orientation_info_index = orientation_containers.quad_orientation_set.size() - 1;
 
     const polygon* poly = build_polygon<polygon, size, normal_option>(
         polygon_set,
-        vertex_set, shift, scale, normal_set,
-        current_material_index, texturing_option, texture_info_set.size() - 1,
+        vertex_set, positioning, normal_set,
+        current_material_index, texturing_option, current_orientation_info_index,
         v, vn, final_v, final_vn
     );
 
-    obj_set.push_back(poly);
+    const auto& [ v_1, v_2 ] = poly->get_v1_v2();
+
+    if (texturing_option == texturing::Enabled)
+        new_texture_info<polygon, size>(orientation_containers, v_1, v_2,
+            uv_coord_set, current_mapping_index, vt, final_vt);
+
+    object_set.push_back(poly);
     if (bounding_enabled)
         content.push_back(poly);
 
@@ -277,9 +287,9 @@ template<normal normal_option = normal::Enabled>
 static void add_subdivided_polygon_template(std::istringstream& stream,
     const sets& sets, const bool bounding_enabled,
     std::vector<triangle>& triangle_set, unsigned int& number_of_polygons, unsigned int& number_of_triangles,
-    const rt::vector& shift, const real scale,
+    const model_positioning& positioning,
     index_array<5>&& v, index_array<5>&& vt, index_array<5>&& vn,
-    const unsigned int current_texture_index, const unsigned int current_material_index,
+    const mapping::index_type current_mapping_index, const unsigned int current_material_index,
     texturing texturing_option) {
 
     constexpr bool normal_enabled = normal_option == normal::Enabled;
@@ -373,8 +383,8 @@ static void add_subdivided_polygon_template(std::istringstream& stream,
         add_polygon<triangle, normal_option, subdivision::Enabled>(
             sets, bounding_enabled,
             triangle_set, number_of_polygons, number_of_triangles,
-            shift, scale, { vj, vi }, { vtj, vti }, { vnj, vni },
-            current_texture_index, current_material_index, texturing_option,
+            positioning, { vj, vi }, { vtj, vti }, { vnj, vni },
+            current_mapping_index, current_material_index, texturing_option,
             final_v, final_vt, final_vn
         );
     }
@@ -383,8 +393,8 @@ static void add_subdivided_polygon_template(std::istringstream& stream,
     add_polygon<triangle, normal_option, subdivision::Enabled>(
         sets, bounding_enabled,
         triangle_set, number_of_polygons, number_of_triangles,
-        shift, scale, { last_v, v[0] }, { last_vt, vt[0] }, { last_vn, vn[0] },
-        current_texture_index, current_material_index, texturing_option,
+        positioning, { last_v, v[0] }, { last_vt, vt[0] }, { last_vn, vn[0] },
+        current_mapping_index, current_material_index, texturing_option,
         final_v, final_vt, final_vn
     );
 }
@@ -444,7 +454,7 @@ static bool parse_face(std::istringstream& stream,
 with material indices (defined with the keyword usemtl) found in material_names
 
     - Object names (o), polygon groups (g), smooth shading (s), lines (l) are ignored.
-    - The object is scaled with the factor scale, and shifted by the vector shift.
+    - The object is scaled with the factor scale, and shifted by the vector shift (members of positioning)
     - If bounding_enabled, a bounding containing the whole object is placed in output_bd.
         It contains a hierarchy of bounding boxes, such that the terminal ones contain at most
         polygons_per_bounding polygons.
@@ -452,8 +462,7 @@ with material indices (defined with the keyword usemtl) found in material_names
 
 exit_status parse_obj_file(const std::string& file_name,
     const std::optional<mapping::index_type> default_mapping_index,
-    containers& containers,
-    const real scale, const rt::vector& shift, // Encapsulate
+    containers& containers, const model_positioning& positioning,
     const bool bounding_enabled, const unsigned int polygons_per_bounding, const bounding*& output_bd, // Encapsulate
     const std::optional<real> gamma) {
 
@@ -504,7 +513,7 @@ exit_status parse_obj_file(const std::string& file_name,
     normal_set  .reserve(expected_size);
 
     /* Material -> mapping association table */
-    std::map<unsigned int, unsigned int> mt_assoc;
+    material_mapping_map mt_assoc;
 
     unsigned int current_material_index = 0;
     unsigned int current_mapping_index = default_mapping_index.value_or(EMPTY_INDEX);
@@ -541,14 +550,14 @@ exit_status parse_obj_file(const std::string& file_name,
             add_polygon<triangle, normal::Enabled, subdiv_disable, size>(
                 sets, bounding_enabled,
                 triangle_set, number_of_polygons, number_of_triangles,
-                shift, scale, std::move(v), std::move(vt), std::move(vn),
+                positioning, std::move(v), std::move(vt), std::move(vn),
                 current_mapping_index, current_material_index, texturing_option
             );
         else
             add_polygon<triangle, normal::Disabled, subdiv_disable, size>(
                 sets, bounding_enabled,
                 triangle_set, number_of_polygons, number_of_triangles,
-                shift, scale, std::move(v), std::move(vt), std::move(vn),
+                positioning, std::move(v), std::move(vt), std::move(vn),
                 current_mapping_index, current_material_index, texturing_option
             );
     };
@@ -563,14 +572,14 @@ exit_status parse_obj_file(const std::string& file_name,
             add_polygon<quad, normal::Enabled, subdiv_disable, size>(
                 sets, bounding_enabled,
                 quad_set, number_of_polygons, number_of_quads,
-                shift, scale, std::move(v), std::move(vt), std::move(vn),
+                positioning, std::move(v), std::move(vt), std::move(vn),
                 current_mapping_index, current_material_index, texturing_option
             );
         else
             add_polygon<quad, normal::Disabled, subdiv_disable, size>(
                 sets, bounding_enabled,
                 quad_set, number_of_polygons, number_of_quads,
-                shift, scale, std::move(v), std::move(vt), std::move(vn),
+                positioning, std::move(v), std::move(vt), std::move(vn),
                 current_mapping_index, current_material_index, texturing_option
             );
     };
@@ -601,13 +610,13 @@ exit_status parse_obj_file(const std::string& file_name,
         if (normal_option == normal::Enabled)
             add_subdivided_polygon_template<normal::Enabled>(stream, sets, bounding_enabled,
                 triangle_set, number_of_polygons, number_of_triangles,
-                shift, scale, std::move(v), std::move(vt), std::move(vn),
+                positioning, std::move(v), std::move(vt), std::move(vn),
                 current_mapping_index, current_material_index, texturing_option
             );
         else
             add_subdivided_polygon_template<normal::Disabled>(stream, sets, bounding_enabled,
                 triangle_set, number_of_polygons, number_of_triangles,
-                shift, scale, std::move(v), std::move(vt), std::move(vn),
+                positioning, std::move(v), std::move(vt), std::move(vn),
                 current_mapping_index, current_material_index, texturing_option
             );
     };
@@ -747,7 +756,7 @@ exit_status parse_obj_file(const std::string& file_name,
                 current_material_index = vindex.value();
 
                 /* Checking if a mapping was associated with the material by an mtl file */
-                current_mapping_index = (mt_assoc.count(current_material_index) > 0) ?
+                current_mapping_index = (mt_assoc.contains(current_material_index)) ?
                       mt_assoc[current_material_index]
                     : default_mapping_index.value_or(EMPTY_INDEX);
                 
@@ -844,7 +853,10 @@ exit_status parse_obj_file(const std::string& file_name,
             number_of_vertices, number_of_polygons, number_of_triangles, number_of_quads);
         printf("Dimensions: (x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf])\n",
             min.x, max.x, min.y, max.y, min.z, max.z);
-        if (scale != 1.0_r || not (shift == rt::ZERO)) {
+        
+        if (positioning.is_not_null()) {
+
+            const auto& [ shift, scale ] = positioning.get_content();
             const rt::vector scaled_min = fma(min, scale, shift);
             const rt::vector scaled_max = fma(max, scale, shift);
             printf("Rescaled/shifted dimensions: (x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf])\n",

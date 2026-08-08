@@ -73,7 +73,8 @@ constexpr bool TODO_PLANE_SAMPLING     = true;
 constexpr bool TODO_ROUGHNESS_MAP      = true;
 constexpr bool TODO_DISPLACEMENT_MAP   = true;
 
-constexpr bool TODO_NORMAL_MAP_IN_MTL        = true;
-constexpr bool TODO_ROUGHNESS_MAP_IN_MTL     = true;
-constexpr bool TODO_DISPLACEMENT_MAP_IN_MTL  = true;
+constexpr bool TODO_NORMAL_MAP_IN_MTL       = true;
+constexpr bool TODO_ROUGHNESS_MAP_IN_MTL    = true;
+constexpr bool TODO_DISPLACEMENT_MAP_IN_MTL = true;
 
+constexpr bool TODO_ROTATION_OF_MODELS = true;

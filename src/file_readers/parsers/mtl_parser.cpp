@@ -17,12 +17,11 @@ static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
     When a texture is loaded with map_Ka / Kd, it is placed in texture_set (like in the scene parser)
       and the association table is updated with a new pair (m_index, t_index) so that each material created
       with index m_index must have the texture t_index
-
-   Returns true if the operation was successful */
+ */
 
 exit_status parse_mtl_file(const std::filesystem::path& path, const std::string& file_name,
     std::vector<wrapper<material>>& material_wrapper_set, containers& containers,
-    std::map<unsigned int, unsigned int>& mt_assoc, std::optional<real> gamma) {
+    material_mapping_map& mt_assoc, std::optional<real> gamma) {
 
     file f((path / file_name).generic_string(), "rb");
 
@@ -134,14 +133,17 @@ exit_status parse_mtl_file(const std::filesystem::path& path, const std::string&
                     // Texture loading
                     bool parsing_successful;
                     const std::string full_name = (path / tfile_name).generic_string();
-                    containers.texture_set.emplace_back(full_name, parsing_successful, gamma);
-                    mt_assoc[m_i] = containers.texture_set.size() - 1;
 
-                    containers.normal_map_set.emplace_back();
+                    auto& [ _, _, _, _, composition_wrapper_set, texture_set, normal_map_set, _ ] = containers;
+
+                    texture_set.emplace_back(full_name, parsing_successful, gamma);
+                    normal_map_set.emplace_back();
                     // ...
 
                     composition comp = { .has_texture = true, .has_normal_map = false };
-                    containers.composition_wrapper_set.emplace_back(comp, "mapping_" + m_name);
+                    composition_wrapper_set.emplace_back(comp, "mapping_" + m_name);
+
+                    mt_assoc[m_i] = composition_wrapper_set.size() - 1;
 
                     static_assert(TODO_NORMAL_MAP_IN_MTL);
                     static_assert(TODO_ROUGHNESS_MAP_IN_MTL);

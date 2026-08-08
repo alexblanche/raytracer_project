@@ -162,21 +162,24 @@ static void test_obj() {
         + pre_parsing_info.cylinders
     );
 
-    std::vector<wrapper<material>>   material_wrapper_set;
-    std::vector<wrapper<texture>>    texture_wrapper_set;
-    std::vector<wrapper<normal_map>> normal_map_wrapper_set;
-    std::vector<texture_info>        texture_info_set;
+    std::vector<wrapper<material>>    material_wrapper_set;
+    std::vector<wrapper<composition>> composition_wrapper_set;
+    std::vector<texture>    texture_set;
+    std::vector<normal_map> normal_map_set;
 
     scene::containers::object object_containers(pre_parsing_info);
+    scene::containers::orientation orientation_containers(pre_parsing_info);
+    
 
     containers containers = {
         object_set,
         other_content,
         object_containers,
         material_wrapper_set,
-        texture_wrapper_set,
-        normal_map_wrapper_set,
-        texture_info_set
+        composition_wrapper_set,
+        texture_set,
+        normal_map_set,
+        orientation_containers
     };
 
     uint64_t total_time = 0;
@@ -189,7 +192,7 @@ static void test_obj() {
         const bounding* output_bd = nullptr;
         [[maybe_unused]] const exit_status status = parse_obj_file(
             filename_obj, std::nullopt, containers,
-            2.0_r, rt::vector(1, 1, 1),
+            model_positioning(rt::vector(1, 1, 1), 2.0_r),
             false, 0, output_bd, 1.0_r
         );
         assert(status == exit_status::Success);
@@ -202,16 +205,19 @@ static void test_obj() {
         //timer.start();
         
         auto& [ triangle_set, quad_set, _, _, _, _ ] = object_containers;
+        auto& [ triangle_orientation_set, quad_orientation_set, _, _, _, _ ] = orientation_containers;
         triangle_set.clear();
+        triangle_orientation_set.clear();
         quad_set.clear();
+        quad_orientation_set.clear();
+        composition_wrapper_set.clear();
 
         //timer.stop();
         //timer.print();
         object_set.clear();
         material_wrapper_set.clear();
-        texture_wrapper_set.clear();
-        normal_map_wrapper_set.clear();
-        texture_info_set.clear();
+        texture_set.clear();
+        normal_map_set.clear();
     }
     printf("OBJ ");
     printf("Time: %llums\n", total_time);

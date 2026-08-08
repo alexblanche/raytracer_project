@@ -9,7 +9,7 @@
 
 #include <vector>
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <filesystem>
 
 /* Mtl file parser */
@@ -24,7 +24,9 @@
       (otherwise I need a table to remember the already loaded texture's file names)
 
    Returns true if the operation was successful */
+  
+using material_mapping_map = std::unordered_map<unsigned int, mapping::index_type>;
 
 exit_status parse_mtl_file(const std::filesystem::path& path, const std::string& file_name,
     std::vector<wrapper<material>>& material_wrapper_set, containers& containers,
-    std::map<unsigned int, unsigned int>& mt_assoc, std::optional<real> gamma = std::nullopt);
+    material_mapping_map& mt_assoc, std::optional<real> gamma = std::nullopt);

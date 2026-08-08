@@ -68,6 +68,11 @@ class quad final : public object {
         /* Returns barycenter of the quad */
         rt::vector get_barycenter() const;
 
+        // Ugly, but quick fix for obj_parser (v1, v2 needed to construct orientation)
+        std::pair<const rt::vector&, const rt::vector&> get_v1_v2() const {
+            return { v1, v2 };
+        }
+
         /* Intersection determination */
 
         real measure_distance(const ray& r) const override;
