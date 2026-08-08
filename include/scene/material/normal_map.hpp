@@ -1,6 +1,7 @@
 #pragma once
 
 #include "math/geometry/vector.hpp"
+#include "file_readers/parsers/parsing_wrappers.hpp"
 
 #include <string>
 #include <vector>
@@ -42,3 +43,6 @@ class normal_map {
             return data[ std::clamp(y, 0, height) ][ std::clamp(x, 0, width) ]; 
         }
 };
+
+template<>
+inline constexpr std::string type_str<normal_map>() { return "normal map"; }

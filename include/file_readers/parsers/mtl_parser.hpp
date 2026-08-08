@@ -3,6 +3,8 @@
 #include "scene/material/material.hpp"
 #include "scene/material/texture.hpp"
 #include "auxiliary/exit_status.hpp"
+
+#include "file_readers/parsers/scene_parser.hpp"
 #include "file_readers/parsers/parsing_wrappers.hpp"
 
 #include <vector>
@@ -25,5 +27,5 @@
 
 exit_status parse_mtl_file(const std::filesystem::path& path, const std::string& file_name,
     std::vector<wrapper<material>>& material_wrapper_set,
-    std::vector<wrapper<texture>>& texture_wrapper_set,
+    containers& containers,
     std::map<unsigned int, unsigned int>& mt_assoc, std::optional<real> gamma = std::nullopt);

@@ -165,9 +165,62 @@ static void test_parsing() {
     std::cout << std::endl;
 }
 
+class triangle {};
+class quad {};
+class sphere {};
+class plane {};
+class box {};
+class cylinder {};
+
+template<object_type t>
+using type =
+    std::conditional_t<t == object_type::Triangle,  triangle,
+    std::conditional_t<t == object_type::Quad,      quad,
+    std::conditional_t<t == object_type::Sphere,    sphere,
+    std::conditional_t<t == object_type::Plane,     plane,
+    std::conditional_t<t == object_type::Box,       box,
+                                                    cylinder
+    >>>>>;
+
+template<typename T>
+concept Concrete_object_type =
+       std::is_same_v<T, triangle>
+    || std::is_same_v<T, quad>
+    || std::is_same_v<T, sphere>
+    || std::is_same_v<T, plane>
+    || std::is_same_v<T, box>
+    || std::is_same_v<T, cylinder>;
+
+struct containers {
+    std::vector<triangle> triangle_set;
+    std::vector<quad>     quad_set;
+    std::vector<sphere>   sphere_set;
+    std::vector<plane>    plane_set;
+    std::vector<box>      box_set;
+    std::vector<cylinder> cylinder_set;
+
+    template<Concrete_object_type T>
+    std::vector<T>& get_container() {
+        if      constexpr (std::is_same_v<T, triangle>) return triangle_set;
+        else if constexpr (std::is_same_v<T, quad>    ) return quad_set;
+        else if constexpr (std::is_same_v<T, sphere>  ) return sphere_set;
+        else if constexpr (std::is_same_v<T, plane>   ) return plane_set;
+        else if constexpr (std::is_same_v<T, box>     ) return box_set;
+        else if constexpr (std::is_same_v<T, cylinder>) return cylinder_set;
+        else throw std::runtime_error("Unknown type");
+    }
+};
+
 int main() {
 
-    test_parsing();
+    using enum object_type;
+    
+    constexpr object_type t = Sphere;
+    //type<t> sph;
+    static_assert(std::is_same_v<type<t>, sphere>);
+
+    // constexpr object_type all_object_types[] = { Triangle, Quad, Sphere, Plane, Box, Cylinder };
+    
 
     return EXIT_SUCCESS;
 }

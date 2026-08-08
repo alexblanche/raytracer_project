@@ -1,6 +1,7 @@
 #pragma once
 
 #include "image/matrix.hpp"
+#include "file_readers/parsers/parsing_wrappers.hpp"
 
 #include <algorithm>
 #include <string>
@@ -51,3 +52,6 @@ class texture {
         texture(const texture&)             = delete;
         texture& operator=(const texture&)  = delete;
 };
+
+template<>
+inline constexpr std::string type_str<texture>() { return "texture"; }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "screen/color.hpp"
+#include "file_readers/parsers/parsing_wrappers.hpp"
 
 #include <optional>
 
@@ -124,6 +125,9 @@ class material {
             return has_refraction_index;
         }
 };
+
+template<>
+inline constexpr std::string type_str<material>() { return "material"; }
 
 constexpr material DIFFUSE(rt::WHITE, 0);
 constexpr material MIRROR (rt::WHITE, 1, 0, 1, false, 0,    0, 1.0 );

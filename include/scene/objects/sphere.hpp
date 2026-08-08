@@ -21,7 +21,7 @@ class sphere final : public object {
             // Rows: right_dir, up_dir, forward_dir
             linalg::mat3<linalg::mat_type::Row> matrix;
 
-            orientation(int index, composition comp,
+            orientation(const mapping::index_type index,
                 const rt::vector& forward_dir, const rt::vector& right_dir);
         };
 

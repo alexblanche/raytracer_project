@@ -23,7 +23,8 @@ class object {
         unsigned int material_index = EMPTY_INDEX;
 
         /* Index of the orientation object in the orientation container
-           The index is relative to the container associated with the object type.
+           The index is relative to the container associated with the object type
+           (e.g. for a sphere, the index in sphere_orientation_set)
         */
         unsigned int orientation_info_index = EMPTY_INDEX;
 

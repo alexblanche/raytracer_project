@@ -85,10 +85,10 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
 //     info.set_tangent_space(t.unit(), b.unit());
 // }
 
-triangle::orientation::orientation(const int index, const composition comp,
+triangle::orientation::orientation(const mapping::index_type index,
     const std::array<uvcoord, 3>& uvc, const rt::vector& v1, const rt::vector& v2)
 
-    : mapping_info(index, comp) {
+    : mapping_info(index) {
 
     const auto& [ uv0, uv1, uv2 ] = uvc;
     uv[0] = uv0;

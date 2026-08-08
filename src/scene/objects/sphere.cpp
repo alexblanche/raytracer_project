@@ -28,10 +28,10 @@ sphere::sphere(const rt::vector& center, const real radius, const unsigned int m
 //     };
 // }
 
-sphere::orientation::orientation(const int index, const composition comp,
+sphere::orientation::orientation(const mapping::index_type index,
     const rt::vector& forward_dir, const rt::vector& right_dir)
 
-    : mapping_info(index, comp) {
+    : mapping_info(index) {
 
     const rt::vector forward = forward_dir.unit();
     const rt::vector right   = right_dir.unit();

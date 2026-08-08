@@ -22,7 +22,7 @@ class plane final : public object {
             rt::vector down_dir    = rt::FORWARD;
             real inv_texture_scale = 1.0_r;
 
-            orientation(int index, composition comp,
+            orientation(const mapping::index_type index,
                 const rt::vector& normal, const rt::vector& right, real scale);
         };
 

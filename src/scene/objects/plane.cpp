@@ -50,10 +50,10 @@ plane::plane(const rt::vector& normal, const rt::vector& position,
 //     };
 // }
 
-plane::orientation::orientation(const int index, const composition comp,
+plane::orientation::orientation(const mapping::index_type index,
     const rt::vector& normal, const rt::vector& right, real scale)
 
-    : mapping_info(index, comp),
+    : mapping_info(index),
       right_dir(right.unit()),
       down_dir(right_dir ^ normal),
       inv_texture_scale(1.0_r / scale) {}

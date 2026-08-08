@@ -79,10 +79,11 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
 //     info.set_tangent_space(t.unit(), b.unit());
 // }
 
-quad::orientation::orientation(int index, composition comp, const std::array<uvcoord, 4>& uvc,
+quad::orientation::orientation(const mapping::index_type index,
+    const std::array<uvcoord, 4>& uvc,
     const rt::vector& v1, const rt::vector& v2)
 
-    : mapping_info(index, comp) {
+    : mapping_info(index) {
 
     const auto& [ uv0, uv1, uv2, uv3 ] = uvc;
     uv[0] = uv0;

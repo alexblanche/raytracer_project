@@ -92,7 +92,7 @@ struct sets {
     const std::vector<rt::vector>&   normal_set;
     std::vector<const object*>&      obj_set;
     std::vector<const object*>&      content;
-    std::vector<texture_info>&       texture_info_set;
+    scene::containers::orientation&  orientation_containers;
 };
 
 template<unsigned int size>
@@ -156,11 +156,11 @@ constexpr unsigned int size =
       std::is_same_v<polygon, quad> ?          4
     : subdiv_option == subdivision::Disabled ? 3 : 2;
 
-template<unsigned int size>
+template<Polygon polygon, unsigned int size>
 requires (size >= 2 && size <= 4)
-static inline void new_texture_info(std::vector<texture_info>& texture_info_set,
+static inline void new_texture_info(scene::containers::orientation& orientation_containers,
     const std::vector<rt::vector>& uv_coord_set,
-    const unsigned int current_texture_index,
+    const mapping::index_type current_mapping_index,
     const index_array<size>& vt, const rt::vector& final_vt = rt::vector()) {
 
     std::array<real, 8> uv {};
@@ -175,11 +175,23 @@ static inline void new_texture_info(std::vector<texture_info>& texture_info_set,
         uv[5] = final_vt.y;
     }
 
-    texture_info_set.emplace_back(
-        current_texture_index,
-        std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
-        std::move(uv)
-    );
+    static_assert(false, "rewrite");
+    // texture_info_set.emplace_back(
+    //     current_texture_index,
+    //     std::nullopt, // Temporary: normal maps to be integrated to obj file parsing
+    //     std::move(uv)
+    // );
+    // compute uvc, have v_1, v_2 as parameters
+    if constexpr (std::is_same_v<polygon, triangle>) {
+        orientation_containers.triangle_orientation_set.emplace_back(
+            current_mapping_index, uvc, v_1, v_2
+        );
+    }
+    else {
+        orientation_containers.quad_orientation_set.emplace_back(
+            current_mapping_index, uvc, v_1, v_2
+        );
+    }
 }
 
 template<Polygon polygon, int size, normal normal_option = normal::Enabled>
@@ -243,7 +255,7 @@ static inline void add_polygon(const sets& sets, const bool bounding_enabled,
     auto& [ vertex_set, uv_coord_set, normal_set, obj_set, content, texture_info_set ] = sets;
 
     if (texturing_option == texturing::Enabled)
-        new_texture_info<size>(texture_info_set, uv_coord_set, current_texture_index, vt, final_vt);
+        new_texture_info<polygon, size>(texture_info_set, uv_coord_set, current_texture_index, vt, final_vt);
 
     const polygon* poly = build_polygon<polygon, size, normal_option>(
         polygon_set,
@@ -439,11 +451,11 @@ with material indices (defined with the keyword usemtl) found in material_names
 */
 
 exit_status parse_obj_file(const std::string& file_name,
-    const std::optional<unsigned int> default_texture_index,
+    const std::optional<mapping::index_type> default_mapping_index,
     containers& containers,
-    const real scale, const rt::vector& shift,
-    const bool bounding_enabled, const unsigned int polygons_per_bounding,
-    const bounding*& output_bd, const std::optional<real> gamma) {
+    const real scale, const rt::vector& shift, // Encapsulate
+    const bool bounding_enabled, const unsigned int polygons_per_bounding, const bounding*& output_bd, // Encapsulate
+    const std::optional<real> gamma) {
 
     printf("Parsing obj file... ");
     fflush(stdout);
@@ -453,12 +465,12 @@ exit_status parse_obj_file(const std::string& file_name,
         other_content,
         object_containers,
         material_wrapper_set,
-        texture_wrapper_set,
-        normal_map_wrapper_set,
-        texture_info_set
+        composition_wrapper_set,
+        texture_set,
+        normal_map_set,
+        orientation_containers
     ]
     = containers;
-    static_assert(false, "containers has changed");
 
     auto& [
         triangle_set,
@@ -491,13 +503,14 @@ exit_status parse_obj_file(const std::string& file_name,
     uv_coord_set.reserve(expected_size);
     normal_set  .reserve(expected_size);
 
-    /* Material -> texture association table */
+    /* Material -> mapping association table */
     std::map<unsigned int, unsigned int> mt_assoc;
 
     unsigned int current_material_index = 0;
-    unsigned int current_texture_index = default_texture_index.value_or(EMPTY_INDEX);
+    unsigned int current_mapping_index = default_mapping_index.value_or(EMPTY_INDEX);
 
     /* Counters */
+    // Encapsulate
     unsigned int number_of_vertices        = 0;
     unsigned int number_of_triangles       = 0;
     unsigned int number_of_quads           = 0;
@@ -516,7 +529,7 @@ exit_status parse_obj_file(const std::string& file_name,
     std::vector<const object*> content;
     std::vector<const bounding*> children;
 
-    sets sets { vertex_set, uv_coord_set, normal_set, object_set, content, texture_info_set };
+    sets sets { vertex_set, uv_coord_set, normal_set, object_set, content, orientation_containers };
 
     auto add_triangle = [&] (index_array<3>&& v, index_array<3>&& vt, index_array<3>&& vn,
         const texturing texturing_option, const normal normal_option = normal::Enabled) {
@@ -529,14 +542,14 @@ exit_status parse_obj_file(const std::string& file_name,
                 sets, bounding_enabled,
                 triangle_set, number_of_polygons, number_of_triangles,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
-                current_texture_index, current_material_index, texturing_option
+                current_mapping_index, current_material_index, texturing_option
             );
         else
             add_polygon<triangle, normal::Disabled, subdiv_disable, size>(
                 sets, bounding_enabled,
                 triangle_set, number_of_polygons, number_of_triangles,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
-                current_texture_index, current_material_index, texturing_option
+                current_mapping_index, current_material_index, texturing_option
             );
     };
 
@@ -551,14 +564,14 @@ exit_status parse_obj_file(const std::string& file_name,
                 sets, bounding_enabled,
                 quad_set, number_of_polygons, number_of_quads,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
-                current_texture_index, current_material_index, texturing_option
+                current_mapping_index, current_material_index, texturing_option
             );
         else
             add_polygon<quad, normal::Disabled, subdiv_disable, size>(
                 sets, bounding_enabled,
                 quad_set, number_of_polygons, number_of_quads,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
-                current_texture_index, current_material_index, texturing_option
+                current_mapping_index, current_material_index, texturing_option
             );
     };
 
@@ -589,13 +602,13 @@ exit_status parse_obj_file(const std::string& file_name,
             add_subdivided_polygon_template<normal::Enabled>(stream, sets, bounding_enabled,
                 triangle_set, number_of_polygons, number_of_triangles,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
-                current_texture_index, current_material_index, texturing_option
+                current_mapping_index, current_material_index, texturing_option
             );
         else
             add_subdivided_polygon_template<normal::Disabled>(stream, sets, bounding_enabled,
                 triangle_set, number_of_polygons, number_of_triangles,
                 shift, scale, std::move(v), std::move(vt), std::move(vn),
-                current_texture_index, current_material_index, texturing_option
+                current_mapping_index, current_material_index, texturing_option
             );
     };
 
@@ -733,10 +746,10 @@ exit_status parse_obj_file(const std::string& file_name,
                 
                 current_material_index = vindex.value();
 
-                /* Checking if a texture was associated with the material by an mtl file */
-                current_texture_index = (mt_assoc.count(current_material_index) > 0) ?
+                /* Checking if a mapping was associated with the material by an mtl file */
+                current_mapping_index = (mt_assoc.count(current_material_index) > 0) ?
                       mt_assoc[current_material_index]
-                    : default_texture_index.value_or(EMPTY_INDEX);
+                    : default_mapping_index.value_or(EMPTY_INDEX);
                 
                 continue;
             }
@@ -747,7 +760,7 @@ exit_status parse_obj_file(const std::string& file_name,
 
                 const exit_status mtl_parsing_successful =
                     parse_mtl_file(path, mtl_file_name, material_wrapper_set,
-                        texture_wrapper_set, mt_assoc, gamma);
+                        containers, mt_assoc, gamma);
                 throw_if_failure(mtl_parsing_successful, "(mtl file loading)");
 
                 continue;

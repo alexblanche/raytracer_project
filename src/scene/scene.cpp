@@ -86,13 +86,15 @@ concept Object =
 using enum object_type;
 
 template<Object Obj>
-object_type object_type_of();
-template<> object_type object_type_of<triangle>() { return Triangle; }
-template<> object_type object_type_of<quad>    () { return Quad;     }
-template<> object_type object_type_of<sphere>  () { return Sphere;   }
-template<> object_type object_type_of<plane>   () { return Plane;    }
-template<> object_type object_type_of<box>     () { return Box;      }
-template<> object_type object_type_of<cylinder>() { return Cylinder; }
+object_type object_type_of() {
+    if      constexpr (std::is_same_v<Obj, triangle>) return Triangle;
+    else if constexpr (std::is_same_v<Obj, quad>    ) return Quad;
+    else if constexpr (std::is_same_v<Obj, sphere>  ) return Sphere;
+    else if constexpr (std::is_same_v<Obj, plane>   ) return Plane;
+    else if constexpr (std::is_same_v<Obj, box>     ) return Box;
+    else if constexpr (std::is_same_v<Obj, cylinder>) return Cylinder;
+    else throw std::runtime_error("Unknown type");
+}
 
 template<Object Obj>
 inline void search_closest(const std::vector<Obj>& object_type_set, const ray& r,
@@ -197,7 +199,7 @@ std::optional<hit> scene::find_closest_object_bounding(const ray& r) const {
 
 const rt::color& scene::sample_color(const hit& h, const material& m) const {
 
-    const auto& [ _, texture_set, _, _ ] = mapping_containers;
+    const auto& [ _, comp_set, texture_set, _, _ ] = mapping_containers;
 
     const object* const obj = h.get_object();
 
@@ -207,17 +209,18 @@ const rt::color& scene::sample_color(const hit& h, const material& m) const {
     const mapping_info* const mi = orientation_containers.get_mapping_info(
         obj->get_orientation_info_index(), h.get_object_type()
     );
+    const mapping::composition& comp = comp_set[mi->index];
+
+    if (not comp.has_texture)
+        return m.get_color();
     
     const auto [ u, v ] = obj->compute_uv(h.get_point(), mi); // virtual call, can be replaced with switch dispatch
-    
-    return (mi->has_texture_information()) ?
-          texture_set[mi->index].get_color(u, v)
-        : m.get_color();
+    return texture_set[mi->index].get_color(u, v);
 }
 
 map_sample scene::sample_maps(const hit& h, const material& m) const {
 
-    const auto& [ material_set, texture_set, normal_map_set, _ ] = mapping_containers;
+    const auto& [ material_set, comp_set, texture_set, normal_map_set, _ ] = mapping_containers;
 
     const object* const obj = h.get_object();
 
@@ -227,6 +230,7 @@ map_sample scene::sample_maps(const hit& h, const material& m) const {
     const mapping_info* const mi = orientation_containers.get_mapping_info(
         obj->get_orientation_info_index(), h.get_object_type()
     );
+    const mapping::composition& comp = comp_set[mi->index];
     
     const auto [ u, v ] = obj->compute_uv(h.get_point(), mi); // virtual dispatch, can be replaced with switch
     const int index = mi->index;
@@ -234,12 +238,12 @@ map_sample scene::sample_maps(const hit& h, const material& m) const {
     // const composition& comp = composition_set[index];
     // ... = (comp.has_texture_information) ? ... : ...;
 
-    const rt::color& t_col = (mi->has_texture_information()) ?
+    const rt::color& t_col = comp.has_texture ?
           texture_set[index].get_color(u, v)
         : m.get_color();
     
     // Compute the world-space normal directly? Instead of doing it in two steps?
-    const rt::vector& n_vec = (mi->has_normal_information()) ?
+    const rt::vector& n_vec = comp.has_normal_map ?
           normal_map_set[index].get_tangent_space_normal(u, v)
         : h.get_normal();
     

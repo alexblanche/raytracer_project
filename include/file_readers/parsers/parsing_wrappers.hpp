@@ -8,16 +8,8 @@
 
 /* Struct containing a material, texture or normal map, its name and the index that the objects are going to store */
 
-// Definition of wrappable types
-class material;
-class texture;
-class normal_map;
-class composition;
+// Wrappable types: material, texture, normal_map, mapping::compostion
 template<typename T> inline constexpr std::string type_str() = delete;
-template<> inline constexpr std::string type_str<material>   () { return "material";    }
-template<> inline constexpr std::string type_str<texture>    () { return "texture";     }
-template<> inline constexpr std::string type_str<normal_map> () { return "normal map";  }
-template<> inline constexpr std::string type_str<composition>() { return "composition"; }
 
 template<typename T>
 concept Wrappable =

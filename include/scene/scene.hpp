@@ -15,6 +15,8 @@
 #include "scene/material/normal_map.hpp"
 #include "scene/material/material.hpp"
 
+#include "scene/material/mapping.hpp"
+
 /* Struct containing all info from a map sample */
 struct map_sample {
     const rt::color& texture_color;
@@ -66,6 +68,14 @@ class scene {
                     << "\ntextures:  " << textures
                     << std::endl;
             }
+
+            unsigned int max_objects() const {
+                return objects + quads;
+            }
+
+            unsigned int total_non_polygon_objects() const {
+                return spheres + planes + boxes + cylinders;
+            }
         };
 
         struct containers {
@@ -99,18 +109,26 @@ class scene {
             };
 
             struct mapping {
-                std::vector<material>     material_set;
-                std::vector<texture>      texture_set;
-                std::vector<normal_map>   normal_map_set;
+
+                std::vector<material>   material_set;
+
+                using comp = ::mapping::composition;
+                std::vector<comp>       composition_set;
+                std::vector<texture>    texture_set;
+                std::vector<normal_map> normal_map_set;
                 // ...
-                background_container background;
+                background_container    background;
 
-                mapping(std::vector<material>&& material_set,
-                    std::vector<texture>&&      texture_set,
-                    std::vector<normal_map>&&   normal_map_set,
-                    background_container&&      background) :
-
-                    material_set    (std::move(material_set)),
+                mapping(
+                    std::vector<material>&&   material_set,
+                    std::vector<comp>&&       composition_set,
+                    std::vector<texture>&&    texture_set,
+                    std::vector<normal_map>&& normal_map_set,
+                    background_container&&    background
+                )
+                    
+                :   material_set    (std::move(material_set)),
+                    composition_set (std::move(composition_set)),
                     texture_set     (std::move(texture_set)),
                     normal_map_set  (std::move(normal_map_set)),
                     // ...
@@ -123,10 +141,10 @@ class scene {
 
             struct orientation {
                 std::vector<triangle::orientation> triangle_orientation_set;
-                std::vector<quad::orientation>     quad_orientation_set;
-                std::vector<sphere::orientation>   sphere_orientation_set;
-                std::vector<plane::orientation>    plane_orientation_set;
-                std::vector<box::orientation>      box_orientation_set;
+                std::vector<quad    ::orientation> quad_orientation_set;
+                std::vector<sphere  ::orientation> sphere_orientation_set;
+                std::vector<plane   ::orientation> plane_orientation_set;
+                std::vector<box     ::orientation> box_orientation_set;
                 std::vector<cylinder::orientation> cylinder_orientation_set;
             
                 orientation(const pre_parsing_info& pre_parsing_info) {
@@ -252,13 +270,10 @@ class scene {
                 obj->get_orientation_info_index(), h.get_object_type()
             );
 
-            return (mi->has_normal_information()) ?
-                  obj->compute_normal_from_map(tangent_space_normal, h.get_normal(), mi)
+            const mapping::composition& comp = mapping_containers.composition_set[mi->index];
+
+            return (comp.has_normal_map) ?
+                  obj->compute_normal_from_map(tangent_space_normal, h.get_normal(), mi) // virtual call, can be dispatched instead
                 : h.get_normal();
         }
-
-        // For debug purposes
-        // inline const texture_info& get_texture_info(const object* obj) const {
-        //     return mapping_containers.texture_info_set[obj->get_texture_info_index()];
-        // }
 };

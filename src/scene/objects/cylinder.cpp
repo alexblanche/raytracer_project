@@ -217,7 +217,7 @@ min_max_coord cylinder::get_min_max_coord() const {
     return build_min_max_coord(min, max);
 }
 
-uvcoord compute_uv(const rt::vector& p, const mapping_info* orientation_info) {
+uvcoord cylinder::compute_uv(const rt::vector&, const mapping_info*) const {
     static_assert(TODO_CYLINDER_TEXTURING);
     throw std::runtime_error("Texturing is unavailable for cylinders");
 }

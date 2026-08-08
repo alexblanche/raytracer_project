@@ -50,14 +50,15 @@ struct arg_pair {
 static cli_argument match(const std::string& input) {
     using enum cli_argument;
     static const std::array<arg_pair, 8> keywords = {
-        arg_pair { "-time",        Time            },
-        arg_pair { "all",          TimeAll         },
-        arg_pair { "-rays",        Rays            },
-        arg_pair { "-multisample", Multisample     },
-        arg_pair { "-gamma",       Gamma           },
-        arg_pair { "-reinhardt",   Reinhardt       },
-        arg_pair { "-rr",          RussianRoulette },
-        arg_pair { "-debug",       Debug           }
+        arg_pair
+        { "-time",        Time            },
+        { "all",          TimeAll         },
+        { "-rays",        Rays            },
+        { "-multisample", Multisample     },
+        { "-gamma",       Gamma           },
+        { "-reinhardt",   Reinhardt       },
+        { "-rr",          RussianRoulette },
+        { "-debug",       Debug           }
     };
     for (const auto& [ keyword, value ] : keywords) {
         if (input == keyword)

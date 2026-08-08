@@ -22,7 +22,7 @@ static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
 
 exit_status parse_mtl_file(const std::filesystem::path& path, const std::string& file_name,
     std::vector<wrapper<material>>& material_wrapper_set,
-    std::vector<wrapper<texture>>& texture_wrapper_set,
+    containers& containers,
     std::map<unsigned int, unsigned int>& mt_assoc, std::optional<real> gamma) {
 
     file f((path / file_name).generic_string(), "rb");
@@ -137,6 +137,19 @@ exit_status parse_mtl_file(const std::filesystem::path& path, const std::string&
                     const std::string full_name = (path / tfile_name).generic_string();
                     texture_wrapper_set.emplace_back(texture(full_name, parsing_successful, gamma));
                     mt_assoc[m_i] = texture_wrapper_set.back().index;
+
+                    /*
+                    auto& [ ... ] = containers;
+                    texture_set.emplace_back(...);
+                    // for now
+                    normal_set.emplace_back();
+                    // ...
+                    composition_wrapper_set.emplace_back({ true, false }, "mapping_" + std::to_string(index));
+                    */
+
+                    static_assert(TODO_NORMAL_MAP_IN_MTL);
+                    static_assert(TODO_ROUGHNESS_MAP_IN_MTL);
+                    static_assert(TODO_DISPLACEMENT_MAP_IN_MTL);
 
                     if (not parsing_successful)
                         throw std::runtime_error("mtl_parser: " + tfile_name + " texture reading failed\n");

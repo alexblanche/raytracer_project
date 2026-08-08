@@ -31,7 +31,8 @@ class quad final : public object {
             rt::vector tangent;
             rt::vector bitangent;
 
-            orientation(int index, composition comp, const std::array<uvcoord, 4>& uvc,
+            orientation(const mapping::index_type index,
+                const std::array<uvcoord, 4>& uvc,
                 const rt::vector& v1, const rt::vector& v2);
         };
 

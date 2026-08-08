@@ -566,8 +566,9 @@ static void parse_mapping(const file& f, const std::optional<real> inverse_gamma
 
     auto& [
         _, _, _, _,
-        texture_wrapper_set,
-        normal_map_wrapper_set,
+        composition_wrapper_set,
+        texture_set,
+        normal_map_set,
         _
     ]
     = containers;
@@ -575,6 +576,10 @@ static void parse_mapping(const file& f, const std::optional<real> inverse_gamma
     const std::string mapping_name = f.read_string(MAX_NAME_LENGTH);
     if (mapping_name.length() == 0)
         throw std::runtime_error("parsing error: mapping name");
+
+    constexpr bool SILENT = true;
+    if (wrapper<composition>::find_element(composition_wrapper_set, mapping_name, SILENT).has_value())
+        throw std::runtime_error("error: mapping " + mapping_name + " already defined\n");
 
     composition comp;
 
@@ -651,80 +656,34 @@ static void parse_mapping(const file& f, const std::optional<real> inverse_gamma
     }
 
     // Complete the undefined mappings
-    if (not comp.has_texture)    texture_set.emplace_back();
+    if (not comp.has_texture)    texture_set   .emplace_back();
     if (not comp.has_normal_map) normal_map_set.emplace_back();
     // ...
     static_assert(TODO_ROUGHNESS_MAP);
     static_assert(TODO_DISPLACEMENT_MAP);
 
-    static_assert(false, "do something with comp");
+    composition_wrapper_set.emplace_back(comp, mapping_name);
 }
 
 /* Auxiliary function: returns the common index of the texture or normal map, roughness map or displacement map
     and the composition (see mapping_info)
 */
-static std::optional<std::pair<mapping_info::index_type, composition>> parse_mapping_index(
-    const file& f,
-    const std::vector<wrapper<texture>>& texture_wrapper_set,
-    const std::vector<wrapper<normal_map>>& normal_map_wrapper_set
-    // const std::vector<wrapper<roughness_map>>& roughness_map_wrapper_set,
-    // const std::vector<wrapper<displacement_map>>& displacement_map_wrapper_set
-) {
+static std::optional<mapping::index_type> parse_mapping_index(
+    const file& f, const std::vector<wrapper<composition>>& composition_wrapper_set) {
 
-    static_assert(TODO_ROUGHNESS_MAP);
-    static_assert(TODO_DISPLACEMENT_MAP);
-
-    const exit_status status_t = f.scanf_rewind_if_failure("texture:(");
+    const exit_status status_t = f.scanf_rewind_if_failure("mapping:(");
 
     if (status_t == exit_status::Failure)
         return std::nullopt;
 
-    composition comp;
-
     std::string t_name = f.read_string(MAX_NAME_LENGTH);
     if (t_name.ends_with(')'))
         t_name = t_name.substr(0, t_name.length() - 1);
-    const std::optional<unsigned int> vindex = wrapper<texture>::find_element(texture_wrapper_set, t_name);
-    comp.has_texture = vindex.has_value();
-
-    std::optional<unsigned int> nindex;
-    const exit_status status_n = f.scanf_rewind_if_failure("normal:");
-    if (status_n == exit_status::Success) {
-        std::string n_name = f.read_string(MAX_NAME_LENGTH);
-        if (n_name.ends_with(')'))
-            n_name = n_name.substr(0, n_name.length() - 1);
-        nindex = wrapper<normal_map>::find_element(normal_map_wrapper_set, n_name);
-        comp.has_normal_map = nindex.has_value();
-
-        if (vindex.has_value() && nindex.value() != vindex.value())
-            throw std::runtime_error("the normal map " + n_name + " does not correspond to the texture " + t_name + "\n");
-    }
-    // else: no normal map information
-
-    /*
-    // Roughness map
-    // ...
-
-    // Displacement map
-    // ...
-    */
-
-    if (vindex.has_value() || nindex.has_value() /* || rindex.has_value() || dindex.has_value() */)
-        return std::nullopt;
-
-    const unsigned int index =
-        vindex.has_value() ? vindex.value() :
-        nindex.value();
-        // nindex.has_value() ? nindex.value()
-        // rindex.has_value() ? rindex.value()
-        // dindex.value();
-
-    return std::make_pair(index, comp);
+    return wrapper<composition>::find_element(composition_wrapper_set, t_name);
 }
     
 static triangle::orientation parse_triangle_orientation(const file& f,
-    const unsigned int index, const composition& comp,
-    const rt::vector& tr_v1, const rt::vector& tr_v2) {
+    const unsigned int index, const rt::vector& tr_v1, const rt::vector& tr_v2) {
 
     double u0, v0, u1, v1, u2, v2;
     const exit_status status = f.scanf(" (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
@@ -733,12 +692,11 @@ static triangle::orientation parse_triangle_orientation(const file& f,
     if (status == exit_status::Failure)
         throw std::runtime_error("parsing error in parse_texture_info (triangle UV-coordinates)\n");
 
-    return triangle::orientation(index, comp, { u0, v0, u1, v1, u2, v2 }, tr_v1, tr_v2);
+    return triangle::orientation(index, { uvcoord { u0, v0 }, { u1, v1 }, { u2, v2 } }, tr_v1, tr_v2);
 }
 
 static quad::orientation parse_quad_orientation(const file& f,
-    const unsigned int index, const composition& comp,
-    const rt::vector& q_v1, const rt::vector& q_v2) {
+    const unsigned int index, const rt::vector& q_v1, const rt::vector& q_v2) {
 
     double u0, v0, u1, v1, u2, v2, u3, v3;
     const exit_status status = f.scanf(" (%lf,%lf) (%lf,%lf) (%lf,%lf) (%lf,%lf))\n",
@@ -752,11 +710,10 @@ static quad::orientation parse_quad_orientation(const file& f,
         u3 = 1; v3 = 1;
     }
 
-    return quad::orientation(index, comp, { u0, v0, u1, v1, u2, v2, u3, v3 }, q_v1, q_v2);
+    return quad::orientation(index, { uvcoord { u0, v0 }, { u1, v1 }, { u2, v2 }, { u3, v3 } }, q_v1, q_v2);
 }
 
-static sphere::orientation parse_sphere_orientation(const file& f,
-    const unsigned int index, const composition& comp) {
+static sphere::orientation parse_sphere_orientation(const file& f, const unsigned int index) {
 
     double fx, fy, fz, rx, ry, rz;
     const exit_status status = f.scanf(" forward:(%lf,%lf,%lf) right:(%lf,%lf,%lf))\n",
@@ -768,12 +725,11 @@ static sphere::orientation parse_sphere_orientation(const file& f,
         rx = 1; ry = 0; rz = 0;
     }
 
-    return sphere::orientation(index, comp, rt::vector(fx, fy, fz), rt::vector(rx, ry, rz));
+    return sphere::orientation(index, rt::vector(fx, fy, fz), rt::vector(rx, ry, rz));
 }
 
 static plane::orientation parse_plane_orientation(const file& f,
-    const unsigned int index, const composition& comp,
-    const rt::vector& normal) {
+    const unsigned int index, const rt::vector& normal) {
 
     double rx, ry, rz;
     const exit_status status_right = f.scanf(" right:(%lf,%lf,%lf)",
@@ -787,19 +743,17 @@ static plane::orientation parse_plane_orientation(const file& f,
     double scale = 1.0_r; // Default value
     f.scanf(" scale:%lf)\n", scale);
 
-    return plane::orientation(index, comp, normal, rt::vector(rx, ry, rz), scale);
+    return plane::orientation(index, normal, rt::vector(rx, ry, rz), scale);
 }
 
 /*
-static box::orientation parse_box_orientation(const file& f,
-    const unsigned int index, const composition& comp) {
+static box::orientation parse_box_orientation(const file& f, const unsigned int index) {
 
     static_assert(TODO_BOX_TEXTURING);
     throw std::runtime_error("box texturing not handled yet");
 }
 
-static cylinder::orientation parse_cylinder_orientation(const file& f,
-    const unsigned int index, const composition& comp) {
+static cylinder::orientation parse_cylinder_orientation(const file& f, const unsigned int index) {
 
     static_assert(TODO_CYLINDER_TEXTURING);
     throw std::runtime_error("cylinder texturing not handled yet");
@@ -929,9 +883,10 @@ static void parse_objects(const file& f, const object_type type, const std::stri
         other_content,
         object_containers,
         material_wrapper_set,
-        texture_wrapper_set,
-        normal_map_wrapper_set,
-        texture_info_set
+        composition_wrapper_set,
+        texture_set,
+        normal_map_set,
+        orientation_containers
     ]
     = containers;
 
@@ -945,8 +900,10 @@ static void parse_objects(const file& f, const object_type type, const std::stri
     ]
     = object_containers;
 
-    const std::optional<unsigned int> m_index = get_material(f, material_wrapper_set, inverse_gamma);
-    throw_if_nullopt(m_index, "material definition error");
+    const std::optional<unsigned int> m_index_opt = get_material(f, material_wrapper_set, inverse_gamma);
+    throw_if_nullopt(m_index_opt, "material definition error");
+
+    const unsigned int m_index = m_index_opt.value();
 
     const object* obj = nullptr;
 
@@ -960,13 +917,13 @@ static void parse_objects(const file& f, const object_type type, const std::stri
             case Box: {
                 const auto& [ center, x_axis, y_axis, l ] = parameters.box;
                 const auto& [ lx, ly, lz ] = l;
-                obj = &box_set.emplace_back(center, x_axis, y_axis, lx, ly, lz, m_index.value());
+                obj = &box_set.emplace_back(center, x_axis, y_axis, lx, ly, lz, m_index);
                 break;
             }
 
             case Cylinder: {
                 const auto& [ origin, direction, radius, length ] = parameters.cylinder;
-                obj = &cylinder_set.emplace_back(origin, direction, radius, length, m_index.value());
+                obj = &cylinder_set.emplace_back(origin, direction, radius, length, m_index);
                 break;
             }
 
@@ -975,12 +932,11 @@ static void parse_objects(const file& f, const object_type type, const std::stri
     }
     else {
         //std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, type);
-        const std::optional<std::pair<mapping_info::index_type, mapping_info::composition>> info_opt =
-            parse_mapping_index(f, texture_wrapper_set, normal_map_wrapper_set);
+        const std::optional<mapping::index_type> index_opt = parse_mapping_index(f, composition_wrapper_set);
 
-        if (info_opt.has_value()) {
+        if (index_opt.has_value()) {
 
-            const auto& [ index, comp ] = info_opt.value();
+            const mapping::index_type index = index_opt.value();
 
             auto& [
                 triangle_orientation_set,
@@ -994,36 +950,36 @@ static void parse_objects(const file& f, const object_type type, const std::stri
 
                 case Triangle: {
                     const auto& [ p ] = parameters.triangle;
-                    triangle::orientation orientation = parse_triangle_orientation(f, index, comp, p[1] - p[0], p[2] - p[0]);
+                    triangle::orientation orientation = parse_triangle_orientation(f, index, p[1] - p[0], p[2] - p[0]);
                     const unsigned int orientation_index = triangle_orientation_set.size();
-                    obj = &triangle_set.emplace_back(p[0], p[1], p[2], m_index.value(), orientation_index);
+                    obj = &triangle_set.emplace_back(p[0], p[1], p[2], m_index, orientation_index);
                     triangle_orientation_set.emplace_back(std::move(orientation));
                     break;
                 }
 
                 case Quad: {
                     const auto& [ p ] = parameters.quad;
-                    quad::orientation orientation = parse_quad_orientation(f, index, comp, p[1] - p[0], p[2] - p[0]);
+                    quad::orientation orientation = parse_quad_orientation(f, index, p[1] - p[0], p[2] - p[0]);
                     const unsigned int orientation_index = quad_orientation_set.size();
-                    obj = &quad_set.emplace_back(p[0], p[1], p[2], p[3], m_index.value(), orientation_index);
+                    obj = &quad_set.emplace_back(p[0], p[1], p[2], p[3], m_index, orientation_index);
                     quad_orientation_set.emplace_back(std::move(orientation));
                     break;
                 }
 
                 case Sphere: {
                     const auto& [ center, radius ] = parameters.sphere;
-                    sphere::orientation orientation = parse_sphere_orientation(f, index, comp);
+                    sphere::orientation orientation = parse_sphere_orientation(f, index);
                     const unsigned int orientation_index = sphere_orientation_set.size();
-                    obj = &sphere_set.emplace_back(center, radius, m_index.value(), orientation_index);
+                    obj = &sphere_set.emplace_back(center, radius, m_index, orientation_index);
                     sphere_orientation_set.emplace_back(std::move(orientation));
                     break;
                 }
 
                 case Plane: {
                     const auto& [ position, normal ] = parameters.plane;
-                    plane::orientation orientation = parse_plane_orientation(f, index, comp, normal.unit());
+                    plane::orientation orientation = parse_plane_orientation(f, index, normal.unit());
                     const unsigned int orientation_index = plane_orientation_set.size();
-                    obj = &plane_set.emplace_back(normal, position, m_index.value(), orientation_index);
+                    obj = &plane_set.emplace_back(normal, position, m_index, orientation_index);
                     plane_orientation_set.emplace_back(std::move(orientation));
                     break;
                 }
@@ -1037,30 +993,29 @@ static void parse_objects(const file& f, const object_type type, const std::stri
 
                 case Triangle: {
                     const auto& [ p ] = parameters.triangle;
-                    obj = &triangle_set.emplace_back(p[0], p[1], p[2], m_index.value());
+                    obj = &triangle_set.emplace_back(p[0], p[1], p[2], m_index);
                     break;
                 }
 
                 case Quad: {
                     const auto& [ p ] = parameters.quad;
-                    obj = &quad_set.emplace_back(p[0], p[1], p[2], p[3], m_index.value());
+                    obj = &quad_set.emplace_back(p[0], p[1], p[2], p[3], m_index);
                     break;
                 }
 
                 case Sphere: {
                     const auto& [ center, radius ] = parameters.sphere;
-                    obj = &sphere_set.emplace_back(center, radius, m_index.value());
+                    obj = &sphere_set.emplace_back(center, radius, m_index);
                     break;
                 }
                 
                 case Plane: {
                     const auto& [ position, normal ] = parameters.plane;
-                    obj = &plane_set.emplace_back(normal.x, normal.y, normal.z, position, m_index.value());
+                    obj = &plane_set.emplace_back(normal, position, m_index);
                     break;
                 }
 
-                default:
-                    break;
+                default: throw;
             }
         }
     }
@@ -1069,6 +1024,42 @@ static void parse_objects(const file& f, const object_type type, const std::stri
 
     if (bounding_enabled)
         other_content.push_back(obj);
+}
+
+struct parse_load_obj_result {
+    std::string ofile_name;
+    std::optional<mapping::index_type> m_index;
+    rt::vector shift;
+    real scale;
+};
+
+static parse_load_obj_result parse_load_obj(
+    const file& f, const std::vector<wrapper<composition>>& composition_wrapper_set) {
+    
+    parse_load_obj_result res;
+    auto& [ ofile_name, m_index, shift, scale ] = res;
+    
+    ofile_name = f.read_string(MAX_FILENAME_LENGTH);
+
+    double sx = 0, sy = 0, sz = 0;
+
+    exit_status status = f.scanf(" (mapping:");
+    if (status == exit_status::Success) {
+
+        std::string m_name = f.read_string(MAX_NAME_LENGTH);
+        
+        if (not m_name.starts_with("none")) {
+            if (m_name.ends_with(')'))
+                m_name.resize(m_name.size() - 1);
+            m_index = wrapper<composition>::find_element(composition_wrapper_set, m_name);
+            throw_if_nullopt(m_index, "mapping not found");
+        }
+
+        f.scanf("shift:(%lf,%lf,%lf) scale:%lf)\n", sx, sy, sz, scale);
+    }
+
+    shift = rt::vector(sx, sy, sz);
+    return res;
 }
 
 
@@ -1092,7 +1083,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         unsigned int polygons_per_bounding = parse_bvh(f);
 
         std::vector<const object*> object_set;
-        object_set.reserve(pre_parsing_info.objects + pre_parsing_info.quads);
+        object_set.reserve(pre_parsing_info.max_objects());
 
         scene::containers::object      object_containers     (pre_parsing_info);
         scene::containers::orientation orientation_containers(pre_parsing_info);
@@ -1105,10 +1096,10 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         material_wrapper_set.emplace_back(WATER,   "water"  );
 
         std::vector<wrapper<mapping::composition>> composition_wrapper_set;
-        // std::vector<wrapper<texture>>          texture_wrapper_set;
-        // std::vector<wrapper<normal_map>>       normal_map_wrapper_set;
         std::vector<texture>    texture_set;
-        std::vector<normal_map> normal_map_wrapper_set;
+        std::vector<normal_map> normal_map_set;
+        static_assert(TODO_ROUGHNESS_MAP);
+        static_assert(TODO_DISPLACEMENT_MAP);
 
         std::vector<const bounding*> bounding_set;
 
@@ -1116,9 +1107,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         /* When bvh is disabled, the objects that are not defined in an obj file are placed in
         the vector other_content. At the end, these objects are placed in a bounding alongside the ones generated during obj files parsing */
         std::vector<const object*> other_content;
-        other_content.reserve(
-            pre_parsing_info.spheres + pre_parsing_info.planes + pre_parsing_info.boxes + pre_parsing_info.cylinders
-        );
+        other_content.reserve(pre_parsing_info.total_non_polygon_objects());
         const bool bounding_enabled = polygons_per_bounding != 0;
 
         containers containers = {
@@ -1126,8 +1115,9 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             other_content,
             object_containers,
             material_wrapper_set,
-            texture_wrapper_set,
-            normal_map_wrapper_set,
+            composition_wrapper_set,
+            texture_set,
+            normal_map_set,
             orientation_containers
         };
 
@@ -1159,9 +1149,9 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             
             /* BMP file loading */
             if (arg == "load_mapping") {
-                
-                parse_mapping(f);
-                
+
+                parse_mapping(f, inverse_gamma, containers);
+                continue;
             }
 
             /* Objects declaration */
@@ -1188,43 +1178,24 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 
                 if (index_opt.has_value()) {
                     
-                    const unsigned int index = index_opt.value();
-                    const object_type type = object_types[index];
-
+                    const object_type type = object_types[index_opt.value()];
                     parse_objects(f, type, arg, containers, bounding_enabled, inverse_gamma);
-
                     continue;
                 }
             }
 
             /* Obj file parsing */
             if (arg == "load_obj") {
-                const std::string ofile_name = f.read_string(MAX_FILENAME_LENGTH);
+                
+                const auto& [ ofile_name, m_index, shift, scale ] = parse_load_obj(f, composition_wrapper_set);
 
-                double sx = 0, sy = 0, sz = 0, scale = 1;
-                std::optional<unsigned int> t_index;
-
-                exit_status status = f.scanf(" (texture:");
-                if (status == exit_status::Success) {
-
-                    std::string t_name = f.read_string(MAX_NAME_LENGTH);
-                    f.scanf("shift:(%lf,%lf,%lf) scale:%lf)\n", sx, sy, sz, scale);
-                    
-                    if (not t_name.starts_with("none")) {
-                        if (t_name.ends_with(')'))
-                            t_name.resize(t_name.size() - 1);
-                        t_index = wrapper<texture>::find_element(texture_wrapper_set, t_name);
-                        throw_if_nullopt(t_index, "texture not found");
-                    }
-                }
-
-                const rt::vector shift(sx, sy, sz);
                 const bounding* output_bd = nullptr;
                 const exit_status status_obj =
-                    parse_obj_file(ofile_name, t_index,
+                    parse_obj_file(ofile_name, m_index,
                         containers,
                         scale, shift,
-                        bounding_enabled, polygons_per_bounding, output_bd, inverse_gamma);
+                        bounding_enabled, polygons_per_bounding, output_bd,
+                        inverse_gamma);
 
                 throw_if_failure(status_obj, ofile_name + " obj file reading failed\n");
 
@@ -1253,10 +1224,11 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         ////
 
         // Creation of the final structures
-        auto [ material_set, texture_set, normal_map_set ] = build_sets(material_wrapper_set, texture_wrapper_set, normal_map_wrapper_set);
+        auto [ material_set, comp_set ] = build_sets(material_wrapper_set, composition_wrapper_set);
 
         scene::containers::mapping mapping_containers(
             std::move(material_set),
+            std::move(comp_set),
             std::move(texture_set),
             std::move(normal_map_set),
             std::move(background)
@@ -1265,7 +1237,6 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         const std::optional<real> gamma = (inverse_gamma.has_value()) ?
               std::optional(1.0_r / inverse_gamma.value())
             : std::nullopt;
-        optional_of
 
         scene_opt.emplace(
             std::move(object_set),
