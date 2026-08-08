@@ -21,8 +21,7 @@ static constexpr unsigned int MAX_FILENAME_LENGTH = 512;
    Returns true if the operation was successful */
 
 exit_status parse_mtl_file(const std::filesystem::path& path, const std::string& file_name,
-    std::vector<wrapper<material>>& material_wrapper_set,
-    containers& containers,
+    std::vector<wrapper<material>>& material_wrapper_set, containers& containers,
     std::map<unsigned int, unsigned int>& mt_assoc, std::optional<real> gamma) {
 
     file f((path / file_name).generic_string(), "rb");
@@ -61,7 +60,7 @@ exit_status parse_mtl_file(const std::filesystem::path& path, const std::string&
                 Ni 1.450000
                 d 1.000000
                 illum 2
-                map_Kd file_name.png
+                map_Kd file_name.bmp
 
 
                 newmtl Material.002
@@ -135,17 +134,14 @@ exit_status parse_mtl_file(const std::filesystem::path& path, const std::string&
                     // Texture loading
                     bool parsing_successful;
                     const std::string full_name = (path / tfile_name).generic_string();
-                    texture_wrapper_set.emplace_back(texture(full_name, parsing_successful, gamma));
-                    mt_assoc[m_i] = texture_wrapper_set.back().index;
+                    containers.texture_set.emplace_back(full_name, parsing_successful, gamma);
+                    mt_assoc[m_i] = containers.texture_set.size() - 1;
 
-                    /*
-                    auto& [ ... ] = containers;
-                    texture_set.emplace_back(...);
-                    // for now
-                    normal_set.emplace_back();
+                    containers.normal_map_set.emplace_back();
                     // ...
-                    composition_wrapper_set.emplace_back({ true, false }, "mapping_" + std::to_string(index));
-                    */
+
+                    composition comp = { .has_texture = true, .has_normal_map = false };
+                    containers.composition_wrapper_set.emplace_back(comp, "mapping_" + m_name);
 
                     static_assert(TODO_NORMAL_MAP_IN_MTL);
                     static_assert(TODO_ROUGHNESS_MAP_IN_MTL);

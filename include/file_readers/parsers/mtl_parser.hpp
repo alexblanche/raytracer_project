@@ -26,6 +26,5 @@
    Returns true if the operation was successful */
 
 exit_status parse_mtl_file(const std::filesystem::path& path, const std::string& file_name,
-    std::vector<wrapper<material>>& material_wrapper_set,
-    containers& containers,
+    std::vector<wrapper<material>>& material_wrapper_set, containers& containers,
     std::map<unsigned int, unsigned int>& mt_assoc, std::optional<real> gamma = std::nullopt);
