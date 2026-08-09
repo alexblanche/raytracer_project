@@ -100,8 +100,7 @@ exit_status parse_mtl_file(const std::filesystem::path& path, const std::string&
 
                 /* Looking for a material with the same name */
                 bool already_exists = false;
-                constexpr bool SILENT = true;
-                const std::optional<unsigned int> v_opt = wrapper<material>::find_element(material_wrapper_set, m_name, SILENT);
+                const std::optional<unsigned int> v_opt = wrapper<material>::find_element(material_wrapper_set, m_name, silent_option::Silent);
                 if (v_opt.has_value()) {
                     printf("\rDuplicate material %s ignored\n", m_name.c_str());
                     already_exists = true;

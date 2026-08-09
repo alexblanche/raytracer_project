@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <optional>
 #include <vector>
@@ -7,6 +8,10 @@
 #include <tuple>
 
 /* Struct containing a material, texture or normal map, its name and the index that the objects are going to store */
+
+enum class silent_option {
+    Default, Silent
+};
 
 // Wrappable types: material, texture, normal_map, mapping::compostion
 template<typename T> inline constexpr std::string type_str() = delete;
@@ -41,8 +46,11 @@ class wrapper {
         wrapper(const wrapper&)                = delete;
         wrapper& operator=(const wrapper&)     = delete;
 
+        using enum silent_option;
+
         /* type = "material", "texture", "normal map" */
-        static std::optional<unsigned int> find_element(const std::span<const wrapper> wrapper_set, const std::string& vname, bool silent = false) {
+        static std::optional<unsigned int> find_element(const std::span<const wrapper> wrapper_set,
+            const std::string& vname, silent_option silent = Default) {
 
             std::optional<unsigned int> vindex;
         
@@ -53,7 +61,7 @@ class wrapper {
                 }
             }
 
-            if ((not vindex.has_value()) && (not silent))
+            if ((not vindex.has_value()) && (silent != Silent))
                 printf("Error: %s %s not found.\n", type_str<T>().c_str(), vname.c_str());
 
             return vindex;
@@ -66,6 +74,13 @@ class wrapper {
                 set.emplace_back(std::move(elt_wrap.content));
             }
             return set;
+        }
+
+        static void print_content(const std::span<const wrapper> wrapper_set) {
+            std::cout << type_str<T>() << " wrapper set:" << std::endl;
+            for (const wrapper& w : wrapper_set) {
+                std::cout << w.index << " " << w.name.value_or("<unnamed>") << std::endl;
+            }
         }
 };
 

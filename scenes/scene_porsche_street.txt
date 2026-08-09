@@ -12,7 +12,7 @@ bvh: polygons_per_bounding 5
 # Camera for dragon tests
 # camera position:(-2.212, 1.488, -3.4) direction:(0.72, -0.28, 1) rightdir:(-1, -0, 0.72) fov_width:1.33 distance:1.0
 
-# Camera for...?
+# Camera from further away
 # camera position:(4.72, 1.8, -1.88) direction:(-1, -0.28, 0.50) rightdir:(-0.50, 0, -1) fov_width:1.33 distance:1.0
 
 # Right placement of the background and car, wrong FOV for the car
@@ -33,18 +33,19 @@ material white_light (emission:5)
 # Ground
 # plane normal:(0,1,0) position:(0, 0, 0) material:(color:(10, 10, 10) reflectivity:0.5)
 
-# load_texture asphalt ../../../assets/textures/asphalt2.bmp
+# load_mapping asphalt texture ../../../assets/textures/asphalt2.bmp
 material road_mat (diffuse)
-# quad (2.372, 0, 0.6) (-0.527, 0, 2.7) (-3.372, 0, -1.4) (-0.5, 0, -3.5) material:diffuse texture:(asphalt (0, 0) (0, 1) (1, 1) (1, 0))
+# quad (2.372, 0, 0.6) (-0.527, 0, 2.7) (-3.372, 0, -1.4) (-0.5, 0, -3.5) material:diffuse mapping:(asphalt (0, 0) (0, 1) (1, 1) (1, 0))
 # sphere center:(2.3, 0, 0.5) radius:0.1 material:white_light
 # sphere center:(-0.492, 0, 2.6) radius:0.1 material:white_light
 # sphere center:(-0.5, 0, -3.5) radius:0.1 material:white_light
 # sphere center:(-3.372, 0, -1.4) radius:0.1 material:white_light
 
-load_texture asphalt ../../../assets/textures/asphalt/asphalt.bmp
-load_normal_map asphaltn ../../../assets/textures/asphalt/asphalt_nor.bmp
+load_mapping asphalt
+    texture     ../../../assets/textures/asphalt/asphalt.bmp
+    normal_map  ../../../assets/textures/asphalt/asphalt_nor.bmp
 quad (2.372, 0, 0.6) (-0.527, 0, 2.7) (-3.272, 0, -1.47) (-0.45, 0, -3.535)
-    material:diffuse texture:(asphalt normal:asphaltn (0, 0) (0, 1) (1, 1) (1, 0))
+    material:diffuse mapping:(asphalt (0, 0) (0, 1) (1, 1) (1, 0))
 # material:(color:(255,100,100) emission:1)
 
 # Model

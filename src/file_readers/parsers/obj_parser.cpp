@@ -164,17 +164,16 @@ static inline void new_orientation_info(scene::containers::orientation& orientat
     const mapping::index_type current_mapping_index,
     const index_array<size>& vt, const rt::vector& final_vt = rt::vector()) {
 
-    if (current_mapping_index == EMPTY_INDEX)
-        throw std::runtime_error("Error: mapping index == EMPTY_INDEX");
-
     constexpr unsigned int uvc_size = (size >= 3) ? size : 3;
     std::array<uvcoord, uvc_size> uv;
 
-    for (int i = 0; unsigned int vti : vt)
+    for (int i = 0; unsigned int vti : vt) {
         uv[i] = {
             .u = uv_coord_set[vti].x,
             .v = uv_coord_set[vti].y
         };
+        i++;
+    }
 
     if constexpr (size == 2)
         uv[2] = { final_vt.x, final_vt.y };
@@ -256,10 +255,6 @@ static inline void add_polygon(const sets& sets, const bool bounding_enabled,
     const mapping::index_type current_mapping_index, const unsigned int current_material_index, texturing texturing_option,
     const rt::vector& final_v = rt::vector(), const rt::vector& final_vt = rt::vector(), const rt::vector& final_vn = rt::vector()) {
 
-    ///
-    // if (texturing_option == texturing::Enabled && current_mapping_index == EMPTY_INDEX)
-    //     throw std::runtime_error("texturing enabled and mapping index == EMPTY_INDEX");
-    ///
     if (current_mapping_index == EMPTY_INDEX)
         texturing_option = texturing::Disabled;
 
@@ -283,13 +278,6 @@ static inline void add_polygon(const sets& sets, const bool bounding_enabled,
     if (texturing_option == texturing::Enabled)
         new_orientation_info<polygon, size>(orientation_containers, v_1, v_2,
             uv_coord_set, current_mapping_index, vt, final_vt);
-
-    /////////
-    if (not ((std::is_same_v<triangle, polygon> && poly->get_orientation_info_index() == orientation_containers.triangle_orientation_set.size() - 1)
-        || (std::is_same_v<quad, polygon> && poly->get_orientation_info_index() == orientation_containers.quad_orientation_set.size() - 1)
-        || (not poly->is_textured())))
-        throw std::runtime_error("ERROR ORIENTATION NOT ADDED");
-    /////////
 
     object_set.push_back(poly);
     if (bounding_enabled)
@@ -716,7 +704,6 @@ exit_status parse_obj_file(const std::string& file_name,
                 /* Face declaration */
 
                 std::getline(stream, line, '\n');
-                std::string line_copy = line;
                 line_stream = std::istringstream(std::move(line));
 
                 index_array<5> v, vt, vn;
@@ -761,12 +748,6 @@ exit_status parse_obj_file(const std::string& file_name,
                       texturing::Disabled
                     : texturing::Enabled;
 
-                // if (texturing_option == texturing::Enabled && current_mapping_index == EMPTY_INDEX) {
-                //     std::cout << "line: " << std::endl;
-                //     std::cout << line_copy << std::endl;
-                //     throw std::runtime_error("(early) about to texture, but mapping index == EMPTY_INDEX");
-                // }
-
                 const normal normal_option = type == NoNormal || type == NoTextureNoNormal ?
                       normal::Disabled
                     : normal::Enabled;
@@ -777,28 +758,39 @@ exit_status parse_obj_file(const std::string& file_name,
             }
 
             if (arg.starts_with("v")) {
-                if (arg == "v") {
+
+                std::getline(stream, line);
+                const char * buffer = line.data() + 1;
+
+                enum class vtype {
+                    V, VT, VN
+                };
+                vtype t = (arg == "v") ? vtype::V : (arg == "vt") ? vtype::VT : vtype::VN;
+
+                if (t == vtype::V || t == vtype::VN) {
                     /* Vertex definition */
 
-                    std::getline(stream, line);
-                    const char * buffer = line.data() + 1;
                     const auto [ x, y, z ] = parse<double, 3>(buffer, line.size());
 
-                    vertex_set.emplace_back(x, y, z);
-                    number_of_vertices++;
+                    if (t == vtype::V) {
+                        vertex_set.emplace_back(x, y, z);
+                        number_of_vertices++;
 
-                    /* Updating max dimensions */
-                    min = rt::min(min, vertex_set.back());
-                    max = rt::max(max, vertex_set.back());
+                        /* Updating max dimensions */
+                        min = rt::min(min, vertex_set.back());
+                        max = rt::max(max, vertex_set.back());
+                    }
+                    else {
+                        normal_set.emplace_back(x, y, z);
+                        number_of_normals++;
+                    }
 
                     continue;
                 }
                 
-                if (arg == "vt") {
+                if (t == vtype::VT) {
                     /* Texture UV-coordinates definition */
-
-                    std::getline(stream, line);
-                    const char * buffer = line.data() + 1;
+                    
                     const auto [ u, v ] = parse<double, 2>(buffer, line.size());
 
                     if (is_between_zero_and_one(u) && is_between_zero_and_one(v)) [[likely]] {
@@ -811,18 +803,6 @@ exit_status parse_obj_file(const std::string& file_name,
                         uv_coord_set.emplace_back(nu, nv, 0);
                     }
                     number_of_texture_coords++;
-
-                    continue;
-                }
-
-                if (arg == "vn") {
-                    /* Vertex normal definition */
-                    std::getline(stream, line);
-                    const char * buffer = line.data() + 1;
-                    const auto [ x, y, z ] = parse<double, 3>(buffer, line.size());
-                    
-                    normal_set.emplace_back(x, y, z);
-                    number_of_normals++;
 
                     continue;
                 }
@@ -844,8 +824,6 @@ exit_status parse_obj_file(const std::string& file_name,
                       mt_assoc[current_material_index]
                     : default_mapping_index.value_or(EMPTY_INDEX);
                 
-                std::cout << "usemtl " << m_name << " -> " << current_mapping_index << std::endl;
-
                 continue;
             }
 

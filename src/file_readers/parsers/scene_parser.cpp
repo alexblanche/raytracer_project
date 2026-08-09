@@ -577,8 +577,7 @@ static void parse_mapping(const file& f, const std::optional<real> inverse_gamma
     if (mapping_name.length() == 0)
         throw std::runtime_error("parsing error: mapping name");
 
-    constexpr bool SILENT = true;
-    if (wrapper<composition>::find_element(composition_wrapper_set, mapping_name, SILENT).has_value())
+    if (wrapper<composition>::find_element(composition_wrapper_set, mapping_name, silent_option::Silent).has_value())
         throw std::runtime_error("error: mapping " + mapping_name + " already defined\n");
 
     composition comp;
@@ -1219,31 +1218,8 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             std::reverse(bounding_set.begin(), bounding_set.end());
         }
 
-        // //
-        // for (const auto& w : material_wrapper_set)
-        //     if (w.name.has_value())
-        //         std::cout << w.index << " " << w.name.value() << std::endl;
-        // //
-        //
-        std::cout << "-----------------------------------------------------" << std::endl;
-        std::cout << "composition_wrapper_set.size() = " << containers.composition_wrapper_set.size() << std::endl;
-        std::cout << "texture_set.size() = "    << containers.texture_set.size()    << std::endl;
-        std::cout << "normal_map_set.size() = " << containers.normal_map_set.size() << std::endl;
-        for (const auto& c : composition_wrapper_set) {
-            if (c.name.has_value()) {
-                std::cout << c.index << " " << c.name.value() << " - ";
-                const composition& comp = c.content;
-                std::cout << "texture: " << comp.has_texture << ", normal_map: " << comp.has_normal_map << std::endl;
-            }
-        }
-        std::cout << "-----------------------------------------------------" << std::endl;
-        // std::cout << "-----------------------------------------------------" << std::endl;
-        // for (const auto& sph : containers.object_containers.sphere_set) {
-        //     std::cout << "sphere - orientation index = " << sph.get_orientation_info_index() << std::endl;
-        // }
-        // std::cout << "-----------------------------------------------------" << std::endl;
-        //
-
+        // wrapper<material>::print_content(material_wrapper_set);
+        
         // Creation of the final structures
         auto [ material_set, comp_set ] = build_sets(material_wrapper_set, composition_wrapper_set);
 
