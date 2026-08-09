@@ -141,7 +141,7 @@ exit_status parse_mtl_file(const std::filesystem::path& path, const std::string&
                     // ...
 
                     composition comp = { .has_texture = true, .has_normal_map = false };
-                    composition_wrapper_set.emplace_back(comp, "mapping_" + m_name);
+                    composition_wrapper_set.emplace_back(comp, "mapping_" + tfile_name);
 
                     mt_assoc[m_i] = composition_wrapper_set.size() - 1;
 

@@ -230,10 +230,12 @@ map_sample scene::sample_maps(const hit& h, const material& m) const {
     const mapping_info* const mi = orientation_containers.get_mapping_info(
         obj->get_orientation_info_index(), h.get_object_type()
     );
-    const mapping::composition& comp = comp_set[mi->index];
+    const mapping::index_type index = mi->index;
+    const mapping::composition& comp = comp_set[index];
     
     const auto [ u, v ] = obj->compute_uv(h.get_point(), mi); // virtual dispatch, can be replaced with switch
-    const int index = mi->index;
+
+    // std::cout << "mi = " << mi << ", index = " << index << ", " << std::endl;
 
     // const composition& comp = composition_set[index];
     // ... = (comp.has_texture_information) ? ... : ...;

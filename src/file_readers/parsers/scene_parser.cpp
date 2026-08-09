@@ -933,7 +933,7 @@ static void parse_objects(const file& f, const object_type type, const std::stri
     else {
         //std::optional<texture_info> info = parse_texture_info(f, texture_wrapper_set, normal_map_wrapper_set, type);
         const std::optional<mapping::index_type> index_opt = parse_mapping_index(f, composition_wrapper_set);
-
+        
         if (index_opt.has_value()) {
 
             const mapping::index_type index = index_opt.value();
@@ -1219,11 +1219,30 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             std::reverse(bounding_set.begin(), bounding_set.end());
         }
 
-        ////
+        // //
         // for (const auto& w : material_wrapper_set)
         //     if (w.name.has_value())
         //         std::cout << w.index << " " << w.name.value() << std::endl;
-        ////
+        // //
+        //
+        std::cout << "-----------------------------------------------------" << std::endl;
+        std::cout << "composition_wrapper_set.size() = " << containers.composition_wrapper_set.size() << std::endl;
+        std::cout << "texture_set.size() = "    << containers.texture_set.size()    << std::endl;
+        std::cout << "normal_map_set.size() = " << containers.normal_map_set.size() << std::endl;
+        for (const auto& c : composition_wrapper_set) {
+            if (c.name.has_value()) {
+                std::cout << c.index << " " << c.name.value() << " - ";
+                const composition& comp = c.content;
+                std::cout << "texture: " << comp.has_texture << ", normal_map: " << comp.has_normal_map << std::endl;
+            }
+        }
+        std::cout << "-----------------------------------------------------" << std::endl;
+        // std::cout << "-----------------------------------------------------" << std::endl;
+        // for (const auto& sph : containers.object_containers.sphere_set) {
+        //     std::cout << "sphere - orientation index = " << sph.get_orientation_info_index() << std::endl;
+        // }
+        // std::cout << "-----------------------------------------------------" << std::endl;
+        //
 
         // Creation of the final structures
         auto [ material_set, comp_set ] = build_sets(material_wrapper_set, composition_wrapper_set);
