@@ -45,35 +45,6 @@ scene::~scene() noexcept {
 
 /*** Ray-scene intersection ***/
 
-/* Linear search through the objects of the scene */
-/*
-std::optional<hit> scene::find_closest_object__OLD(const ray& r) const {
-    
-    real distance_to_closest = infinity;
-    unsigned int closest_obj_index = EMPTY_INDEX;
-
-    // Looking for the closest object
-    for (unsigned int i = 0; const object* obj : object_set) {
-        
-        const real d = obj->measure_distance(r);
-        
-        // d is the distance between the origin of the ray and the
-           intersection point with the object
-
-        if (d < distance_to_closest) {
-            distance_to_closest = d;
-            closest_obj_index = i;
-        }
-
-        i++;
-    }
-    
-    return (closest_obj_index != EMPTY_INDEX) ?
-          std::optional<hit>(object_set[closest_obj_index]->compute_intersection(r, distance_to_closest))
-        : std::nullopt;
-}
-*/
-
 template<typename T>
 concept Object =
        std::is_same_v<T, triangle>
@@ -113,7 +84,7 @@ inline void search_closest(const std::vector<Obj>& object_type_set, const ray& r
 }
 
 namespace dispatch {
-    std::optional<hit> compute_intersection(const object* closest_pt, object_type closest_obj_type,
+    std::optional<hit> compute_intersection(const object* closest_pt, const object_type closest_obj_type,
         const ray& r, const real distance_to_closest) {
         
         if (closest_pt == nullptr)
@@ -140,22 +111,25 @@ namespace dispatch {
             case Plane:    return static_cast<const plane*>   (obj)->compute_uv(hit_point, mi);
             case Box:      return static_cast<const box*>     (obj)->compute_uv(hit_point, mi);
             case Cylinder: return static_cast<const cylinder*>(obj)->compute_uv(hit_point, mi);
+            default: throw;
         }
     }
 
+    [[maybe_unused]]
     static inline rt::vector compute_normal_from_map(const object* obj, const object_type type,
-        const rt::vector& tangent_space_norml, const rt::vector& local_normal, const mapping_info* mi) {
+        const rt::vector& tangent_space_normal, const rt::vector& local_normal, const mapping_info* mi) {
         
         switch (type) {
-            case Triangle: return static_cast<const triangle*>(obj)->compute_normal_from_map(tangent_space_norml, local_normal, mi);
-            case Quad:     return static_cast<const quad*>    (obj)->compute_normal_from_map(tangent_space_norml, local_normal, mi);
-            case Sphere:   return static_cast<const sphere*>  (obj)->compute_normal_from_map(tangent_space_norml, local_normal, mi);
-            case Plane:    return static_cast<const plane*>   (obj)->compute_normal_from_map(tangent_space_norml, local_normal, mi);
-            case Box:      return static_cast<const box*>     (obj)->compute_normal_from_map(tangent_space_norml, local_normal, mi);
-            case Cylinder: return static_cast<const cylinder*>(obj)->compute_normal_from_map(tangent_space_norml, local_normal, mi);
+            case Triangle: return static_cast<const triangle*>(obj)->compute_normal_from_map(tangent_space_normal, local_normal, mi);
+            case Quad:     return static_cast<const quad*>    (obj)->compute_normal_from_map(tangent_space_normal, local_normal, mi);
+            case Sphere:   return static_cast<const sphere*>  (obj)->compute_normal_from_map(tangent_space_normal, local_normal, mi);
+            case Plane:    return static_cast<const plane*>   (obj)->compute_normal_from_map(tangent_space_normal, local_normal, mi);
+            case Box:      return static_cast<const box*>     (obj)->compute_normal_from_map(tangent_space_normal, local_normal, mi);
+            case Cylinder: return static_cast<const cylinder*>(obj)->compute_normal_from_map(tangent_space_normal, local_normal, mi);
+            default: throw;
         }
     }
-};
+}
 
 /* Linear search through the objects of the scene */
 std::optional<hit> scene::find_closest_object(const ray& r) const {
@@ -219,18 +193,6 @@ std::optional<hit> scene::find_closest_object_bounding(const ray& r) const {
         : std::nullopt;
 }
 
-/* Returns the color of the pixel associated with UV-coordinates u, v */
-// const rt::color& scene::sample_texture(const unsigned int texture_info_index, const barycentric_info& bary) const {
-    
-//     const texture_info& ti = mapping_containers.texture_info_set[texture_info_index];
-//     const auto [ u, v ] = ti.get_barycenter(bary);
-//     return mapping_containers.texture_set[ti.texture_index].get_color(u, v);
-
-//     /* HERE: we can introduce texture filtering */
-// }
-
-
-
 const rt::color& scene::sample_color(const hit& h, const material& m) const {
 
     const auto& [ _, comp_set, texture_set, _, _ ] = mapping_containers;
@@ -275,29 +237,27 @@ map_sample scene::sample_maps(const hit& h, const material& m) const {
           texture_set[index].get_color(u, v)
         : m.get_color();
     
-    // Compute the world-space normal directly? Instead of doing it in two steps?
+    // Tangent-space normal
     const rt::vector& n_vec = comp.has_normal_map ?
           normal_map_set[index].get_tangent_space_normal(u, v)
         : h.get_normal();
     
-    // const real smoothness = (mi->has_roughness_map_information()) ?
+    // const real smoothness = (comp.has_roughness_map) ?
     //       1.0f - roughness_map_set[index].get_roughness(u, v)
     //     : m.get_smoothness();
     static_assert(TODO_ROUGHNESS_MAP);
     
-    // const real displacement = (mi->has_displacement_information()) ?
+    // const real displacement = (comp.has_displacement_map) ?
     //        displacement_map_set[index].get_displacement(u, v)
     //      : 0.0_r;
     static_assert(TODO_DISPLACEMENT_MAP);
 
-    // Computation of the final normal vector
-    // const rt::vector normal = obj->compute_normal_from_map(n_vec, h.get_normal(), mi); // Virtual call
-    const rt::vector normal = dispatch::compute_normal_from_map(obj, type, n_vec, h.get_normal(), mi);
-
-    return map_sample(
-        t_col,
-        normal //,
-        //smoothness,
+    return {
+        .texture_color = t_col,
+        .normal_vector = comp.has_normal_map ?
+              dispatch::compute_normal_from_map(obj, type, n_vec, h.get_normal(), mi)
+            : n_vec
+        // smoothness,
         // displacement
-    );
+    };
 }

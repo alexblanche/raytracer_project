@@ -19,23 +19,13 @@
 
 /* Struct containing all info from a map sample */
 struct map_sample {
-    const rt::color& texture_color;
-    const rt::vector& normal_vector; // The normal vector is in world-space
+    const rt::color& texture_color; // Reference to the color
+    const rt::vector normal_vector; // The normal vector is in world-space
     // real roughness;
     // real displacement;
 
-    map_sample(const rt::color& texture_color,
-        const rt::vector& normal_vector//,
-        // real roughness;
-        // real displacement;
-    )
-    : texture_color(texture_color),
-      normal_vector(normal_vector)//,
-      //roughness(roughness), displacement(displacement)
-    {
-        static_assert(TODO_ROUGHNESS_MAP);
-        static_assert(TODO_DISPLACEMENT_MAP);
-    }
+    static_assert(TODO_ROUGHNESS_MAP);
+    static_assert(TODO_DISPLACEMENT_MAP);
 };
 
 enum class bvh_option {

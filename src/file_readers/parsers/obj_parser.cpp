@@ -196,14 +196,10 @@ static inline const polygon* build_polygon(
     std::vector<polygon>& polygon_set,
     const std::vector<rt::vector>& vertex_set, const model_positioning& positioning,
     const std::vector<rt::vector>& normal_set,
-    const unsigned int current_material_index, const texturing texturing_option,
-    const unsigned int current_orientation_info_set_index,
+    const unsigned int current_material_index,
+    const unsigned int orientation_info_index,
     const index_array<size>& v, const index_array<size>& vn,
     const rt::vector& final_v = rt::vector(), const rt::vector& final_vn = rt::vector()) {
-
-    const unsigned int orientation_info_index = texturing_option == texturing::Enabled ?
-          current_orientation_info_set_index
-        : EMPTY_INDEX;
 
     const auto& [ ...vi ]     = v;
     const auto  [ ...vert_i ] = positioning.is_not_null() ?
@@ -260,16 +256,21 @@ static inline void add_polygon(const sets& sets, const bool bounding_enabled,
 
     auto& [ vertex_set, uv_coord_set, normal_set, object_set, content, orientation_containers ] = sets;
 
-    unsigned int current_orientation_info_index;
-    if constexpr (std::is_same_v<polygon, triangle>)
-        current_orientation_info_index = orientation_containers.triangle_orientation_set.size();
+    unsigned int orientation_info_index;
+    if (texturing_option == texturing::Enabled) {
+        if constexpr (std::is_same_v<polygon, triangle>)
+            orientation_info_index = orientation_containers.triangle_orientation_set.size();
+        else
+            orientation_info_index = orientation_containers.quad_orientation_set.size();
+    }
     else
-        current_orientation_info_index = orientation_containers.quad_orientation_set.size();
+        orientation_info_index = EMPTY_INDEX;
+        
 
     const polygon* poly = build_polygon<polygon, size, normal_option>(
         polygon_set,
         vertex_set, positioning, normal_set,
-        current_material_index, texturing_option, current_orientation_info_index,
+        current_material_index, orientation_info_index,
         v, vn, final_v, final_vn
     );
 
