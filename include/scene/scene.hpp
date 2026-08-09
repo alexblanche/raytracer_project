@@ -20,17 +20,17 @@
 /* Struct containing all info from a map sample */
 struct map_sample {
     const rt::color& texture_color;
-    const rt::vector& normal_map_vector;
+    const rt::vector& normal_vector; // The normal vector is in world-space
     // real roughness;
     // real displacement;
 
     map_sample(const rt::color& texture_color,
-        const rt::vector& normal_map_vector//,
+        const rt::vector& normal_vector//,
         // real roughness;
         // real displacement;
     )
     : texture_color(texture_color),
-      normal_map_vector(normal_map_vector)//,
+      normal_vector(normal_vector)//,
       //roughness(roughness), displacement(displacement)
     {
         static_assert(TODO_ROUGHNESS_MAP);
@@ -252,28 +252,8 @@ class scene {
         }
 
         /* Returns the color of the pixel associated with UV-coordinates u, v */
-        // const rt::color& sample_texture(unsigned int texture_info_index, const barycentric_info& bary) const;
-
+        
         /* Sampling maps */
         const rt::color& sample_color(const hit& h, const material& m) const;
         map_sample sample_maps(const hit& h, const material& m) const;
-
-        inline rt::vector compute_normal(const hit& h, const rt::vector& tangent_space_normal) const {
-
-            const object* const obj = h.get_object();
-
-            if (not obj->is_textured())
-                return h.get_normal();
-
-            // const texture_info& ti = mapping_containers.texture_info_set[obj->get_texture_info_index()];
-            const mapping_info* mi = orientation_containers.get_mapping_info(
-                obj->get_orientation_info_index(), h.get_object_type()
-            );
-
-            const mapping::composition& comp = mapping_containers.composition_set[mi->index];
-
-            return (comp.has_normal_map) ?
-                  obj->compute_normal_from_map(tangent_space_normal, h.get_normal(), mi) // virtual call, can be dispatched instead
-                : h.get_normal();
-        }
 };

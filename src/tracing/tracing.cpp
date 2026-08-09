@@ -226,12 +226,11 @@ rt::color worker::pathtrace(const ray& init_ray) const {
 
         // map_sample contains the local information: texture color and normal (and soon: smoothness and displacement)
         const map_sample ms = scene_.sample_maps(h, m);
-        const rt::vector normal = scene_.compute_normal(h, ms.normal_map_vector);
 
         const bounce_parameters param = {
             .h = h,
             .m = m,
-            .normal = normal,
+            .normal = ms.normal_vector,
             .color = ms.texture_color,
             .smoothness = m.get_smoothness() // ms.smoothness;
         };

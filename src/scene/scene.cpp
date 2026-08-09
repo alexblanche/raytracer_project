@@ -112,10 +112,53 @@ inline void search_closest(const std::vector<Obj>& object_type_set, const ray& r
     }
 }
 
+namespace dispatch {
+    std::optional<hit> compute_intersection(const object* closest_pt, object_type closest_obj_type,
+        const ray& r, const real distance_to_closest) {
+        
+        if (closest_pt == nullptr)
+            return std::nullopt;
+
+        switch (closest_obj_type) {
+            case Triangle: return static_cast<const triangle*>(closest_pt)->compute_intersection(r, distance_to_closest);
+            case Quad:     return static_cast<const quad*>    (closest_pt)->compute_intersection(r, distance_to_closest);
+            case Sphere:   return static_cast<const sphere*>  (closest_pt)->compute_intersection(r, distance_to_closest);
+            case Plane:    return static_cast<const plane*>   (closest_pt)->compute_intersection(r, distance_to_closest);
+            case Box:      return static_cast<const box*>     (closest_pt)->compute_intersection(r, distance_to_closest);
+            case Cylinder: return static_cast<const cylinder*>(closest_pt)->compute_intersection(r, distance_to_closest);
+            default: throw;
+        }
+    }
+
+    static inline uvcoord compute_uv(const object* obj, const object_type type,
+        const rt::vector& hit_point, const mapping_info* mi) {
+
+        switch (type) {
+            case Triangle: return static_cast<const triangle*>(obj)->compute_uv(hit_point, mi);
+            case Quad:     return static_cast<const quad*>    (obj)->compute_uv(hit_point, mi);
+            case Sphere:   return static_cast<const sphere*>  (obj)->compute_uv(hit_point, mi);
+            case Plane:    return static_cast<const plane*>   (obj)->compute_uv(hit_point, mi);
+            case Box:      return static_cast<const box*>     (obj)->compute_uv(hit_point, mi);
+            case Cylinder: return static_cast<const cylinder*>(obj)->compute_uv(hit_point, mi);
+        }
+    }
+
+    static inline rt::vector compute_normal_from_map(const object* obj, const object_type type,
+        const rt::vector& tangent_space_norml, const rt::vector& local_normal, const mapping_info* mi) {
+        
+        switch (type) {
+            case Triangle: return static_cast<const triangle*>(obj)->compute_normal_from_map(tangent_space_norml, local_normal, mi);
+            case Quad:     return static_cast<const quad*>    (obj)->compute_normal_from_map(tangent_space_norml, local_normal, mi);
+            case Sphere:   return static_cast<const sphere*>  (obj)->compute_normal_from_map(tangent_space_norml, local_normal, mi);
+            case Plane:    return static_cast<const plane*>   (obj)->compute_normal_from_map(tangent_space_norml, local_normal, mi);
+            case Box:      return static_cast<const box*>     (obj)->compute_normal_from_map(tangent_space_norml, local_normal, mi);
+            case Cylinder: return static_cast<const cylinder*>(obj)->compute_normal_from_map(tangent_space_norml, local_normal, mi);
+        }
+    }
+};
+
 /* Linear search through the objects of the scene */
 std::optional<hit> scene::find_closest_object(const ray& r) const {
-
-    using enum object_type;
     
     real distance_to_closest = infinity;
     const object* closest_pt = nullptr;
@@ -130,18 +173,7 @@ std::optional<hit> scene::find_closest_object(const ray& r) const {
     search_closest<box>     (box_set,      r, distance_to_closest, closest_pt, closest_obj_type);
     search_closest<cylinder>(cylinder_set, r, distance_to_closest, closest_pt, closest_obj_type);
 
-    if (closest_pt == nullptr)
-        return std::nullopt;
-
-    switch (closest_obj_type) {
-        case Triangle: return static_cast<const triangle*>(closest_pt)->compute_intersection(r, distance_to_closest);
-        case Quad:     return static_cast<const quad*>    (closest_pt)->compute_intersection(r, distance_to_closest);
-        case Sphere:   return static_cast<const sphere*>  (closest_pt)->compute_intersection(r, distance_to_closest);
-        case Plane:    return static_cast<const plane*>   (closest_pt)->compute_intersection(r, distance_to_closest);
-        case Box:      return static_cast<const box*>     (closest_pt)->compute_intersection(r, distance_to_closest);
-        case Cylinder: return static_cast<const cylinder*>(closest_pt)->compute_intersection(r, distance_to_closest);
-        default: throw;
-    }
+    return dispatch::compute_intersection(closest_pt, closest_obj_type, r, distance_to_closest);
 }
 
 /* Tree-search through the bounding boxes */
@@ -197,6 +229,8 @@ std::optional<hit> scene::find_closest_object_bounding(const ray& r) const {
 //     /* HERE: we can introduce texture filtering */
 // }
 
+
+
 const rt::color& scene::sample_color(const hit& h, const material& m) const {
 
     const auto& [ _, comp_set, texture_set, _, _ ] = mapping_containers;
@@ -206,15 +240,16 @@ const rt::color& scene::sample_color(const hit& h, const material& m) const {
     if (not obj->is_textured())
         return m.get_color();
 
+    const object_type type = h.get_object_type();
     const mapping_info* const mi = orientation_containers.get_mapping_info(
-        obj->get_orientation_info_index(), h.get_object_type()
+        obj->get_orientation_info_index(), type
     );
     const mapping::composition& comp = comp_set[mi->index];
 
     if (not comp.has_texture)
         return m.get_color();
     
-    const auto [ u, v ] = obj->compute_uv(h.get_point(), mi); // virtual call, can be replaced with switch dispatch
+    const auto [ u, v ] = dispatch::compute_uv(obj, type, h.get_point(), mi);
     return texture_set[mi->index].get_color(u, v);
 }
 
@@ -227,18 +262,14 @@ map_sample scene::sample_maps(const hit& h, const material& m) const {
     if (not obj->is_textured())
         return map_sample(m.get_color(), h.get_normal());
 
+    const object_type type = h.get_object_type();
     const mapping_info* const mi = orientation_containers.get_mapping_info(
-        obj->get_orientation_info_index(), h.get_object_type()
+        obj->get_orientation_info_index(), type
     );
     const mapping::index_type index = mi->index;
     const mapping::composition& comp = comp_set[index];
     
-    const auto [ u, v ] = obj->compute_uv(h.get_point(), mi); // virtual dispatch, can be replaced with switch
-
-    // std::cout << "mi = " << mi << ", index = " << index << ", " << std::endl;
-
-    // const composition& comp = composition_set[index];
-    // ... = (comp.has_texture_information) ? ... : ...;
+    const auto [ u, v ] = dispatch::compute_uv(obj, type, h.get_point(), mi);
 
     const rt::color& t_col = comp.has_texture ?
           texture_set[index].get_color(u, v)
@@ -259,9 +290,13 @@ map_sample scene::sample_maps(const hit& h, const material& m) const {
     //      : 0.0_r;
     static_assert(TODO_DISPLACEMENT_MAP);
 
+    // Computation of the final normal vector
+    // const rt::vector normal = obj->compute_normal_from_map(n_vec, h.get_normal(), mi); // Virtual call
+    const rt::vector normal = dispatch::compute_normal_from_map(obj, type, n_vec, h.get_normal(), mi);
+
     return map_sample(
         t_col,
-        n_vec //,
+        normal //,
         //smoothness,
         // displacement
     );

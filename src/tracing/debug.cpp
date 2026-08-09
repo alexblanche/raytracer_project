@@ -24,18 +24,70 @@ void print_hit_info(const scene& scene, int x, int y) {
 
     obj->print();
 
-    // Need to be rewritten for the new orientation classes
-    // if (obj->is_textured()) {
-    //     const texture_info& ti = scene.get_texture_info(obj);
-    //     printf("Texture info: ");
-    //     const auto& [ u0, v0, u1, v1, u2, v2, u3, v3 ] = ti.uv_coordinates;
-    //     if (dynamic_cast<const triangle*>(obj))
-    //         printf("(%lf, %lf) (%lf, %lf) (%lf, %lf)\n",
-    //             u0, v0, u1, v1, u2, v2);
-    //     else
-    //         printf("(%lf, %lf) (%lf, %lf) (%lf, %lf) (%lf, %lf)\n",
-    //             u0, v0, u1, v1, u2, v2, u3, v3);
-    // }
+    if (not obj->is_textured())
+        return;
+
+    const mapping_info* const mi = scene.orientation_containers.get_mapping_info(
+        obj->get_orientation_info_index(), h.get_object_type()
+    );
+
+    printf("Orientation: ");
+
+    using enum object_type;
+    switch (h.get_object_type()) {
+        case Triangle: {
+            const triangle::orientation& o = *static_cast<const triangle::orientation*>(mi);
+            printf("index = %u, tangent = ", o.index);
+            o.tangent.print();
+            printf(", bitangent = ");
+            o.bitangent.print();
+            const auto& [ uv0, uv1, uv2 ] = o.uv;
+            printf("\nuv = (%lf, %lf) (%lf, %lf) (%lf, %lf)\n",
+                uv0.u, uv0.v, uv1.u, uv1.v, uv2.u, uv2.v);
+            break;
+        }
+        case Quad: {
+            const quad::orientation& o = *static_cast<const quad::orientation*>(mi);
+            printf("index = %u, tangent = ", o.index);
+            o.tangent.print();
+            printf(", bitangent = ");
+            o.bitangent.print();
+            const auto& [ uv0, uv1, uv2, uv3 ] = o.uv;
+            printf("\nuv = (%lf, %lf) (%lf, %lf) (%lf, %lf) (%lf, %lf)\n",
+                uv0.u, uv0.v, uv1.u, uv1.v, uv2.u, uv2.v, uv3.u, uv3.v);
+            break;
+        }
+        case Sphere: {
+            const sphere::orientation& o = *static_cast<const sphere::orientation*>(mi);
+            printf("index = %u\n", o.index);
+            if constexpr (std::is_same_v<decltype(o.matrix), linalg::mat3<linalg::mat_type::Col>>) {
+                const auto& [ c1, c2, c3 ] = o.matrix;
+                printf("matrix = %lf %lf %lf",   c1.x, c2.x, c3.x);
+                printf("         %lf %lf %lf",   c1.y, c2.y, c3.y);
+                printf("         %lf %lf %lf\n", c1.z, c2.z, c3.z);
+            }
+            else {
+                const auto& [ r1, r2, r3 ] = o.matrix;
+                printf("matrix = %lf %lf %lf",   r1.x, r1.y, r1.z);
+                printf("         %lf %lf %lf",   r2.x, r2.y, r2.z);
+                printf("         %lf %lf %lf\n", r3.x, r3.y, r3.z);
+            }
+            break;
+        }
+        case Plane: {
+            const plane::orientation& o = *static_cast<const plane::orientation*>(mi);
+            printf("index = %u, inv_scale = %lf, right_dir = ", o.index, o.inv_texture_scale);
+            o.right_dir.print();
+            printf(", down_dir = ");
+            o.down_dir.print();
+            printf("\n");
+            break;
+        }
+        default:
+            break;
+    }
+    static_assert(TODO_BOX_TEXTURING);
+    static_assert(TODO_CYLINDER_TEXTURING);
 }
 
 
