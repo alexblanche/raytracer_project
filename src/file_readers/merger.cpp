@@ -129,7 +129,22 @@ int main(int argc, char* argv[]) {
           std::optional(param.input_dir)
         : std::nullopt;
 
-    const exit_status status = raw_data::combine_files(dest_bmp, dest_raw, std::span(args).subspan(current_index), input_dir, param.gamma_opt);
+    const std::span source_file_names = std::span(args).subspan(current_index);
+
+    /* Checking that all source files exist */
+    for (const std::string& file_name : source_file_names) {
+
+        const std::string full_filename = input_dir.has_value() ?
+              std::filesystem::path(input_dir.value()).append(file_name).generic_string()
+            : file_name;
+        
+        if (not (std::filesystem::exists(full_filename) && std::filesystem::is_regular_file(full_filename))) {
+            printf("Error: could not find file %s\n", full_filename.c_str());
+            return EXIT_FAILURE;
+        }
+    }
+
+    const exit_status status = raw_data::combine_files(dest_bmp, dest_raw, source_file_names, input_dir, param.gamma_opt);
 
     switch (status) {
         case exit_status::Success:
