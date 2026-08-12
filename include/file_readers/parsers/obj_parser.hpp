@@ -46,13 +46,13 @@ class model_positioning {
             return shift_is_set || scale_is_set;
         }
 
-    std::tuple<rt::vector, real> get_content() const {
-        return std::make_tuple(shift, scale);
-    }
+        std::tuple<rt::vector, real> get_content() const {
+            return std::make_tuple(shift, scale);
+        }
 
-    rt::vector position(const rt::vector& v) const {
-        return fma(v, scale, shift);
-    }
+        rt::vector position(const rt::vector& v) const {
+            return fma(v, scale, shift);
+        }
 };
 
 /* Parses .obj file file_name. Triangles and quads are added to obj_set,
