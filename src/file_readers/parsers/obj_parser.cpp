@@ -104,7 +104,10 @@ struct index_description {
 };
 
 struct final_v {
-    rt::vector v, vt, vn;
+    rt::vector
+        v  = rt::ZERO,
+        vt = rt::ZERO,
+        vn = rt::ZERO;
 };
 
 /* When indices are negative, convert them to positive */
@@ -160,6 +163,13 @@ enum class texturing {
     Enabled, Disabled
 };
 
+struct mapping_parameters {
+    unsigned int        current_material_index;
+    mapping::index_type current_mapping_index;
+    texturing           texturing_option;
+    normal              normal_option;
+};
+
 template<Polygon polygon, subdivision subdiv_option>
 constexpr unsigned int size =
       std::is_same_v<polygon, quad> ?          4
@@ -167,11 +177,11 @@ constexpr unsigned int size =
 
 struct counters {
     unsigned int number_of_vertices        = 0;
+    unsigned int number_of_texture_coords  = 0;
+    unsigned int number_of_normals         = 0;
     unsigned int number_of_triangles       = 0;
     unsigned int number_of_quads           = 0;
     unsigned int number_of_polygons        = 0;
-    unsigned int number_of_texture_coords  = 0;
-    unsigned int number_of_normals         = 0;
 
     template<Polygon polygon>
     void increase() {
@@ -183,6 +193,18 @@ struct counters {
         number_of_polygons++;
     }
 };
+
+// struct polygon_manager {
+//     std::vector<triangle>&           triangle_set;
+//     std::vector<quad>&               quad_set;
+//     sets&                            sets;
+//     const model_positioning&         positioning;
+//     counters                         counters;
+//     mapping_parameters               mapping_params;
+//     const bool                       bounding_enabled;
+
+
+// };
 
 template<Polygon polygon, unsigned int size>
 requires (size_fits_type<polygon, size>)
@@ -218,13 +240,13 @@ static inline void new_orientation_info(scene::containers::orientation& orientat
         );
 }
 
-template<Polygon polygon, int size, normal normal_option = normal::Enabled>
+template<Polygon polygon, int size>
 requires (size_fits_type<polygon, size>)
 static inline const polygon* build_polygon(
     std::vector<polygon>& polygon_set,
     const std::vector<rt::vector>& vertex_set, const model_positioning& positioning,
     const std::vector<rt::vector>& normal_set,
-    const unsigned int current_material_index,
+    const mapping_parameters& mapping_params,
     const unsigned int orientation_info_index,
     const index_description<size>& id,
     const final_v& final = final_v()) {
@@ -235,19 +257,25 @@ static inline const polygon* build_polygon(
     const auto  [ ...vert_i ] = positioning.is_not_null() ?
           std::array { positioning.position(vertex_set[vi])... }
         : std::array { vertex_set[vi]... };
-
-    const auto& [ ...vni ]    = vn;
-    const auto& [ ...norm_i ] = std::array { normal_set[vni]... };
-    static_assert(TODO_ROTATION_OF_MODELS); // rotate the normals as well
     
     if (polygon_set.size() == polygon_set.capacity()) {
-        const std::string type = (std::is_same_v<polygon, triangle>) ? "triangle" : "quad";
-        printf("\nobj_parser Error: %s set capacity reached\n", type.c_str());
-        printf("%zu / %zu\n", polygon_set.size(), polygon_set.capacity());
-        exit(EXIT_FAILURE);
+        
+        const auto error_string = [&polygon_set] () {
+            const std::string type = std::is_same_v<polygon, triangle> ? "triangle" : "quad";
+            return "obj_parser Error: " + type + " set capacity reached ("
+            + std::to_string(polygon_set.size()) + " / " + std::to_string(polygon_set.capacity()) + ")";
+        };
+        throw std::runtime_error(error_string());
     }
 
-    if constexpr (normal_option == normal::Enabled) {
+    const auto& [ current_material_index, _, _, normal_option] = mapping_params;
+
+    if (normal_option == normal::Enabled) {
+
+        const auto& [ ...vni ]    = vn;
+        const auto& [ ...norm_i ] = std::array { normal_set[vni]... };
+        static_assert(TODO_ROTATION_OF_MODELS); // rotate the normals as well
+
         if constexpr (size >= 3)
             polygon_set.emplace_back(vert_i..., norm_i...,
                 current_material_index, orientation_info_index);
@@ -269,25 +297,23 @@ static inline const polygon* build_polygon(
 
 template<
     Polygon polygon,
-    normal normal_option = normal::Enabled,
     subdivision subdiv_option = subdivision::Disabled,
     unsigned int size = size<polygon, subdiv_option>
 >
 static inline void add_polygon(const sets& sets, const bool bounding_enabled,
     std::vector<polygon>& polygon_set,
-    counters& counters,
-    const model_positioning& positioning,
-    index_description<size>&& id,
-    const mapping::index_type current_mapping_index, const unsigned int current_material_index, texturing texturing_option,
+    counters& counters, const model_positioning& positioning,
+    index_description<size>&& id, const mapping_parameters& mapping_params,
     const final_v& final = final_v()) {
 
-    if (current_mapping_index == EMPTY_INDEX)
-        texturing_option = texturing::Disabled;
+    const auto& [ _, current_mapping_index, texturing_option, _ ] = mapping_params;
+
+    const bool texturing_enabled = (texturing_option == texturing::Enabled) && (current_mapping_index != EMPTY_INDEX);
 
     auto& [ vertex_set, uv_coord_set, normal_set, object_set, content, orientation_containers ] = sets;
 
     unsigned int orientation_info_index;
-    if (texturing_option == texturing::Enabled) {
+    if (texturing_enabled) {
         if constexpr (std::is_same_v<polygon, triangle>)
             orientation_info_index = orientation_containers.triangle_orientation_set.size();
         else
@@ -296,18 +322,17 @@ static inline void add_polygon(const sets& sets, const bool bounding_enabled,
     else
         orientation_info_index = EMPTY_INDEX;
         
-
-    const polygon* poly = build_polygon<polygon, size, normal_option>(
+    const polygon* poly = build_polygon<polygon, size>(
         polygon_set,
         vertex_set, positioning, normal_set,
-        current_material_index, orientation_info_index,
+        mapping_params, orientation_info_index,
         id, final
     );
 
     const auto& [ v_1, v_2 ] = poly->get_v1_v2();
     const auto& [ _, vt, _ ] = id;
 
-    if (texturing_option == texturing::Enabled)
+    if (texturing_enabled)
         new_orientation_info<polygon, size>(orientation_containers, v_1, v_2,
             uv_coord_set, current_mapping_index, vt, final.vt);
 
@@ -319,17 +344,16 @@ static inline void add_polygon(const sets& sets, const bool bounding_enabled,
 }
 
 /* Auxiliary function that subdivides a polygon with more than 5 sides into triangles, and adds all of them */
-template<normal normal_option = normal::Enabled>
-static void add_subdivided_polygon_template(std::istringstream& stream,
+static void add_subdivided_polygon(std::istringstream& stream,
     const sets& sets, const bool bounding_enabled,
     std::vector<triangle>& triangle_set, counters& counters,
     const model_positioning& positioning,
-    index_description<5>&& id,
-    const mapping::index_type current_mapping_index, const unsigned int current_material_index,
-    texturing texturing_option) {
+    index_description<5>&& id, const mapping_parameters& mapping_params) {
 
-    constexpr bool normal_enabled = normal_option == normal::Enabled;
-    const bool apply_texture = texturing_option == texturing::Enabled;
+    const auto& [ _, _, texturing_option, normal_option ] = mapping_params;
+
+    const bool normal_enabled = normal_option    == normal::Enabled;
+    const bool apply_texture  = texturing_option == texturing::Enabled;
 
     const std::string error_message = "Error in parsing of polygons of at least 5 sides ("
         + std::string(normal_enabled ? "with" : "without") + "normal)\n";
@@ -341,14 +365,14 @@ static void add_subdivided_polygon_template(std::istringstream& stream,
     std::stack<int> v_stack, vt_stack, vn_stack;
     v_stack.push_range(v);
     vt_stack.push_range(vt);
-    if constexpr (normal_enabled)
+    if (normal_enabled)
         vn_stack.push_range(vn);
 
     final_v final;
     for (int i = 0; i < 5; i++) {
         final.v  += vertex_set[v[i]];
         final.vt += uv_coord_set[vt[i]];
-        if constexpr (normal_enabled)
+        if (normal_enabled)
             final.vn += normal_set[vn[i]];
     }
 
@@ -366,7 +390,7 @@ static void add_subdivided_polygon_template(std::istringstream& stream,
             if (apply_texture)
                 stream >> vti;
             char d; // receives '/'
-            if constexpr (normal_enabled)
+            if (normal_enabled)
                 stream >> d >> vni;
         }
 
@@ -381,7 +405,7 @@ static void add_subdivided_polygon_template(std::istringstream& stream,
         if (apply_texture)
             final.vt += uv_coord_set[vti];
         
-        if constexpr (normal_enabled) {
+        if (normal_enabled) {
             correct(vni, normal_set.size() - 1);
             vn_stack.push(vni);
             final.vn += normal_set[vni];
@@ -394,7 +418,7 @@ static void add_subdivided_polygon_template(std::istringstream& stream,
     final.v /= cpt;
     if (apply_texture)
         final.vt /= cpt;
-    if constexpr (normal_enabled)
+    if (normal_enabled)
         final.vn /= cpt;
 
     // Keeping the last vertex in memory to form a triangle with the first vertex
@@ -411,29 +435,27 @@ static void add_subdivided_polygon_template(std::istringstream& stream,
         v_stack.pop();
         if (apply_texture)
             vt_stack.pop();
-        if constexpr (normal_enabled)
+        if (normal_enabled)
             vn_stack.pop();
 
         const int vj  = v_stack.top();
         const int vtj = apply_texture  ? vt_stack.top() : 0;
         const int vnj = normal_enabled ? vn_stack.top() : 0;
         
-        add_polygon<triangle, normal_option, subdivision::Enabled>(
+        add_polygon<triangle, subdivision::Enabled>(
             sets, bounding_enabled,
             triangle_set, counters, positioning,
             { .v = { vj, vi }, .vt = { vtj, vti }, .vn = { vnj, vni } },
-            current_mapping_index, current_material_index, texturing_option,
-            final
+            mapping_params, final
         );
     }
     
     // Adding the last triangle
-    add_polygon<triangle, normal_option, subdivision::Enabled>(
+    add_polygon<triangle, subdivision::Enabled>(
         sets, bounding_enabled,
         triangle_set, counters, positioning,
         { .v = { last_v, v[0] }, .vt = { last_vt, vt[0] }, .vn = { last_vn, vn[0] } },
-        current_mapping_index, current_material_index, texturing_option,
-        final
+        mapping_params, final
     );
 }
 
@@ -441,6 +463,7 @@ enum class face_type {
     Full, NoTexture, NoNormal, NoTextureNoNormal
 };
 
+/*
 [[maybe_unused]]
 static bool parse_face(std::istringstream& stream,
     const int nb, const face_type face_type_,
@@ -486,6 +509,109 @@ static bool parse_face(std::istringstream& stream,
     }
 
     return true;
+}
+*/
+
+void add_triangle(const sets& sets, const bool bounding_enabled,
+    std::vector<triangle>& triangle_set, counters& counters,
+    const model_positioning& positioning, index_description<3>&& id,
+    const mapping_parameters& mapping_params) {
+
+    constexpr subdivision subdiv_disable = subdivision::Disabled;
+    constexpr unsigned int size = 3;
+
+    add_polygon<triangle, subdiv_disable, size>(
+        sets, bounding_enabled, triangle_set, counters, positioning,
+        std::move(id), mapping_params
+    );
+}
+
+void add_quad(const sets& sets, const bool bounding_enabled,
+    std::vector<quad>& quad_set, counters& counters,
+    const model_positioning& positioning, index_description<4>&& id,
+    const mapping_parameters& mapping_params) {
+
+    constexpr subdivision subdiv_disable = subdivision::Disabled;
+    constexpr unsigned int size = 4;
+
+    add_polygon<quad, subdiv_disable, size>(
+        sets, bounding_enabled, quad_set, counters, positioning,
+        std::move(id), mapping_params
+    );
+};
+
+void add_quad_check_split(const sets& sets, const bool bounding_enabled,
+    std::vector<triangle>& triangle_set, std::vector<quad>& quad_set,
+    counters& counters,
+    const model_positioning& positioning,
+    const std::vector<rt::vector>& vertex_set,
+    index_description<4>&& id,
+    const mapping_parameters& mapping_params) {
+
+    const auto& [ v, vt, vn ] = id;
+    const auto [ n12, n23 ] = compute_normals(vertex_set, v);
+    const bool is_split_quad = SPLIT_ALL_QUADS || ((n12 - n23).normsq() > QUAD_SPLIT_THRESHOLD);
+
+    if (not is_split_quad) {
+        add_quad(sets, bounding_enabled, quad_set, counters, positioning,
+            std::move(id), mapping_params);
+    }
+    else {
+        const auto& [ v1,  v2,  v3,  v4  ] = v;
+        const auto& [ vt1, vt2, vt3, vt4 ] = vt;
+        const auto& [ vn1, vn2, vn3, vn4 ] = vn;
+        add_triangle(sets, bounding_enabled, triangle_set, counters, positioning,
+            { .v = { v1, v2, v3 }, .vt = { vt1, vt2, vt3 }, .vn = { vn1, vn2, vn3 } },
+            mapping_params);
+        add_triangle(sets, bounding_enabled, triangle_set, counters, positioning,
+            { .v = { v1, v3, v4 }, .vt = { vt1, vt3, vt4 }, .vn = { vn1, vn3, vn4 } },
+            mapping_params);
+    }
+}
+
+// nb should be 3 (for triangle), 4 (for quad) or 5 (for polygon with 5 vertices or more)
+void add_geometry(std::istringstream& stream, const int nb,
+    const sets& sets, const bool bounding_enabled,
+    std::vector<triangle>& triangle_set, std::vector<quad>& quad_set,
+    counters& counters, const model_positioning& positioning, 
+    index_description<5>& id, const mapping_parameters& mapping_params) {
+
+    if (nb < 3 || nb > 5)
+        throw std::runtime_error("add_geometry: Incorrect parameter nb = " + std::to_string(nb));
+
+    auto& [ v, vt, vn ] = id;
+
+    for (int i = 0; i < nb; i++) {
+        correct(v[i],  counters.number_of_vertices);
+        correct(vt[i], counters.number_of_texture_coords);
+        correct(vn[i], counters.number_of_normals);
+    }
+
+    auto& [ v1,  v2,  v3,  v4,  v5  ] = v;
+    auto& [ vt1, vt2, vt3, vt4, vt5 ] = vt;
+    auto& [ vn1, vn2, vn3, vn4, vn5 ] = vn;
+
+    switch (nb) {
+        case 3:
+            add_triangle(sets, bounding_enabled, triangle_set, counters, positioning,
+                { .v = { v1, v2, v3 }, .vt = { vt1, vt2, vt3 }, .vn = { vn1, vn2, vn3 } },
+                mapping_params
+            ); break;
+        case 4:
+            /* Sometimes quads are made up of 4 non-coplanar vertices
+                When it is the case, we split the quad in two triangles */
+            add_quad_check_split(sets, bounding_enabled, triangle_set, quad_set, counters, positioning,
+                sets.vertex_set,
+                { .v = { v1, v2, v3, v4 }, .vt = { vt1, vt2, vt3, vt4 }, .vn = { vn1, vn2, vn3, vn4 } },
+                mapping_params
+            ); break;
+        default:
+            /* Polygons with more than 4 sides */
+            add_subdivided_polygon(stream, sets, bounding_enabled, triangle_set, counters, positioning,
+                { .v = { v1, v2, v3, v4, v5 }, .vt = { vt1, vt2, vt3, vt4, vt5 }, .vn = { vn1, vn2, vn3, vn4, vn5 } },
+                mapping_params
+            ); break;
+    }
 }
 
 /* Parses .obj file file_name. Triangles and quads are added to obj_set,
@@ -550,8 +676,12 @@ exit_status parse_obj_file(const std::string& file_name,
     /* Material -> mapping association table */
     material_mapping_map mt_assoc;
 
-    unsigned int current_material_index = 0;
-    unsigned int current_mapping_index = default_mapping_index.value_or(EMPTY_INDEX);
+    mapping_parameters mapping_params = {
+        .current_material_index = 0,
+        .current_mapping_index  = default_mapping_index.value_or(EMPTY_INDEX),
+        .texturing_option       = texturing::Disabled,
+        .normal_option          = normal::Disabled
+    };
 
     counters counters;
 
@@ -567,131 +697,6 @@ exit_status parse_obj_file(const std::string& file_name,
     std::vector<const bounding*> children;
 
     sets sets { vertex_set, uv_coord_set, normal_set, object_set, content, orientation_containers };
-
-    auto add_triangle = [&] (index_description<3>&& id,
-        const texturing texturing_option, const normal normal_option = normal::Enabled) {
-
-        constexpr subdivision subdiv_disable = subdivision::Disabled;
-        constexpr unsigned int size = 3;
-
-        if (normal_option == normal::Enabled)
-            add_polygon<triangle, normal::Enabled, subdiv_disable, size>(
-                sets, bounding_enabled,
-                triangle_set, counters,
-                positioning, std::move(id),
-                current_mapping_index, current_material_index, texturing_option
-            );
-        else
-            add_polygon<triangle, normal::Disabled, subdiv_disable, size>(
-                sets, bounding_enabled,
-                triangle_set, counters,
-                positioning, std::move(id),
-                current_mapping_index, current_material_index, texturing_option
-            );
-    };
-
-    auto add_quad = [&] (index_description<4>&& id,
-        const texturing texturing_option, const normal normal_option = normal::Enabled) {
-
-        constexpr subdivision subdiv_disable = subdivision::Disabled;
-        constexpr unsigned int size = 4;
-
-        if (normal_option == normal::Enabled)
-            add_polygon<quad, normal::Enabled, subdiv_disable, size>(
-                sets, bounding_enabled,
-                quad_set, counters,
-                positioning, std::move(id),
-                current_mapping_index, current_material_index, texturing_option
-            );
-        else
-            add_polygon<quad, normal::Disabled, subdiv_disable, size>(
-                sets, bounding_enabled,
-                quad_set, counters,
-                positioning, std::move(id),
-                current_mapping_index, current_material_index, texturing_option
-            );
-    };
-
-    auto add_quad_check_split = [&] (const std::vector<rt::vector>& vertex_set,
-        index_description<4>&& id,
-        const texturing texturing_option, const normal normal_option = normal::Enabled) {
-
-        const auto& [ v, vt, vn ] = id;
-        const auto [ n12, n23 ] = compute_normals(vertex_set, v);
-        const bool is_split_quad = SPLIT_ALL_QUADS || ((n12 - n23).normsq() > QUAD_SPLIT_THRESHOLD);
-
-        if (not is_split_quad) {
-            add_quad(std::move(id), texturing_option, normal_option);
-        }
-        else {
-            const auto& [ v1,  v2,  v3,  v4  ] = v;
-            const auto& [ vt1, vt2, vt3, vt4 ] = vt;
-            const auto& [ vn1, vn2, vn3, vn4 ] = vn;
-            add_triangle({ .v = { v1, v2, v3 }, .vt = { vt1, vt2, vt3 }, .vn = { vn1, vn2, vn3 } },
-                texturing_option, normal_option);
-            add_triangle({ .v = { v1, v3, v4 }, .vt = { vt1, vt3, vt4 }, .vn = { vn1, vn3, vn4 } },
-                texturing_option, normal_option);
-        }
-    };
-
-    auto add_subdivided_polygon = [&] (std::istringstream& stream,
-        index_description<5>&& id,
-        const texturing texturing_option, const normal normal_option = normal::Enabled) {
-
-        if (normal_option == normal::Enabled)
-            add_subdivided_polygon_template<normal::Enabled>(stream, sets, bounding_enabled,
-                triangle_set, counters,
-                positioning, std::move(id),
-                current_mapping_index, current_material_index, texturing_option
-            );
-        else
-            add_subdivided_polygon_template<normal::Disabled>(stream, sets, bounding_enabled,
-                triangle_set, counters,
-                positioning, std::move(id),
-                current_mapping_index, current_material_index, texturing_option
-            );
-    };
-
-    // nb should be 3 (for triangle), 4 (for quad) or 5 (for polygon with 5 vertices or more)
-    auto add_geometry = [&] (std::istringstream& stream,
-        const int nb, const texturing texturing_option, const normal normal_option,
-        index_description<5>& id) {
-
-        if (nb < 3 || nb > 5)
-            throw std::runtime_error("add_geometry: Incorrect parameter nb = " + std::to_string(nb));
-
-        auto& [ v, vt, vn ] = id;
-
-        for (int i = 0; i < nb; i++) {
-            correct(v[i],  counters.number_of_vertices);
-            correct(vt[i], counters.number_of_texture_coords);
-            correct(vn[i], counters.number_of_normals);
-        }
-
-        auto& [ v1,  v2,  v3,  v4,  v5  ] = v;
-        auto& [ vt1, vt2, vt3, vt4, vt5 ] = vt;
-        auto& [ vn1, vn2, vn3, vn4, vn5 ] = vn;
-
-        switch (nb) {
-            case 3:
-                add_triangle({ .v = { v1, v2, v3 }, .vt = { vt1, vt2, vt3 }, .vn = { vn1, vn2, vn3 } },
-                    texturing_option, normal_option
-                ); break;
-            case 4:
-                /* Sometimes quads are made up of 4 non-coplanar vertices
-                   When it is the case, we split the quad in two triangles */
-                add_quad_check_split(vertex_set,
-                    { .v = { v1, v2, v3, v4 }, .vt = { vt1, vt2, vt3, vt4 }, .vn = { vn1, vn2, vn3, vn4 } },
-                    texturing_option, normal_option
-                ); break;
-            default:
-                /* Polygons with more than 4 sides */
-                add_subdivided_polygon(stream,
-                    { .v = { v1, v2, v3, v4, v5 }, .vt = { vt1, vt2, vt3, vt4, vt5 }, .vn = { vn1, vn2, vn3, vn4, vn5 } },
-                    texturing_option, normal_option
-                ); break;
-        }    
-    };
 
     try {
 
@@ -774,15 +779,16 @@ exit_status parse_obj_file(const std::string& file_name,
                     }
                 }
                 
-                const texturing texturing_option = type == NoTexture || type == NoTextureNoNormal ?
+                mapping_params.texturing_option = type == NoTexture || type == NoTextureNoNormal ?
                       texturing::Disabled
                     : texturing::Enabled;
 
-                const normal normal_option = type == NoNormal || type == NoTextureNoNormal ?
+                mapping_params.normal_option = type == NoNormal || type == NoTextureNoNormal ?
                       normal::Disabled
                     : normal::Enabled;
 
-                add_geometry(line_stream, nb, texturing_option, normal_option, id);
+                add_geometry(line_stream, nb, sets, bounding_enabled, triangle_set, quad_set, counters, positioning,
+                    id, mapping_params);
 
                 continue;
             }
@@ -847,6 +853,8 @@ exit_status parse_obj_file(const std::string& file_name,
                 const std::optional<unsigned int> vindex = wrapper<material>::find_element(material_wrapper_set, m_name);
                 throw_if_nullopt(vindex, "(material reading)");
                 
+                auto& [ current_material_index, current_mapping_index, _, _ ] = mapping_params;
+
                 current_material_index = vindex.value();
 
                 /* Checking if a mapping was associated with the material by an mtl file */
@@ -885,7 +893,7 @@ exit_status parse_obj_file(const std::string& file_name,
         }
 
         printf("\r%s successfully loaded:\n", file_name.c_str());
-        const auto& [ number_of_vertices, number_of_triangles, number_of_quads, number_of_polygons, _, _ ] = counters;
+        const auto& [ number_of_vertices, _, _, number_of_triangles, number_of_quads, number_of_polygons ] = counters;
         printf("%u vertices, %u polygons (%u triangles, %u quads)\n",
             number_of_vertices, number_of_polygons, number_of_triangles, number_of_quads);
         printf("Dimensions: (x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf])\n",
