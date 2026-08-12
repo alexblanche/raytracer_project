@@ -230,7 +230,7 @@ rt::color worker::pathtrace(const ray& init_ray) const {
         const bounce_parameters param = { h, m, normal, color, m.get_smoothness() }; // or ms.smoothness
         
         ////
-        const bool double_bounce = false; // (obj->get_material_index() == 12); // Windshield of Porsche 2016
+        const bool double_bounce = false; // (obj->get_material_index() == 11); // Windshield of Porsche 2016
         ////
 
         process_bounce(param, path_param, double_bounce);

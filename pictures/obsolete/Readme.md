@@ -1,5 +1,17 @@
 # Obsolete pictures
 
+## Porsche in street
+
+This render was an attempt at reproducing [this video](https://youtu.be/Hcq7Eq0SLl8?si=DwdFc53QtwvtGFhI). This render does not feature the Fresnel effect (the lights seem fake and too uniform). It also looks too bright, but it is due to hand-selected parameters. It is now outdated and replaced with [this render](../Porsche_10000.png).
+
+![Porsche street](porsche_street.jpg)
+
+## Porsche field
+
+This render was the first "beautiful" render of the Porsche model that I made. It looks fine from a distance, but features blurry reflections and no Fresnel effect. It is very outdated, but I am waiting for light sampling to be implemented before I update this one.
+
+![Porsche field](porsche_field.jpg)
+
 ## Porsche neon   
 An experimentation with the Porsche model and neon lights. It does not feature the Fresnel effect on the reflective surfaces, and the grain is very noticeable. I will attempt a similar render in the future.  
 The second render is a quick attempt at doing a bloom effect through postprocessing. Physically-based bloom through Fourier transform is next up on the to do list.

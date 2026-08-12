@@ -14,15 +14,9 @@ This was the first render of a textured 3D model I did. Due to its simplicity, I
 
 ## Porsche street
 
-This render was an attempt at reproducing [this video](https://youtu.be/Hcq7Eq0SLl8?si=DwdFc53QtwvtGFhI). This render is currently outdated, as it does not feature the Fresnel effect (the lights seem fake and too uniform). I have already done better renders, that I will upload soon.
+This render is an attempt at reproducing [this video](https://youtu.be/Hcq7Eq0SLl8?si=DwdFc53QtwvtGFhI). It is a better version of the [previous render](obsolete/porsche_street.jpg), that now features Fresnel effect and more natural reflections. The ratio of lights bouncing on the windshield is adjusted to make it look like a double glazing, like real cars.
 
-![Porsche street](porsche_street.jpg)
-
-## Porsche field
-
-This render was the first "beautiful" render of the Porsche model that I made. It looks fine from a distance, but features blurry reflections and no Fresnel effect. Actually very outdated, but I am waiting for light sampling to be implemented before I update this one.
-
-![Porsche field](porsche_field.jpg)
+![Porsche street](Porsche_10000.png)
 
 ## Glasses
 

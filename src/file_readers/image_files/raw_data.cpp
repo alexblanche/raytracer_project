@@ -189,8 +189,8 @@ exit_status raw_data::combine_files(const std::string& dest_bmp_name, const std:
             }
 
             if (status_gamma == exit_status::Success) {
-                if (gamma_opt.has_value())
-                    printf("gamma argument %f was overridden by raw data file (gamma = %f)\n", gamma_opt.value(), gamma_0);
+                if (gamma_opt.has_value() && (std::abs(1.0f / gamma_opt.value() - gamma_0)) > 1.0e-5f)
+                    printf("gamma argument %f was overridden by raw data file (gamma = %f)\n", 1.0f / gamma_opt.value(), gamma_0);
                 gamma_opt = 1.0 / static_cast<double>(gamma_0);
             }
         }
