@@ -34,22 +34,6 @@ plane::plane(const rt::vector& normal, const rt::vector& position,
     : object(position, material_index, orientation_info_index),
       normal(normal.unit()), d(-(normal | position)) {}
 
-// Constructor for textured planes
-// plane::plane(const real pa, const real pb, const real pc, const rt::vector& position,
-//     const unsigned int material_index,
-//     const unsigned int texture_info_index, const rt::vector& right, const real scale)
-
-//     : plane(pa, pb, pc, position, material_index) {
-
-//     texture_information_index = texture_info_index;
-//     const rt::vector right_dir = right.unit();
-//     orientation = {
-//         .right_dir         = right_dir,
-//         .down_dir          = right_dir ^ normal,
-//         .inv_texture_scale = 1.0_r / scale
-//     };
-// }
-
 plane::orientation::orientation(const mapping::index_type index,
     const rt::vector& normal, const rt::vector& right, real scale)
 
@@ -77,7 +61,7 @@ real plane::measure_distance(const ray& r) const {
     
     // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
     
-    return (is_negative_not_zero(pdt * upln)) ? (- upln / pdt) : infinity;
+    return (std::signbit(pdt) != std::signbit(upln)) ? (- upln / pdt) : infinity;
 }
 
 hit plane::compute_intersection(const ray& r, const real t) const {

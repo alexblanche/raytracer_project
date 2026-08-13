@@ -59,26 +59,6 @@ quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, con
     dvn3 = (vn3.unit()) - vn0;
 }
 
-// Constructor from four points with normal mapping enabled
-// quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
-//     const unsigned int material_index, const unsigned int texture_info_index,
-//     texture_info& info)
-
-//     : quad(p0, p1, p2, p3, material_index, texture_info_index) {
-        
-//     /* Same as triangle */
-
-//     const auto& [ u_0, v_0, u_1, v_1, u_2, v_2, _, _ ] = info.uv_coordinates;
-//     const real x1 = u_1 - u_0;
-//     const real x2 = u_2 - u_0;
-//     const real y1 = v_1 - v_0;
-//     const real y2 = v_2 - v_0;
-//     const real r = 1.0_r / (x1 * y2 - x2 * y1);
-//     const rt::vector t = r * ( y2 * v1 + -y1 * v2);
-//     const rt::vector b = r * (-x2 * v1 +  x1 * v2);
-//     info.set_tangent_space(t.unit(), b.unit());
-// }
-
 quad::orientation::orientation(const mapping::index_type index,
     const std::array<uvcoord, 4>& uvc,
     const rt::vector& v1, const rt::vector& v2)
@@ -102,20 +82,6 @@ quad::orientation::orientation(const mapping::index_type index,
     tangent   = r * ( y2 * v1 + -y1 * v2);
     bitangent = r * (-x2 * v1 +  x1 * v2);
 }
-
-// Constructor from four points with vertex normals and normal mapping enabled
-// quad::quad(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2, const rt::vector& p3,
-//     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2, const rt::vector& vn3,
-//     const unsigned int material_index, const unsigned int texture_info_index,
-//     texture_info& info)
-
-//     : quad(p0, p1, p2, p3, material_index, texture_info_index, info) {
-
-//     vn0  = vn0init.unit();
-//     dvn1 = (vn1.unit()) - vn0;
-//     dvn2 = (vn2.unit()) - vn0;
-//     dvn3 = (vn3.unit()) - vn0;
-// }
 
 /* Returns the barycenter of the quad */
 inline rt::vector quad::get_barycenter() const {
@@ -165,7 +131,6 @@ real quad::measure_distance(const ray& r) const {
    or
    p = position + l1 * v3 + l2 * v2 otherwise
 */
-
 std::pair<stcoord, quad::side> quad::compute_st(const rt::vector& p) const {
 
     const rt::vector c = p - position;
@@ -204,13 +169,6 @@ uvcoord quad::compute_uv(const rt::vector& p, const mapping_info* orientation_in
         .v = w * v0 + s * vi + t * v2
     };
 }
-
-// inline rt::vector quad::get_interpolated_normal(const barycentric_info& bary) const {
-    
-//     const rt::vector& dvni = (bary.triangle_side == side::Triangle012) ? dvn1 : dvn3;
-//     const auto [ l1, l2 ] = bary.l;
-//     return fma(dvn2, l2, fma(dvni, l1, vn0));
-// }
 
 inline rt::vector quad::compute_interpolated_normal(const stcoord& st, const quad::side side_) const {
 

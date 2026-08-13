@@ -50,14 +50,6 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
     dvn2 = (vn2.unit()) - vn0;
 }
 
-// Constructor from three points with normal mapping enabled
-// triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
-//     const unsigned int material_index, const unsigned int texture_info_index,
-//     texture_info& info)
-
-//     : triangle(p0, p1, p2, material_index, texture_info_index) {
-
-//     /*
 //     Computation of tangent space
 //     v1 = x1 * t + y1 * b
 //     v2 = x2 * t + y2 * b
@@ -73,17 +65,6 @@ triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector&
 //     (x1 y1)-1                             (y2  -y1)
 //     (x2 y2)   = (1 / (x1 * y2 - x2 * y1)) (-x2  x1)
 //     */
-
-//     const auto& [ u_0, v_0, u_1, v_1, u_2, v_2, _, _ ] = info.uv_coordinates;
-//     const real x1 = u_1 - u_0;
-//     const real x2 = u_2 - u_0;
-//     const real y1 = v_1 - v_0;
-//     const real y2 = v_2 - v_0;
-//     const real r = 1.0_r / (x1 * y2 - x2 * y1);
-//     const rt::vector t = r * ( y2 * v1 + -y1 * v2);
-//     const rt::vector b = r * (-x2 * v1 +  x1 * v2);
-//     info.set_tangent_space(t.unit(), b.unit());
-// }
 
 triangle::orientation::orientation(const mapping::index_type index,
     const std::array<uvcoord, 3>& uvc, const rt::vector& v1, const rt::vector& v2)
@@ -107,19 +88,6 @@ triangle::orientation::orientation(const mapping::index_type index,
     tangent   = r * ( y2 * v1 + -y1 * v2);
     bitangent = r * (-x2 * v1 +  x1 * v2);
 }
-
-// Constructor from three points with vertex normals and normal mapping enabled
-// triangle::triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
-//     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2,
-//     const unsigned int material_index, const unsigned int texture_info_index,
-//     texture_info& info)
-
-//     : triangle(p0, p1, p2, material_index, texture_info_index, info) {
-    
-//     vn0  = vn0init.unit();
-//     dvn1 = (vn1.unit()) - vn0;
-//     dvn2 = (vn2.unit()) - vn0;
-// }
 
 /* Returns the barycenter of the triangle */
 inline rt::vector triangle::get_barycenter() const {
@@ -165,17 +133,6 @@ real triangle::measure_distance(const ray& r) const {
     const real l2 = compute_det_2d(v1, c, case_det) / det;
     return (is_positive(l2) && (l1 + l2) <= 1.0_r) ? t : infinity;
 }
-
-/* Returns the barycentric info (l1, l2):
-   p = position + l1 * v1 + l2 * v2
-   (0 <= l1, l2 <= 1)
-*/
-// barycentric_info triangle::get_barycentric(const rt::vector& p) const {
-//     const rt::vector c = p - position;
-//     const real l1 = compute_det_2d(c, v2, case_det) / det;
-//     const real l2 = compute_det_2d(v1, c, case_det) / det;
-//     return barycentric_info(l1, l2, object_type::Triangle);
-// }
 
 stcoord triangle::compute_st(const rt::vector& p) const {
     const rt::vector c = p - position;

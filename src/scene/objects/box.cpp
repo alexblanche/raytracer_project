@@ -158,8 +158,8 @@ bool box::is_hit_by(const ray& r) const {
     return (is_positive(t3) && std::abs(pmu.x - t3 * dir.x) <= l1 && std::abs(pmu.y - t3 * dir.y) <= l2);
 }
 
-/* Specific to (standard) boxes: returns true if the ray r hits the box
-   The box is assumed to be standard (axes are n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1)) */
+/* Specific to AABB: returns true if the ray r hits the box
+   The box is assumed to be an AABB */
 real box::is_hit_with_distance(const ray& r) const {
     
     const auto& [ u, dir, inv_dir ] = r;
@@ -197,11 +197,6 @@ real box::is_hit_with_distance(const ray& r) const {
     return (t3 > 0 && std::abs(std::fma(dir.x, -t3, pmu.x)) <= l1 && std::abs(std::fma(dir.y, -t3, pmu.y)) <= l2) ?
         t3 : infinity;
 }
-
-/* Returns the barycentric info (the faces behave like quads) [to be implemented] */
-// barycentric_info box::get_barycentric(const rt::vector&) const {
-//     return barycentric_info(0.0_r, 0.0_r, object_type::Box);
-// }
 
 // Texturing is unavailable for boxes
 uvcoord box::compute_uv(const rt::vector&, const mapping_info*) const {

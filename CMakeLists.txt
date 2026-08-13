@@ -66,7 +66,6 @@ set(OBJECTS_SOURCES
 )
 
 set(MATERIAL_SOURCES
-	src/scene/material/texture_info.cpp
 	src/scene/material/texture.cpp
 	src/scene/material/normal_map.cpp
 	src/scene/material/background.cpp

@@ -12,22 +12,6 @@ sphere::sphere(const rt::vector& center, const real radius, const unsigned int m
 
     : object(center, material_index, orientation_info_index), radius(radius), radius_sq(radius * radius) {}
 
-// Constructor for textured spheres
-// sphere::sphere(const rt::vector& center, const real radius, const unsigned int material_index,
-//     const unsigned int texture_info_index, const rt::vector& forward_dir, const rt::vector& right_dir)
-
-//     : sphere(center, radius, material_index) {
-    
-//     texture_information_index = texture_info_index;
-//     const rt::vector forward = forward_dir.unit();
-//     const rt::vector right   = right_dir.unit();
-//     orientation.matrix = {
-//         .r1 = right,
-//         .r2 = right ^ forward,
-//         .r3 = forward
-//     };
-// }
-
 sphere::orientation::orientation(const mapping::index_type index,
     const rt::vector& forward_dir, const rt::vector& right_dir)
 

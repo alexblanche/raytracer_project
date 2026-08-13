@@ -40,9 +40,6 @@ class triangle final : public object {
            (when the triangle is three points P0, P1, P2, position = P0, v1 = P1-P0 and v2 = P2-P0).
            Vertex normals can be specified, but are optional.
            The d parameter, defining the plane of equation ax+by+cz+d = 0, is stored in order to speed-up the intersection calculations.
-
-           We do not store a plane object as an attribute of the triangle because objects are automatically added to the object set
-           and searched through for each ray-object intersection computation.
         */
 
         rt::vector normal, v1, v2,
@@ -72,17 +69,6 @@ class triangle final : public object {
         triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
             const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2,
             unsigned int material_index, unsigned int orientation_info_index = EMPTY_INDEX);
-
-        // Constructor from three points with normal mapping enabled
-        // triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
-        //     unsigned int material_index, unsigned int texture_info_index,
-        //     texture_info& info);
-
-        // // Constructor from three points with vertex normals and normal mapping enabled
-        // triangle(const rt::vector& p0, const rt::vector& p1, const rt::vector& p2,
-        //     const rt::vector& vn0init, const rt::vector& vn1, const rt::vector& vn2,
-        //     unsigned int material_index, unsigned int texture_info_index,
-        //     texture_info& info);
 
         triangle(triangle&&) noexcept        = default;
         triangle(const triangle&)            = delete;
