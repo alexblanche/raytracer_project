@@ -169,13 +169,9 @@ namespace rt {
 		const auto [ texture_pixels, texture_pitch ] = lock.info;
 		
 		const unsigned int bytes_per_pixel = texture.bytes_per_pixel();
-
 		const unsigned int padding = texture_pitch % bytes_per_pixel;
-		const unsigned int row_size = bytes_per_pixel * img.width();
-		const unsigned int shift = 2 * row_size + padding;
 		
-		int index = (img.height() - 1) * (row_size + padding);
-		for (const matrix::const_row row : img.data) {
+		for (int index = 0; const matrix::const_row row : img.data) {
             for (const color& pixel_col : row) {
 				color avg = pixel_col * invN;
 				avg.cap();
@@ -185,7 +181,7 @@ namespace rt {
 				texture_pixels[index + 2] = b;
 				index += bytes_per_pixel;
             }
-			index -= shift;
+			index += padding;
         }
 	}
 
@@ -201,11 +197,8 @@ namespace rt {
 		
 		const unsigned int bytes_per_pixel = texture.bytes_per_pixel();
 		const unsigned int padding = texture_pitch % bytes_per_pixel;
-		const unsigned int row_size = bytes_per_pixel * img.width();
-		const unsigned int shift = 2 * row_size + padding;
 		
-		int index = (img.height() - 1) * (row_size + padding);
-		for (const matrix::const_row row : img.data) {
+		for (int index = 0; const matrix::const_row row : img.data) {
             for (const color& pixel_col : row) {
 
 				color corrected = pixel_col * inv;
@@ -218,7 +211,7 @@ namespace rt {
 				texture_pixels[index + 2] = cb;
 				index += bytes_per_pixel;
             }
-			index -= shift;
+			index += padding;
         }
 	}
 
@@ -249,12 +242,7 @@ namespace rt {
 		constexpr real inv255 = 1.0_r / 255.0_r;
 		const real inv = inv255 * invN;
 
-		const unsigned int row_size = bytes_per_pixel * img.width();
-		const unsigned int shift = 2 * row_size + padding;
-		
-		int index = (img.height() - 1) * (row_size + padding);
-
-		for (const matrix::row row : img.data) {
+		for (int index = 0; const matrix::row row : img.data) {
             for (const color& col : row) {
 
 				const auto [ lr, lg, lb ] = col;
@@ -274,7 +262,7 @@ namespace rt {
 				texture_pixels[index + 2] = cb;
 				index += bytes_per_pixel;
             }
-			index -= shift;
+			index += padding;
         }
 	}
 }

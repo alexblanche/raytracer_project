@@ -166,7 +166,7 @@ uvcoord quad::compute_uv(const rt::vector& p, const mapping_info* orientation_in
     const real w = 1.0_r - s - t;
     return {
         .u = w * u0 + s * ui + t * u2,
-        .v = w * v0 + s * vi + t * v2
+        .v = 1.0_r - (w * v0 + s * vi + t * v2)
     };
 }
 

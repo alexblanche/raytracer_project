@@ -35,7 +35,6 @@ class texture {
         texture(const std::string& file_name, bool& parsing_successful, std::optional<real> gamma = std::nullopt);
 
         /* Returns the color stored in data at UV-coordinates u, v (between 0 and 1) times width, height */
-        /* Returns the color stored in data at UV-coordinates u, v (between 0 and 1) times width, height */
         inline const rt::color& get_color(const real u, const real v) const {
             const int x = u * width_real;
             const int y = v * height_real;

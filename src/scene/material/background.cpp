@@ -11,8 +11,8 @@ const rt::color& background_container::get_texture_color(const rt::vector& dir) 
     const auto& [ theta, phi ] = trig::get_angles(dir_rotated);
 
     /* Determining the UV-coordinates */
-    const real u = 1.0_r - theta / (2.0_r * PI);
-    const real v = 1.0_r - phi / PI;
+    const real u = theta / (2.0_r * PI);
+    const real v = phi / PI;
 
     return bg_texture.get_color(u, v);
 }

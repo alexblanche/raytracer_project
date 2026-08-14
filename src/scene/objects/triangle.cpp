@@ -157,7 +157,7 @@ uvcoord triangle::compute_uv(const rt::vector& p, const mapping_info* orientatio
 
     return {
         .u = w * u0 + s * u1 + t * u2,
-        .v = w * v0 + s * v1 + t * v2
+        .v = 1.0_r - (w * v0 + s * v1 + t * v2)
     };
 }
 

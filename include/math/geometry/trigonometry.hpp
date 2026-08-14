@@ -15,28 +15,28 @@ namespace trig {
         const real phi;
     };
 
-    inline rt::vector direction(const real sin_phi, const real theta) {
+    inline rt::vector direction(const real cos_phi, const real theta) {
 
-        /* cos(phi) is chosen to be positive */
-        const real cos_phi = sqrt(1.0_r - sin_phi * sin_phi);
+        /* sin(phi) is chosen to be positive */
+        const real sin_phi = sqrt(1.0_r - cos_phi * cos_phi);
 
         return rt::vector(
-            cos(theta) * cos_phi,
-            sin_phi,
-            sin(theta) * cos_phi
+            cos(theta) * sin_phi,
+            cos_phi,
+            sin(theta) * sin_phi
         );
     }
 
     /* Uniform sampling of a point on the surface of a unit sphere */
     inline rt::vector random_direction_sphere(const randomgen& rg) {
 
-        /* sin(phi) is sampled uniformly on [-1, 1] */
-        const real sin_phi = 2.0_r * rg.random_ratio() - 1.0_r;
+        /* cos(phi) is sampled uniformly on [-1, 1] */
+        const real cos_phi = 2.0_r * rg.random_ratio() - 1.0_r;
 
         /* theta is sampled uniformly on [0, 2pi] */
         const real theta = rg.random_angle();
 
-        return trig::direction(sin_phi, theta);
+        return trig::direction(cos_phi, theta);
     }
 
     inline angles get_angles(const rt::vector& dir) {
@@ -48,11 +48,10 @@ namespace trig {
                   atan(z / x) + (is_positive(x) ? (3.0_r * PI / 2.0_r) : (PI / 2.0_r))
                 : 0.0_r,
 
-            /* Determining the pixel of the background texture to display */
             // dir is a unit vector, but due to floating-point imprecision, dir.y can be greater than 1
             .phi = (not abs_less_than_one(y)) ?
-                  (is_positive(y) ? PI : 0.0_r)
-                : asin(y) + PI / 2.0_r
+                  (is_positive(y) ? 0.0_r : PI)
+                : acos(y)
         };
     }
 };

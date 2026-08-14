@@ -271,10 +271,10 @@ return matprod(
 
 We want to uniformly sample a point on the surface of a sphere of radius $1$ centered on $(0, 0, 0)$. The point we want to sample has spherical coordinates $(1, \theta, \phi)$, with $\theta$ the angle around the $y$-axis, and $\phi$ the vertical angle ($phi = 0$ at the "north pole" with $y = 1$, and $phi = \frac{\pi}{2}$ on the "equator" with $y = 0$).
 
-First, $\sin \phi$ is sampled uniformly on $[-1, 1)$, and $\cos \phi$ is deduced (as a positive value). In the code:
+First, $\cos \phi$ is sampled uniformly on $[-1, 1)$, and $\sin \phi$ is deduced (as a positive value). In the code:
 ```C++
-const real sin_phi = 2.0_r * rg.random_ratio() - 1.0_r;
-const real cos_phi = sqrt(1.0_r - sin_phi * sin_phi);
+const real cos_phi = 2.0_r * rg.random_ratio() - 1.0_r;
+const real sin_phi = sqrt(1.0_r - cos_phi * cos_phi);
 ```
 
 Then, $theta$ is sampled uniformly on $[0, 2\pi)$.
@@ -284,9 +284,9 @@ const real theta = rg.random_angle(); // = (2 * PI) * rg.random_ratio();
 
 The point obtained is thus:
 $$p = \begin{pmatrix}
-\cos\theta \cdot \cos\phi \\
-\sin\phi \\
-\sin\theta \cdot \cos\phi \\
+\cos\theta \cdot \sin\phi \\
+\cos\phi \\
+\sin\theta \cdot \sin\phi \\
 \end{pmatrix}$$
 
 <!-- -------------------------------------------------------------------- -->

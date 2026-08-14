@@ -17,7 +17,7 @@ void render_loop_seq(image& image, const scene& scene, const unsigned int number
 
     const worker worker_(scene, rg, number_of_bounces, russian_roulette);
 
-    for (int j = image.height() - 1; const matrix::row row : image.data) {
+    for (int j = 0; const matrix::row row : image.data) {
 
         for (int i = 0; rt::color& col : row) {
 
@@ -26,7 +26,7 @@ void render_loop_seq(image& image, const scene& scene, const unsigned int number
             col += pixel_col;
             i++;
         }
-        j--;
+        j++;
     }
 
     image.increase_sample_count();
@@ -95,7 +95,7 @@ void render_loop_parallel(image& image, const scene& scene, const unsigned int n
 
         for (int j = j_start; j < j_end; j++) {
 
-            const matrix::row row = image.data[image.height() - 1 - j];
+            const matrix::row row = image.data[j];
             for (int i = 0; rt::color& color : row) {
 
                 const ray init_ray = scene.cam.gen_ray(i, j, rg, image.number_of_samples, shift);

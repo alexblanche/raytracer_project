@@ -68,7 +68,7 @@ std::expected<matrix, file_reader::error> bmp::read_file(const std::string& file
 
         parallel_for(height, [&] (int j) {
 
-            const matrix::row row = matrix[j];
+            const matrix::row row = matrix[height - 1 - j];
             unsigned int index = pitch * j;
             for (rt::color& color : row) {
                 const real b = buffer[index];
@@ -208,10 +208,11 @@ exit_status bmp::export_data(const std::string& file_name, const image& image) {
     /* Each pixel is represented as 3 bytes BGR, each line (sequence of 3*width bytes) is followed by p bytes '0' of padding */
     const bool gamma_enabled = image.gamma.has_value();
     const real invN = 1.0_r / image.number_of_samples;
+    const unsigned int row_size = DEFAULT_BYTES_PER_COLOR * width + padding_bytes;
 
-    int index = 0;
-    for (const matrix::const_row row : image.data) {
-        for (const rt::color& c : row) {
+    for (int j = height - 1; const matrix::const_row row : image.data) {
+
+        for (unsigned int index = j * row_size; const rt::color& c : row) {
             
             rt::color col = c * invN;
             col.cap();
@@ -228,7 +229,8 @@ exit_status bmp::export_data(const std::string& file_name, const image& image) {
             }
             index += DEFAULT_BYTES_PER_COLOR;
         }
-        index += padding_bytes;
+
+        j--;
     }
 
     try {
