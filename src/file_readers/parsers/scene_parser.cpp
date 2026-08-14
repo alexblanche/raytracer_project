@@ -111,13 +111,8 @@ static camera parse_camera(const file& f, const int width, const int height) {
             rdz = 0.0;
         }
         else {
-            rdx = dz;
-            rdz = -dx;
-        }
-
-        if (dy < 0.0) {
-            rdx *= -1.0;
-            rdz *= -1.0;
+            rdx = -dz;
+            rdz = dx;
         }
     }
 
@@ -181,26 +176,44 @@ static bg_parsing_result parse_background(const file& f) {
     }
 
     const int pos = f.position();
-    const int ret_bg_texture = f.scanf_count("background_texture %512s rotate_x:%lf rotate_y:%lf rotate_z:%lf gamma:%lf\n",
-        bg_tfile_name, rx, ry, rz, inverse_gamma_val);
+    const exit_status status_bg_texture = f.scanf("background_texture %512s", bg_tfile_name);
 
-    if (ret_bg_texture == 5 && inverse_gamma_val != 1.0)
-        inverse_gamma = inverse_gamma_val;
-    
-    if (ret_bg_texture > 1 && ret_bg_texture < 4)
-        throw std::runtime_error("parsing error in scene constructor (background)");
-
-    if (ret_bg_texture == 0)
+    if (status_bg_texture == exit_status::Failure) {
         f.rewind(pos);
+    }
     else {
-        if (std::abs(rx) > 2.0_r * PI || std::abs(ry) > 2.0_r * PI || std::abs(rz) > 2.0_r * PI)
-            throw std::runtime_error("incorrect background texture angles");
-        
-        const std::string bg_tfile_name_short = std::filesystem::path(bg_tfile_name).filename().generic_string();
 
-        if (rx < 0) rx += 2.0_r * PI;
-        if (ry < 0) ry += 2.0_r * PI;
-        if (rz < 0) rz += 2.0_r * PI;
+        const exit_status status_rotate =
+               f.scanf_rewind_if_failure("rotate_x:%lf", rx)
+            || f.scanf_rewind_if_failure("rotate_y:%lf", ry)
+            || f.scanf_rewind_if_failure("rotate_z:%lf", rz);
+        
+        // std::cout << "next = " << f.peek_next() << std::endl;
+
+        const exit_status status_gamma = f.scanf(" gamma:%lf", inverse_gamma_val);
+
+        if (status_gamma == exit_status::Success && inverse_gamma_val != 1.0)
+            inverse_gamma = inverse_gamma_val;
+
+        if (status_rotate == exit_status::Success) {
+            if (std::abs(rx) > 2.0_r * PI || std::abs(ry) > 2.0_r * PI || std::abs(rz) > 2.0_r * PI)
+                throw std::runtime_error("incorrect background texture angles");
+            
+            if (rx < 0) rx += 2.0_r * PI;
+            if (ry < 0) ry += 2.0_r * PI;
+            if (rz < 0) rz += 2.0_r * PI;
+        }
+        else {
+            rx = 0;
+            ry = 0;
+            rz = 0;
+        }
+
+        // std::cout << "rotate = " << ((status_rotate == exit_status::Success) ? "Success" : "Failure") << std::endl;
+        // // std::cout << "gamma = " << ((status_gamma == exit_status::Success) ? "Success" : "Failure") << std::endl;
+        // std::cout << "ret_gamma = " << ret_gamma << std::endl;
+
+        const std::string bg_tfile_name_short = std::filesystem::path(bg_tfile_name).filename().generic_string();
 
         printf("Parsing %s... ", bg_tfile_name_short.c_str());
         fflush(stdout);
@@ -234,6 +247,7 @@ static unsigned int parse_bvh(const file& f) {
         or
         bvh: disabled
     */
+    f.skip_whitespace();
     f.scanf_rewind_if_failure("bvh: ");
     unsigned int polygons_per_bounding = 0;
     const exit_status status = f.scanf("polygons_per_bounding %u\n", polygons_per_bounding);
@@ -691,7 +705,12 @@ static triangle::orientation parse_triangle_orientation(const file& f,
     if (status == exit_status::Failure)
         throw std::runtime_error("parsing error in parse_texture_info (triangle UV-coordinates)\n");
 
-    return triangle::orientation(index, { uvcoord { u0, v0 }, { u1, v1 }, { u2, v2 } }, tr_v1, tr_v2);
+    return triangle::orientation(index, { uvcoord
+        { u0, 1.0_r - v0 },
+        { u1, 1.0_r - v1 },
+        { u2, 1.0_r - v2 } },
+        tr_v1, tr_v2
+    );
 }
 
 static quad::orientation parse_quad_orientation(const file& f,
@@ -709,7 +728,13 @@ static quad::orientation parse_quad_orientation(const file& f,
         u3 = 1; v3 = 1;
     }
 
-    return quad::orientation(index, { uvcoord { u0, v0 }, { u1, v1 }, { u2, v2 }, { u3, v3 } }, q_v1, q_v2);
+    return quad::orientation(index, { uvcoord
+        { u0, 1.0_r - v0 },
+        { u1, 1.0_r - v1 },
+        { u2, 1.0_r - v2 },
+        { u3, 1.0_r - v3 } },
+        q_v1, q_v2
+    );
 }
 
 static sphere::orientation parse_sphere_orientation(const file& f, const unsigned int index) {
@@ -1127,16 +1152,17 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
         while (not f.eof()) {
 
+            /* Commented line */
+            f.skip_whitespace();
+            if (f.peek_next() == '#') {
+                f.skip_line();
+                continue;
+            }
+
             const std::string arg = f.read_string(MAX_KEYWORD_LENGTH);
 
             if (f.eof())
                 break;
-
-            /* Commented line */
-            if (arg.starts_with("#")) {
-                f.skip_line();
-                continue;
-            }
             
             /* Material declaration */
             if (arg == "material") {

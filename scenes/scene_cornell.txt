@@ -1,24 +1,17 @@
 resolution width:1080 height:1080
-camera position:(0, 1, 2.5) direction:(0, 0, -1) rightdir:(1, 0, 0) fov_width:0.8 distance:1
-background_color 255 255 255
+camera position:(0, 1, 2.5) direction:(0, 0, -1) rightdir:auto fov_width:0.8 distance:1
+background_color 0 0 0
 bvh: disabled
-
-########
-
-load_mapping earth
-    texture ../../../assets/textures/earth_2.bmp
-    
-########
 
 quad (-1, 2, 0) (-1, 0, 0) (-1, 0, -2) (-1, 2, -2) material:(color:(255, 50, 50))
 quad (1, 2, -2) (1, 0, -2) (1, 0, 0) (1, 2, 0) material:(color:(50, 255, 50))
 quad (-1, 0, -2) (-1, 0, 0) (1, 0, 0) (1, 0, -2) material:diffuse
 quad (-1, 2, -2) (-1, 2, 0) (1, 2, 0) (1, 2, -2) material:diffuse
-quad (-1, 2, -2) (-1, 0, -2) (1, 0, -2) (1, 2, -2) material:diffuse mapping:(earth)
+quad (-1, 2, -2) (-1, 0, -2) (1, 0, -2) (1, 2, -2) material:diffuse
 
 material white_light (emission:5)
 # quad (-0.25, 1.99, -1.25) (-0.25, 1.99, -0.75) (0.25, 1.99, -0.75) (0.25, 1.99, -1.25) material:white_light
 quad (-0.5, 1.99, -1.5) (-0.5, 1.99, -0.5) (0.5, 1.99, -0.5) (0.5, 1.99, -1.5) material:white_light
 
-# box center:(-0.35, 0.6, -1.3) x_axis:(1, 0, -0.4) y_axis:(0, 1, 0) 0.6 1.2 0.6 material:diffuse
-# box center:(0.3, 0.325, -0.6) x_axis:(1, 0, 0.4) y_axis:(0, 1, 0) 0.55 0.65 0.55 material:diffuse
+box center:(-0.35, 0.6, -1.3) x_axis:(1, 0, -0.4) y_axis:(0, 1, 0) 0.6 1.2 0.6 material:diffuse
+box center:(0.3, 0.325, -0.6) x_axis:(1, 0, 0.4) y_axis:(0, 1, 0) 0.55 0.65 0.55 material:diffuse

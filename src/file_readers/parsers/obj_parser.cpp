@@ -266,12 +266,12 @@ struct polygon_manager {
             for (int i = 0; unsigned int vti : vt) {
                 uv[i++] = {
                     .u = uv_coord_set[vti].x,
-                    .v = uv_coord_set[vti].y
+                    .v = 1.0_r - uv_coord_set[vti].y // inversion of y coordinates
                 };
             }
 
             if constexpr (size == 2)
-                uv[2] = { final_vt.x, final_vt.y };
+                uv[2] = { final_vt.x, 1.0_r - final_vt.y };
 
             const auto& [ _, current_mapping_index, _, _ ] = mapping_params;
             if constexpr (std::is_same_v<polygon, triangle>)
