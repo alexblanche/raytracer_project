@@ -289,9 +289,14 @@ $$p = \begin{pmatrix}
 \sin\theta \cdot \sin\phi \\
 \end{pmatrix}$$
 
-<!-- -------------------------------------------------------------------- -->
+This sampling strategy is equivalent to sampling a point $P_C$ uniformly on the circumscribed cylinder's surface (excluding the two bases), projecting $P_C$ onto the axis of the cylinder to obtain $P_O$ (axial projection), and taking the intersection $P$ of the segment $[P_O, P_C]$ on the sphere. This projection is a bijection, except at the poles, which have an area of 0.
 
-<!-- Proof of uniformity: to do -->
+To show that this method gives a uniform distribution, we will do a proof similar to Archimedes' _On the Sphere and Cylinder_ (225 BCE) and prove that the axial projection of any measurable region of the sphere onto the cylinder preserves area. Hence, if we sample uniformly on the cylinder's vertical surface and project the samples onto the sphere, the samples will be uniformly distributed on the sphere as well.
+
+- An area differential $\mathrm{d}S$ on the sphere can be delimited by angles $(\theta, \theta + \mathrm{d}\theta)$ and $(\phi, \phi + \mathrm{d}\phi)$. The area of this region is approximately the same as a rectangle of length $\sin \phi \mathrm{d}\theta$ and height $\mathrm{d}\phi$: the area $A = \mathrm{d}\phi \cdot \sin \phi \mathrm{d}\theta + o(\mathrm{d}\theta\mathrm{d}\phi)$.  
+- When projected onto the cylinder, the length $\sin\phi \mathrm{d}\theta$ gives a length $\mathrm{d}\theta$ and the height $\mathrm{d}\phi$ gives a height $\sin\phi \mathrm{d}\phi$ (as the projected rectangle makes an angle $\phi$ with the vertical surface of the cylinder). The area projected onto the cylinder is $A' = \mathrm{d}\theta \cdot \sin\phi \mathrm{d}\phi + o(\mathrm{d}\theta\mathrm{d}\phi) = A$.
+
+Thus, by integrating over area differentials, any measurable region $S$ on the sphere has the same measure as the projected region on the cylinder.
 
 <!-- 
 
