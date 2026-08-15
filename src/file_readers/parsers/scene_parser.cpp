@@ -252,7 +252,7 @@ static unsigned int parse_bvh(const file& f) {
     unsigned int polygons_per_bounding = 0;
     const exit_status status = f.scanf("polygons_per_bounding %u\n", polygons_per_bounding);
     if (status == exit_status::Failure) {
-        throw_if_failure(f.scanf("disabled\n"),
+        throw_if_failure(f.scanf("disabled"),
             "parsing error in scene constructor (BVH parameters)");
     }
 

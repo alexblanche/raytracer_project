@@ -16,16 +16,16 @@ class aabb {
             Center, Corner
         };
         using enum type;
-        static constexpr type type = Center;
+        static constexpr type type_ = Center;
 
         inline static unsigned int cpt = 0;
 
-        aabb(const rt::vector& position, const rt::vector& dims_)
+        constexpr aabb(const rt::vector& position, const rt::vector& dims_)
             : position(position) {
                 
-            if constexpr (type == Corner)
+            if constexpr (type_ == Corner)
                 dims = dims_;
-            else if constexpr (type == Center)
+            else if constexpr (type_ == Center)
                 dims = dims_ * 0.5_r;
             
             cpt++;
@@ -37,9 +37,9 @@ class aabb {
             const rt::vector min(min_x, min_y, min_z);
             const rt::vector max(max_x, max_y, max_z);
 
-            if constexpr (type == Corner)
+            if constexpr (type_ == Corner)
                 position = min;
-            else if constexpr (type == Center)
+            else if constexpr (type_ == Center)
                 position = (max + min) * 0.5_r;
             dims = (max - min) * 0.5_r;
         }
@@ -62,17 +62,17 @@ class aabb {
 
         /* Minimum and maximum coordinates */
         inline min_max_coord get_min_max_coord() const {
-            if constexpr (type == Corner)
+            if constexpr (type_ == Corner)
                 return build_min_max_coord(position, position + dims);
-            else if constexpr (type == Center)
+            else if constexpr (type_ == Center)
                 return build_min_max_coord(position - dims, position + dims);
         }
 
         /* Returns the corner */
         inline rt::vector get_position() const {
-            if constexpr (type == Corner)
+            if constexpr (type_ == Corner)
                 return position + dims;
-            else if constexpr (type == Center)
+            else if constexpr (type_ == Center)
                 return position;
         }
 };

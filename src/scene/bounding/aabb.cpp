@@ -10,7 +10,7 @@ real aabb::measure_distance(const ray& r) const {
 
     const rt::vector v = u - position;
 
-    if constexpr (type == type::Corner) {
+    if constexpr (type_ == type::Corner) {
 
         if ((v.x > 0.0_r && v.x < dims.x) && (v.y > 0.0_r && v.y < dims.y) && (v.z > 0.0_r && v.z < dims.z)) {
             // u is inside the box
@@ -47,7 +47,7 @@ real aabb::measure_distance(const ray& r) const {
         return infinity;
     }
     
-    else if constexpr (type == type::Center) {
+    else if constexpr (type_ == type::Center) {
 
         // Check whether u is inside the box
         if (std::abs(v.x) <= dims.x && std::abs(v.y) <= dims.y && std::abs(v.z) <= dims.z)

@@ -15,7 +15,7 @@ class background_container {
             Untextured, Textured
         };
 
-        type type;
+        type type_;
         rt::color bg_color;
         texture bg_texture;
         linalg::mat3<mat_type> rotation_matrix;
@@ -26,22 +26,24 @@ class background_container {
     public:
         /* Struct containing the background color, the background texture and its orientation */
         background_container(const rt::color& col)
-            : type(type::Untextured), bg_color(col) {}
+            : type_(type::Untextured), bg_color(col) {}
 
         background_container(texture&& txt, const real theta_x, const real theta_y, const real theta_z)
-            : type(type::Textured), bg_texture(std::move(txt)),
+            : type_(type::Textured), bg_texture(std::move(txt)),
                 rotation_matrix(linalg::mat3<mat_type>::rotation(theta_x, theta_y, theta_z)) {}
 
         /* Returns the background color when it is a color */
         inline const rt::color& get_color(const rt::vector& dir) const {
             using enum type;
 
-            switch (type) {
+            switch (type_) {
                 case Textured:
                     return get_texture_color(dir);
                 
                 case Untextured:
                     return bg_color;
+
+                default: throw;
             }
         }
 };

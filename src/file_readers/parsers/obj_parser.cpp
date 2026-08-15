@@ -750,12 +750,14 @@ exit_status parse_obj_file(const std::string& file_name,
         .sets         = {
             vertex_set, uv_coord_set, normal_set, object_set, content, orientation_containers
         },
+        .counters = {},
         .mapping_params = {
             .current_material_index = 0,
             .current_mapping_index  = default_mapping_index.value_or(EMPTY_INDEX),
             .texturing_option       = texturing::Disabled,
             .normal_option          = normal::Disabled
         },
+        .min_max = {},
         .bounding_enabled = bounding_enabled
     };
 

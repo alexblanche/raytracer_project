@@ -236,12 +236,12 @@ requires (std::is_same_v<T, object> || std::is_same_v<T, bounding>)
     else if constexpr (std::is_same_v<bounding::box_type, aabb>) {
         using enum aabb::type;
 
-        if constexpr (aabb::type == Corner)
+        if constexpr (aabb::type_ == Corner)
             return new bounding(
                 std::forward<std::vector<const T*>>(set),
                 std::make_unique<aabb>(corner, dims)
             );
-        else if constexpr (aabb::type == Center)
+        else if constexpr (aabb::type_ == Center)
             return new bounding(
                 std::forward<std::vector<const T*>>(set),
                 std::make_unique<aabb>(center, dims)
