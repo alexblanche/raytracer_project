@@ -13,7 +13,7 @@ static constexpr std::string DEFAULT_DESCRIPTOR_FILE_NAME = "../scene.txt";
 class menu {
 
     public:
-        runtime_parameters runtime_parameters;
+        runtime_parameters_container runtime_parameters;
         std::string scene_descriptor_name = DEFAULT_DESCRIPTOR_FILE_NAME;
 
         exit_status parse_arguments(std::span<const std::string> args);

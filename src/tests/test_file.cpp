@@ -55,9 +55,9 @@ static void test_basic() {
     {
         const file f("a.txt", "r");
         const uint32_t a = f.scan<uint32_t>().value();
-        const  int32_t b = f.scan< int32_t>().value();
+        const int32_t  b = f.scan< int32_t>().value();
         const uint64_t c = f.scan<uint64_t>().value();
-        printf("a = %u, b = %d, c = %llu\n", a, b, c);
+        std::cout << "a = " << a << ", b = " << b << ", c = " << c << std::endl;
         assert(a == values[0] && b == values[1] && c == values[2]);
     }
 
@@ -87,7 +87,7 @@ static void test_basic() {
     }
 
     {
-        file f("a.txt");
+        const file f("a.txt");
         const auto [ a, b, c ] = f.scan<int, float, double>().value();
         printf("a = %d, b = %f, c = %lf\n", a, b, c);
         assert(a == values[0] && b == values[1] && c == values[2]);
@@ -103,12 +103,12 @@ static void test_basic() {
     constexpr int intvals[] = { 2, 3, -4 };
     [[maybe_unused]] const auto [ i, j, k ] = intvals;
     {
-        file f("a.txt", "w");
+        const file f("a.txt", "w");
         assert(exit_status::Success == f.write<int>(i, j, k));
     }
 
     {
-        file f("a.txt");
+        const file f("a.txt");
         int buffer[3] = { 0 };
         f.read<int, 3>(buffer);
         [[maybe_unused]] const auto [ x, y, z ] = buffer;

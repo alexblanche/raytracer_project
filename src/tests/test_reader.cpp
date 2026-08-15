@@ -220,7 +220,7 @@ static void test_obj() {
         normal_map_set.clear();
     }
     printf("OBJ ");
-    printf("Time: %llums\n", total_time);
+    printf("Time: %lums\n", static_cast<unsigned long int>(total_time));
 }
 
 static void convert_hdr_to_bmp(const std::string& filename_hdr) {

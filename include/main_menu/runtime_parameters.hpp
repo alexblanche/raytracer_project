@@ -41,7 +41,7 @@ struct runtime_debugger {
     int x, y;
 };
 
-struct runtime_parameters {
+struct runtime_parameters_container {
     unsigned int             number_of_bounces      = 5;
     program_parameters       program                = { program_parameters::mode::Interactive,   0    };
     sampling_parameters      sampling               = { sampling_parameters::mode::UniSample,    1    };

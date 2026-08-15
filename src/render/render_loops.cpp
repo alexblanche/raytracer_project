@@ -37,11 +37,11 @@ static void print_estimated_time(uint64_t time_elapsed, float progress) {
     const float estimated_time = static_cast<float>(time_elapsed) / (progress * 10.0f); // (elapsed / (progress / 100)) * 1000 (in ms)
     printf("%.1f%%, ", progress);
     if (time_elapsed < 1000)
-        printf("Time elapsed: %llums, estimated total time: %f seconds\n", time_elapsed, estimated_time);
+        printf("Time elapsed: %lums, estimated total time: %f seconds\n", static_cast<unsigned long int>(time_elapsed), estimated_time);
     else {
         const int estimated_time_int = static_cast<int>(estimated_time);
-        printf("Time elapsed: %llu seconds, estimated total time: %d seconds = %d minutes %d seconds\n",
-            time_elapsed / 1000,
+        printf("Time elapsed: %lu seconds, estimated total time: %d seconds = %d minutes %d seconds\n",
+            static_cast<unsigned long int>(time_elapsed) / 1000ul,
             estimated_time_int,
             estimated_time_int / 60,
             estimated_time_int % 60
@@ -56,7 +56,7 @@ static void print_render_time(uint64_t elapsed, bool time_all) {
         printf("   ");
     
     if (elapsed < 3000) {
-        printf("%llums\n", elapsed);
+        std::cout << elapsed << "ms\n";
         return;
     }
     

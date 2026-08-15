@@ -87,7 +87,7 @@ pre_parsing_info_obj pre_parse_obj(const std::string& filename) {
 
 /**************************************************************************************/
 
-struct sets {
+struct sets_container {
     std::vector<rt::vector>&   vertex_set;
     std::vector<rt::vector>&   uv_coord_set;
     std::vector<rt::vector>&   normal_set;
@@ -176,7 +176,7 @@ constexpr unsigned int size =
       std::is_same_v<polygon, quad> ?          4
     : subdiv_option == subdivision::Disabled ? 3 : 2;
 
-struct counters {
+struct counters_container {
     unsigned int number_of_vertices        = 0;
     unsigned int number_of_texture_coords  = 0;
     unsigned int number_of_normals         = 0;
@@ -199,8 +199,8 @@ struct polygon_manager {
     std::vector<triangle>&   triangle_set;
     std::vector<quad>&       quad_set;
     const model_positioning& positioning;
-    sets                     sets;
-    counters                 counters;
+    sets_container           sets;
+    counters_container       counters;
     mapping_parameters       mapping_params;
     
     /* Min-max dimensions */

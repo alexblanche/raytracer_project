@@ -63,8 +63,8 @@ concept Arithm = std::is_arithmetic_v<T>;
         return out;
     }
 
-    #define CONSTEXPR const
-    #define CONSTEVAL inline
+    #define CONSTEXPR static constexpr
+    #define CONSTEVAL constexpr
 
 #endif
 
@@ -75,15 +75,15 @@ static CONSTEVAL std::string data_format() {
         return "%c";
     else if constexpr (std::is_floating_point_v<T>) {
         CONSTEXPR std::string prefix =
-            std::is_same_v<T, float>  ? ""  :
+            std::is_same_v<T, float>  ? "" :
             std::is_same_v<T, double> ? "l" : "ll";
         return "%" + prefix + "f";
     }
     else {
         CONSTEXPR std::string prefix =
-            sizeof(T) <= sizeof(int)             ? ""  :
-            std::is_same_v<long, T>
-            || std::is_same_v<unsigned long, T> ? "l" : "ll";
+                sizeof(T) <= sizeof(int)            ? "" :
+                std::is_same_v<long, T>
+                || std::is_same_v<unsigned long, T> ? "l" : "ll";
         CONSTEXPR std::string suffix = std::is_unsigned_v<T> ? "u" : "d";
         return "%" + prefix + suffix;
     }
@@ -107,7 +107,7 @@ class file {
     enum class mode {
         R, RB, W, WB, A, AB
     };
-    static constexpr mode string(const std::string& s) {
+    static constexpr mode string_of_mode(const std::string& s) {
         using enum mode;
         if (s == "r" ) return R;
         if (s == "rb") return RB;
@@ -119,9 +119,9 @@ class file {
     }
 
     public:
-        FILE *f;
+        FILE *f = nullptr;
     private:
-        mode mode_;
+        mode mode_ = mode::R;
 
         // Helper function to scan
         template<Arithm T, std::size_t count>
@@ -139,7 +139,7 @@ class file {
         };
 
         file(const std::string& filename, const std::string& mode_s = "r") :
-            f(fopen(filename.c_str(), mode_s.c_str())), mode_(string(mode_s)) {
+            f(fopen(filename.c_str(), mode_s.c_str())), mode_(string_of_mode(mode_s)) {
 
             if (f == nullptr) {
                 using enum mode;
@@ -229,7 +229,7 @@ class file {
 
             const std::size_t pos = position();
 
-            fgets(t.data(), max_length + 1, f);
+            std::ignore = fgets(t.data(), max_length + 1, f);
             std::string out(t.data());
 
             // Postprocessing
@@ -410,10 +410,10 @@ class file {
         template<Arithm T, std::size_t count>
         std::array<T, count> scan() const {
 
-            CONSTEXPR std::string df = data_format<T>();
+            CONSTEXPR std::string df(data_format<T>());
 
 #if APPLE_CLANG 
-            constexpr std::string format = string_concat<count>(df);
+            constexpr std::string format(string_concat<count>(df));
 #else
             const std::string format = string_concat(count, df);
 #endif

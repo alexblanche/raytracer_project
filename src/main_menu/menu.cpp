@@ -221,7 +221,7 @@ void menu::update_gamma(const std::optional<real> new_gamma) {
 }
 
 static inline void render_simple(image& image, const scene& scene,
-    const runtime_parameters& runtime_parameters) {
+    const runtime_parameters_container& runtime_parameters) {
 
     const unsigned int depth = runtime_parameters.number_of_bounces;
     const russian_roulette_mode rr = runtime_parameters.russian_roulette;
@@ -239,7 +239,7 @@ static inline void render_simple(image& image, const scene& scene,
 }
 
 static inline void render(image& image, const scene& scene,
-    const runtime_parameters& runtime_parameters) {
+    const runtime_parameters_container& runtime_parameters) {
     
     const unsigned int depth = runtime_parameters.number_of_bounces;
     const russian_roulette_mode rr = runtime_parameters.russian_roulette;
@@ -257,7 +257,7 @@ static inline void render(image& image, const scene& scene,
     }
 }
 
-static exit_status run_offline(const runtime_parameters& runtime_parameters, image& image,
+static exit_status run_offline(const runtime_parameters_container& runtime_parameters, image& image,
     const scene& scene, const file_handler& file_handler) {
 
     const unsigned int target = runtime_parameters.program.target_number_of_rays;
@@ -353,7 +353,7 @@ static std::optional<exit_status> process_events(const rt::screen& scr, const fi
 }
 
 
-static exit_status run_interactive(const runtime_parameters& runtime_parameters,
+static exit_status run_interactive(const runtime_parameters_container& runtime_parameters,
     image& image, const scene& scene, const file_handler& file_handler) {
 
     if (runtime_parameters.debug == runtime_debugger::option::Enabled)

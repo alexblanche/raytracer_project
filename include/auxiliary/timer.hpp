@@ -2,6 +2,7 @@
 
 #include "main_menu/runtime_parameters.hpp"
 
+#include <iostream>
 #include <ctime>
 #include <chrono>
 
@@ -92,6 +93,6 @@ class timer_ms {
         }
 
         void print() const {
-            printf("%llums\n", elapsed());
-        }        
+            std::cout << elapsed() << "ms\n";
+        }
 };
