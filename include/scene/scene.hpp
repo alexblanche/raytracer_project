@@ -44,7 +44,12 @@ class scene {
             unsigned int boxes      = 0;
             unsigned int cylinders  = 0;
             unsigned int materials  = 0;
-            unsigned int textures   = 0;
+            unsigned int mappings   = 0;
+
+            static inline const std::array<std::string, 8> keywords_array = {
+                "triangle", "quad", "sphere", "plane", "box", "cylinder",
+                "material", "load_mapping"
+            };
 
             void print() const {
                 std::cout << "pre_parse_info:"
@@ -55,7 +60,7 @@ class scene {
                     << "\nboxes:     " << boxes
                     << "\ncylinders: " << cylinders
                     << "\nmaterials: " << materials
-                    << "\ntextures:  " << textures
+                    << "\nmappings:  " << mappings
                     << std::endl;
             }
 

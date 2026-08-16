@@ -24,15 +24,12 @@ using enum object_type;
 [[maybe_unused]] static scene::pre_parsing_info pre_parse(const file& f) {
 
     scene::pre_parsing_info ppi;
+    auto& [ objects, triangles, quads, spheres, planes, boxes, cylinders, materials, mappings ] = ppi;
 
-    const std::array<std::string, 8> keywords_array = {
-        "triangle", "quad", "sphere", "plane", "box", "cylinder",
-        "material", "load_texture"
-    };
 #if APPLE_CLANG
-    const std::span keywords(keywords_array);
+    const std::span keywords(scene::pre_parsing_info::keywords_array);
 #else
-    const auto& keywords = keywords_array;
+    const auto& keywords = scene::pre_parsing_info::keywords_array;
 #endif
 
     std::string arg;
@@ -44,25 +41,25 @@ using enum object_type;
         if (obj_index_opt.has_value()) {
             const unsigned int index = obj_index_opt.value();
             switch (index) {
-                case 0: ppi.triangles++; break;
-                case 1: ppi.quads++;     break;
-                case 2: ppi.spheres++;   break;
-                case 3: ppi.planes++;    break;
-                case 4: ppi.boxes++;     break;
-                case 5: ppi.cylinders++; break;
-                case 6: ppi.materials++; break;
-                case 7: ppi.textures++;  break;
+                case 0: triangles++; break;
+                case 1: quads++;     break;
+                case 2: spheres++;   break;
+                case 3: planes++;    break;
+                case 4: boxes++;     break;
+                case 5: cylinders++; break;
+                case 6: materials++; break;
+                case 7: mappings++;  break;
                 default: break;
             }
             if (index < 6)
-                ppi.objects++;
+                objects++;
         }
         else if (arg == "load_obj") {
             const std::string filename = f.read_string(MAX_FILENAME_LENGTH);
             const auto& [ _, obj_triangles, obj_quads ] = pre_parse_obj(filename);
-            ppi.triangles += obj_triangles;
-            ppi.quads     += obj_quads;
-            ppi.objects   += obj_triangles + obj_quads;
+            triangles += obj_triangles;
+            quads     += obj_quads;
+            objects   += obj_triangles + obj_quads;
         }
 
         f.skip_line();

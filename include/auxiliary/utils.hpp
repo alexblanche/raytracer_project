@@ -9,7 +9,7 @@
 #include <optional>
 #include <span>
 
-// Experiments around basing float expressions
+// Experiments around float expressions
 
 inline bool is_zero(real x) {
     
@@ -44,47 +44,33 @@ inline bool is_negative_not_zero(real x) {
 
 ///////////////////////////////////////////////////
 
+template<typename T>
+concept Comparable = requires (T x, T y) { x == y; };
+
 #if APPLE_CLANG
 
-    // Returns the index of x in the given set of values if it is present, otherwise std::nullopt
-    template<typename T, std::size_t extent>
-    requires (requires (T x, T y) { x == y; })
-    std::optional<unsigned int> index_of(const T& x, const std::span<const T, extent> values) {
-        for (unsigned int i = 0; const T& y : values) {
-            if (x == y)
-                return i;
-            i++;
-        }
-        return std::nullopt;
-    }
+    template<Comparable T, std::size_t extent>
+    using Array = std::span<const T, extent>;
 
 #else
 
     #include <array>
 
-    // Returns the index of x in the given set of values if it is present, otherwise std::nullopt
-    template<typename T, std::size_t extent>
-    requires (requires (T x, T y) { x == y; })
-    std::optional<unsigned int> index_of(const T& x, const std::array<T, extent>& values) {
-        for (unsigned int i = 0; const T& y : values) {
-            if (x == y)
-                return i;
-            i++;
-        }
-        return std::nullopt;
-    }
+    template<Comparable T, std::size_t extent>
+    using Array = const std::array<T, extent>&;
 
-    template<typename T, std::size_t extent>
-    requires (requires (T x, T y) { x == y; })
-    std::optional<unsigned int> index_of(const T& x, std::array<T, extent>&& values) {
-        for (unsigned int i = 0; const T& y : values) {
-            if (x == y)
-                return i;
-            i++;
-        }
-        return std::nullopt;
-    }
 #endif
+
+// Returns the index of x in the given set of values if it is present, otherwise std::nullopt
+template<Comparable T, std::size_t extent>
+std::optional<unsigned int> index_of(const T& x, const Array<T, extent> values) {
+    for (unsigned int i = 0; const T& y : values) {
+        if (x == y)
+            return i;
+        i++;
+    }
+    return std::nullopt;
+}
 
 ///////////////////////////////////////////////////
 
