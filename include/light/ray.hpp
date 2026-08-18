@@ -2,7 +2,7 @@
 
 #include "math/geometry/vector.hpp"
 
-struct ray {
+class ray {
     
     public:
         rt::vector origin;

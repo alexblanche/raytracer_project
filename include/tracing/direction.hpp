@@ -8,13 +8,14 @@
 class direction {
     public:
 
-        struct bounce_vectors {
-            const rt::vector& direction;
-            const rt::vector& normal;
-            real incidence; // = (direction | normal)
+        class bounce_vectors {
+            public:
+                const rt::vector& direction;
+                const rt::vector& normal;
+                real incidence; // = (direction | normal)
 
-            bounce_vectors(const rt::vector& direction, const rt::vector& normal) :
-                direction(direction), normal(normal), incidence(direction | normal) {}
+                bounce_vectors(const rt::vector& direction, const rt::vector& normal) :
+                    direction(direction), normal(normal), incidence(direction | normal) {}
         };
 
         /* Returns the reflected ray at the point of contact */

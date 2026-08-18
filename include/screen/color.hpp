@@ -120,7 +120,14 @@ namespace rt  {
 		}
 
 		/* Maxing out color components at 255. */
-		[[nodiscard]] color get_capped() const;
+		[[nodiscard]] color get_capped() const {
+			constexpr real max = 255.0_r;
+			return color(
+				std::min(red,   max),
+				std::min(green, max),
+				std::min(blue,  max)
+			);
+		}
 
 		inline void cap() {
 			constexpr real max = 255.0_r;

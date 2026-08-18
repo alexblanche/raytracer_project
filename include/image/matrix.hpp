@@ -72,7 +72,7 @@ class matrix {
 
 
     // Random-access iterator
-    struct iterator {
+    class iterator {
         private:
             std::size_t j;              // row index
             matrix* mat;

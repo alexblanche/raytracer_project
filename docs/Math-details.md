@@ -16,7 +16,7 @@ We denote:
 
 We have to solve the equation $\vert v - t \cdot dir \vert^2 = r^2$ for $t > 0$.  
 The system is equivalent to:  
-$$t^2 \cdot \vert dir\vert^2 - 2 \cdot (dir \vert v)\cdot t + \vert v\vert^2 - r^2 = 0$$
+$$t^2 \cdot \vert dir\vert^2 - 2 \cdot (dir \vert v)\cdot t + \vert v\vert^2 - r^2 = 0$$  
 Or:
 $$t^2 - 2\cdot (dir \vert v)\cdot t + (\vert v\vert^2 - r^2) = 0$$
 
@@ -42,7 +42,7 @@ The normal and the direction are supposed to be unit vectors ($\vert n\vert = \v
 The equation of the plane is given by its parameters $a, b, c, d$: a point $(x, y, z)$ belongs to the plane if $ax + by + cz + d = 0$.
 
 We are searching for $t > 0$ such that $u + t \cdot dir$ belongs to the plane,
-i.e. $a(u_x + t\cdot d_x) + b(u_y + t\cdot d_y) + c(u_z + t\cdot d_z) + d = 0$. We deduce the value of $t$:
+i.e. $a(u_x + t\cdot d_x) + b(u_y + t\cdot d_y) + c(u_z + t\cdot d_z) + d = 0$. We deduce the value of $t$:  
 $$t = -\ \frac{a u_x + b u_y + c u_z + d}{a d_x + b d_y + c d_z}$$
 
 We can rewrite $t$ as:  
@@ -297,6 +297,11 @@ To show that this method gives a uniform distribution, we will do a proof simila
 - When projected onto the cylinder, the length $\sin\phi \mathrm{d}\theta$ gives a length $\mathrm{d}\theta$ and the height $\mathrm{d}\phi$ gives a height $\sin\phi \mathrm{d}\phi$ (as the projected rectangle makes an angle $\phi$ with the vertical surface of the cylinder). The area projected onto the cylinder is $A' = \mathrm{d}\theta \cdot \sin\phi \mathrm{d}\phi + o(\mathrm{d}\theta\mathrm{d}\phi) = A$.
 
 Thus, by integrating over area differentials, any measurable region $S$ on the sphere has the same measure as the projected region on the cylinder.
+
+<!-- <details>
+<summary>Proof</summary>
+<p>Proof content</p>
+</details> -->
 
 <!-- 
 

@@ -12,7 +12,7 @@ class object {
         rt::vector position;
 
         /* Color of the object */
-        const rt::color color;
+        rt::color color;
 
     public:
 

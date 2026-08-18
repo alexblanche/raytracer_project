@@ -308,8 +308,8 @@ namespace sdl {
             }
 
             struct locked_info {
-                char *  pixels;
-                int     pitch;
+                char* pixels;
+                int   pitch;
             };
 
             locked_info lock_texture() const {

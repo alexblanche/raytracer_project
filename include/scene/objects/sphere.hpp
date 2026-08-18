@@ -11,9 +11,6 @@ class sphere final : public object {
         real radius;
         real radius_sq; // pre-computation
         
-        // Direction vectors, used to orient the texture
-        // sphere_orientation orientation; -> moved to its own structure (sphere::orientation)
-
     public:
 
         struct orientation : public mapping_info {

@@ -11,8 +11,7 @@ namespace trig {
         phi   = vertical angle (phi = 0: (0,1,0), phi = pi/2: y=0 plane, phi = pi: (0,-1,0))
     */
     struct angles {
-        const real theta;
-        const real phi;
+        real theta, phi;
     };
 
     inline rt::vector direction(const real cos_phi, const real theta) {

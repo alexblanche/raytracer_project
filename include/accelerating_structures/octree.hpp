@@ -5,29 +5,30 @@
 #include <vector>
 #include <cstring>
 
-struct search_tree {
+class search_tree {
 
-    using bool_type = char;
+    public:
+        using bool_type = char;
 
-    // Internal nodes are points that divide the 3D space into 8 regions
-    std::vector<rt::vector> internal_nodes;
+        // Internal nodes are points that divide the 3D space into 8 regions
+        std::vector<rt::vector> internal_nodes;
 
-    // Each index is a vector containing the indices of the points contained in the leaf
-    std::vector<std::vector<unsigned int>> leaves;
+        // Each index is a vector containing the indices of the points contained in the leaf
+        std::vector<std::vector<unsigned int>> leaves;
 
-    // Each index contains a boolean that indicates whether the node is terminal (a leaf) or internal
-    std::vector<bool_type> terminal_state;
+        // Each index contains a boolean that indicates whether the node is terminal (a leaf) or internal
+        std::vector<bool_type> terminal_state;
 
-    // Centroids referenced by the tree
-    const std::vector<rt::vector>& means;
+        // Centroids referenced by the tree
+        const std::vector<rt::vector>& means;
 
-    search_tree(const std::vector<rt::vector>& means)
-        : means(means) {}
+        search_tree(const std::vector<rt::vector>& means)
+            : means(means) {}
 
-    search_tree(search_tree&&)                 = delete;
-    search_tree(const search_tree&)            = delete;
-    search_tree& operator=(const search_tree&) = delete;
-    search_tree& operator=(search_tree&&)      = delete;
+        search_tree(search_tree&&)                 = delete;
+        search_tree(const search_tree&)            = delete;
+        search_tree& operator=(const search_tree&) = delete;
+        search_tree& operator=(search_tree&&)      = delete;
 
     private:
         void resize_containers(unsigned int n) {

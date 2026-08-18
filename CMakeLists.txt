@@ -32,7 +32,6 @@ include_directories(${SDL2_INCLUDE_DIRS})
 ##################################################################
 
 set(MATRIX_SOURCES
-	src/screen/color.cpp
 	src/image/matrix.cpp
 )
 
