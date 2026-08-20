@@ -21,9 +21,7 @@
       and the association table is updated with a new pair (m_index, t_index) so that each material created
       with index m_index must have the texture t_index
     - Textures are loaded each time without checking for duplicates, because I assume that it does not happen often
-      (otherwise I need a table to remember the already loaded texture's file names)
-
-   Returns true if the operation was successful */
+      (otherwise I need a table to remember the already loaded texture's file names) */
   
 using material_mapping_map = std::unordered_map<unsigned int, mapping::index_type>;
 

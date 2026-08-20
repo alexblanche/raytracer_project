@@ -47,15 +47,13 @@ class bmp {
 		};
 
 		/* Extracts the data from the given .bmp file: stores the width and height in the provided
-			references, and returns a matrix of width rows and height columns containing colors
-			Returns true if the operation was successful */
+			references, and returns a matrix of width rows and height columns containing colors */
 		static std::expected<matrix, file_reader::error> read_file(const std::string& file_name);
 
 		/* Prints the info contained in the header of the given .bmp file */
 		static exit_status print_info(const std::string& file_name);
 
 		/* Writes the data into a .bmp file with the given name
-			The value (real) of each component of each color of data is divided by number_of_rays before being written in the file
-			Returns true if the operation was successful */
+			The value (real) of each component of each color of data is divided by number_of_rays before being written in the file */
 		static exit_status export_data(const std::string& file_name, const image& image);
 };

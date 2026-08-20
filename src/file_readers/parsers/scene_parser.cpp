@@ -215,10 +215,13 @@ static bg_parsing_result parse_background(const file& f) {
         printf("Parsing %s... ", bg_tfile_name_short.c_str());
         fflush(stdout);
 
-        bool bg_parsing_successful;
-        background_texture = texture(bg_tfile_name, bg_parsing_successful);
-        if (not bg_parsing_successful)
+        try {
+            background_texture = texture(bg_tfile_name);
+        }
+        catch (const std::exception& e) {
+            printf("%s\n", e.what());
             throw std::runtime_error("parsing error in scene constructor (background texture parsing)");
+        }           
         
         printf("\r> %s texture loaded\n", bg_tfile_name_short.c_str());
         background_texture_is_set = true;
@@ -636,30 +639,29 @@ static void parse_mapping(const file& f, const std::optional<real> inverse_gamma
         printf("Parsing %s...", tfile_name.c_str());
         fflush(stdout);
 
-        bool parsing_successful;
-        switch (type_) {
-            case Texture: {
-                texture_set.emplace_back(tfile_name, parsing_successful, inverse_gamma);
-                comp.has_texture = true;
-                break;
+        try {
+            switch (type_) {
+                case Texture: {
+                    texture_set.emplace_back(tfile_name, inverse_gamma);
+                    comp.has_texture = true;
+                    break;
+                }
+                case Normal_map: {
+                    normal_map_set.emplace_back(tfile_name);
+                    comp.has_normal_map = true;
+                    break;
+                }
+                // ...
+                default:
+                    static_assert(TODO_ROUGHNESS_MAP);
+                    static_assert(TODO_DISPLACEMENT_MAP);
+                    throw;
             }
-            case Normal_map: {
-                normal_map_set.emplace_back(tfile_name, parsing_successful);
-                comp.has_normal_map = true;
-                break;
-            }
-            // ...
-            default:
-                static_assert(TODO_ROUGHNESS_MAP);
-                static_assert(TODO_DISPLACEMENT_MAP);
-                throw;
-        }
 
-        if (parsing_successful) {
             printf("\r> %s %s loaded                                                     \n",
                 tfile_name_short.c_str(), type_str.c_str());
         }
-        else {
+        catch (const std::exception& e) {
             printf("%s %s reading failed\n", tfile_name_short.c_str(), type_str.c_str());
             throw std::runtime_error(type_str + " reading failed");
         }

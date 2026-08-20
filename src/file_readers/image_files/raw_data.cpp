@@ -156,8 +156,7 @@ std::expected<image, file_reader::error> raw_data::read_file(const std::string& 
 }
 
 /* Combines the n files whose names are in the array source_file_names into one bmp file dest_bmp_name (extension .bmp)
-   and one raw data file dest_raw_name (extension .rtdata)
-   Returns true if the operation was successful */
+   and one raw data file dest_raw_name (extension .rtdata) */
 exit_status raw_data::combine_files(const std::string& dest_bmp_name, const std::string& dest_raw_name,
     const std::span<const std::string> source_file_names, std::optional<std::string> input_dir,
     std::optional<float> gamma_opt) {

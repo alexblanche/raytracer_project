@@ -30,9 +30,8 @@ class texture {
             width_real(width),
             height_real(height) {}
 
-        /* Constructor from a .bmp or .hdr file
-           Writes true in parsing_successful if the operation was successful */
-        texture(const std::string& file_name, bool& parsing_successful, std::optional<real> gamma = std::nullopt);
+        /* Constructor from a .bmp or .hdr file */
+        texture(const std::string& file_name, std::optional<real> gamma = std::nullopt);
 
         /* Returns the color stored in data at UV-coordinates u, v (between 0 and 1) times width, height */
         inline const rt::color& get_color(const real u, const real v) const {
@@ -43,13 +42,13 @@ class texture {
             return data[ std::clamp(y, 0, height), std::clamp(x, 0, width) ];
         }
 
-        ~texture() = default;
+        ~texture()                    noexcept = default;
 
-        texture(texture&&)                  = default;
-        texture& operator=(texture&&)       = default;
+        texture(texture&&)            noexcept = default;
+        texture& operator=(texture&&) noexcept = default;
 
-        texture(const texture&)             = delete;
-        texture& operator=(const texture&)  = delete;
+        texture(const texture&)                = delete;
+        texture& operator=(const texture&)     = delete;
 };
 
 template<>

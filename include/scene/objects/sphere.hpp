@@ -13,13 +13,14 @@ class sphere final : public object {
         
     public:
 
-        struct orientation : public mapping_info {
+        class orientation final : public mapping_info {
             
-            // Rows: right_dir, up_dir, forward_dir
-            linalg::mat3<linalg::mat_type::Row> matrix;
+            public:
+                // Rows: right_dir, up_dir, forward_dir
+                linalg::mat3<linalg::mat_type::Row> matrix;
 
-            orientation(const mapping::index_type index,
-                const rt::vector& forward_dir, const rt::vector& right_dir);
+                orientation(const mapping::index_type index,
+                    const rt::vector& forward_dir, const rt::vector& right_dir);
         };
 
 

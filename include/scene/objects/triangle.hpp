@@ -51,14 +51,15 @@ class triangle final : public object {
 
     public:
 
-        struct orientation : public mapping_info {
-            uvcoord uv[3];
-            rt::vector tangent;
-            rt::vector bitangent;
+        class orientation final : public mapping_info {
+            public:
+                uvcoord uv[3];
+                rt::vector tangent;
+                rt::vector bitangent;
 
-            orientation(const mapping::index_type index,
-                const std::array<uvcoord, 3>& uvc,
-                const rt::vector& v1, const rt::vector& v2);
+                orientation(const mapping::index_type index,
+                    const std::array<uvcoord, 3>& uvc,
+                    const rt::vector& v1, const rt::vector& v2);
         };
         
         // Constructor from three points

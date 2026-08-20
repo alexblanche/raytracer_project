@@ -12,7 +12,7 @@ class cylinder final : public object {
 
     public:
 
-        struct orientation : public mapping_info {}; // Unused
+        class orientation final : public mapping_info {}; // Unused
 
         cylinder(const rt::vector& origin, const rt::vector& direction,
             real radius, real length, unsigned int material_index,

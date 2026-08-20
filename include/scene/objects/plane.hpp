@@ -17,13 +17,14 @@ class plane final : public object {
 
     public:
 
-        struct orientation : public mapping_info {
-            rt::vector right_dir   = rt::RIGHT;
-            rt::vector down_dir    = rt::FORWARD;
-            real inv_texture_scale = 1.0_r;
+        class orientation final : public mapping_info {
+            public:
+                rt::vector right_dir   = rt::RIGHT;
+                rt::vector down_dir    = rt::FORWARD;
+                real inv_texture_scale = 1.0_r;
 
-            orientation(const mapping::index_type index,
-                const rt::vector& normal, const rt::vector& right, real scale);
+                orientation(const mapping::index_type index,
+                    const rt::vector& normal, const rt::vector& right, real scale);
         };
 
         plane(real pa, real pb, real pc, const rt::vector& position,

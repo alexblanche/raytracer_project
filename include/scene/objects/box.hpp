@@ -17,7 +17,7 @@ class box final : public object {
 
     public:
 
-        struct orientation : public mapping_info {}; // Unused
+        class orientation final : public mapping_info {}; // Unused
 
         /* Main constructor */
         constexpr box(const rt::vector& center, const rt::vector& n1, const rt::vector& n2,

@@ -18,14 +18,12 @@ class normal_map {
         real width_real, height_real;
     
     public:
-
         normal_map() {}
 
         normal_map(unsigned int w, unsigned int h, vector_matrix&& data);
 
-        /* Constructor from a .bmp file
-           Writes true in parsing_successful if the operation was successful */
-        normal_map(const std::string& file_name, bool& parsing_successful);
+        /* Constructor from a .bmp file */
+        normal_map(const std::string& file_name);
 
         normal_map(normal_map&&)            noexcept = default;
         normal_map& operator=(normal_map&&) noexcept = default;

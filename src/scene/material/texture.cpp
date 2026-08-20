@@ -5,9 +5,8 @@
 
 #include <filesystem>
 
-/* Constructor from a .bmp or .hdr file
-   Writes true in parsing_successful if the operation was successful */
-texture::texture(const std::string& file_name, bool& parsing_successful, std::optional<real> gamma) {
+/* Constructor from a .bmp or .hdr file */
+texture::texture(const std::string& file_name, std::optional<real> gamma) {
 
     const std::string extension = std::filesystem::path(file_name).extension().generic_string();
     const bool is_bmp = extension == ".bmp";
@@ -18,9 +17,8 @@ texture::texture(const std::string& file_name, bool& parsing_successful, std::op
     std::expected<matrix, file_reader::error> mat_opt = (is_bmp) ?
           bmp::read_file(file_name)
         : hdr::read_file(file_name);
-    parsing_successful = mat_opt.has_value();
-    if (not parsing_successful)
-        return;
+    if (not mat_opt.has_value())
+        throw std::runtime_error("Error in texture definition: could not read image file\n");
 
     data = std::move(mat_opt.value());
     if (gamma.has_value())

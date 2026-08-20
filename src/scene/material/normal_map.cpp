@@ -2,6 +2,8 @@
 
 #include "file_readers/image_files/normal_map_reader.hpp"
 
+#include <stdexcept>
+
 normal_map::normal_map(const unsigned int w, const unsigned int h, vector_matrix&& data)
     : data(std::move(data)),
       width(w - 1), height(h - 1),
@@ -9,20 +11,18 @@ normal_map::normal_map(const unsigned int w, const unsigned int h, vector_matrix
       height_real(height) {}
 
 
-/* Constructor from a .bmp file
-   Writes true in parsing_successful if the operation was successful */
-normal_map::normal_map(const std::string& file_name, bool& parsing_successful) {
+/* Constructor from a .bmp file */
+normal_map::normal_map(const std::string& file_name) {
 
     std::optional<vector_matrix> vm_opt = read_normal_map(file_name);
-    parsing_successful = vm_opt.has_value();
+    if (not vm_opt.has_value())
+        throw std::runtime_error("Error in normal map definition: could not read image file\n");
 
     data = std::move(vm_opt.value());
-    if (parsing_successful) {
-        width  = data.size() - 1;
-        height = data[0].size() - 1;
-        width_real  = static_cast<real>(width);
-        height_real = static_cast<real>(height);
-    }
+    width  = data.size()    - 1;
+    height = data[0].size() - 1;
+    width_real  = static_cast<real>(width);
+    height_real = static_cast<real>(height);
 }
 
 

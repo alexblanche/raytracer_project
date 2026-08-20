@@ -127,8 +127,7 @@ struct byte_representation {
 };
 
 /* Writes the data into a .bmp file with the given name
-   The value (double) of each component of each color of data is divided by number_of_rays before being written in the file
-   Returns true if the operation was successful */
+   The value (double) of each component of each color of data is divided by number_of_rays before being written in the file */
 exit_status bmp::export_data(const std::string& file_name, const image& image) {
 
     const auto [ width, height ] = image.data.get_dimensions();

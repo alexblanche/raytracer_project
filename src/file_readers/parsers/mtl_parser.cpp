@@ -130,12 +130,17 @@ exit_status parse_mtl_file(const std::filesystem::path& path, const std::string&
                     const std::string tfile_name = f.read_string(MAX_FILENAME_LENGTH);
 
                     // Texture loading
-                    bool parsing_successful;
                     const std::string full_name = (path / tfile_name).generic_string();
 
                     auto& [ _, _, _, _, composition_wrapper_set, texture_set, normal_map_set, _ ] = containers;
 
-                    texture_set.emplace_back(full_name, parsing_successful, gamma);
+                    try {
+                        texture_set.emplace_back(full_name, gamma);
+                    }
+                    catch (const std::exception& e) {
+                        printf("%s\n", e.what());
+                        throw std::runtime_error("mtl_parser: " + tfile_name + " texture reading failed\n");
+                    }
                     normal_map_set.emplace_back();
                     // ...
 
@@ -148,9 +153,6 @@ exit_status parse_mtl_file(const std::filesystem::path& path, const std::string&
                     static_assert(TODO_ROUGHNESS_MAP_IN_MTL);
                     static_assert(TODO_DISPLACEMENT_MAP_IN_MTL);
 
-                    if (not parsing_successful)
-                        throw std::runtime_error("mtl_parser: " + tfile_name + " texture reading failed\n");
-                    
                     printf("\rmtl_parser: %s texture loaded\n", tfile_name.c_str());
                 }
                 // else: texture omitted
