@@ -54,13 +54,6 @@ constexpr parallelism PARALLELISM = parallelism::Enabled;
 
 /*** Macro ***/
 
-// Compiler check
-#if (defined(__APPLE__) && defined(__clang__))
-    #define APPLE_CLANG 1
-#else
-    #define APPLE_CLANG 0
-#endif
-
 // Features to be implemented
 constexpr bool TODO_BOX_TEXTURING      = true;
 constexpr bool TODO_BOX_SAMPLING       = true;

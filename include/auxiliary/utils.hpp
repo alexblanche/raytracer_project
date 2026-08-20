@@ -47,23 +47,9 @@ inline bool is_negative_not_zero(real x) {
 template<typename T>
 concept Comparable = requires (T x, T y) { x == y; };
 
-#if APPLE_CLANG
-
-    template<Comparable T, std::size_t extent>
-    using Array = std::span<const T, extent>;
-
-#else
-
-    #include <array>
-
-    template<Comparable T, std::size_t extent>
-    using Array = const std::array<T, extent>&;
-
-#endif
-
 // Returns the index of x in the given set of values if it is present, otherwise std::nullopt
 template<Comparable T, std::size_t extent>
-std::optional<unsigned int> index_of(const T& x, const Array<T, extent> values) {
+std::optional<unsigned int> index_of(const T& x, const std::span<const T, extent> values) {
     for (unsigned int i = 0; const T& y : values) {
         if (x == y)
             return i;

@@ -26,11 +26,7 @@ using enum object_type;
     scene::pre_parsing_info ppi;
     auto& [ objects, triangles, quads, spheres, planes, boxes, cylinders, materials, mappings ] = ppi;
 
-#if APPLE_CLANG
     const std::span keywords(scene::pre_parsing_info::keywords_array);
-#else
-    const auto& keywords = scene::pre_parsing_info::keywords_array;
-#endif
 
     std::string arg;
     while (not f.eof()) {
@@ -1184,18 +1180,11 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
             /* Objects declaration */
             {
                 using enum object_type;
-                
-#if APPLE_CLANG
-                constexpr std::array<std::string, 6> object_type_names_array = {
-                    "triangle", "quad", "sphere", "plane", "box", "cylinder"
-                };
-                const std::span object_type_names(object_type_names_array);
-#else
+
                 static const std::array<std::string, 6> object_type_names_array = {
                     "triangle", "quad", "sphere", "plane", "box", "cylinder"
                 };
-                const auto& object_type_names = object_type_names_array;
-#endif
+                const std::span object_type_names(object_type_names_array);
 
                 constexpr std::array object_types = {
                     Triangle, Quad, Sphere, Plane, Box, Cylinder
