@@ -9,6 +9,9 @@
 #include <array>
 #include <optional>
 
+
+
+
 constexpr unsigned int INFINITE = static_cast<unsigned int>(-1);
 constexpr unsigned int MAX_STRING_LENGTH = 1000;
 
@@ -33,47 +36,6 @@ static consteval std::array<T, count> make_array(T value) {
 template<typename T>
 concept Arithm = std::is_arithmetic_v<T>;
 
-// Returns a string made up of the string value repeated count times
-static constexpr std::string string_concat(std::size_t count, const std::string& value) {
-    std::string out;
-    for (unsigned int i = 0; i < count; i++)
-        out += value;
-    return out;
-}
-
-// Returns the printf/scanf format for data type T
-template<Arithm T>
-static constexpr std::string data_format() {
-    if constexpr (sizeof(T) == 1)
-        return "%c";
-    else if constexpr (std::is_floating_point_v<T>) {
-        static constexpr std::string prefix =
-            std::is_same_v<T, float>  ? "" :
-            std::is_same_v<T, double> ? "l" : "ll";
-        return "%" + prefix + "f";
-    }
-    else {
-        static constexpr std::string prefix =
-                sizeof(T) <= sizeof(int)            ? "" :
-                std::is_same_v<long, T>
-                || std::is_same_v<unsigned long, T> ? "l" : "ll";
-        static constexpr std::string suffix = std::is_unsigned_v<T> ? "u" : "d";
-        return "%" + prefix + suffix;
-    }
-}
-
-// Returns the format string for printf/scanf for the given types
-template<Arithm... T>
-static constexpr std::string build_format_string() {
-    return (data_format<T>() + ...);
-}
-
-template<Arithm... T>
-static constexpr std::string build_format_string_space() {
-    return ((data_format<T>() + " ") + ...);
-}
-
-
 
 class file {
     
@@ -96,11 +58,148 @@ class file {
     private:
         mode mode_;
 
+        static constexpr std::size_t MAX_FORMAT_SIZE = 1000;
+
+        template<std::size_t size>
+        class ZString {
+
+            public:
+                std::array<char, size + 1> data; // size = max length
+                std::size_t length; // logical size
+
+                constexpr ZString() {
+                    for (char& c : data)
+                        c = '\0';
+                    length = 0;
+                }
+
+                constexpr ZString(const std::string& s)
+                    : ZString() {
+
+                    std::copy(s.begin(), s.end(), data.begin());
+                    length = s.length();
+                    if (s.length() > size)
+                        throw std::runtime_error("ZString: string is too long\n");
+                }
+
+                constexpr ZString(const char* zs) : ZString() {
+                    std::size_t i = 0;
+                    char c = *zs;
+                    while (i < size && c != '\0') {
+                        data[i++] = c;
+                        zs++;
+                        c = *zs;
+                    }
+                    length = i;
+                }
+
+                constexpr const char* c_str() const {
+                    return data.data();
+                }
+
+                template<std::size_t size2>
+                constexpr auto operator+(const ZString<size2>& s2) const {
+                    return concat(*this, s2);
+                }
+        };
+
+        template<std::size_t size1, std::size_t size2>
+        static constexpr ZString<size1 + size2> concat(const ZString<size1>& s1, const ZString<size2>& s2) {
+            
+            constexpr std::size_t size_total = size1 + size2;
+            ZString<size_total> out;
+            for (std::size_t i = 0; i < s1.length; i++) {
+                out.data[i] = s1.data[i];
+            }
+            for (std::size_t i = 0; i < s2.length; i++) {
+                out.data[i + s1.length] = s2.data[i];
+            }
+            out.length = s1.length + s2.length;
+            return out;
+        }
+
+        template<std::size_t count, std::size_t size1>
+        static constexpr ZString<count * size1> concat_count(const ZString<size1>& s) {
+
+            constexpr std::size_t size_total = count * size1;
+            ZString<size_total> out;
+            for (std::size_t i = 0; i < count; i++) {
+                for (std::size_t j = 0; j < s.length; j++) {
+                    out.data[i * s.length + j] = s.data[j];
+                }
+            }
+            out.length = count * s.length;
+            return out;
+        }
+
+        // Returns the printf/scanf format for data type T
+        template<Arithm T>
+        static constexpr ZString<4> data_format() {
+
+            if constexpr (sizeof(T) == 1)
+                return ZString<4>("%c");
+
+            else if constexpr (std::is_floating_point_v<T>) {
+                constexpr ZString<2> prefix(
+                    std::is_same_v<T, float>  ? ""  :
+                    std::is_same_v<T, double> ? "l" : "ll"
+                );
+                return ZString<1>("%") + prefix + ZString<1>("f");
+            }
+            
+            else {
+                constexpr ZString<2> prefix(
+                    sizeof(T) <= sizeof(int)            ? "" :
+                    std::is_same_v<long, T>
+                    || std::is_same_v<unsigned long, T> ? "l" : "ll"
+                );
+                constexpr ZString<1> suffix(std::is_unsigned_v<T> ? "u" : "d");
+                return (ZString<1>("%") + prefix) + suffix;
+            }
+        }
+
+        // Returns the format string for printf/scanf for the given types
+        template<Arithm... T>
+        static constexpr auto build_format_string() {
+            return (data_format<T>() + ...);
+        }
+
+        template<Arithm... T>
+        static constexpr auto build_format_string_space() {
+            return ((data_format<T>() + ZString<1>(" ")) + ...);
+        }
+
         // Helper function to scan
-        template<Arithm T, std::size_t count>
-        exit_status scanf_array_(const std::string& format, std::array<T, count>& t) const {
+        template<Arithm T, std::size_t count, std::size_t size>
+        exit_status scanf_array_(const ZString<size>& format, std::array<T, count>& t) const {
             auto& [ ...t_i ] = t;
             return scanf(format, t_i...);
+        }
+
+        template<typename... Args, std::size_t size>
+        int scanf_count(const ZString<size>& format, Args&... x) const {
+            return fscanf(f, format.c_str(), &x...);
+        }
+
+        template<typename... Args, std::size_t size>
+        exit_status scanf(const ZString<size>& format, Args&... x) const {
+            const int ret = scanf_count(format, x...);
+            return exit_status_of(ret == sizeof...(Args));
+        }
+
+        template<typename... Args, std::size_t size>
+        exit_status scanf_rewind_if_failure(const ZString<size>& format, Args&... x) const {
+            
+            skip_whitespace();
+            const std::size_t pos = position();
+
+            const int ret = scanf_count(format, x...);
+            
+            if (ret == sizeof...(Args))
+                return exit_status::Success;
+
+            rewind(pos);
+            return exit_status::Failure;
         }
 
 
@@ -304,9 +403,10 @@ class file {
             skip_char('\n');
         }
 
+
         template<typename... Args>
-        int scanf_count(const std::string& format, Args&... x) const {
-            return fscanf(f, format.c_str(), &x...);
+        int scanf_count(const std::string& format_s, Args&... x) const {
+            return scanf_count(ZString<MAX_FORMAT_SIZE>(format_s), x...);
         }
 
         exit_status scanf(const std::string& string) const {
@@ -332,24 +432,13 @@ class file {
         }
 
         template<typename... Args>
-        exit_status scanf(const std::string& format, Args&... x) const {
-            const int ret = scanf_count(format, x...);
-            return exit_status_of(ret == sizeof...(Args));
+        exit_status scanf(const std::string& format_s, Args&... x) const {
+            return scanf(ZString<MAX_FORMAT_SIZE>(format_s), x...);
         }
 
         template<typename... Args>
-        exit_status scanf_rewind_if_failure(const std::string& format, Args&... x) const {
-            
-            skip_whitespace();
-            const std::size_t pos = position();
-
-            const int ret = scanf_count(format, x...);
-            
-            if (ret == sizeof...(Args))
-                return exit_status::Success;
-
-            rewind(pos);
-            return exit_status::Failure;
+        exit_status scanf_rewind_if_failure(const std::string& format_s, Args&... x) const {
+            return scanf_rewind_if_failure(ZString<MAX_FORMAT_SIZE>(format_s), x...);
         }
 
         exit_status scanf_rewind_if_failure(const std::string& string) const {
@@ -367,14 +456,14 @@ class file {
         requires (sizeof...(T) > 1)
         std::optional<std::tuple<T...>> scan() const {
             std::tuple<T...> t;
-            static constexpr std::string format = build_format_string<T...>();
+            constexpr auto format = build_format_string<T...>();
             const exit_status status = scanf(format, std::get<T>(t)...);
             return optional_of(status, std::move(t));
         }
 
         template<Arithm T>
         std::optional<T> scan() const {
-            static constexpr std::string format = build_format_string<T>();
+            constexpr auto format = build_format_string<T>();
             T x;
             const exit_status status = scanf(format, x);
             return optional_of<T>(status, std::move(x));
@@ -383,12 +472,7 @@ class file {
         template<Arithm T, std::size_t count>
         std::array<T, count> scan() const {
 
-#if APPLE_CLANG
-            constexpr std::string format = 
-#else
-            const     std::string format =
-#endif
-                string_concat(count, data_format<T>());
+            constexpr auto format = concat_count<count, 4>(data_format<T>());
 
             std::array<T, count> t;
             const exit_status status = scanf_array_(format, t);
@@ -459,13 +543,6 @@ class file {
         exit_status write(const std::string& s) const {
             return exit_status_of(fprintf(f, "%s", s.c_str()));
         }
-
-        // template<typename T, Convertible<T>... Ti>
-        // exit_status write(const Ti... x) const {
-        //     constexpr std::size_t extent = sizeof...(Ti);
-        //     const std::array<T, extent> t = { static_cast<T>(x)... };
-        //     return write(std::span<const T, extent>(t));
-        // }
 
         template<typename T, typename... Ti>
         requires (std::is_same_v<T, Ti> && ...)
