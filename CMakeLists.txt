@@ -1,6 +1,16 @@
 cmake_minimum_required(VERSION 4.0)
 project(raytracer VERSION "0.8.1")
 
+#########################################
+# PDB generation
+# set(CMAKE_C_COMPILER clang)
+# set(CMAKE_CXX_COMPILER clang++)
+# set(CMAKE_LINKER_TYPE LLD)
+# add_compile_options(-fuse-ld=lld)
+# add_compile_options(-g -gcodeview)
+# add_link_options(-g -Wl,--pdb=)
+#########################################
+
 # set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_BUILD_TYPE "Debug")
 
