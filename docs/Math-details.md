@@ -302,7 +302,7 @@ Thus, by integrating over area differentials, any measurable region $S$ on the s
 ### **Triangle, quad sampling**
 
 We use the sampling strategy exposed in [PBRT](https://www.pbr-book.org/4ed/Shapes/Triangle_Meshes#Sampling). We sample a point uniformly in the unit square ($x, y \sim \mathcal{U}(0, 1)$). The uv-coordinates in the triangle are obtained by the transformation:  
-$$f(x, y) = \left\{
+$$f(x, y) = \left\lbrace
 \begin{array}{rl}
 (x / 2, y - x / 2) & \text{if } x < y\\
 (x - y / 2, y / 2) & \text{otherwise}\\
@@ -326,38 +326,30 @@ J_f =
 \frac{\partial f_1}{\partial x} & \frac{\partial f_1}{\partial y} \\
 \frac{\partial f_2}{\partial x} & \frac{\partial f_2}{\partial y} \\
 \end{matrix}
-\right)
-% =
-% \left(
-% \begin{matrix}
-% \frac{\partial f_1}{\partial x} & \frac{\partial f_1}{\partial y} \\
-% \frac{\partial f_2}{\partial x} & \frac{\partial f_2}{\partial y} \\
-% \end{matrix}
-% \right)
-$$
+\right)$$
 
-$$\frac{\partial f_1}{\partial x} = \left\{
+$$\frac{\partial f_1}{\partial x} = \left\lbrace
 \begin{array}{cc}
 1 / 2 \text{ if } x < y\\
 1 \text{ otherwise}\\
 \end{array}
 \right.$$
 
-$$\frac{\partial f_1}{\partial y} = \left\{
+$$\frac{\partial f_1}{\partial y} = \left\lbrace
 \begin{array}{cc}
 0 \text{ if } x < y\\
 -1 / 2 \text{ otherwise}\\
 \end{array}
 \right.$$
 
-$$\frac{\partial f_2}{\partial x} = \left\{
+$$\frac{\partial f_2}{\partial x} = \left\lbrace
 \begin{array}{cc}
 -1 / 2 \text{ if } x < y\\
 0 \text{ otherwise}\\
 \end{array}
 \right.$$
 
-$$\frac{\partial f_2}{\partial y} = \left\{
+$$\frac{\partial f_2}{\partial y} = \left\lbrace
 \begin{array}{cc}
 1 \text{ if } x < y\\
 1 / 2 \text{ otherwise}\\
