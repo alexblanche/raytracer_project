@@ -16,8 +16,9 @@ We denote:
 
 We have to solve the equation $\vert v - t \cdot dir \vert^2 = r^2$ for $t > 0$.  
 The system is equivalent to:  
-$$t^2 \cdot \vert dir\vert^2 - 2 \cdot (dir \vert v)\cdot t + \vert v\vert^2 - r^2 = 0$$  
-Or:
+
+$$t^2 \cdot \vert dir\vert^2 - 2 \cdot (dir \vert v)\cdot t + \vert v\vert^2 - r^2 = 0$$
+Or:  
 $$t^2 - 2\cdot (dir \vert v)\cdot t + (\vert v\vert^2 - r^2) = 0$$
 
 Let us denote $\delta = (dir \vert v)$.
@@ -300,13 +301,13 @@ Thus, by integrating over area differentials, any measurable region $S$ on the s
 
 ### **Triangle, quad sampling**
 
-We use the sampling strategy exposed in [PBRT](https://www.pbr-book.org/4ed/Shapes/Triangle_Meshes#Sampling).  
-We sample a point uniformly in the unit square ($x, y \equiv U(0, 1)$). The uv-coordinates in the triangle are obtained by the transformation:  
+We use the sampling strategy exposed in [PBRT](https://www.pbr-book.org/4ed/Shapes/Triangle_Meshes#Sampling). We sample a point uniformly in the unit square ($x, y \sim \mathcal{U}(0, 1)$). The uv-coordinates in the triangle are obtained by the transformation:  
 $$f(x, y) = \left\{
-\begin{array}{cc}
-(x / 2, y - x / 2) \text{ if } x < y\\
-(x - y / 2, y / 2) \text{ otherwise}\\
-\end{array}$$
+\begin{array}{rl}
+(x / 2, y - x / 2) & \text{if } x < y\\
+(x - y / 2, y / 2) & \text{otherwise}\\
+\end{array}
+\right.$$
 
 To show that this transformation preserves area, we can compute its jacobian:
 
@@ -339,25 +340,29 @@ $$\frac{\partial f_1}{\partial x} = \left\{
 \begin{array}{cc}
 1 / 2 \text{ if } x < y\\
 1 \text{ otherwise}\\
-\end{array}$$
+\end{array}
+\right.$$
 
 $$\frac{\partial f_1}{\partial y} = \left\{
 \begin{array}{cc}
 0 \text{ if } x < y\\
 -1 / 2 \text{ otherwise}\\
-\end{array}$$
+\end{array}
+\right.$$
 
 $$\frac{\partial f_2}{\partial x} = \left\{
 \begin{array}{cc}
 -1 / 2 \text{ if } x < y\\
 0 \text{ otherwise}\\
-\end{array}$$
+\end{array}
+\right.$$
 
 $$\frac{\partial f_2}{\partial y} = \left\{
 \begin{array}{cc}
 1 \text{ if } x < y\\
 1 / 2 \text{ otherwise}\\
-\end{array}$$
+\end{array}
+\right.$$
 
 $\det J_f = 1 / 2$ is a constant, hence the transformation preserves area.
 
