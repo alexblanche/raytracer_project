@@ -298,32 +298,69 @@ To show that this method gives a uniform distribution, we will do a proof simila
 
 Thus, by integrating over area differentials, any measurable region $S$ on the sphere has the same measure as the projected region on the cylinder.
 
-<!-- <details>
-<summary>Proof</summary>
-<p>Proof content</p>
-</details> -->
-
-<!-- 
-
 ### **Triangle, quad sampling**
 
-const real x = rg.random_ratio();
-const real y = rg.random_ratio();
+We use the sampling strategy exposed in [PBRT](https://www.pbr-book.org/4ed/Shapes/Triangle_Meshes#Sampling).  
+We sample a point uniformly in the unit square ($x, y \equiv U(0, 1)$). The uv-coordinates in the triangle are obtained by the transformation:  
+$$f(x, y) = \left\{
+\begin{array}{cc}
+(x / 2, y - x / 2) \text{ if } x < y\\
+(x - y / 2, y / 2) \text{ otherwise}\\
+\end{array}$$
 
-real u, v;
-if (x < y) {
-    u = x / 2;
-    v = y - u;
-}
-else {
-    v = y / 2;
-    u = x - v;
-}
+To show that this transformation preserves area, we can compute its jacobian:
 
-Proof that this sampling is uniform:
-(todo)
+$$
+f(x, y) =
+\left(
+\begin{matrix}
+f_1(x, y) \\
+f_2(x, y) \\
+\end{matrix}
+\right),
 
+J_f =
+\left(
+\begin{matrix}
+\frac{\partial f_1}{\partial x} & \frac{\partial f_1}{\partial y} \\
+\frac{\partial f_2}{\partial x} & \frac{\partial f_2}{\partial y} \\
+\end{matrix}
+\right)
+% =
+% \left(
+% \begin{matrix}
+% \frac{\partial f_1}{\partial x} & \frac{\partial f_1}{\partial y} \\
+% \frac{\partial f_2}{\partial x} & \frac{\partial f_2}{\partial y} \\
+% \end{matrix}
+% \right)
+$$
 
-## Post-processing
+$$\frac{\partial f_1}{\partial x} = \left\{
+\begin{array}{cc}
+1 / 2 \text{ if } x < y\\
+1 \text{ otherwise}\\
+\end{array}$$
+
+$$\frac{\partial f_1}{\partial y} = \left\{
+\begin{array}{cc}
+0 \text{ if } x < y\\
+-1 / 2 \text{ otherwise}\\
+\end{array}$$
+
+$$\frac{\partial f_2}{\partial x} = \left\{
+\begin{array}{cc}
+-1 / 2 \text{ if } x < y\\
+0 \text{ otherwise}\\
+\end{array}$$
+
+$$\frac{\partial f_2}{\partial y} = \left\{
+\begin{array}{cc}
+1 \text{ if } x < y\\
+1 / 2 \text{ otherwise}\\
+\end{array}$$
+
+$\det J_f = 1 / 2$ is a constant, hence the transformation preserves area.
+
+<!-- ## Post-processing
 
 (FFT Bloom, to do) -->
