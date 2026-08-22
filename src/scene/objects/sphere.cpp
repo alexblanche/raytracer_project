@@ -28,34 +28,18 @@ sphere::orientation::orientation(const mapping::index_type index,
 
 /* Intersection determination */
 
-/* Calculates and returns the intersection value t */
 real sphere::measure_distance(const ray& r) const {
-    /*
-      v is the vector from the origin of the ray to the center of the sphere.
-      dir is the direction of the ray (|dir| = 1).
-      We have to solve the equation |v - t.dir|^2 = radius^2
-      The system is equivalent to:
-      t^2*|dir|^2 - 2(dir|v)t + |v|^2 - radius^2 = 0
-      Delta = 4 * ((dir|v)^2 - 4 * |dir|^2 * (|v|^2 - radius^2))
-    */
-
+    // see Math-details.md
+    
     const rt::vector v = position - r.origin;
     const real nv2 = v.normsq();
     const real dv = (r.direction | v); // the direction is assumed to be a unit vector
 
     const real delta = dv * dv + radius_sq - nv2;
-    // delta is actually the discriminant divided by 4
 
     if (is_negative(delta))
         return infinity;
 
-    /* Two solutions: t1 = dv - sqrt(delta) and t2 = dv + sqrt(delta),
-        If t1 >= 0, this means the ray originates from outside the sphere
-        and the sphere is in front of the origin, and thus t1 is returned,
-        If t1 < 0 and t2 >= 0, this means the ray originates from inside the sphere,
-        and t2 is returned.
-        Otherwise, t1 < 0 and t2 < 0 means the sphere is behind the ray and is not hit. */
-    
     const real sqrtdelta = sqrt(delta);
     const real t1 = dv - sqrtdelta;
     real t2;

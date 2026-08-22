@@ -97,33 +97,17 @@ inline rt::vector triangle::get_barycenter() const {
 /* Intersection determination */
 
 real triangle::measure_distance(const ray& r) const {
+    // See Math-details.md
 
     const auto& [ u, dir, _ ] = r;
 
-    // Intersection between the ray and the triangle plane
-    const real pdt  = (normal | dir);   // ax + by + cz
-    const real upln = (normal | u) + d; // aX + bY + cZ + d
+    const real pdt  = (normal | dir);
+    const real upln = (normal | u) + d;
 
-    // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
-    //if (is_positive(pdt * upln))
     if (std::signbit(pdt) == std::signbit(upln))
         return infinity;
 
     const real t = - upln / pdt;
-
-    // Check if the point of intersection lies inside the triangle
-    /* The system we try to solve is:
-       l1 * v1 + l2 * v2 = c (= pt - pos), so 3 equations (on x, y, z) and two variables.
-       We calculate the solution to the rows x and y (it necessarily solves row z)
-       
-       According to Cramer's rule, the solution to
-       ax + by = e
-       cx + dy = f
-       is x = (ed-bf)/(ad-bc) and y = (af-ec)/(ad-bc).
-       
-       In our case, when det = v1x * v2y - v1y * v2x,
-       l1 = (cx * v2y - cy * v2x) / det and l2 = (v1x * cy - v1y * cx) / det */
-
     const rt::vector c = r.extend(t) - position;
 
     const real l1 = compute_det_2d(c, v2, case_det) / det;

@@ -14,7 +14,7 @@ plane::plane(const real pa, const real pb, const real pc, const rt::vector& posi
       d(-(normal | position)) {} // = -aX-bY-cZ if position = (X,Y,Z)
 
 /* A plane (P) of equation (P): ax + by + cz + d = 0
- defined by 4 reals a,b,c,d */
+   defined by 4 reals a,b,c,d */
 /* The normal vector (a, b, c) is a unit vector */
 plane::plane(const real pa, const real pb, const real pc, const real pd,
     const unsigned int material_index, const unsigned int orientation_info_index)
@@ -45,23 +45,14 @@ plane::orientation::orientation(const mapping::index_type index,
 /* Intersection determination */
 
 real plane::measure_distance(const ray& r) const {
+    // see Math-details.md
 
-    /* Origin of the ray:    u   = (X, Y, Z)
-       Direction of the ray: dir = (x, y, z)
-       Normal of the plane:  n   = (a, b, c)
-       The normal and the direction are supposed to be unit vectors.
-       
-       We search t so that u + t.dir belongs to the plane,
-       i.e. a(X + tx) + b(Y + ty) + c(Z + tz) + d = 0,
-       => t = -(aX + bY + cZ + d) / (ax + by + cz)
-    */
-
-    const real pdt  = (normal | r.direction);  // ax + by + cz
-    const real upln = (normal | r.origin) + d; // aX + bY + cZ + d
+    const real pdt  = (normal | r.direction);
+    const real upln = (normal | r.origin) + d;
     
-    // If -upln/pdt > 0, it is our solution t, otherwise the plane is either parallel (pdt == 0) or "behind" the plane (-upln/pdt < 0)
-    
-    return (std::signbit(pdt) != std::signbit(upln)) ? (- upln / pdt) : infinity;
+    return (std::signbit(pdt) != std::signbit(upln)) ?
+          - upln / pdt
+        : infinity;
 }
 
 hit plane::compute_intersection(const ray& r, const real t) const {
