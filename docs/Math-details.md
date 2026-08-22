@@ -284,6 +284,7 @@ const real theta = rg.random_angle(); // = (2 * PI) * rg.random_ratio();
 ```
 
 The point obtained is thus:
+
 $$p = \begin{pmatrix}
 \cos\theta \cdot \sin\phi \\
 \cos\phi \\
@@ -301,7 +302,8 @@ Thus, by integrating over area differentials, any measurable region $S$ on the s
 
 ### **Triangle, quad sampling**
 
-We use the sampling strategy exposed in [PBRT](https://www.pbr-book.org/4ed/Shapes/Triangle_Meshes#Sampling). We sample a point uniformly in the unit square ($x, y \sim \mathcal{U}(0, 1)$). The uv-coordinates in the triangle are obtained by the transformation:  
+We use the sampling strategy exposed in [PBRT](https://www.pbr-book.org/4ed/Shapes/Triangle_Meshes#Sampling). We sample a point uniformly in the unit square ( $x, y \sim \mathcal{U}(0, 1)$ ). The uv-coordinates in the triangle are obtained by the transformation:  
+
 $$f(x, y) = \left\lbrace
 \begin{array}{rl}
 (x / 2, y - x / 2) & \text{if } x < y\\
@@ -311,15 +313,13 @@ $$f(x, y) = \left\lbrace
 
 To show that this transformation preserves area, we can compute its jacobian:
 
-$$
-f(x, y) =
+$$f(x, y) =
 \left(
 \begin{matrix}
 f_1(x, y) \\
 f_2(x, y) \\
 \end{matrix}
 \right),
-
 J_f =
 \left(
 \begin{matrix}
@@ -329,30 +329,30 @@ J_f =
 \right)$$
 
 $$\frac{\partial f_1}{\partial x} = \left\lbrace
-\begin{array}{cc}
-1 / 2 \text{ if } x < y\\
-1 \text{ otherwise}\\
+\begin{array}{rl}
+1 / 2 & \text{if } x < y\\
+1 & \text{otherwise}\\
 \end{array}
 \right.$$
 
 $$\frac{\partial f_1}{\partial y} = \left\lbrace
-\begin{array}{cc}
-0 \text{ if } x < y\\
--1 / 2 \text{ otherwise}\\
+\begin{array}{rl}
+0 & \text{if } x < y\\
+-1 / 2 & \text{otherwise}\\
 \end{array}
 \right.$$
 
 $$\frac{\partial f_2}{\partial x} = \left\lbrace
-\begin{array}{cc}
--1 / 2 \text{ if } x < y\\
-0 \text{ otherwise}\\
+\begin{array}{rl}
+-1 / 2 & \text{ if } x < y\\
+0 & \text{otherwise}\\
 \end{array}
 \right.$$
 
 $$\frac{\partial f_2}{\partial y} = \left\lbrace
-\begin{array}{cc}
-1 \text{ if } x < y\\
-1 / 2 \text{ otherwise}\\
+\begin{array}{rl}
+1 & \text{ if } x < y\\
+1 / 2 & \text{ otherwise}\\
 \end{array}
 \right.$$
 
