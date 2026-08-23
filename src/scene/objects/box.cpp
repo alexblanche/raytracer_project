@@ -23,7 +23,7 @@ real box::measure_distance(const ray& r) const {
        Only one of t1, t2, t3 can be finite at the end, so we return one as soon as we find it.
     */
 
-    const rt::vector& dir = r.direction;
+    const auto& [ u, dir, _ ] = r;
 
     /**
      * const vector pmu = position - u;
@@ -40,19 +40,26 @@ real box::measure_distance(const ray& r) const {
      *      = pmnu2 - t1 * pdt2
      * **/
 
-    const rt::vector pmu = position - r.origin;
+    const rt::vector pmu = position - u;
     const real pmun1 = (pmu | n1);
     const real pmun2 = (pmu | n2);
     const real pmun3 = (pmu | n3);
+    // const rt::vector u_b = m * (u - c);
+    // const rt::vector dir_b = m * dir;
+
+    // const auto& [ u_x, u_y, u_z ] = u_b;
+    // const auto& [ dir_x, dir_y, dir_z ] = dir_b;
 
     // Factor that depends on whether u is outside or inside the box
     const real a = (std::abs(pmun1) <= l1 && std::abs(pmun2) <= l2 && std::abs(pmun3) <= l3) ?
           /* inside */   1.0_r
         : /* outside */ -1.0_r;
+        // std::abs(u_x) <= l1 && ...
 
     const real pdt1 = (dir | n1);
     const real pdt2 = (dir | n2);
     const real pdt3 = (dir | n3);
+    // -> dir_b
 
     if (is_not_zero(pdt1)) {
         // Determination of t1
@@ -61,6 +68,14 @@ real box::measure_distance(const ray& r) const {
         if (std::abs(pmun2 - t1 * pdt2) <= l2 && std::abs(pmun3 - t1 * pdt3) <= l3)
             return (is_positive(t1)) ? t1 : infinity;
     }
+
+    /*
+    if (is_not_zero(dir_x)) {
+        const real t_x = (-u_x + a * copysign(dir_x, l1)) / dir_x;
+        if (std::abs(fma(dir_y, t_x, u_y) <= l2) && std::abs(fma(dir_z, t_x, u_z)) <= l3)
+            return is_positive(t_x) ? t_x : infinity;
+    }
+    */
 
     if (is_not_zero(pdt2)) {
         const real t2 = pmun2 / pdt2 + a * l2 / std::abs(pdt2);

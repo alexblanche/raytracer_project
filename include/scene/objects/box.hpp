@@ -13,6 +13,7 @@ class box final : public object {
         */
 
         rt::vector n1, n2, n3;
+        // mat3<Row> m;
         real l1, l2, l3;
 
     public:

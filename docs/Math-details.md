@@ -1,6 +1,6 @@
 # Math details
 
-Since this project's main goal is to have fun doing math and coding by hand, I did all the following calculations by myself, with minimum help from outside sources, and most importantly with **no AI** assistance whatsoever.  
+Since this project's main goal is to have fun doing math and coding by hand, I did all the following calculations by myself, with minimum help from outside sources, and no AI assistance.  
 Here are the details of the calculations used in this project.
 
 ## Object intersection
@@ -68,7 +68,7 @@ $$\left\lbrace
 l_1 & = & \frac{1}{det_{xy}} (c_x  v_{2y} - c_y v_{2x}) \\
 l_2 & = & \frac{1}{det_{xy}} (v_{1x} c_y  - v_{1y} c_x) \\
 \end{array}
-\right. , \text{ where } det_{xy} = v_{1x} v_{2y} - v{1y} v_{2x}$$
+\right. , \text{ where } det_{xy} = v_{1x} v_{2y} - v_{1y} v_{2x}$$
 
 If the determinant $det_{xy} = 0$ (which means their projections onto the plane $z = 0$ are collinear),
 we solve the equations for $x,z$ or $y,z$, depending on which determinant is non-zero.   
@@ -76,96 +76,44 @@ If $l_1, l_2 \in [0, 1]$ and $l_1 + l_2 < 1$, then $c$ lies within the trianlge,
 
 For a quad $(p_0, p_1, p_2, p_3)$, we check whether the point lies within the triangles $(p_0, p_1, p_2)$ as before, and if not in the triangle $(p_0, p_2, p_3)$.
 
-<!--
+
 ### **Axis-aligned bounding box (AABB)**
 
-const rt::vector v = u - position;
-if constexpr (type == type::Corner) {
+*Axis-aligned bounding boxes* are boxes whose axes are $(1,0,0), (0,1,0), (0,0,1)$. Two implementations are proposed, one in which the ``position`` vector is the **center** of the box, and one in which it is the (lower) **corner** of the box. These boxes are only used (so far) as bounding boxes, and not as concrete objects.
 
-    if ((v.x > 0.0_r && v.x < dims.x) && (v.y > 0.0_r && v.y < dims.y) && (v.z > 0.0_r && v.z < dims.z)) {
-        // u is inside the box
-        return 0.0_r;
-    }
+- **Center**:
+Let $c = (c_x, c_y, c_z)$ be the center of the box.
+The ``dims`` vector contains the dimensions $(d_x, d_y, d_z)$ of the box: the box is defined as the region bounded by the six planes $(x = c_x \mp d_x), (y = c_y \mp d_y), (z = c_z \mp d_z)$ (so each term is half the length of the box along this axis).
 
-    /* Only one t can reach the box, so we return as soon as one fits */
+To measure the distance, we first check whether the point lies inside the box, in which case we return $0$ (as we are not interested in the distance to the surface of a bounding box).
+```C++
+// Check whether u is inside the box
+if (std::abs(v.x) <= dims.x && std::abs(v.y) <= dims.y && std::abs(v.z) <= dims.z)
+    return 0.0_r;
+```
 
-    const real tx = ((std::signbit(dir.x) ? dims.x : 0.0_r) - v.x) * inv_dir.x;
-    const real py = std::fma(dir.y, tx, v.y);
-    if (py > 0.0_r && py < dims.y) {
-        const real pz = std::fma(dir.z, tx, v.z);
-        if (pz > 0.0_r && pz < dims.z)
-            return tx > 0.0_r ? tx : infinity;
-    }
-    
-    const real ty = ((std::signbit(dir.y) ? dims.y : 0.0_r) - v.y) * inv_dir.y;
-    const real px = std::fma(dir.x, ty, v.x);
-    if (px > 0.0_r && px < dims.x) {
-        const real pz = std::fma(dir.z, ty, v.z);
-        if (pz > 0.0_r && pz < dims.z)
-            return ty > 0.0_r ? ty : infinity;
-    }
+If not, then the ray-box intersection lies within a face. We denote $v(t) = u + t\cdot dir$, where $u = (u_x, u_y, u_z)$ is the origin of the ray, $dir = (dir_x, dir_y, dir_z)$ is its direction, and $t > 0$.
 
-    const real tz = ((std::signbit(dir.z) ? dims.z : 0.0_r) - v.z) * inv_dir.z;
-    if (tz > 0.0_r) {
-        const real px = std::fma(dir.x, tz, v.x);
-        if (px > 0.0_r && px < dims.x) {
-            const real py = std::fma(dir.y, tz, v.y);
-            return (py > 0.0_r && py < dims.y) ? tz : infinity;
-        }
-    }
-    
-    return infinity;
-}
+Along an axis, say $x$, we only consider the face $(x = c_x - d_x)$ if $dir_x > 0$, and $(x = c_x + d_x)$ if $dir_x < 0$. We write $a = sign(dir_x) = \frac{d_x}{\vert d_x \vert}. The solution $t_x$ satisfies: $u_x + t_x \cdot dir_x = c_x - a d_x$, hence:
 
-else if constexpr (type == type::Center) {
+$$t_x = \frac{c_x - u_x - a d_x}{dir_x}$$
 
-    // Check whether u is inside the box
-    if (std::abs(v.x) <= dims.x && std::abs(v.y) <= dims.y && std::abs(v.z) <= dims.z)
-        return 0.0_r;
+To see if this solution is admissible, we must check whether the obtained point $v(t_x)$ is located in the face:
 
-    const real t1 = (-v.x) * inv_dir.x - dims.x * std::abs(inv_dir.x);
-    if (std::abs(std::fma(dir.y, t1, v.y)) <= dims.y && std::abs(std::fma(dir.z, t1, v.z)) <= dims.z)
-        return t1 > 0.0_r ? t1 : infinity;
+$$-d_y \leq u_y + t_x \cdot dir_y - c_y \leq d_y \text{ and } -d_z \leq u_z + t_x \cdot dir_z - c_z \leq d_z$$
 
-    const real t2 = (-v.y) * inv_dir.y - dims.y * std::abs(inv_dir.y);
-    if (std::abs(std::fma(dir.x, t2, v.x)) <= dims.x && std::abs(std::fma(dir.z, t2, v.z)) <= dims.z)
-        return t2 > 0.0_r ? t2 : infinity;
+We observe that only one of $t_x, t_y, t_z$ can be admissible, thus we return the first that we find.
 
-    const real t3 = (-v.z) * inv_dir.z - dims.z * std::abs(inv_dir.z);
-    return (t3 > 0.0_r && std::abs(std::fma(dir.x, t3, v.x)) <= dims.x && std::abs(std::fma(dir.y, t3, v.y)) <= dims.y) ?
-        t3 : infinity;
-}
 
 ### **Box**
 
-/* For the face orthogonal to n1, we search for a t1 that satisfies:
-((pos + a.l1.n1) - (u + t.dir) | n1) = 0 (if outside the box, a = -sign(dir|n1), if inside: a = sign(dir|n1))
-where u is the origin of the ray, and dir its direction,
-So t1 = ((pos + l1.n1 - u) | n1) / (dir | n1)
-We then check whether |((pos + l1.n1 - (u + t1.dir)) | n2)| <= l2 and |(((pos + l1.n1 - (u + t1.dir)) | n3)| <= l3,
-to make sure the intersection point lies on the face.
+A box is defined by a *center* $c$ (the vector ``position``), three *axes* denoted $n_1, n_2, n_3$, and the *dimensions* denoted $l_1, l_2, l_3$ along the three axes respectively. The box is defined as the region bounded by the six planes (defined by (*position*, *normal*)) $(c + a l_1 n_1, a n_1)$, $(c + a l_2 n_2, a n_2)$, $(c + a l_3 n_3, a n_3)$, with $a \in \{ -1, 1\}$.
 
-Same with the other two directions, we obtain t2, t3.
-If (dir | n) = 0 for n among n1, n2, n3, then the ray does not intersect the plane and the associated t is infinity.
+Let $M$ be the matrix whose columns are the axes $n_1, n_2, n_3$. This matrix represents the basis of the *box-space*. The matrix that transforms a world-space point $p$ into box-space is $M^{-1}$. Since the vectors $n_1, n_2, n_3$ are pairwise orthogonal and unit vectors, $M$ is an orthogonal matrix, and $M^{-1} = M^t$ (the transpose of $M$).
 
-Only one of t1, t2, t3 can be finite at the end, so we return one as soon as we find it.
-*/
+Given a ray $r = (u, dir)$, we consider the box-space ray $r_b$, with origin $u_b = M^{-1}(u - c)$ and direction $dir_b = M^{-1} dir$. In this space, the box is an *aabb*, centered at $c_b = (0, 0, 0)$, and we can compute the distance $t$ like we did in the previous section.
 
-const vector pmu = position - u;
-t1 = ((c1 - u) | n1) / pdt1
-      = ((position - (l1 * pdt1 / std::abs(pdt1)) * n1 - u) | n1) / pdt1
-      = ((pmu | n1) - l1 * pdt1 / std::abs(pdt1)) / pdt1
-      = ((pmu | n1) / pdt1 - l1 / std::abs(pdt1))
-      = pmun1 / pdt1 - l1 / abspdt1
- 
- (p | n2)
-      = ((c1 - u - (t1 * dir)) | n2)
-      = ((position - (...)*n1 - u - t1 * dir) | n2)
-      = (pmu | n2) - t1 * pdt2
-      = pmnu2 - t1 * pdt2
-
-
-### **Cylinder**
+<!-- ### **Cylinder**
 
 /* We denote the origin, direction and radius of the cylinder o, d and r,
        and the origin and direction of the ray. */
@@ -226,9 +174,9 @@ We compute t such that u + t dir belongs to the plane orthogonal with d and loca
 t = (v - u | d) / (dir | d)
 (if (dir|d) != 0, which we may assume, since otherwise we would have concluded at step 1)
 t is a solution if t >= 0 and (u + t dir - v).normsq() <= r^2, which we may also assume.
-*/
+*/ -->
 
-## Normal vector computation
+<!-- ## Normal vector computation
 
 ### Sphere
 
