@@ -10,83 +10,38 @@
 
 real box::measure_distance(const ray& r) const {
 
-    /* For the face orthogonal to n1, we search for a t1 that satisfies:
-       ((pos + a.l1.n1) - (u + t.dir) | n1) = 0 (if outside the box, a = -sign(dir|n1), if inside: a = sign(dir|n1))
-       where u is the origin of the ray, and dir its direction,
-       So t1 = ((pos + l1.n1 - u) | n1) / (dir | n1)
-       We then check whether |((pos + l1.n1 - (u + t1.dir)) | n2)| <= l2 and |(((pos + l1.n1 - (u + t1.dir)) | n3)| <= l3,
-       to make sure the intersection point lies on the face.
-
-       Same with the other two directions, we obtain t2, t3.
-       If (dir | n) = 0 for n among n1, n2, n3, then the ray does not intersect the plane and the associated t is infinity.
-
-       Only one of t1, t2, t3 can be finite at the end, so we return one as soon as we find it.
-    */
-
     const auto& [ u, dir, _ ] = r;
+    const auto& [ l1, l2, l3 ] = dims;
 
-    /**
-     * const vector pmu = position - u;
-     * t1 = ((c1 - u) | n1) / pdt1
-     *      = ((position - (l1 * pdt1 / std::abs(pdt1)) * n1 - u) | n1) / pdt1
-     *      = ((pmu | n1) - l1 * pdt1 / std::abs(pdt1)) / pdt1
-     *      = ((pmu | n1) / pdt1 - l1 / std::abs(pdt1))
-     *      = pmun1 / pdt1 - l1 / abspdt1
-     * 
-     * (p | n2)
-     *      = ((c1 - u - (t1 * dir)) | n2)
-     *      = ((position - (...)*n1 - u - t1 * dir) | n2)
-     *      = (pmu | n2) - t1 * pdt2
-     *      = pmnu2 - t1 * pdt2
-     * **/
+    const rt::vector u_b   = axes * (u - position);
+    const rt::vector dir_b = axes * dir;
 
-    const rt::vector pmu = position - u;
-    const real pmun1 = (pmu | n1);
-    const real pmun2 = (pmu | n2);
-    const real pmun3 = (pmu | n3);
-    // const rt::vector u_b = m * (u - c);
-    // const rt::vector dir_b = m * dir;
-
-    // const auto& [ u_x, u_y, u_z ] = u_b;
-    // const auto& [ dir_x, dir_y, dir_z ] = dir_b;
+    const auto& [   u_x,   u_y,   u_z ] = u_b;
+    const auto& [ dir_x, dir_y, dir_z ] = dir_b;
 
     // Factor that depends on whether u is outside or inside the box
-    const real a = (std::abs(pmun1) <= l1 && std::abs(pmun2) <= l2 && std::abs(pmun3) <= l3) ?
+    const real a = (std::abs(u_x) <= l1 && std::abs(u_y) <= l2 && std::abs(u_z) <= l3) ?
           /* inside */   1.0_r
         : /* outside */ -1.0_r;
-        // std::abs(u_x) <= l1 && ...
-
-    const real pdt1 = (dir | n1);
-    const real pdt2 = (dir | n2);
-    const real pdt3 = (dir | n3);
-    // -> dir_b
-
-    if (is_not_zero(pdt1)) {
-        // Determination of t1
-        const real t1 = pmun1 / pdt1 + a * l1 / std::abs(pdt1);
-        // Check that t1 gives a point inside the face
-        if (std::abs(pmun2 - t1 * pdt2) <= l2 && std::abs(pmun3 - t1 * pdt3) <= l3)
-            return (is_positive(t1)) ? t1 : infinity;
-    }
-
-    /*
+    
     if (is_not_zero(dir_x)) {
-        const real t_x = (-u_x + a * copysign(dir_x, l1)) / dir_x;
-        if (std::abs(fma(dir_y, t_x, u_y) <= l2) && std::abs(fma(dir_z, t_x, u_z)) <= l3)
+        const real t_x = (-u_x + a * copysign(l1, dir_x)) / dir_x;
+        // Check that t_x gives a point inside the face
+        if (std::abs(fma(dir_y, t_x, u_y)) <= l2 && std::abs(fma(dir_z, t_x, u_z)) <= l3)
             return is_positive(t_x) ? t_x : infinity;
     }
-    */
 
-    if (is_not_zero(pdt2)) {
-        const real t2 = pmun2 / pdt2 + a * l2 / std::abs(pdt2);
-        if (std::abs(pmun1 - t2 * pdt1) <= l1 && std::abs(pmun3 - t2 * pdt3) <= l3)
-            return (is_positive(t2)) ? t2 : infinity;
+    if (is_not_zero(dir_y)) {
+        const real t_y = (-u_y + a * copysign(l2, dir_y)) / dir_y;
+        if (std::abs(fma(dir_x, t_y, u_x)) <= l1 && std::abs(fma(dir_z, t_y, u_z)) <= l3)
+            return is_positive(t_y) ? t_y : infinity;
     }
-
-    if (is_not_zero(pdt3)) {
-        const real t3 = pmun3 / pdt3 + a * l3 / std::abs(pdt3);
-        return (is_positive(t3) && std::abs(pmun1 - t3 * pdt1) <= l1 && std::abs(pmun2 - t3 * pdt2) <= l2) ?
-              t3 : infinity;
+    
+    if (is_not_zero(dir_z)) {
+        const real t_z = (-u_z + a * copysign(l3, dir_z)) / dir_z;
+        return (is_positive(t_z)
+            && std::abs(fma(dir_x, t_z, u_x)) <= l1 && std::abs(fma(dir_y, t_z, u_y)) <= l2) ?
+            t_z : infinity;
     }
 
     return infinity;
@@ -106,23 +61,25 @@ hit box::compute_intersection(const ray& r, const real t) const {
     constexpr real EPSILON = 0.0000001_r;
 
     rt::vector n;
+    const auto& [ n1, n2, n3 ] = axes;
+    const auto& [ l1, l2, l3 ] = dims;
 
-    const real pdt1 = (v | n1);
-    if (std::abs(pdt1 - l1) < EPSILON)
+    const real u_x = (v | n1);
+    if (std::abs(u_x - l1) < EPSILON)
         n = n1;
-    else if (std::abs(pdt1 + l1) < EPSILON)
+    else if (std::abs(u_x + l1) < EPSILON)
         n = (-1.0_r) * n1;
     else {
 
-        const real pdt2 = (v | n2);
-        if (std::abs(pdt2 - l2) < EPSILON)
+        const real u_y = (v | n2);
+        if (std::abs(u_y - l2) < EPSILON)
             n = n2;
-        else if (std::abs(pdt2 + l2) < EPSILON)
+        else if (std::abs(u_y + l2) < EPSILON)
             n = (-1.0_r) * n2;
         else {
 
-            const real pdt3 = (v | n3);
-            n = (std::abs(pdt3 - l3) < EPSILON) ?
+            const real u_z = (v | n3);
+            n = (std::abs(u_z - l3) < EPSILON) ?
                 n3 : (-1.0_r) * n3;
         }
     }
@@ -133,44 +90,50 @@ hit box::compute_intersection(const ray& r, const real t) const {
 /* Minimum and maximum coordinates */
 min_max_coord box::get_min_max_coord() const {
 
+    const auto& [ n1, n2, n3 ] = axes;
+
     const rt::vector absn1 = rt::abs(n1);
     const rt::vector absn2 = rt::abs(n2);
     const rt::vector absn3 = rt::abs(n3);
 
-    const rt::vector m = matprod(absn1, absn2, absn3, get_l());
+    const rt::vector m = matprod(absn1, absn2, absn3, dims);
     
     return build_min_max_coord(position - m, position + m);
 }
 
 
-/* Specific to (standard) boxes: returns true if the ray r hits the box
+/* Specific to AABB: returns true if the ray r hits the box
    The box is assumed to be standard (axes are n1 = (1, 0, 0), n2 = (0, 1, 0), n3 = (0, 0, 1)) */
 bool box::is_hit_by(const ray& r) const {
     
     const auto& [ u, dir, inv_dir ] = r;
-    const rt::vector abs_inv_dir = rt::abs(inv_dir);
+    const auto& [ l1, l2, l3 ] = dims;
 
     // See measure_distance
 
-    const rt::vector pmu = position - u;
-    
-    if (std::abs(pmu.x) <= l1 && std::abs(pmu.y) <= l2 && std::abs(pmu.z) <= l3) {
+    const auto& [ u_x, u_y, u_z ] = u - position;
+
+    if (std::abs(u_x) <= l1 && std::abs(u_y) <= l2 && std::abs(u_z) <= l3) {
         // u is inside the box
         return true;
     }
 
-    // Determination of t1
-    const real t1 = pmu.x * inv_dir.x - l1 * abs_inv_dir.x;
-    // Check that t1 gives a point inside the face
-    if (std::abs(pmu.y - t1 * dir.y) <= l2 && std::abs(pmu.z - t1 * dir.z) <= l3)
-        return is_positive(t1);
+    if (is_not_zero(dir.x)) {
+        const real t_x = (-u_x - copysign(l1, dir.x)) * inv_dir.x;
+        // Check that t_x gives a point inside the face
+        if (std::abs(fma(dir.y, t_x, u_y)) <= l2 && std::abs(fma(dir.z, t_x, u_z)) <= l3)
+            return is_positive(t_x);
+    }
 
-    const real t2 = pmu.y * inv_dir.y - l2 * abs_inv_dir.y;
-    if (std::abs(pmu.x - t2 * dir.x) <= l1 && std::abs(pmu.z - t2 * dir.z) <= l3)
-        return is_positive(t2);
-
-    const real t3 = pmu.z * inv_dir.z - l3 * abs_inv_dir.z;
-    return (is_positive(t3) && std::abs(pmu.x - t3 * dir.x) <= l1 && std::abs(pmu.y - t3 * dir.y) <= l2);
+    if (is_not_zero(dir.y)) {
+        const real t_y = (-u_y - copysign(l2, dir.y)) * inv_dir.y;
+        if (std::abs(fma(dir.x, t_y, u_x)) <= l1 && std::abs(fma(dir.z, t_y, u_z)) <= l3)
+            return is_positive(t_y);
+    }
+    
+    const real t_z = (-u_z - copysign(l3, dir.z)) * inv_dir.z;
+    return (is_positive(t_z)
+        && std::abs(fma(dir.x, t_z, u_x)) <= l1 && std::abs(fma(dir.y, t_z, u_y)) <= l2);
 }
 
 /* Specific to AABB: returns true if the ray r hits the box
@@ -178,39 +141,29 @@ bool box::is_hit_by(const ray& r) const {
 real box::is_hit_with_distance(const ray& r) const {
     
     const auto& [ u, dir, inv_dir ] = r;
+    const auto& [ l1, l2, l3 ] = dims;
 
     // See measure_distance
 
-    const rt::vector pmu = position - u;
+    const auto& [ u_x, u_y, u_z ] = u - position;
     
-    if (std::abs(pmu.x) <= l1 && std::abs(pmu.y) <= l2 && std::abs(pmu.z) <= l3) {
+    if (std::abs(u_x) <= l1 && std::abs(u_y) <= l2 && std::abs(u_z) <= l3) {
         // u is inside the box
         return 0.0_r;
     }
 
-    // const real t1 = pmu.x * inv_dir.x - l1 * std::abs(inv_dir.x);
-    // if (std::abs(pmu.y - t1 * dir.y) <= l2 && std::abs(pmu.z - t1 * dir.z) <= l3)
-    //     return t1 > 0 ? t1 : infinity;
+    const real t_x = (-u_x - copysign(l1, dir.x)) * inv_dir.x;
+    if (std::abs(fma(dir.y, t_x, u_y)) <= l2 && std::abs(fma(dir.z, t_x, u_z)) <= l3)
+        return t_x > 0 ? t_x : infinity;
 
-    // const real t2 = pmu.y * inv_dir.y - l2 * std::abs(inv_dir.y);
-    // if (std::abs(pmu.x - t2 * dir.x) <= l1 && std::abs(pmu.z - t2 * dir.z) <= l3)
-    //     return t2 > 0 ? t2 : infinity;
+    const real t_y = (-u_y - copysign(l2, dir.y)) * inv_dir.y;
+    if (std::abs(fma(dir.x, t_y, u_x)) <= l1 && std::abs(fma(dir.z, t_y, u_z)) <= l3)
+        return t_y > 0 ? t_y : infinity;
 
-    // const real t3 = pmu.z * inv_dir.z - l3 * std::abs(inv_dir.z);
-    // return (t3 > 0 && std::abs(pmu.x - t3 * dir.x) <= l1 && std::abs(pmu.y - t3 * dir.y) <= l2) ?
-    //     t3 : infinity;
-
-    const real t1 = pmu.x * inv_dir.x - l1 * std::abs(inv_dir.x);
-    if (std::abs(std::fma(dir.y, -t1, pmu.y)) <= l2 && std::abs(std::fma(dir.z, -t1, pmu.z)) <= l3)
-        return t1 > 0 ? t1 : infinity;
-
-    const real t2 = pmu.y * inv_dir.y - l2 * std::abs(inv_dir.y);
-    if (std::abs(std::fma(dir.x, -t2, pmu.x)) <= l1 && std::abs(std::fma(dir.z, -t2, pmu.z)) <= l3)
-        return t2 > 0 ? t2 : infinity;
-
-    const real t3 = pmu.z * inv_dir.z - l3 * std::abs(inv_dir.z);
-    return (t3 > 0 && std::abs(std::fma(dir.x, -t3, pmu.x)) <= l1 && std::abs(std::fma(dir.y, -t3, pmu.y)) <= l2) ?
-        t3 : infinity;
+    const real t_z = (-u_z - copysign(l3, dir.z)) * inv_dir.z;
+    return (t_z > 0
+        && std::abs(fma(dir.x, t_z, u_x)) <= l1 && std::abs(fma(dir.y, t_z, u_y)) <= l2) ?
+        t_z : infinity;
 }
 
 // Texturing is unavailable for boxes
@@ -244,7 +197,7 @@ void box::print() const {
     printf("center: ");
     position.print();
     printf(", dimensions: ");
-    const rt::vector dims = 2 * get_l();
-    dims.print();
+    const rt::vector total_dims = 2 * dims;
+    total_dims.print();
     printf("\n");
 }

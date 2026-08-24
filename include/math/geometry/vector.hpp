@@ -246,19 +246,19 @@ namespace rt {
 // Constants
 
 namespace rt {
-	constexpr rt::vector ZERO      (0, 0, 0);
+	constexpr rt::vector ZERO     ( 0,  0,  0);
 
-	constexpr rt::vector RIGHT	   (1, 0, 0);
-	constexpr rt::vector LEFT	  (-1, 0, 0);
+	constexpr rt::vector RIGHT	  ( 1,  0,  0);
+	constexpr rt::vector LEFT	  (-1,  0,  0);
 
-	constexpr rt::vector UP		  (0,  1, 0);
-	constexpr rt::vector DOWN	  (0, -1, 0);
+	constexpr rt::vector UP		  ( 0,  1,  0);
+	constexpr rt::vector DOWN	  ( 0, -1,  0);
 
 
 	// FORWARD = positive z, toward the camera
-	constexpr rt::vector FORWARD  (0, 0, 1);
+	constexpr rt::vector FORWARD  ( 0,  0,  1);
 	// BACKWARD = negative z, the direction the camera points toward
-	constexpr rt::vector BACKWARD (0, 0, -1);
+	constexpr rt::vector BACKWARD ( 0,  0, -1);
 }
 
 

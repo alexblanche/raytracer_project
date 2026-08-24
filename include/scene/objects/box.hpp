@@ -2,19 +2,14 @@
 
 #include "scene/objects/object.hpp"
 #include "scene/material/mapping_info.hpp"
+#include "math/geometry/mat3.hpp"
 
 class box final : public object {
     
     private:
-    
-        /* A box is defined by a vector position, which represents the center of the box,
-           3 orthogonal unit vectors n1, n2, n3 representing an orthormal base orienting the box,
-           and 3 reals l1, l2, l3 representing the length of the box in the three directions (length, width and height)
-        */
 
-        rt::vector n1, n2, n3;
-        // mat3<Row> m;
-        real l1, l2, l3;
+        linalg::mat3<linalg::mat_type::Row> axes;
+        rt::vector dims;
 
     public:
 
@@ -25,31 +20,26 @@ class box final : public object {
             real l1, real l2, real l3, unsigned int material_index = EMPTY_INDEX,
             unsigned int orientation_info_index = EMPTY_INDEX)
 
-            : object(center, material_index, orientation_info_index),
-              n1(n1), n2(n2), n3(n1 ^ n2), l1(l1 / 2), l2(l2 / 2), l3(l3 / 2) {}
+            :   object(center, material_index, orientation_info_index),
+                axes(n1, n2, n1 ^ n2),
+                dims(l1 / 2, l2 / 2, l3 / 2) {}
 
         box(const min_max_coord& mmc)
-            : object(rt::ZERO, EMPTY_INDEX), n1(rt::RIGHT), n2(rt::UP) {
+            :   object(rt::ZERO, EMPTY_INDEX),
+                axes(rt::RIGHT, rt::UP, rt::FORWARD) {
             
             const auto& [ min_x, max_x, min_y, max_y, min_z, max_z ] = mmc;
             const rt::vector min(min_x, min_y, min_z);
             const rt::vector max(max_x, max_y, max_z);
         
             position = (max + min) / 2;
-            const rt::vector dims = (max - min) / 2;
-            l1 = dims.x;
-            l2 = dims.y;
-            l3 = dims.z;
+            dims     = (max - min) / 2;
         }
 
         box(box&&) noexcept        = default;
         box(const box&)            = delete;
         box& operator=(const box&) = delete;
         box& operator=(box&&)      = delete;
-        
-        inline rt::vector get_l() const {
-            return rt::vector(l1, l2, l3);
-        }
 
         static inline box infinite_box() {
             return box(rt::ZERO, rt::RIGHT, rt::UP, infinity, infinity, infinity, EMPTY_INDEX);

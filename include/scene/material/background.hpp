@@ -19,6 +19,7 @@ class background_container {
         rt::color bg_color;
         texture bg_texture;
         linalg::mat3<mat_type> rotation_matrix;
+        linalg::mat3<mat_type> inverse_rotation;
 
         /* Returns the color of the pixel dir is pointing at, when a texture is set */
         const rt::color& get_texture_color(const rt::vector& dir) const;
@@ -30,7 +31,8 @@ class background_container {
 
         background_container(texture&& txt, const real theta_x, const real theta_y, const real theta_z)
             : type_(type::Textured), bg_texture(std::move(txt)),
-                rotation_matrix(linalg::mat3<mat_type>::rotation(theta_x, theta_y, theta_z)) {}
+                rotation_matrix(linalg::mat3<mat_type>::rotation(theta_x, theta_y, theta_z)),
+                inverse_rotation(rotation_matrix.transpose()) {}
 
         /* Returns the background color when it is a color */
         inline const rt::color& get_color(const rt::vector& dir) const {

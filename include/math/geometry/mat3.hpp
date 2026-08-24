@@ -41,6 +41,14 @@ namespace linalg {
                 };
             }
 
+            mat3 transpose() const {
+                return mat3 {
+                    .r1 = rt::vector(r1.x, r2.x, r3.x),
+                    .r2 = rt::vector(r1.y, r2.y, r3.y),
+                    .r3 = rt::vector(r1.z, r2.z, r3.z),
+                };
+            }
+
             static mat3 rotation_x(const real theta_x) {
                 const real cos_x = cos(theta_x);
                 const real sin_x = sin(theta_x);
@@ -103,7 +111,8 @@ namespace linalg {
 
             /* Returns the inverse of rotation(theta_x, theta_y, theta_z) */
             static mat3 inverse_rotation(const real theta_x, const real theta_y, const real theta_z) {
-                return rotation_x(-theta_x) * rotation_y(-theta_y) * rotation_z(-theta_z);
+                //return rotation_x(-theta_x) * rotation_y(-theta_y) * rotation_z(-theta_z);
+                return rotation(theta_x, theta_y, theta_z).transpose();
             }
     };
 
@@ -121,6 +130,14 @@ namespace linalg {
                     .c1 = (*this) * m.c1,
                     .c2 = (*this) * m.c2,
                     .c3 = (*this) * m.c3
+                };
+            }
+
+            mat3 transpose() const {
+                return mat3 {
+                    .c1 = rt::vector(c1.x, c2.x, c3.x),
+                    .c2 = rt::vector(c1.y, c2.y, c3.y),
+                    .c3 = rt::vector(c1.z, c2.z, c3.z),
                 };
             }
 
@@ -189,7 +206,8 @@ namespace linalg {
 
             /* Returns the inverse of rotation(theta_x, theta_y, theta_z) */
             static mat3 inverse_rotation(const real theta_x, const real theta_y, const real theta_z) {
-                return rotation_x(-theta_x) * rotation_y(-theta_y) * rotation_z(-theta_z);
+                //return rotation_x(-theta_x) * rotation_y(-theta_y) * rotation_z(-theta_z);
+                return rotation(theta_x, theta_y, theta_z).transpose();
             }
     };
 }
