@@ -1,4 +1,4 @@
-#include "scene/bounding/aabb.hpp"
+#include "scene/bvh/aabb.hpp"
 
 #include <iostream>
 

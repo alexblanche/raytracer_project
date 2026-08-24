@@ -7,7 +7,7 @@
 #include "scene/objects/box.hpp"
 #include "scene/objects/cylinder.hpp"
 
-#include "scene/bounding/bounding.hpp"
+#include "scene/bvh/bounding.hpp"
 #include "scene/material/texture.hpp"
 #include "auxiliary/randomgen.hpp"
 #include "scene/camera.hpp"
@@ -202,7 +202,7 @@ class scene {
         // Triangles are grouped by the given number in the bounding box tree-search method
         unsigned int polygons_per_bounding;
 
-        std::optional<real> gamma;
+        std::optional<real> gamma; // Note: should be removed from scene
         
 
         /* Constructor with background texture and optional background color */

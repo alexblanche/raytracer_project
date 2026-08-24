@@ -1,7 +1,7 @@
 #pragma once
 
 #include "scene/objects/box.hpp"
-#include "scene/bounding/aabb.hpp"
+#include "scene/bvh/aabb.hpp"
 #include "auxiliary/custom_stack.hpp"
 
 #include <memory>
@@ -26,9 +26,9 @@ class bounding {
         node_type type;
 
         /* Bounding box */
-        std::unique_ptr<box_type> b = nullptr;
+        std::unique_ptr<box_type> b = nullptr; // Soon: unsigned int box_index = index in bvh::box_set
 
-        inline static unsigned int cpt = 0;
+        static inline unsigned int cpt = 0;
         
     private:
 

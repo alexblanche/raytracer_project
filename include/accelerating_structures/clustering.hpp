@@ -1,7 +1,7 @@
 #pragma once
 
 #include "scene/objects/object.hpp"
-#include "scene/bounding/bounding.hpp"
+#include "scene/bvh/bounding.hpp"
 
 #include <variant>
 
