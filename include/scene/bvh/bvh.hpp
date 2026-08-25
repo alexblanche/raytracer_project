@@ -7,25 +7,30 @@ class bvh {
 
     static_assert(std::is_same_v<bounding::box_type, box>
         || std::is_same_v<bounding::box_type, aabb>);
+    
+    private:
 
-    public:
-
-        enum class option {
-            Enabled, Disabled
-        };
-
-        /* Set of the first-level bounding boxes */
+        /* Set of the top-level bounding boxes */
         std::vector<const bounding*>    bounding_set;
 
         /* Set of all bounding boxes */
         std::vector<bounding::box_type> box_set;
-        unsigned int                    polygons_per_bounding = 0;
-        option                          state                 = option::Disabled;
+
+    public:
+
+        unsigned int polygons_per_bounding = 0;
+
+        enum class option {
+            Enabled, Disabled
+        };
+        using enum option;
+
+        option state = Disabled;
 
         bvh() {}
 
         bvh(const unsigned int polygons_per_bounding)
-            : polygons_per_bounding(polygons_per_bounding), state(option::Enabled) {}
+            : polygons_per_bounding(polygons_per_bounding), state(Enabled) {}
 
         void finalize(std::vector<const object*>&& content) {
             // content should be tested first, to maximize pruning in the BVH tree-search
@@ -48,6 +53,24 @@ class bvh {
         bvh& operator=(const bvh&)     = delete;
 
         ~bvh() noexcept;
+
+        void add_bounding(const bounding* bd) {
+            bounding_set.push_back(bd);
+        }
+
+        /* Emplaces a new bounding box and returns its index */
+        template<typename... Args>
+        requires (std::is_constructible_v<bounding::box_type, Args...>)
+        unsigned int add_box(Args&... args) {
+            box_set.emplace_back(args...);
+            return box_set.size() - 1;
+        }
+
+        const bounding::box_type& get_box(const unsigned int box_index) const {
+            return box_set[box_index];
+        }
+
+        friend class debug;
 };
 
 min_max_vectors compute_bounding_vectors_bounding_set(
@@ -69,8 +92,8 @@ requires (std::is_same_v<T, object> || std::is_same_v<T, bounding>)
         else {
             const object* obj = set[0];
             const min_max_coord mmc = obj->get_min_max_coord();
-            bvh.box_set.emplace_back(mmc);
-            return new bounding({ obj }, bvh.box_set.size() - 1);
+            const unsigned int box_index = bvh.add_box(mmc);
+            return new bounding({ obj }, box_index);
         }
     }
 
@@ -97,24 +120,25 @@ requires (std::is_same_v<T, object> || std::is_same_v<T, bounding>)
 
     if constexpr (std::is_same_v<bounding::box_type, box>) {
 
-        bvh.box_set.emplace_back(center, dims);
+        const unsigned int box_index = bvh.add_box(center, dims);
         return new bounding(
             std::forward<std::vector<const T*>>(set),
-            bvh.box_set.size() - 1
+            box_index
         );
 
     }
     else if constexpr (std::is_same_v<bounding::box_type, aabb>) {
         using enum aabb::type;
 
+        unsigned int box_index = 0;
         if constexpr (aabb::type_ == Corner)
-            bvh.box_set.emplace_back(corner, dims);
+            box_index = bvh.add_box(corner, dims);
         else if constexpr (aabb::type_ == Center)
-            bvh.box_set.emplace_back(center, dims);
+            box_index = bvh.add_box(center, dims);
 
         return new bounding(
             std::forward<std::vector<const T*>>(set),
-            bvh.box_set.size() - 1
+            box_index
         );
     }
 }

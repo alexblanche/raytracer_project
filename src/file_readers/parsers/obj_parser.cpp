@@ -751,7 +751,7 @@ exit_status parse_obj_file(const std::string& file_name,
             .normal_option          = normal::Disabled
         },
         .min_max = {},
-        .bounding_enabled = bvh.has_value()
+        .bounding_enabled = bvh.has_value() && bvh.value().state == bvh::option::Enabled
     };
 
     try {
@@ -837,7 +837,7 @@ exit_status parse_obj_file(const std::string& file_name,
             const bounding* output_bd = (children.size() == 1) ?
                   children[0]
                 : create_hierarchy_from_boundings(std::move(children), bvh.value());
-            bvh.value().bounding_set.push_back(output_bd);
+            bvh.value().add_bounding(output_bd);
         }
 
         printf("\r%s successfully loaded:\n", file_name.c_str());

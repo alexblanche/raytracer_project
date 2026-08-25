@@ -5,7 +5,7 @@
 #include <iostream>
 #include <array>
 
-void print_hit_info(const scene& scene, int x, int y) {
+void debug::print_hit_info(const scene& scene, int x, int y) {
 
     const ray r = scene.cam.gen_ray_classic(x, y, 1);
     const std::optional<hit> opt_h = scene.find_closest_object(r);
@@ -98,7 +98,7 @@ struct bd_depth {
     unsigned int depth;
 };
 
-static unsigned int compute_search_depth(const scene& scene, const ray& r) {
+unsigned int debug::compute_search_depth(const scene& scene, const ray& r) {
 
     real distance_to_closest = infinity;
     unsigned int search_depth = 0;
@@ -163,15 +163,15 @@ static unsigned int compute_search_depth(const scene& scene, const ray& r) {
 constexpr std::array depth_color_array = {
     rt::BLACK,
     rt::color(50, 50, 50),
-    rt::color(100,100,100),
+    rt::color(100,100,100), // Gray
     rt::color(180,180,180),
     rt::BLUE,
     rt::color(128, 0, 255),
-    rt::color(255, 0, 255),
+    rt::color(255, 0, 255), // Purple
     rt::color(255, 0, 128),
     rt::RED,
     rt::color(255, 128, 0),
-    rt::color(255, 255, 0),
+    rt::color(255, 255, 0), // Yellow
     rt::color(128, 255, 0),
     rt::GREEN,
     rt::color(128, 255, 128),
@@ -184,7 +184,7 @@ static inline const rt::color& depth_color(const unsigned int depth) {
     return depth_color_array[std::min(depth, max_index)];
 }
 
-image display_search_depth(const scene& scene) {
+image debug::display_search_depth(const scene& scene) {
 
     image img(scene.width, scene.height);
 
@@ -193,7 +193,7 @@ image display_search_depth(const scene& scene) {
             const ray r = scene.cam.gen_ray_classic(i, j, 1);
             const unsigned int depth = compute_search_depth(scene, r);
 
-            img[scene.height - j - 1, i] = depth_color(depth);
+            img[j, i] = depth_color(depth);
         }
     }
 
@@ -256,7 +256,7 @@ static void draw_bounding_box(const rt::screen& scr, const scene& scene,
     scr.draw_lines(points, depth_color(depth));
 }
 
-void draw_bounding_boxes(const scene& scene, const unsigned int max_depth) {
+void debug::draw_bounding_boxes(const scene& scene, const unsigned int max_depth) {
 
     image img = display_search_depth(scene);
     rt::screen scr(img);

@@ -52,7 +52,7 @@ struct element {
                 const bounding* bd = std::get<const bounding*>(content);
 
                 return (bd->box_index != EMPTY_INDEX) ?
-                      bvh.box_set[bd->box_index].get_position()
+                      bvh.get_box(bd->box_index).get_position()
                     : bd->get_content()[0]->get_position();
             }
             

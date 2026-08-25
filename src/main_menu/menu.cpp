@@ -340,7 +340,7 @@ static std::optional<exit_status> process_events(const rt::screen& scr, const fi
             case Click: {
                 if (debug.option_ == runtime_debugger::option::Enabled) {
                     printf("\nX = %d, Y = %d\n", debug.x, debug.y);
-                    print_hit_info(scene, debug.x, debug.y);
+                    debug::print_hit_info(scene, debug.x, debug.y);
                 }
                 break;
             }
@@ -357,7 +357,7 @@ static exit_status run_interactive(const runtime_parameters_container& runtime_p
     image& image, const scene& scene, const file_handler& file_handler) {
 
     if (runtime_parameters.debug == runtime_debugger::option::Enabled)
-        draw_bounding_boxes(scene, 4);
+        debug::draw_bounding_boxes(scene, 4);
 
     printf("Initialization complete, computing the first ray...");
     fflush(stdout);
