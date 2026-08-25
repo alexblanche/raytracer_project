@@ -23,7 +23,7 @@ camera::camera(const rt::vector& origin, const rt::vector& direction, const rt::
 /* Returns the ray that goes toward the pixel i,j of the screen, with depth of field */
 ray camera::gen_ray_dof(const int i, const int j, const randomgen& rg, const int iteration) const {
 
-    const auto [ ishift, jshift ] = shift_classic(i, j, iteration);
+    const auto [ ishift, jshift ] = shift_basic(i, j, iteration);
     const rt::vector focus_point = focal_length * direction(ishift, jshift);
     const real r = rg.random_ratio();
     const real phi = rg.random_angle();

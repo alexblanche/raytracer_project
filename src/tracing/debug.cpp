@@ -1,13 +1,14 @@
 #include "tracing/debug.hpp"
 
 #include "screen/screen.hpp"
+#include "render/render_loops.hpp"
 
 #include <iostream>
 #include <array>
 
 void debug::print_hit_info(const scene& scene, int x, int y) {
 
-    const ray r = scene.cam.gen_ray_classic(x, y, 1);
+    const ray r = scene.cam.gen_ray_basic(x, y, 1);
     const std::optional<hit> opt_h = scene.find_closest_object(r);
     if (not opt_h.has_value()) {
         printf("Background\n");
@@ -170,7 +171,7 @@ constexpr std::array depth_color_array = {
     rt::color(255, 0, 255), // Purple
     rt::color(255, 0, 128),
     rt::RED,
-    rt::color(255, 128, 0),
+    rt::color(255, 128, 0), // Orange
     rt::color(255, 255, 0), // Yellow
     rt::color(128, 255, 0),
     rt::GREEN,
@@ -190,7 +191,7 @@ image debug::display_search_depth(const scene& scene) {
 
     for (int j = 0; j < scene.height; j++) {
         for (int i = 0; i < scene.width; i++) {
-            const ray r = scene.cam.gen_ray_classic(i, j, 1);
+            const ray r = scene.cam.gen_ray_basic(i, j, 1);
             const unsigned int depth = compute_search_depth(scene, r);
 
             img[j, i] = depth_color(depth);
@@ -288,6 +289,47 @@ void debug::draw_bounding_boxes(const scene& scene, const unsigned int max_depth
     }
 
     scr.update();
+    runtime_debugger debug;
+    scr.wait_keyboard_event(debug);
+}
+
+void debug::display_adaptative(const scene& scene, const parallel::adaptative::distribution& distr) {
+
+    constexpr std::array color_array = {
+        rt::RED, rt::color(255, 128, 0), // Orange
+        rt::color(255, 255, 0), // Yellow
+        rt::GREEN, rt::BLUE, rt::color(255, 0, 255), // Purple
+        rt::WHITE, rt::color(180,180,180), // Gray
+        rt::color(128, 0, 255), rt::color(128, 255, 128), rt::color(100, 100, 100),
+        rt::color(255, 100, 100), rt::color(100, 255, 100), rt::color(100, 100, 255)
+    };
+
+    // Render one frame
+    image img(scene.width, scene.height);
+    render_loop(img, scene, 10, russian_roulette_mode::Disabled);
+
+    // Mix with distribution
+    const int nb_batches = parallel::adaptative::nb_batches(distr);
+    for (int batch = 0; batch < nb_batches; batch++) {
+        for (int j = distr[batch]; j < distr[batch + 1]; j++) {
+            for (int i = 0; i < scene.width; i++) {
+                img[j, i] = (color_array[batch] + img[j, i]) * 0.5_r;
+            }
+        }
+    }
+
+    std::cout << "distr" << std::endl;
+    for (auto x : distr)
+        std::cout << x << " ";
+    std::cout << std::endl << std::endl;
+
+    std::cout << "size" << std::endl;
+    for (std::size_t i = 0; i < distr.size() - 1; i++)
+        std::cout << distr[i + 1] - distr[i] << " ";
+    std::cout << std::endl << std::endl;
+
+    rt::screen scr(img);
+    scr.refresh();
     runtime_debugger debug;
     scr.wait_keyboard_event(debug);
 }

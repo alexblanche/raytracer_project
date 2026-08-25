@@ -17,7 +17,8 @@ namespace parallel {
                 return distr.size() - 1;
             }
             
-            static distribution distribute(std::vector<unsigned int> weights, unsigned int batch_number);
+            static distribution distribute(std::vector<unsigned int> weights,
+                unsigned int batch_number = 0);
     };
 
     void parallel_for(const adaptative::distribution& distr,

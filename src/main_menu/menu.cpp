@@ -6,6 +6,7 @@
 #include "render/render_loops.hpp"
 #include "auxiliary/timer.hpp"
 #include "tracing/debug.hpp"
+#include "parallel/parallel.hpp"
 
 #include <string>
 #include <span>
@@ -279,11 +280,61 @@ static exit_status run_offline(const runtime_parameters_container& runtime_param
         timer.print();
         return file_handler.export_as(bmp(DEFAULT_OUTPUT_FILE_NAME), image);
     }
+
+    constexpr bool ADAPTATIVE = false;
+    parallel::adaptative::distribution distr;
+    if constexpr (ADAPTATIVE) {
+
+        // Compute the weight of each row
+        std::vector<unsigned int> weights(scene.height);
+        parallel::parallel_for(scene.height, [&] (int j) {
+            unsigned int row_weight = 0;
+            for (int i = 0; i < scene.width; i++) {
+                const ray r = scene.cam.gen_ray_basic(i, j, 0);
+                if (scene.find_intersection(r).has_value())
+                    row_weight++;
+            }
+            weights[j] = row_weight;
+        });
+
+        std::cout << "weights" << std::endl;
+        for (auto w : weights)
+            std::cout << w << " ";
+        std::cout << std::endl << std::endl;
+
+        distr = parallel::adaptative::distribute(weights);
+
+        std::cout << "distr" << std::endl;
+        for (auto x : distr)
+            std::cout << x << " ";
+        std::cout << std::endl << std::endl;
+
+        std::cout << "size" << std::endl;
+        for (std::size_t i = 0; i < distr.size() - 1; i++)
+            std::cout << distr[i + 1] - distr[i] << " ";
+        std::cout << std::endl << std::endl;
+
+        std::cout << "batch weight" << std::endl;
+        for (std::size_t i = 0; i < distr.size() - 1; i++) {
+            unsigned int batch_weight = 0;
+            for (int j = distr[i]; j < distr[i + 1]; j++)
+                batch_weight += weights[j];
+            std::cout << batch_weight << " ";
+        }
+        std::cout << std::endl << std::endl;
+
+        // debug::display_adaptative(scene, distr);
+        // return exit_status::Failure;
+    }
     ///////
     
     for (unsigned int i = 0; i < target; i++) {
 
-        render_simple(image, scene, runtime_parameters);
+        if constexpr (ADAPTATIVE)
+            render_loop_adaptative(image, scene, runtime_parameters.number_of_bounces,
+                runtime_parameters.russian_roulette, distr);
+        else
+            render_simple(image, scene, runtime_parameters);
 
         printf("\r%u / %u", i + 1, target);
         fflush(stdout);
@@ -358,7 +409,7 @@ static exit_status run_interactive(const runtime_parameters_container& runtime_p
 
     if (runtime_parameters.debug == runtime_debugger::option::Enabled
         && scene.bvh_.state == bvh::option::Enabled) {
-            
+        
         constexpr unsigned int max_depth = 4;
         debug::draw_bounding_boxes(scene, max_depth);
     }

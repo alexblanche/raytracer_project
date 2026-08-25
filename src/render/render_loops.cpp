@@ -72,7 +72,8 @@ static void print_render_time(uint64_t elapsed, bool time_all) {
    If time_mode == Simple, only the total time is output at the end.
  */
 template<time_mode time_mode>
-void render_loop_parallel(image& image, const scene& scene, const unsigned int number_of_bounces, const russian_roulette_mode russian_roulette) {
+void render_loop_parallel(image& image, const scene& scene, const unsigned int number_of_bounces,
+    const russian_roulette_mode russian_roulette) {
 
     constexpr bool time_enabled = time_mode != time_mode::Disabled;
     constexpr bool time_all = time_mode == time_mode::Full;
@@ -151,7 +152,6 @@ void render_loop_parallel_multisample(image&, const scene&, const unsigned int, 
 
 
 
-
 /// Experiment
 
 
@@ -214,3 +214,33 @@ Split among 10 threads: 28s
 38 / 28 = 1,357
 100 * (38-28)/38 = 26,316 -> 26% less time, 1.3x faster at best (on this particular scene: scene_sunny.txt)
 */
+
+
+
+void render_loop_adaptative(image& image, const scene& scene, const unsigned int number_of_bounces,
+    const russian_roulette_mode russian_roulette, const parallel::adaptative::distribution& distr) {
+
+    // Anti-aliasing bias
+    static const randomgen rg0;
+    const camera::aa_shift shift = camera::generate_shift(rg0);
+    
+    parallel::parallel_for(distr, [&, number_of_bounces] (int j_start, int j_end) {
+
+        const randomgen rg;
+        const worker worker_(scene, rg, number_of_bounces, russian_roulette);
+
+        for (int j = j_start; j < j_end; j++) {
+
+            const matrix::row row = image.data[j];
+            for (int i = 0; rt::color& color : row) {
+
+                const ray init_ray = scene.cam.gen_ray(i, j, rg, image.number_of_samples, shift);
+                const rt::color new_color = worker_.pathtrace(init_ray);
+                color += new_color;
+                i++;
+            }
+        }
+    });
+
+    image.increase_sample_count();
+}

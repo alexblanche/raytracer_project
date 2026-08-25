@@ -99,33 +99,35 @@ exit_status parse_mtl_file(const std::filesystem::path& path, const std::string&
                 f.scanf_rewind_if_failure("illum %u\n", illum);
 
                 /* Looking for a material with the same name */
-                bool already_exists = false;
                 const std::optional<unsigned int> v_opt = wrapper<material>::find_element(material_wrapper_set, m_name, silent_option::Silent);
                 if (v_opt.has_value()) {
                     printf("\rDuplicate material %s ignored\n", m_name.c_str());
-                    already_exists = true;
+
+                    while ((not f.eof()) && exit_status::Success == f.scanf_rewind_if_failure("map_")) {
+                        f.skip_line();
+                    }
+
+                    continue;
                 }
 
-                if (not already_exists) {
+                material_wrapper_set.emplace_back(
+                    material(ns,
+                        rt::color(ka_r, ka_g, ka_b),
+                        rt::color(kd_r, kd_g, kd_b),
+                        rt::color(ks_r, ks_g, ks_b),
+                        rt::color(ke_r, ke_g, ke_b),
+                        ni, d, illum, gamma
+                    ),
 
-                    material_wrapper_set.emplace_back(
-                        material(ns,
-                            rt::color(ka_r, ka_g, ka_b),
-                            rt::color(kd_r, kd_g, kd_b),
-                            rt::color(ks_r, ks_g, ks_b),
-                            rt::color(ke_r, ke_g, ke_b),
-                            ni, d, illum, gamma
-                        ),
-
-                        m_name);
-                }
+                    m_name);
 
                 const unsigned int m_i = material_wrapper_set.back().index;
 
                 /* Test for associated texture */
                 char c;
                 const exit_status status = f.scanf_rewind_if_failure("map_K%c", c);
-                if (status == exit_status::Success && not already_exists) {
+
+                if (status == exit_status::Success) {
 
                     const std::string tfile_name = f.read_string(MAX_FILENAME_LENGTH);
 

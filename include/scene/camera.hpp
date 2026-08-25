@@ -96,7 +96,7 @@ class camera {
                 return { i, j };
         }
 
-        inline std::pair<real, real> shift_classic(const int i, const int j, const int iteration) const {
+        inline std::pair<real, real> shift_basic(const int i, const int j, const int iteration) const {
             const auto [ si, sj ] = stratified_shift_pixel(i, j, iteration);
             return { std::fma(di, static_cast<real>(si), mhalf_fovw),
                      std::fma(dj, static_cast<real>(sj), mhalf_fovh) };
@@ -127,8 +127,8 @@ class camera {
         camera& operator=(camera&&)         = delete;
 
         /* Returns the ray that goes toward the pixel i,j of the screen */
-        ray gen_ray_classic(int i, int j, int iteration) const {
-            const auto [ ishift, jshift ] = shift_classic(i, j, iteration);
+        ray gen_ray_basic(int i, int j, int iteration) const {
+            const auto [ ishift, jshift ] = shift_basic(i, j, iteration);
             return ray(origin, direction(ishift, jshift));
         }
 

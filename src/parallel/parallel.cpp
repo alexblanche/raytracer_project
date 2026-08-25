@@ -59,7 +59,10 @@ void parallel::parallel_for(int nb_elements, const std::function<void (int start
 using namespace parallel;
 
 /* Greedy algorithm that splits the weights into batch_number contiguous sets */
-adaptative::distribution distribute(std::vector<unsigned int> weights, const unsigned int batch_number) {
+adaptative::distribution adaptative::distribute(std::vector<unsigned int> weights, unsigned int batch_number) {
+
+    if (batch_number == 0)
+        batch_number = std::thread::hardware_concurrency();
 
     int total_weight = 0;
     for (auto w : weights)
@@ -81,7 +84,6 @@ adaptative::distribution distribute(std::vector<unsigned int> weights, const uns
             i++;
         }
         distr[current_batch + 1] = i + 1;
-        target_batch_weight -= (batch_weight - target_batch_weight);
     }
     
     distr[batch_number] = weights.size();
