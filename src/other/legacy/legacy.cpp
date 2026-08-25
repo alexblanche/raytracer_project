@@ -67,7 +67,7 @@ void render_loop_parallel(matrix& matrix, const real dist,
     const long int init_time = get_time();
     constexpr rt::vector origin(0, 0, 0);
 
-    parallel_for(matrix.height, [&] (int j) {
+    parallel::parallel_for(matrix.height, [&] (int j) {
 
         const matrix::row row = matrix[matrix.height - j - 1];
 

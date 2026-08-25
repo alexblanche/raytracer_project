@@ -356,8 +356,12 @@ static std::optional<exit_status> process_events(const rt::screen& scr, const fi
 static exit_status run_interactive(const runtime_parameters_container& runtime_parameters,
     image& image, const scene& scene, const file_handler& file_handler) {
 
-    if (runtime_parameters.debug == runtime_debugger::option::Enabled)
-        debug::draw_bounding_boxes(scene, 4);
+    if (runtime_parameters.debug == runtime_debugger::option::Enabled
+        && scene.bvh_.state == bvh::option::Enabled) {
+            
+        constexpr unsigned int max_depth = 4;
+        debug::draw_bounding_boxes(scene, max_depth);
+    }
 
     printf("Initialization complete, computing the first ray...");
     fflush(stdout);

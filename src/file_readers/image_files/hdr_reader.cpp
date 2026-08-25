@@ -96,7 +96,7 @@ std::expected<matrix, file_reader::error> hdr::read_file(const std::string& file
 
         matrix data(width, height);
 
-        parallel_for(height, [&] (int j) {
+        parallel::parallel_for(height, [&] (int j) {
 
             int index = j * width;
             const matrix::row row = data[j];

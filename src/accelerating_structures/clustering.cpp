@@ -91,7 +91,7 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
 
         if constexpr (ENABLE_PARALLELISM_FIRST) {
 
-            parallel_for(old_group.size(), [&] (int i) {
+            parallel::parallel_for(old_group.size(), [&] (int i) {
 
                 const element& elt = old_group[i];
                 closest_indices[i] = search(elt.get_position(bvh));
@@ -114,7 +114,7 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
         bool change = false;
 
         if constexpr (ENABLE_PARALLELISM_ITERATIONS) {
-            parallel_for(nb_of_groups, [&] (int start, int end) {
+            parallel::parallel_for(nb_of_groups, [&] (int start, int end) {
 
                 std::vector<unsigned int> closest_indices;
 

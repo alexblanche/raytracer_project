@@ -88,7 +88,7 @@ void render_loop_parallel(image& image, const scene& scene, const unsigned int n
     static const randomgen rg0;
     const camera::aa_shift shift = camera::generate_shift(rg0);
     
-    parallel_for(scene.height, [&, number_of_bounces] (int j_start, int j_end) {
+    parallel::parallel_for(scene.height, [&, number_of_bounces] (int j_start, int j_end) {
 
         const randomgen rg;
         const worker worker_(scene, rg, number_of_bounces, russian_roulette);
@@ -161,7 +161,7 @@ void render_loop_parallel_all_at_once(image& image, const scene& scene, const un
     static const randomgen rg0;
     const camera::aa_shift shift = camera::generate_shift(rg0);
 
-    parallel_for(scene.height, [&, number_of_bounces, russian_roulette, target] (int j_start, int j_end) {
+    parallel::parallel_for(scene.height, [&, number_of_bounces, russian_roulette, target] (int j_start, int j_end) {
 
         timer_ms timer;
         timer.start();

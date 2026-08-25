@@ -281,7 +281,7 @@ void render(const render_parameters& param) {
     SDL_LockTexture(param.txt, nullptr, reinterpret_cast<void**>(&param.texture_pixels), &param.texture_pitch);
 
     if constexpr (RENDER_PARALLEL) {
-        parallel_for(height, [&] (int j_start, int j_end) {
+        parallel::parallel_for(height, [&] (int j_start, int j_end) {
             run_render_loop(j_start, j_end, param);
         },
         nb_threads);

@@ -4,7 +4,7 @@
 
 void matrix::apply_gamma(real gamma) {
 
-    parallel_for(height, [&] (int j) {
+    parallel::parallel_for(height, [&] (int j) {
 
         const matrix::row row = get_row(j);
         for (rt::color& color : row) {

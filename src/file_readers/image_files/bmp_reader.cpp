@@ -66,7 +66,7 @@ std::expected<matrix, file_reader::error> bmp::read_file(const std::string& file
 
         matrix matrix(width, height);
 
-        parallel_for(height, [&] (int j) {
+        parallel::parallel_for(height, [&] (int j) {
 
             const matrix::row row = matrix[height - 1 - j];
             unsigned int index = pitch * j;
