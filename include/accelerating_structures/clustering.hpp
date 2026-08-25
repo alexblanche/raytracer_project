@@ -1,7 +1,7 @@
 #pragma once
 
 #include "scene/objects/object.hpp"
-#include "scene/bvh/bounding.hpp"
+#include "scene/bvh/bvh.hpp"
 
 #include <variant>
 
@@ -42,7 +42,7 @@ struct element {
         return std::get<T>(content);
     }
 
-    inline rt::vector get_position() const {
+    inline rt::vector get_position(const bvh& bvh) const {
         using enum type;
         switch (type_) {
             case Object:
@@ -50,8 +50,9 @@ struct element {
             
             case Bounding: {
                 const bounding* bd = std::get<const bounding*>(content);
-                return (bd->b != nullptr) ?
-                      bd->b->get_position()
+
+                return (bd->box_index != EMPTY_INDEX) ?
+                      bvh.box_set[bd->box_index].get_position()
                     : bd->get_content()[0]->get_position();
             }
             
@@ -80,12 +81,11 @@ struct element {
 
 /* Auxiliary function to create_bounding_hierarchy
    Performs the second step of the algorithm: creates the hierarchy of the terminal boundings */
-const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& term_nodes);
+const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& term_nodes, bvh& bvh);
 
 /* Returns a bounding* containing the objects of content, split into a hierarchy of boundings if their number
    exceeds MIN_NUMBER_OF_POLYGONS_FOR_BOX */
-const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
-    unsigned int polygons_per_bounding);
+const bounding* create_bounding_hierarchy(std::vector<const object*>&& content, bvh& bvh);
 
 
 /** Tests **/

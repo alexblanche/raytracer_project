@@ -5,10 +5,20 @@
 
 #include <vector>
 
+struct min_max_vectors {
+    rt::vector min = min_empty;
+    rt::vector max = max_empty;
+
+    static constexpr rt::vector min_empty = rt::vector( infinity,  infinity,  infinity);
+    static constexpr rt::vector max_empty = rt::vector(-infinity, -infinity, -infinity);
+};
+
 struct min_max_coord {
     real min_x, max_x, min_y, max_y, min_z, max_z;
 
-    void update(rt::vector& min, rt::vector& max) const {
+    void update(min_max_vectors& min_max) const {
+
+        auto& [ min, max ] = min_max;
 
         min = {
             std::min(min.x, min_x),
@@ -29,9 +39,6 @@ struct min_max_coord {
             << "]; y: [" << min_y << "; " << max_y
             << "]; z: [" << min_z << "; " << max_z << "]";
     }
-
-    static constexpr rt::vector min_empty = rt::vector( infinity,  infinity,  infinity);
-    static constexpr rt::vector max_empty = rt::vector(-infinity, -infinity, -infinity);
 };
 
 constexpr min_max_coord empty_set_min_max_coords = {
@@ -46,7 +53,10 @@ constexpr min_max_coord empty_set_min_max_coords = {
     .max_z = -infinity
 };
 
-constexpr min_max_coord build_min_max_coord(const rt::vector& min, const rt::vector& max) {
+constexpr min_max_coord build_min_max_coord(const min_max_vectors& min_max) {
+
+    const auto& [ min, max ] = min_max;
+
     return {
         .min_x = min.x,
         .max_x = max.x,
@@ -63,13 +73,12 @@ constexpr min_max_coord build_min_max_coord(const rt::vector& min, const rt::vec
    The set of objects are contained within min and min + max */
 template<typename T>
 requires (requires (T x) { { x.get_min_max_coord() } -> std::same_as<min_max_coord>; })
-std::pair<rt::vector, rt::vector> compute_bounding_vectors(const std::vector<const T*>& set) {
+min_max_vectors compute_bounding_vectors(const std::vector<const T*>& set) {
     
-    rt::vector max = min_max_coord::max_empty;
-    rt::vector min = min_max_coord::min_empty;
+    min_max_vectors min_max;
 
     for (const T* p : set)
-        p->get_min_max_coord().update(min, max);
+        p->get_min_max_coord().update(min_max);
     
-    return { min, max };
+    return min_max;
 }

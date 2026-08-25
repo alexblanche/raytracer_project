@@ -38,7 +38,7 @@ namespace trig {
         return trig::direction(cos_phi, theta);
     }
 
-    inline angles get_angles(const rt::vector& dir) {
+    inline angles compute_angles(const rt::vector& dir) {
 
         const auto& [ x, y, z ] = dir;
 

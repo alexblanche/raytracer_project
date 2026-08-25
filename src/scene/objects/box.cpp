@@ -98,7 +98,12 @@ min_max_coord box::get_min_max_coord() const {
 
     const rt::vector m = matprod(absn1, absn2, absn3, dims);
     
-    return build_min_max_coord(position - m, position + m);
+    const min_max_vectors min_max = {
+        .min = position - m,
+        .max = position + m
+    };
+
+    return build_min_max_coord(min_max);
 }
 
 

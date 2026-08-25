@@ -64,7 +64,7 @@ hit sphere::compute_intersection(const ray& r, const real t) const {
 min_max_coord sphere::get_min_max_coord() const {
 
     const rt::vector r(radius, radius, radius);
-    return build_min_max_coord(position - r, position + r);
+    return build_min_max_coord({ position - r, position + r });
 }
 
 uvcoord sphere::compute_uv(const rt::vector& p, const mapping_info* orientation_info) const {
@@ -73,7 +73,7 @@ uvcoord sphere::compute_uv(const rt::vector& p, const mapping_info* orientation_
 
     const rt::vector v = (p - position) / radius; // equal to normal: can it be optimized?
     const rt::vector oriented = o.matrix * v;
-    const auto& [ theta, phi ] = trig::get_angles(oriented);
+    const auto& [ theta, phi ] = trig::compute_angles(oriented);
     // ST-coordinates:
     //  s = longitude, t = latitude
     //  On spheres, identical to UV-coordinates.

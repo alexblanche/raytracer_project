@@ -201,10 +201,13 @@ min_max_coord quad::get_min_max_coord() const {
     const auto& [ min23, max23 ] = rt::min_max(p2, p3);
     const rt::vector min123      = rt::min(p1, min23);
     const rt::vector max123      = rt::max(p1, max23);
-    const rt::vector min         = rt::min(position, min123);
-    const rt::vector max         = rt::max(position, max123);
 
-    return build_min_max_coord(min, max);
+    const min_max_vectors min_max = {
+        .min = rt::min(position, min123),
+        .max = rt::max(position, max123)
+    };
+
+    return build_min_max_coord(min_max);
 }
 
 /* Normal map vector computation at render time

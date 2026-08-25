@@ -234,7 +234,7 @@ static bg_parsing_result parse_background(const file& f) {
     };
 }
 
-static unsigned int parse_bvh(const file& f) {
+static unsigned int parse_bvh_info(const file& f) {
     
     /*
         polygons_per_bounding 10 //specifying 0 will deactivate the bounding generation
@@ -1102,7 +1102,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         auto [ width, height ] = parse_resolution(f);
         camera cam = parse_camera(f, width, height);
         auto [ background, inverse_gamma ] = parse_background(f);
-        unsigned int polygons_per_bounding = parse_bvh(f);
+        unsigned int polygons_per_bounding = parse_bvh_info(f);
 
         std::vector<const object*> object_set;
         object_set.reserve(pre_parsing_info.max_objects());
@@ -1123,14 +1123,17 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         static_assert(TODO_ROUGHNESS_MAP);
         static_assert(TODO_DISPLACEMENT_MAP);
 
-        std::vector<const bounding*> bounding_set;
-
         /* Bounding handling */
         /* When bvh is disabled, the objects that are not defined in an obj file are placed in
         the vector other_content. At the end, these objects are placed in a bounding alongside the ones generated during obj files parsing */
         std::vector<const object*> other_content;
         other_content.reserve(pre_parsing_info.total_non_polygon_objects());
+
         const bool bounding_enabled = polygons_per_bounding != 0;
+        std::optional<bvh> bvh_opt;
+        if (bounding_enabled) {
+            bvh_opt.emplace(polygons_per_bounding);
+        }
 
         containers containers = {
             object_set,
@@ -1205,17 +1208,12 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
                 
                 const auto& [ ofile_name, m_index, positioning ] = parse_load_obj(f, composition_wrapper_set);
 
-                const bounding* output_bd = nullptr;
                 const exit_status status_obj =
                     parse_obj_file(ofile_name, m_index,
                         containers, positioning,
-                        bounding_enabled, polygons_per_bounding, output_bd,
-                        inverse_gamma);
+                        bvh_opt, inverse_gamma);
 
                 throw_if_failure(status_obj, ofile_name + " obj file reading failed\n");
-
-                if (bounding_enabled)
-                    bounding_set.push_back(output_bd);
 
                 continue;
             }
@@ -1227,9 +1225,7 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
         f.close();
 
         if (bounding_enabled) {
-            // other_content should be tested first, to maximize pruning in the BVH tree-search
-            bounding_set.push_back(new bounding(std::move(other_content)));
-            std::reverse(bounding_set.begin(), bounding_set.end());
+            bvh_opt.value().finalize(std::move(other_content));
         }
 
         // wrapper<material>::print_content(material_wrapper_set);
@@ -1251,13 +1247,12 @@ std::optional<scene> parse_scene_descriptor(const std::string& file_name) {
 
         scene_opt.emplace(
             std::move(object_set),
-            std::move(bounding_set),
+            std::move(bvh_opt),
             std::move(object_containers),
             std::move(mapping_containers),
             std::move(orientation_containers),
             std::move(cam),
             width, height,
-            polygons_per_bounding,
             gamma
         );
     }

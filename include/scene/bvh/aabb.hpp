@@ -6,8 +6,8 @@
 /* Axis-aligned bounding box */
 
 class aabb {
-    private:
-        rt::vector position; // position = center if type = Center, or corner if type = Corner
+    public:
+        rt::vector position; // position = center or corner
         rt::vector dims;
 
     public:
@@ -44,10 +44,13 @@ class aabb {
             dims = (max - min) * 0.5_r;
         }
 
-        aabb(aabb&&)                 = delete;
+        aabb(aabb&&)            noexcept = default;
+        aabb& operator=(aabb&&) noexcept = default;
+
         aabb(const aabb&)            = delete;
         aabb& operator=(const aabb&) = delete;
-        aabb& operator=(aabb&&)      = delete;
+        
+        ~aabb() noexcept {}
 
         static constexpr aabb infinite_box() {
             return aabb(rt::ZERO, rt::vector(infinity, infinity, infinity));
@@ -63,9 +66,9 @@ class aabb {
         /* Minimum and maximum coordinates */
         inline min_max_coord get_min_max_coord() const {
             if constexpr (type_ == Corner)
-                return build_min_max_coord(position, position + dims);
+                return build_min_max_coord({ .min = position,        .max = position + dims });
             else if constexpr (type_ == Center)
-                return build_min_max_coord(position - dims, position + dims);
+                return build_min_max_coord({ .min = position - dims, .max = position + dims });
         }
 
         /* Returns the corner */

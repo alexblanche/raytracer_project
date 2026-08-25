@@ -25,8 +25,8 @@ class bounding {
 
         node_type type;
 
-        /* Bounding box */
-        std::unique_ptr<box_type> b = nullptr; // Soon: unsigned int box_index = index in bvh::box_set
+        /* Index of the bounding box in bvh::box_set */
+        unsigned int box_index;
 
         static inline unsigned int cpt = 0;
         
@@ -49,39 +49,18 @@ class bounding {
     
         node node_;
 
-        // Helper method
-        inline void update_closest_from_objects(const ray& r,
-            // Out parameters
-            real& distance_to_closest,
-            const object*& closest_object) const {
-
-            real d_closest       = distance_to_closest;
-            const object* cl_obj = closest_object;
-            
-            for (const object* const obj : node_.content) {
-                const real d = obj->measure_distance(r);
-                if (d < d_closest) {
-                    d_closest = d;
-                    cl_obj = obj;
-                }
-            }
-
-            distance_to_closest = d_closest;
-            closest_object      = cl_obj;
-        }
-
     public:
 
         using enum node_type;
 
         /* Constructor for terminal nodes: container node (for first-level non-triangle objects) if no box provided,
            or terminal node with a bounding box, containing triangles */
-        bounding(std::vector<const object*>&& content, std::unique_ptr<box_type>&& b = nullptr)
-            : type(TerminalNode), b(std::move(b)), node_(std::move(content)) { cpt++; }
+        bounding(std::vector<const object*>&& content, unsigned int box_index = EMPTY_INDEX)
+            : type(TerminalNode), box_index(box_index), node_(std::move(content)) { cpt++; }
 
         /* Internal node constructor */
-        bounding(std::vector<const bounding*>&& children, std::unique_ptr<box_type>&& b)
-            : type(InternalNode), b(std::move(b)), node_(std::move(children)) { cpt++; }
+        bounding(std::vector<const bounding*>&& children, unsigned int box_index)
+            : type(InternalNode), box_index(box_index), node_(std::move(children)) { cpt++; }
 
         bounding(const bounding&)            = delete;
         bounding(bounding&&)                 = delete;
@@ -105,161 +84,4 @@ class bounding {
                   node_.children
                 : std::span<const bounding * const> {};
         }
-
-        inline min_max_coord get_min_max_coord() const {
-            return (b != nullptr) ?
-                  b->get_min_max_coord()
-                : empty_set_min_max_coords;
-        }
-
-        /* Auxiliary function to scene::find_closest_object_bounding :
-           Places the children of the bounding on the bounding_stack if the box is hit,
-           or determines the closest to the objects from the content if the bounding is terminal
-           (if it is closest than the current closest_object, at a distance distance_to_closest,
-           in which case the two variables are overwritten)
-        */
-        void check_box(const ray& r,
-                custom_stack<const bounding*>& bounding_stack,
-                // out parameters
-                real& distance_to_closest, const object*& closest_object
-            ) const {
-
-            static_assert(std::is_same_v<bounding::box_type, box>
-                || std::is_same_v<bounding::box_type, aabb>);
-
-            if constexpr (std::is_same_v<bounding::box_type, box>) {
-                if (b != nullptr
-                    && reinterpret_cast<const box*>(b.get())->is_hit_with_distance(r) >= distance_to_closest)
-                    return;
-            }
-            else if constexpr (std::is_same_v<bounding::box_type, aabb>) {
-                if (b != nullptr
-                    && reinterpret_cast<const aabb*>(b.get())->measure_distance(r) >= distance_to_closest)
-                    return;
-            }
-
-            switch (type) {
-                
-                case InternalNode:
-                    bounding_stack.push(node_.children);
-                    break;
-
-                case TerminalNode:
-                    update_closest_from_objects(r, distance_to_closest, closest_object);
-                    break;
-            }
-        }
-
-        /* Same as check_box, but the last child is stored in a pointer to avoid pushing and
-        immediately popping on the stack */
-        void check_box_next(const ray& r,
-                custom_stack<const bounding*>& bounding_stack,
-                // out parameters
-                real& distance_to_closest, const object*& closest_object,
-                bool& bd_stored, const bounding*& next_bounding
-            ) const {
-
-            bd_stored = false;
-
-            static_assert(std::is_same_v<bounding::box_type, box> || std::is_same_v<bounding::box_type, aabb>);
-
-            if constexpr (std::is_same_v<bounding::box_type, box>) {
-                if (b != nullptr
-                    && reinterpret_cast<const box*>(b.get())->is_hit_with_distance(r) >= distance_to_closest)
-                    return;
-            }
-            else if constexpr (std::is_same_v<bounding::box_type, aabb>) {
-                if (b != nullptr
-                    && reinterpret_cast<const aabb*>(b.get())->measure_distance(r) >= distance_to_closest)
-                    return;
-            }
-
-            switch (type) {
-
-                case InternalNode: {
-                    const unsigned int last_index = node_.children.size() - 1;
-                    bounding_stack.push(std::span(node_.children).first(last_index));
-                    next_bounding = node_.children[last_index];
-                    bd_stored = true;
-                    break;
-                }
-
-                case TerminalNode: {
-                    update_closest_from_objects(r, distance_to_closest, closest_object);
-                    break;
-                }
-            }
-        }
 };
-
-template<typename T>
-requires (std::is_same_v<T, object> || std::is_same_v<T, bounding>)
-    && (requires (T x) { { x.get_min_max_coord() } -> std::same_as<min_max_coord>; })
-[[nodiscard]] static const bounding* containing_bounding_template(std::vector<const T*>&& set) {
-
-    const std::size_t size = set.size();
-
-    if (size == 0)
-        throw std::runtime_error("Error: creating bounding box of empty set\n");
-    
-    if (size == 1) {
-        if constexpr (std::is_same_v<T, bounding>)
-            return set[0];
-        else
-            return new bounding(
-                { set[0] },
-                std::make_unique<bounding::box_type>(set[0]->get_min_max_coord())
-            );
-    }
-
-    /* Computation of the dimensions of the object set */
-    const auto [ min, max ] = compute_bounding_vectors(set);
-
-    static_assert(
-           std::is_same_v<bounding::box_type, box>
-        || std::is_same_v<bounding::box_type, aabb>
-    );
-
-    /* Creation of the bounding object depending on the type of box and type of AABB */
-
-    const rt::vector& corner = min;
-    const rt::vector center = (max + min) / 2.0_r;
-    const rt::vector dims = max - min;
-    const auto [ l1, l2, l3 ] = dims;
-
-    if constexpr (std::is_same_v<bounding::box_type, box>)
-        return new bounding(
-            std::forward<std::vector<const T*>>(set),
-            std::make_unique<box>(center, rt::RIGHT, rt::UP, l1, l2, l3)
-        );
-
-    else if constexpr (std::is_same_v<bounding::box_type, aabb>) {
-        using enum aabb::type;
-
-        if constexpr (aabb::type_ == Corner)
-            return new bounding(
-                std::forward<std::vector<const T*>>(set),
-                std::make_unique<aabb>(corner, dims)
-            );
-        else if constexpr (aabb::type_ == Center)
-            return new bounding(
-                std::forward<std::vector<const T*>>(set),
-                std::make_unique<aabb>(center, dims)
-            );
-    }
-}
-
-/* Returns an AABB containing the bounding boxes bd0 and bd1 */
-[[nodiscard]] inline const bounding* containing_bounding_two(const bounding* bd0, const bounding* bd1) {
-    return containing_bounding_template<bounding>({ bd0, bd1 });
-}
-
-/* Returns a non-terminal AABB containing the non-terminal AABBs in the children vector */
-[[nodiscard]] inline const bounding* containing_bounding_any(std::vector<const bounding*>&& children) {
-    return containing_bounding_template(std::move(children));
-}
-
-/* Returns an AABB containing the objects whose indices are in the obj vector */
-[[nodiscard]] inline const bounding* containing_objects(std::vector<const object*>&& obj) {
-    return containing_bounding_template(std::move(obj));
-}

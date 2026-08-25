@@ -68,5 +68,4 @@ class model_positioning {
 exit_status parse_obj_file(const std::string& file_name, std::optional<unsigned int> default_texture_index,
     containers& containers,
     const model_positioning& positioning,
-    bool bounding_enabled, unsigned int polygons_per_bounding,
-    const bounding*& output_bd, std::optional<real> gamma = std::nullopt);
+    std::optional<bvh>& bvh, std::optional<real> gamma = std::nullopt);

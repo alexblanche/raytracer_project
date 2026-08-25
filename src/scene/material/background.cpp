@@ -8,7 +8,7 @@
 const rt::color& background_container::get_texture_color(const rt::vector& dir) const {
     
     const rt::vector dir_rotated = rotation_matrix * dir;
-    const auto& [ theta, phi ] = trig::get_angles(dir_rotated);
+    const auto [ theta, phi ] = trig::compute_angles(dir_rotated);
 
     /* Determining the UV-coordinates */
     const real u = theta / (2.0_r * PI);

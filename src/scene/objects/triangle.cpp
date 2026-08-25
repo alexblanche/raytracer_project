@@ -182,10 +182,12 @@ min_max_coord triangle::get_min_max_coord() const {
 
     const auto& [ min12, max12 ] = rt::min_max(p1, p2);
 
-    const rt::vector min = rt::min(position, min12);
-    const rt::vector max = rt::max(position, max12);
+    const min_max_vectors min_max = {
+        .min = rt::min(position, min12),
+        .max = rt::max(position, max12)
+    };
 
-    return build_min_max_coord(min, max);
+    return build_min_max_coord(min_max);
 }
 
 

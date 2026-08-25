@@ -189,11 +189,11 @@ static void test_obj() {
 
         timer.start();
         
-        const bounding* output_bd = nullptr;
+        std::optional<bvh> empty_bvh;
         [[maybe_unused]] const exit_status status = parse_obj_file(
             filename_obj, std::nullopt, containers,
             model_positioning(rt::vector(1, 1, 1), 2.0_r),
-            false, 0, output_bd, 1.0_r
+            empty_bvh, 1.0_r
         );
         assert(status == exit_status::Success);
 

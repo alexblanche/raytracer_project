@@ -201,7 +201,7 @@ rt::color worker::pathtrace(const ray& init_ray) const {
 
     for (unsigned int i = 0; i < bounce; i++) {
 
-        const std::optional<hit> opt_h = scene_.find_closest(r, bvh);
+        const std::optional<hit> opt_h = scene_.find_intersection(r);
 
         /* No object hit: background color or background texture */
         if (not opt_h.has_value()) 

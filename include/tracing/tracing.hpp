@@ -17,7 +17,6 @@ class worker {
         unsigned int bounce;
         russian_roulette_mode russian_roulette;
         real init_refr_index;
-        bvh_option bvh;
 
         mutable stack_based_custom_stack<real, 20> refr_stack;
 
@@ -25,8 +24,7 @@ class worker {
             unsigned int bounce, russian_roulette_mode russian_roulette, real init_refr_index = 1.0_r)
 
             : scene_(scene), rg(rg), bounce(bounce), russian_roulette(russian_roulette),
-              init_refr_index(init_refr_index),
-              bvh(scene.polygons_per_bounding != 0 ? bvh_option::Enabled : bvh_option::Disabled) {}
+              init_refr_index(init_refr_index) {}
 
         rt::color pathtrace(const ray& init_ray) const;
 

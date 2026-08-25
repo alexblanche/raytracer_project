@@ -98,46 +98,6 @@ struct bd_depth {
     unsigned int depth;
 };
 
-static void check_box(const bounding* const bd, const unsigned int current_depth, const ray& r,
-    custom_stack<bd_depth>& bounding_stack,
-    real& distance_to_closest, unsigned int& search_depth) {
-    
-    if constexpr (std::is_same_v<bounding::box_type, box>) {
-        if (bd->b != nullptr
-            && reinterpret_cast<const box*>(bd->b.get())->is_hit_with_distance(r) >= distance_to_closest)
-            return;
-    }
-    else if constexpr (std::is_same_v<bounding::box_type, aabb>) {
-        if (bd->b != nullptr
-            && reinterpret_cast<const aabb*>(bd->b.get())->measure_distance(r) >= distance_to_closest)
-            return;
-    }
-
-    using enum bounding::node_type;
-    switch (bd->type) {
-        
-        case InternalNode: {
-            const auto& children = bd->get_children();
-            for (const bounding* bd : children) {
-                bounding_stack.emplace(bd, current_depth + 1);
-            }
-            break;
-        }
-
-        case TerminalNode: {
-            const auto& content = bd->get_content();
-            for (const object* const obj : content) {
-                const real d = obj->measure_distance(r);
-                if (d < distance_to_closest) {
-                    distance_to_closest = d;
-                    search_depth = current_depth;
-                }
-            }
-            break;
-        }
-    }
-}
-
 static unsigned int compute_search_depth(const scene& scene, const ray& r) {
 
     real distance_to_closest = infinity;
@@ -147,14 +107,54 @@ static unsigned int compute_search_depth(const scene& scene, const ray& r) {
     bounding_stack.set_empty();
 
     /* Pass through the set of first-level bounding boxes */
-    for (const bounding* const bd : scene.bounding_set) {
+    for (const bounding* const bd : scene.bvh_.bounding_set) {
         bounding_stack.emplace(bd, 1);
     }
+
+    const auto check_box = [&] (const bounding* const bd, const unsigned int current_depth) {
+        if (bd->box_index != EMPTY_INDEX) {
+
+            const bounding::box_type& b = scene.bvh_.box_set[bd->box_index];
+
+            if constexpr (std::is_same_v<bounding::box_type, box>) {
+                if (reinterpret_cast<const box*>(&b)->is_hit_with_distance(r) >= distance_to_closest)
+                    return;
+            }
+            else if constexpr (std::is_same_v<bounding::box_type, aabb>) {
+                if (reinterpret_cast<const aabb*>(&b)->measure_distance(r) >= distance_to_closest)
+                    return;
+            }
+        }
+
+        using enum bounding::node_type;
+        switch (bd->type) {
+            
+            case InternalNode: {
+                const auto& children = bd->get_children();
+                for (const bounding* bd : children) {
+                    bounding_stack.emplace(bd, current_depth + 1);
+                }
+                break;
+            }
+
+            case TerminalNode: {
+                const auto& content = bd->get_content();
+                for (const object* const obj : content) {
+                    const real d = obj->measure_distance(r);
+                    if (d < distance_to_closest) {
+                        distance_to_closest = d;
+                        search_depth = current_depth;
+                    }
+                }
+                break;
+            }
+        }
+    };
 
     while (not bounding_stack.empty()) {
 
         const auto [ bd, depth ] = bounding_stack.pop();
-        check_box(bd, depth, r, bounding_stack, distance_to_closest, search_depth);
+        check_box(bd, depth);
     }
 
     return search_depth;
@@ -209,10 +209,10 @@ image display_search_depth(const scene& scene) {
 static void draw_bounding_box(const rt::screen& scr, const scene& scene,
     const bounding* bd, const unsigned int depth) {
 
-    if (bd->b == nullptr)
+    if (bd->box_index == EMPTY_INDEX)
         return;
     
-    const auto [ min_x, max_x, min_y, max_y, min_z, max_z ] = bd->get_min_max_coord();
+    const auto [ min_x, max_x, min_y, max_y, min_z, max_z ] = scene.bvh_.get_min_max_coord(bd);
 
     /*
     printf("Box: (b = %p) depth: %u, x: [%lf; %lf]; y: [%lf; %lf]; z: [%lf; %lf]",
@@ -264,7 +264,7 @@ void draw_bounding_boxes(const scene& scene, const unsigned int max_depth) {
     custom_stack<bd_depth> bounding_stack;
     bounding_stack.set_empty();
 
-    for (const bounding* const bd : scene.bounding_set) {
+    for (const bounding* const bd : scene.bvh_.bounding_set) {
         bounding_stack.emplace(bd, 1);
     }
 

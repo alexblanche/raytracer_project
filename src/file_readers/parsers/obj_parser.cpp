@@ -202,14 +202,7 @@ struct polygon_manager {
     sets_container           sets;
     counters_container       counters;
     mapping_parameters       mapping_params;
-    
-    /* Min-max dimensions */
-    struct min_max_dims {
-        rt::vector min = min_max_coord::min_empty;
-        rt::vector max = min_max_coord::max_empty;
-    };
-    min_max_dims             min_max;
-
+    min_max_vectors          min_max;
     const bool               bounding_enabled;
 
     public:
@@ -710,7 +703,7 @@ with material indices (defined with the keyword usemtl) found in material_names
 exit_status parse_obj_file(const std::string& file_name,
     const std::optional<mapping::index_type> default_mapping_index,
     containers& containers, const model_positioning& positioning,
-    const bool bounding_enabled, const unsigned int polygons_per_bounding, const bounding*& output_bd, // Encapsulate
+    std::optional<bvh>& bvh,
     const std::optional<real> gamma) {
 
     printf("Parsing obj file... ");
@@ -739,7 +732,7 @@ exit_status parse_obj_file(const std::string& file_name,
     /* Bounding containers
         content will contain the polygons of a group before being placed in a bounding,
         which will be added to the children vector
-        At the end, a bounding containing all the ones in bounding is placed in output_bounding */
+        At the end, a bounding containing all the ones in content is placed in output_bounding */
     std::vector<const object*> content;
     std::vector<const bounding*> children;
 
@@ -758,7 +751,7 @@ exit_status parse_obj_file(const std::string& file_name,
             .normal_option          = normal::Disabled
         },
         .min_max = {},
-        .bounding_enabled = bounding_enabled
+        .bounding_enabled = bvh.has_value()
     };
 
     try {
@@ -821,11 +814,11 @@ exit_status parse_obj_file(const std::string& file_name,
             /* New group definition
                 If bounding_enabled is true, the current content vector of polygons
                 is placed in a box that is added to the children vector */
-            else if ((arg == "o" || arg == "g") && not content.empty() && bounding_enabled) {
+            else if ((arg == "o" || arg == "g") && not content.empty() && poly_manager.bounding_enabled) {
 
                 // Create a bounding hierarchy containing all the nodes
                 /* Heuristic: each group is a depth 1 node in the global bounding box hierarchy */
-                const bounding* bd = create_bounding_hierarchy(std::move(content), polygons_per_bounding);
+                const bounding* bd = create_bounding_hierarchy(std::move(content), bvh.value());
                 if constexpr (DISPLAY_HIERARCHY)
                     display_hierarchy_properties(bd);
                 children.push_back(bd);
@@ -833,17 +826,18 @@ exit_status parse_obj_file(const std::string& file_name,
             }
         }
         
-        if (bounding_enabled) [[likely]] {
+        if (poly_manager.bounding_enabled) [[likely]] {
             /* Placing the last group into a bounding */
-            const bounding* bd = create_bounding_hierarchy(std::move(content), polygons_per_bounding);
+            const bounding* bd = create_bounding_hierarchy(std::move(content), bvh.value());
             if constexpr (DISPLAY_HIERARCHY)
                 display_hierarchy_properties(bd);
             children.push_back(bd);
 
             /* Computing the final bounding */
-            output_bd = (children.size() == 1) ?
+            const bounding* output_bd = (children.size() == 1) ?
                   children[0]
-                : create_hierarchy_from_boundings(std::move(children));
+                : create_hierarchy_from_boundings(std::move(children), bvh.value());
+            bvh.value().bounding_set.push_back(output_bd);
         }
 
         printf("\r%s successfully loaded:\n", file_name.c_str());

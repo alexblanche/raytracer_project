@@ -23,14 +23,14 @@ static constexpr bool DISPLAY_KMEANS = false;
 
 
 /* Auxiliary function that computes the centroid of a vector of objects */
-static rt::vector compute_centroid(const std::vector<element>& elts) {
+static rt::vector compute_centroid(const std::vector<element>& elts, const bvh& bvh) {
 
     if (elts.empty())
         throw std::runtime_error("Error, empty element set\n");
 
     rt::vector sum = rt::ZERO;
     for (const element& elt : elts)
-        sum += elt.get_position();
+        sum += elt.get_position(bvh);
 
     return sum / elts.size();
 }
@@ -60,7 +60,7 @@ enum class search_type {
    according to which of the vectors of means they are the closest
    Returns true if there has been a change of group for at least one element */
 static bool assign_to_closest(const std::vector<std::vector<element>>& old_groups, std::vector<std::vector<element>>& new_groups,
-    const std::vector<rt::vector>& means) {
+    const std::vector<rt::vector>& means, const bvh& bvh) {
 
     using enum search_type;
     search_type search_type = Linear;
@@ -94,7 +94,7 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
             parallel_for(old_group.size(), [&] (int i) {
 
                 const element& elt = old_group[i];
-                closest_indices[i] = search(elt.get_position());
+                closest_indices[i] = search(elt.get_position(bvh));
             });
 
             for (unsigned int i = 0; i < closest_indices.size(); i++)
@@ -103,7 +103,7 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
         else {
 
             for (const element& elt : old_group) {
-                const unsigned int closest_index = search(elt.get_position());
+                const unsigned int closest_index = search(elt.get_position(bvh));
                 new_groups[closest_index].push_back(elt);
             }
         }
@@ -122,7 +122,7 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
                     const auto& group = old_groups[i];
                     
                     for (const element& elt : group) {
-                        const unsigned int closest_index = search(elt.get_position());
+                        const unsigned int closest_index = search(elt.get_position(bvh));
                         change = change || (closest_index != static_cast<unsigned int>(i));
                         closest_indices.push_back(closest_index);
                     }
@@ -144,7 +144,7 @@ static bool assign_to_closest(const std::vector<std::vector<element>>& old_group
                 const auto& group = old_groups[i];
 
                 for (const element& elt : group) {
-                    const unsigned int closest_index = search(elt.get_position());
+                    const unsigned int closest_index = search(elt.get_position(bvh));
                     change = change || (closest_index != i);
                     new_groups[closest_index].push_back(elt);
                 }
@@ -182,7 +182,7 @@ static void fill_empty_clusters(std::vector<std::vector<element>>& groups) {
 
 
 /* Returns a vector of k vectors of elements representing the k clusters */
-static std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const unsigned int k) {
+static std::vector<std::vector<element>> k_means(const std::vector<element>& obj, const unsigned int k, const bvh& bvh) {
 
     /* Vectors containing the k initial means */
     std::vector<rt::vector> means(k);
@@ -193,10 +193,10 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
     const int bound = std::min(static_cast<unsigned int>(obj.size()), k);
 
     for (int i = 0; i < bound; i++)
-        means[i] = obj[static_cast<int>(i * step)].get_position();
+        means[i] = obj[static_cast<int>(i * step)].get_position(bvh);
     
     std::vector<std::vector<element>> groups(k);
-    assign_to_closest({ obj }, groups, means);
+    assign_to_closest({ obj }, groups, means, bvh);
     fill_empty_clusters(groups);
     
     unsigned int iterations = MAX_NUMBER_OF_ITERATIONS;
@@ -221,12 +221,12 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
         means.clear();
         for (const std::vector<element>& group : groups) {
             if (not group.empty())
-                means.emplace_back(compute_centroid(group));
+                means.emplace_back(compute_centroid(group, bvh));
         }
 
         /* Re-assigning the objects to the right group */
         std::vector<std::vector<element>> new_groups(k);
-        change = assign_to_closest(groups, new_groups, means);
+        change = assign_to_closest(groups, new_groups, means, bvh);
 
         fill_empty_clusters(new_groups);
 
@@ -248,13 +248,13 @@ static std::vector<std::vector<element>> k_means(const std::vector<element>& obj
 
 /* Auxiliary function to create_bounding_hierarchy
    Performs the second step of the algorithm: creates the hierarchy of the terminal boundings */
-const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& term_nodes) {
+const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& term_nodes, bvh& bvh) {
 
     if (term_nodes.size() == 1)
         return term_nodes[0];
     
     if (term_nodes.size() <= CARDINAL_OF_BOX_GROUP)
-        return containing_bounding_any(std::move(term_nodes));
+        return containing_bounding_any(std::move(term_nodes), bvh);
 
     std::vector<element> nodes = element::get_element(term_nodes);
 
@@ -262,7 +262,7 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
 
         const unsigned int k = 1 + nodes.size() / CARDINAL_OF_BOX_GROUP;
 
-        const std::vector<std::vector<element>> groups = k_means(nodes, k);
+        const std::vector<std::vector<element>> groups = k_means(nodes, k, bvh);
 
         std::vector<const bounding*> new_bd_nodes;
         
@@ -270,7 +270,7 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
         for (const std::vector<element>& elts : groups) {
             
             if (not elts.empty()) {
-                const bounding* bd = containing_bounding_any(element::get_content<const bounding*>(elts));
+                const bounding* bd = containing_bounding_any(element::get_content<const bounding*>(elts), bvh);
                 new_bd_nodes.push_back(bd);
                 cpt++;
             }
@@ -285,7 +285,7 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
     if (nodes.size() == 1)
         return nodes[0].get_bounding();
     else
-        return containing_bounding_any(element::get_content<const bounding*>(nodes));
+        return containing_bounding_any(element::get_content<const bounding*>(nodes), bvh);
 }
 
 /* Main function: creates the bounding box hierarchy of a set of objects */
@@ -297,8 +297,7 @@ const bounding* create_hierarchy_from_boundings(std::vector<const bounding*>&& t
    polygons_per_bounding polygons on average.
    The non-terminal nodes have CARDINAL_OF_BOX_GROUP children on average.
 */
-const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
-    const unsigned int polygons_per_bounding) {
+const bounding* create_bounding_hierarchy(std::vector<const object*>&& content, bvh& bvh) {
 
     /* Not enough polygons for it to be worth having a bounding box,
        the bounding here just acts as a container */
@@ -306,8 +305,8 @@ const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
         return new bounding(std::move(content));
     
     /* content fits in one bounding box */
-    if (content.size() <= polygons_per_bounding)
-        return containing_objects(std::move(content));
+    if (content.size() <= bvh.polygons_per_bounding)
+        return containing_objects(std::move(content), bvh);
    
     /* A hierarchy has to be created */
     if constexpr (DISPLAY_KMEANS)
@@ -318,8 +317,8 @@ const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
     }
 
     /* Splitting the objects into groups of polygons_per_bounding polygons (on average) */
-    const unsigned int k = 1 + content.size() / polygons_per_bounding;
-    const std::vector<std::vector<element>> groups = k_means(element::get_element(content), k);
+    const unsigned int k = 1 + content.size() / bvh.polygons_per_bounding;
+    const std::vector<std::vector<element>> groups = k_means(element::get_element(content), k, bvh);
 
     /** Creating the hierarchy **/
 
@@ -329,7 +328,7 @@ const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
     std::vector<const bounding*> term_nodes;
     for (const std::vector<element>& group : groups) {
         if (not group.empty()) {
-            const bounding* bd = containing_objects(element::get_content<const object*>(group));
+            const bounding* bd = containing_objects(element::get_content<const object*>(group), bvh);
             term_nodes.push_back(bd);
             cpt++;
         }
@@ -337,7 +336,7 @@ const bounding* create_bounding_hierarchy(std::vector<const object*>&& content,
     if constexpr (DISPLAY_KMEANS)
         printf("Nodes: %u (empty: %u)\n", cpt, k - cpt);
 
-    return create_hierarchy_from_boundings(std::move(term_nodes));
+    return create_hierarchy_from_boundings(std::move(term_nodes), bvh);
 }
 
 

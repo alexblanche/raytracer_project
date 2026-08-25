@@ -7,7 +7,7 @@
 #include "scene/objects/box.hpp"
 #include "scene/objects/cylinder.hpp"
 
-#include "scene/bvh/bounding.hpp"
+#include "scene/bvh/bvh.hpp"
 #include "scene/material/texture.hpp"
 #include "auxiliary/randomgen.hpp"
 #include "scene/camera.hpp"
@@ -26,10 +26,6 @@ struct map_sample {
 
     static_assert(TODO_ROUGHNESS_MAP);
     static_assert(TODO_DISPLACEMENT_MAP);
-};
-
-enum class bvh_option {
-    Enabled, Disabled
 };
 
 class scene {
@@ -184,8 +180,7 @@ class scene {
         /* Pointers to all the objects in the scene */
         std::vector<const object*> object_set;
 
-        /* Set of the first-level bounding boxes */
-        std::vector<const bounding*> bounding_set;
+        bvh bvh_;
 
         /* Objects, materials, textures, normal_maps */
         containers::object      object_containers;
@@ -199,22 +194,18 @@ class scene {
         int width;
         int height;
 
-        // Triangles are grouped by the given number in the bounding box tree-search method
-        unsigned int polygons_per_bounding;
-
         std::optional<real> gamma; // Note: should be removed from scene
         
 
         /* Constructor with background texture and optional background color */
         scene(
             std::vector<const object*>&&     object_set,
-            std::vector<const bounding*>&&   bounding_set,
+            std::optional<bvh>&&             bvh_opt,
             scene::containers::object&&      object_containers,
             scene::containers::mapping&&     mapping_containers,
             scene::containers::orientation&& orientation_containers,
             camera&& cam,
             int width, int height,
-            unsigned int polygons_per_bounding,
             std::optional<real> gamma
         );
 
@@ -224,22 +215,17 @@ class scene {
         scene& operator=(const scene&) = delete;
         scene& operator=(scene&&)      = delete;
 
-        ~scene() noexcept;
-
         /*************************************************************************************/
 
         /* Ray-scene intersection */
         /* Linear search through the objects of the scene */
         std::optional<hit> find_closest_object(const ray& r) const;
 
-        /* Tree-search through the bounding boxes */
-        std::optional<hit> find_closest_object_bounding(const ray& r) const;
-
-        inline std::optional<hit> find_closest(const ray& r, const bvh_option bvh) const {
-            using enum bvh_option;
-            switch (bvh) {
+        inline std::optional<hit> find_intersection(const ray& r) const {
+            using enum bvh::option;
+            switch (bvh_.state) {
                 case Enabled:
-                    return find_closest_object_bounding(r);
+                    return bvh_.find_closest_object(r);
                 case Disabled:
                     return find_closest_object(r);
                 default: throw;

@@ -24,6 +24,9 @@ class box final : public object {
                 axes(n1, n2, n1 ^ n2),
                 dims(l1 / 2, l2 / 2, l3 / 2) {}
 
+        constexpr box(const rt::vector& center, const rt::vector& dims)
+            : box(center, rt::RIGHT, rt::UP, dims.x, dims.y, dims.z) {}
+
         box(const min_max_coord& mmc)
             :   object(rt::ZERO, EMPTY_INDEX),
                 axes(rt::RIGHT, rt::UP, rt::FORWARD) {

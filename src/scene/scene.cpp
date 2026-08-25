@@ -5,39 +5,26 @@
 
 #include <optional>
 
-static constexpr unsigned int DEFAULT_STACK_SIZE = 200;
-
 scene::scene(
     std::vector<const object*>&&     object_set,
-    std::vector<const bounding*>&&   bounding_set,
+    std::optional<bvh>&&             bvh_opt,
     scene::containers::object&&      object_containers,
     scene::containers::mapping&&     mapping_containers,
     scene::containers::orientation&& orientation_containers,
     camera&& cam,
     const int width, const int height,
-    const unsigned int polygons_per_bounding,
     const std::optional<real> gamma) :
     
     object_set              (std::move(object_set)),
-    bounding_set            (std::move(bounding_set)),
     object_containers       (std::move(object_containers)),
     mapping_containers      (std::move(mapping_containers)),
     orientation_containers  (std::move(orientation_containers)),
     cam                     (std::move(cam)),
     width(width), height(height),
-    polygons_per_bounding(polygons_per_bounding),
-    gamma(gamma) {}
+    gamma(gamma) {
 
-
-scene::~scene() noexcept {
-    /* Destruction of the boundings with a breadth-first search */
-    custom_stack<const bounding*> bd_stack(DEFAULT_STACK_SIZE);
-    bd_stack.push(bounding_set);
-
-    while (not bd_stack.empty()) {
-        const bounding* bd = bd_stack.pop();
-        bd_stack.push(bd->get_children());
-        delete bd;
+    if (bvh_opt.has_value()) {
+        bvh_ = std::move(std::move(bvh_opt).value());
     }
 }
 
@@ -148,49 +135,6 @@ std::optional<hit> scene::find_closest_object(const ray& r) const {
     search_closest<cylinder>(cylinder_set, r, distance_to_closest, closest_pt, closest_obj_type);
 
     return dispatch::compute_intersection(closest_pt, closest_obj_type, r, distance_to_closest);
-}
-
-/* Tree-search through the bounding boxes */
-std::optional<hit> scene::find_closest_object_bounding(const ray& r) const {
-    /* For all the bounding boxes in bounding::set, we do the following:
-       If the bounding box is terminal, look for the object of minimum distance.
-       If it is internal, if the ray intersects the box, add its children to the bounding stack.
-       Then apply the same algorithm to the bounding stack, until it is empty.
-       Finally, compute the hit associated with the object of minimum distance.
-     */
-
-    real distance_to_closest  = infinity;
-    const object* closest_obj = nullptr;
-    
-    static thread_local custom_stack<const bounding*> bounding_stack(DEFAULT_STACK_SIZE);
-    bounding_stack.set_empty();
-
-    /* Pass through the set of first-level bounding boxes */
-    for (const bounding* const bd : bounding_set) {
-        bd->check_box(r, bounding_stack, distance_to_closest, closest_obj);
-    }
-
-    /* In order to avoid pushing and then immediately popping an element from bounding_stack,
-       we store the last element of bd->children in next_bounding.
-       The boolean bd_stored indicates whether we should pop an element, or if one is currently
-       stored.
-     */
-    const bounding* next_bounding = nullptr;
-    bool bd_stored = false;
-
-    /* Apply the same to the bounding box stack */
-    while (bd_stored || (not bounding_stack.empty())) {
-
-        const bounding* bd = bd_stored ? next_bounding : bounding_stack.pop();
-        
-        bd->check_box_next(r, bounding_stack, distance_to_closest, closest_obj,
-            bd_stored, next_bounding);
-    }
-
-    /* Finally, return the hit corresponding to the closest object intersected by the ray */
-    return (closest_obj != nullptr) ?
-          std::optional<hit>(closest_obj->compute_intersection(r, distance_to_closest))
-        : std::nullopt;
 }
 
 const rt::color& scene::sample_color(const hit& h, const material& m) const {

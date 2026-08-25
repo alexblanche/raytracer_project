@@ -211,10 +211,12 @@ min_max_coord cylinder::get_min_max_coord() const {
 
     const auto [ min_l, max_l ] = rt::min_max(lendir, rt::ZERO);
 
-    const rt::vector max = position + rv + max_l;
-    const rt::vector min = position - rv + min_l;
+    const min_max_vectors min_max = {
+        .min = position - rv + min_l,
+        .max = position + rv + max_l
+    };
 
-    return build_min_max_coord(min, max);
+    return build_min_max_coord(min_max);
 }
 
 uvcoord cylinder::compute_uv(const rt::vector&, const mapping_info*) const {
