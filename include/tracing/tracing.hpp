@@ -86,14 +86,17 @@ class worker {
 
         [[nodiscard]] rt::color full_intensity_case(const accumulators& acc,
             const hit& h, const material& m) const;
-
+        
         struct bounce_parameters {
             const hit& h;
             const material& m;
             const rt::vector& normal;
             const rt::color& color;
             real smoothness;
+            bool double_bounce;
         };
+
+        [[nodiscard]] inline bool specular_bounce(const bounce_parameters& param, const direction::bounce_vectors& bounce_v) const;
 
         struct path_parameters {
             ray r;
@@ -101,5 +104,5 @@ class worker {
             real refr_index;
         };
 
-        void process_bounce(const bounce_parameters& param, path_parameters& out, bool) const;
+        void process_bounce(const bounce_parameters& param, path_parameters& out) const;
 };

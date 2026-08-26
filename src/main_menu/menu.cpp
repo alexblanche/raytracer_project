@@ -291,6 +291,7 @@ static exit_status run_offline(const runtime_parameters_container& runtime_param
             unsigned int row_weight = 0;
             for (int i = 0; i < scene.width; i++) {
                 const ray r = scene.cam.gen_ray_basic(i, j, 0);
+                row_weight++;
                 if (scene.find_intersection(r).has_value())
                     row_weight++;
             }
