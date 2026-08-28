@@ -26,6 +26,19 @@ namespace trig {
         );
     }
 
+    inline rt::vector direction(const angles& theta_phi) {
+
+        const auto& [ theta, phi ] = theta_phi;
+
+        const real sin_phi = sin(phi);
+
+        return rt::vector(
+            cos(theta) * sin_phi,
+            cos(phi),
+            sin(theta) * sin_phi
+        );
+    }
+
     /* Uniform sampling of a point on the surface of a unit sphere */
     inline rt::vector random_direction_sphere(const randomgen& rg) {
 

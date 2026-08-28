@@ -74,7 +74,7 @@ alias_table::alias_table(const std::vector<Float>& prob_table,
         map_width(map_width),
         map_height(map_height),
         pt_width(pt_width),
-        //pt_height(pt_height),
+        pt_height(pt_height),
         ratio_x(static_cast<Float>(map_width)  / pt_width),
         ratio_y(static_cast<Float>(map_height) / pt_height) {
 
@@ -90,7 +90,7 @@ alias_table::alias_table(const std::vector<Float>& prob_table,
     
     for (int i = 0; const Float p : prob_table) {
         auto& stack = (p < invn) ? under : over;
-        stack.emplace(p, i);
+        stack.emplace(p, p, i);
         i++;
     }
 
@@ -99,15 +99,15 @@ alias_table::alias_table(const std::vector<Float>& prob_table,
         alias_bin& ob = over.top();
 
         // Setting the final value of u
-        auto& [ p, alias ] = bins[ub.alias];
-        p     = nb_bins * ub.p;
+        auto& [ q, _, alias ] = bins[ub.alias];
+        q     = nb_bins * ub.q;
         alias = ob.alias;
 
         under.pop();
 
         // Substracting the excess probability of o
-        ob.p -= invn * (1.0f - p);
-        if (ob.p < invn) {
+        ob.q -= invn * (1.0f - q);
+        if (ob.q < invn) {
             // No longer belongs to over
             under.emplace(ob);
             over.pop();
@@ -118,8 +118,8 @@ alias_table::alias_table(const std::vector<Float>& prob_table,
     auto& b = bins;
     auto handle_remaining = [&b] (custom_stack<alias_bin>& stack) {
         const auto content = stack.get_content();
-        for (const auto& [ _ , alias] : content)
-            b[alias] = { 1.0f, alias };
+        for (const auto& [ _, p, j] : content)
+            b[j] = { 1.0f, p, j };
         stack.set_empty();
     };
     handle_remaining(under);
@@ -151,8 +151,9 @@ alias_table::alias_table(const std::vector<Float>& prob_table,
 // Returns the coordinates of a pixel in the light map, chosen according to the probability from the table
 light_map_sample alias_table::sample_light_map(const random_ratio_gen<Float>& rg) const {
 
-    const unsigned int s = sample_table(rg);
+    const auto& [ s, p ] = sample_table(rg);
     // s corresponds to a pixel in the low-res image
+    // p is the probability of sampling s
 
     const Float lr_x = static_cast<Float>(s % pt_width);
     const Float lr_y = static_cast<Float>(s / pt_width);
@@ -165,5 +166,5 @@ light_map_sample alias_table::sample_light_map(const random_ratio_gen<Float>& rg
 
     const unsigned int x = min_x + rg.random(max_x - min_x);
     const unsigned int y = min_y + rg.random(max_y - min_y);
-    return { x, y };
+    return { x, y, p };
 }

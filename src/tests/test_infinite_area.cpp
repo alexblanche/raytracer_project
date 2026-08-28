@@ -31,7 +31,7 @@ int main(int, char**) {
     image lrdata(dwidth, dheight);
 
     const alias_table alt(mat_opt.value(), dwidth, dheight);
-    const random_ratio_gen<alias_table::Float> rg = alt.get_random_generator();
+    const random_ratio_gen<alias_table::Float> rg = alt.construct_random_generator();
 
     const rt::screen test_scr(lrdata);
     constexpr rt::color color_one(1, 1, 1);
@@ -43,7 +43,7 @@ int main(int, char**) {
     while (true) {
         timer.start();
         for (int i = 0; i < batch_size; i++) {
-            const unsigned int s = alt.sample_table(rg);
+            const auto [ s, _ ] = alt.sample_table(rg);
             lrdata[s / dwidth, s % dwidth] += color_one;
         }
         test_scr.fast_copy(1);

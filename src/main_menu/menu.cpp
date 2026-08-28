@@ -281,7 +281,7 @@ static exit_status run_offline(const runtime_parameters_container& runtime_param
         return file_handler.export_as(bmp(DEFAULT_OUTPUT_FILE_NAME), image);
     }
 
-    constexpr bool ADAPTATIVE = false;
+    constexpr bool ADAPTATIVE = true;
     parallel::adaptative::distribution distr;
     if constexpr (ADAPTATIVE) {
 
@@ -298,31 +298,33 @@ static exit_status run_offline(const runtime_parameters_container& runtime_param
             weights[j] = row_weight;
         });
 
-        std::cout << "weights" << std::endl;
-        for (auto w : weights)
-            std::cout << w << " ";
-        std::cout << std::endl << std::endl;
-
         distr = parallel::adaptative::distribute(weights);
 
-        std::cout << "distr" << std::endl;
-        for (auto x : distr)
-            std::cout << x << " ";
-        std::cout << std::endl << std::endl;
+        /*
+            std::cout << "weights" << std::endl;
+            for (auto w : weights)
+                std::cout << w << " ";
+            std::cout << std::endl << std::endl;
+        
+            std::cout << "distr" << std::endl;
+            for (auto x : distr)
+                std::cout << x << " ";
+            std::cout << std::endl << std::endl;
 
-        std::cout << "size" << std::endl;
-        for (std::size_t i = 0; i < distr.size() - 1; i++)
-            std::cout << distr[i + 1] - distr[i] << " ";
-        std::cout << std::endl << std::endl;
+            std::cout << "size" << std::endl;
+            for (std::size_t i = 0; i < distr.size() - 1; i++)
+                std::cout << distr[i + 1] - distr[i] << " ";
+            std::cout << std::endl << std::endl;
 
-        std::cout << "batch weight" << std::endl;
-        for (std::size_t i = 0; i < distr.size() - 1; i++) {
-            unsigned int batch_weight = 0;
-            for (int j = distr[i]; j < distr[i + 1]; j++)
-                batch_weight += weights[j];
-            std::cout << batch_weight << " ";
-        }
-        std::cout << std::endl << std::endl;
+            std::cout << "batch weight" << std::endl;
+            for (std::size_t i = 0; i < distr.size() - 1; i++) {
+                unsigned int batch_weight = 0;
+                for (int j = distr[i]; j < distr[i + 1]; j++)
+                    batch_weight += weights[j];
+                std::cout << batch_weight << " ";
+            }
+            std::cout << std::endl << std::endl;
+        */
 
         // debug::display_adaptative(scene, distr);
         // return exit_status::Failure;

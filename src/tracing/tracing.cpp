@@ -20,7 +20,6 @@ using enum direction::angle;
           + direction::random<Pi>(rg)
         ).unit()
     );
-    // Here: be careful not to go below the surface, when its local normal is almost parallel to the surface (cap the max angle to the local_normal)
 
     /* Apply the bias outward the surface */
     const rt::vector origin = h.biased_point(Outward);
@@ -32,8 +31,6 @@ using enum direction::angle;
 // Run-time
 [[nodiscard]] inline ray worker::specular_reflective_case(const hit& h, const direction::bounce_vectors& bounce_v,
     const real smoothness) const {
-
-    /* Direction according to Lambert's cosine law */
 
     const rt::vector central_dir = direction::central_reflected(bounce_v, smoothness, h.get_ray_orientation());
     return ray( 
@@ -79,7 +76,7 @@ using enum direction::angle;
     const auto& [ _, m, _, _, _, double_bounce ] = param;
 
     real bounce_probability = m.has_fresnel() ?
-            direction::get_fresnel(bounce_v, 1.0_r, m.get_refraction_index())
+          direction::get_fresnel(bounce_v, 1.0_r, m.get_refraction_index())
         : m.get_reflectivity();
 
     // Double glazing: bouncing back and forth between the two panes

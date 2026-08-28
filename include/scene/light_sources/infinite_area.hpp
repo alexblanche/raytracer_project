@@ -8,16 +8,24 @@ constexpr unsigned int LOWRES_DEFAULT_HEIGHT = 480;
 
 
 struct light_map_sample {
-    unsigned int x, y;
+    unsigned int x, y;  // Sampled point
+    real p;             // Probability of the sample
 };
 
 class alias_table {
+
+    struct sample {
+        unsigned int value;
+        real p;
+    };
 
     public:
         using Float = float;
 
         struct alias_bin {
-            Float p = 0.0f;
+                                    // For bins[i]:
+            Float q = 0.0f;         // Probability of choosing i or alias
+            Float p = 0.0f;         // Total probability of sampling i
             unsigned int alias = 0;
         };
 
@@ -25,6 +33,7 @@ class alias_table {
         unsigned int map_width;
         unsigned int map_height;
         unsigned int pt_width;
+        unsigned int pt_height;
         Float ratio_x;
         Float ratio_y;
 
@@ -41,18 +50,20 @@ class alias_table {
             unsigned int pt_width,
             unsigned int pt_height)
 
-        : alias_table(compute_low_res_table(matrix), matrix.width, matrix.height, pt_width, pt_height) {}
+            :   alias_table(compute_low_res_table(matrix), matrix.width, matrix.height, pt_width, pt_height) {}
 
         // Should be called in each thread at initialization
-        inline random_ratio_gen<Float> get_random_generator() const {
+        inline random_ratio_gen<Float> construct_random_generator() const {
             return random_ratio_gen<Float>(bins.size() - 1);
         }
 
-        inline unsigned int sample_table(const random_ratio_gen<Float>& rg) const {
+        inline sample sample_table(const random_ratio_gen<Float>& rg) const {
 
             const unsigned int i = rg.random<int>();
-            const auto [ p, alias ] = bins[i];
-            return (rg.random<Float>() < p) ? i : alias;
+            const auto [ q, p, alias ] = bins[i];
+            return (rg.random<Float>() < q) ?
+                  sample { i, p }
+                : sample { alias, bins[alias].p };
         }
 
         light_map_sample sample_light_map(const random_ratio_gen<Float>& rg) const;
